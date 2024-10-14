@@ -46,7 +46,7 @@ void CircuitCable::removeCircuit(ClosedCircuit *circuit)
 {
     const Power oldPower = powered();
 
-    Q_ASSERT(mSecondCableCirctuits.contains(circuit)
+    Q_ASSERT(mFirstCableCirctuits.contains(circuit)
              || mSecondCableCirctuits.contains(circuit));
 
     mFirstCableCirctuits.removeOne(circuit);
