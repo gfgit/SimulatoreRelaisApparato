@@ -9,7 +9,7 @@ class SimpleCircuitNode : public AbstractCircuitNode
 public:
     explicit SimpleCircuitNode(QObject *parent = nullptr);
 
-    virtual QVector<CableItem> getConnections(CableItem source) override;
+    virtual QVector<CableItem> getConnections(CableItem source, bool invertDir = false) override;
 };
 
 #endif // SIMPLECIRCUITNODE_H

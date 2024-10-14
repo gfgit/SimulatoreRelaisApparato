@@ -30,6 +30,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         nodes/simplecircuitnode.h nodes/simplecircuitnode.cpp
         nodes/relaispowernode.h nodes/relaispowernode.cpp
         nodes/powersourcenode.h nodes/powersourcenode.cpp
+        nodes/onoffswitchnode.h nodes/onoffswitchnode.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SimulatoreRelaisApparato APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

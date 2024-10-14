@@ -25,8 +25,8 @@ public:
 
     struct Item
     {
-        CableItem *cable = nullptr;
-        NodeItem *node = nullptr;
+        CableItem cable;
+        NodeItem node;
         bool isNode = false;
     };
 
@@ -35,10 +35,15 @@ public:
     void enableCircuit();
     void disableCircuit();
 
-    static createCircuitsFromPowerNode(PowerSourceNode *source);
+    static void createCircuitsFromPowerNode(PowerSourceNode *source);
+    static void createCircuitsFromOtherNode(AbstractCircuitNode *source);
 
 private:
-    static passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item>& items, int depth);
+    static void passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item>& items, int depth);
+
+    static void searchPowerSource(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth);
+
+    static void continueCircuitPassingLastNode(const QVector<Item> &items, int depth);
 
 public:
     QVector<Item> mItems;

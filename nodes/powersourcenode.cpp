@@ -10,7 +10,7 @@ PowerSourceNode::PowerSourceNode(QObject *parent)
     mContacts.append(NodeContact());
 }
 
-QVector<AbstractCircuitNode::CableItem> PowerSourceNode::getConnections(CableItem source)
+QVector<AbstractCircuitNode::CableItem> PowerSourceNode::getConnections(CableItem source, bool invertDir)
 {
     // Make circuits end here
     // TODO: only allow one cable connection on each side

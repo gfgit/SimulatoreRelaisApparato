@@ -12,15 +12,15 @@ void ClosedCircuit::enableCircuit()
 {
     Q_ASSERT(!enabled);
 
-    for(const Item& item : qAsConst(mItems))
+    for(const Item& item : std::as_const(mItems))
     {
         if(item.isNode)
         {
-            item.node->node->addCircuit(this);
+            item.node.node->addCircuit(this);
         }
         else
         {
-            item.cable->cable->addCircuit(this, item.cable->fromSide);
+            item.cable.cable->addCircuit(this, item.cable.fromSide);
         }
     }
 
@@ -31,36 +31,36 @@ void ClosedCircuit::disableCircuit()
 {
     Q_ASSERT(enabled);
 
-    for(const Item& item : qAsConst(mItems))
+    for(const Item& item : std::as_const(mItems))
     {
         if(item.isNode)
         {
-            item.node->node->removeCircuit(this);
+            item.node.node->removeCircuit(this);
         }
         else
         {
-            item.cable->cable->removeCircuit(this);
+            item.cable.cable->removeCircuit(this);
         }
     }
 
     enabled = false;
 }
 
-ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
+void ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
 {
-    auto side = source->getContacts().first();
+    auto contact = source->getContacts().first();
 
     Item firstItem;
     firstItem.isNode = true;
-    firstItem.node->node = source;
+    firstItem.node.node = source;
 
-    for(AbstractCircuitNode::CableItem nodeCable : side.cables)
+    for(AbstractCircuitNode::CableItem nodeCable : contact.cables)
     {
-        firstItem.node->toContact = nodeCable.nodeContact;
+        firstItem.node.toContact = nodeCable.nodeContact;
 
         Item item;
-        item.cable->cable = nodeCable.cable;
-        item.cable->fromSide = nodeCable.cableSide;
+        item.cable.cable = nodeCable.cable;
+        item.cable.fromSide = nodeCable.cableSide;
 
         QVector<Item> items;
         items.append(firstItem);
@@ -68,7 +68,8 @@ ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
 
         CircuitCable::Side otherSide = CircuitCable::oppositeSide(nodeCable.cableSide);
         CircuitCable::CableEnd cableEnd = nodeCable.cable->getNode(otherSide);
-        passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 0);
+        if(cableEnd.node)
+            passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 0);
     }
 }
 
@@ -79,33 +80,42 @@ bool containsNode(const QVector<ClosedCircuit::Item> &items, AbstractCircuitNode
         if(!item.isNode)
             continue;
 
-        if(item.node->node != node)
+        if(item.node.node != node)
             continue;
 
-        if(item.node->fromContact == nodeContact || item.node->toContact == nodeContact)
+        if(item.node.fromContact == nodeContact || item.node.toContact == nodeContact)
             return true;
     }
 
     return false;
 }
 
-ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
+void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
 {
     if(depth > 1000)
         return; // TODO
 
     Item nodeItem;
     nodeItem.isNode = true;
-    nodeItem.node->node = node;
-    nodeItem.node->fromContact = nodeContact;
+    nodeItem.node.node = node;
+    nodeItem.node.fromContact = nodeContact;
 
-    if(node == items.first().node->node)
+    if(node == items.first().node.node)
     {
-        // We closed the circuit
-        ClosedCircuit *circuit = new ClosedCircuit(node);
-        circuit->mItems = items;
-        circuit->mItems.append(nodeItem);
-        circuit->enableCircuit();
+        if(nodeContact != items.first().node.toContact)
+        {
+            // We closed the circuit
+            ClosedCircuit *circuit = new ClosedCircuit(node);
+            circuit->mItems = items;
+            circuit->mItems.append(nodeItem);
+            circuit->enableCircuit();
+        }
+        return;
+    }
+
+    if(qobject_cast<PowerSourceNode *>(node))
+    {
+        // Error, different power source connected
         return;
     }
 
@@ -119,10 +129,13 @@ ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, const
 
     for(const auto& conn : connections)
     {
-        nodeItem.node->toContact = conn.nodeContact;
+        nodeItem.node.toContact = conn.nodeContact;
 
         auto otherSide = CircuitCable::oppositeSide(conn.cableSide);
         CircuitCable::CableEnd cableEnd = conn.cable->getNode(otherSide);
+
+        if(!cableEnd.node)
+            continue;
 
         if(cableEnd.node == node && cableEnd.nodeContact == nodeContact)
         {
@@ -133,8 +146,158 @@ ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, const
             continue;
 
         QVector<Item> newItems = items;
-        newItems.append(nodeItem);
+
+        // Append node only if circuit goes through it
+        if(nodeItem.node.toContact != nodeItem.node.fromContact)
+            newItems.append(nodeItem);
+
+        Item item;
+        item.cable.cable = conn.cable;
+        item.cable.fromSide = conn.cableSide;
+        newItems.append(item);
 
         passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, depth + 1);
     }
+}
+
+void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source)
+{
+    for(const auto& contact : source->getContacts())
+    {
+        for(AbstractCircuitNode::CableItem nodeCable : contact.cables)
+        {
+            CircuitCable::Side otherSide = CircuitCable::oppositeSide(nodeCable.cableSide);
+
+            Item item;
+            item.cable.cable = nodeCable.cable;
+            item.cable.fromSide = otherSide;
+
+            QVector<Item> items;
+            items.append(item);
+
+            CircuitCable::CableEnd cableEnd = nodeCable.cable->getNode(otherSide);
+            searchPowerSource(cableEnd.node, cableEnd.nodeContact, items, 0);
+        }
+    }
+}
+
+void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
+{
+    if(depth > 1000)
+        return; // TODO
+
+    Item nodeItem;
+    nodeItem.isNode = true;
+    nodeItem.node.node = node;
+    nodeItem.node.toContact = nodeContact; // Backwards
+
+    if(qobject_cast<PowerSourceNode *>(node))
+    {
+        // We got a power source!
+
+        if(nodeContact != 0)
+            return; // Make circuits start from positive
+
+        // Reverse item order
+        QVector<Item> realItems = items;
+        realItems.append(nodeItem);
+        std::reverse(realItems.begin(), realItems.end());
+
+        continueCircuitPassingLastNode(realItems, depth);
+
+        return;
+    }
+
+    CableItem lastCable = items.constLast().cable;
+
+    AbstractCircuitNode::CableItem nodeSourceCable;
+    nodeSourceCable.cable = lastCable.cable;
+    nodeSourceCable.cableSide = lastCable.fromSide; // Backwards
+    nodeSourceCable.nodeContact = nodeContact;
+    const auto connections = node->getConnections(nodeSourceCable);
+
+    for(const auto& conn : connections)
+    {
+        nodeItem.node.fromContact = conn.nodeContact;
+
+        auto otherSide = CircuitCable::oppositeSide(conn.cableSide);
+        CircuitCable::CableEnd cableEnd = conn.cable->getNode(otherSide);
+
+        if(!cableEnd.node)
+            continue;
+
+        if(cableEnd.node == node && cableEnd.nodeContact == nodeContact)
+        {
+            continue;
+        }
+
+        if(containsNode(items, node, nodeContact))
+            continue;
+
+        QVector<Item> newItems = items;
+
+        // Append node only if circuit goes through it
+        if(nodeItem.node.toContact != nodeItem.node.fromContact)
+            newItems.append(nodeItem);
+
+        Item item;
+        item.cable.cable = conn.cable;
+        item.cable.fromSide = otherSide; // Backwards
+        newItems.append(item);
+
+        searchPowerSource(cableEnd.node, cableEnd.nodeContact, newItems, depth + 1);
+    }
+}
+
+void ClosedCircuit::continueCircuitPassingLastNode(const QVector<Item> &items, int depth)
+{
+    CableItem lastCable = items.constLast().cable;
+    CircuitCable::Side otherSide = CircuitCable::oppositeSide(lastCable.fromSide);
+    CircuitCable::CableEnd lastCableEnd = lastCable.cable->getNode(otherSide);
+
+    AbstractCircuitNode::CableItem nodeSourceCable;
+    nodeSourceCable.cable = lastCable.cable;
+    nodeSourceCable.cableSide = CircuitCable::oppositeSide(lastCable.fromSide);
+    nodeSourceCable.nodeContact = lastCableEnd.nodeContact;
+    const auto connections = lastCableEnd.node->getConnections(nodeSourceCable);
+
+    Item nodeItem;
+    nodeItem.isNode = true;
+    nodeItem.node.node = lastCableEnd.node;
+    nodeItem.node.fromContact = lastCableEnd.nodeContact;
+
+    for(const auto& conn : connections)
+    {
+        nodeItem.node.toContact = conn.nodeContact;
+        if(nodeItem.node.toContact == nodeItem.node.fromContact)
+            continue; // Skip circuits not passing through this node
+
+        auto otherSide = CircuitCable::oppositeSide(conn.cableSide);
+        CircuitCable::CableEnd cableEnd = conn.cable->getNode(otherSide);
+
+        if(!cableEnd.node)
+            continue;
+
+        if(cableEnd.node == nodeItem.node.node && cableEnd.nodeContact == nodeItem.node.fromContact)
+        {
+            continue;
+        }
+
+        if(containsNode(items, cableEnd.node, cableEnd.nodeContact))
+            continue;
+
+        QVector<Item> newItems = items;
+
+        // Append node
+        newItems.append(nodeItem);
+
+        Item item;
+        item.cable.cable = conn.cable;
+        item.cable.fromSide = conn.cableSide;
+        newItems.append(item);
+
+        passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, depth + 1);
+    }
+
+    return;
 }

@@ -49,7 +49,7 @@ void AbstractRelais::addPowerNode(RelaisPowerNode *p)
     mPowerNodes.append(p);
     p->mRelais = this;
 
-    if(!p->mCircuits.isEmpty())
+    if(p->hasCircuits())
     {
         powerNodeActivated(p);
     }
@@ -60,7 +60,7 @@ void AbstractRelais::removePowerNode(RelaisPowerNode *p)
     Q_ASSERT(mPowerNodes.contains(p));
     Q_ASSERT(p->mRelais == this);
 
-    if(!p->mCircuits.isEmpty())
+    if(p->hasCircuits())
     {
         powerNodeDeactivated(p);
     }

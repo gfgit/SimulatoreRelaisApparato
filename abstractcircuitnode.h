@@ -12,7 +12,6 @@ class AbstractCircuitNode : public QObject
 {
     Q_OBJECT
 public:
-
     struct CableItem
     {
         CircuitCable *cable = nullptr;
@@ -20,11 +19,16 @@ public:
         int nodeContact = 0;
     };
 
+    struct NodeContact
+    {
+        QVector<CableItem> cables;
+    };
+
     explicit AbstractCircuitNode(QObject *parent = nullptr);
 
     inline int getContactCount() const { return mContacts.size(); }
 
-    virtual QVector<CableItem> getConnections(CableItem source) = 0;
+    virtual QVector<CableItem> getConnections(CableItem source, bool invertDir = false) = 0;
 
     virtual void addCircuit(ClosedCircuit *circuit);
     virtual void removeCircuit(ClosedCircuit *circuit);
@@ -34,21 +38,25 @@ public:
         return mContacts;
     }
 
-    void attachCable(CableItem *item);
-    void detachCable(CableItem *item);
+    inline bool hasCircuits() const { return mCircuits.size(); }
+
+    void attachCable(CableItem item);
+    void detachCable(CableItem item);
 
 signals:
     void circuitsChanged();
 
-private:
-    struct NodeContact
-    {
-        QVector<CableItem> cables;
-    };
-
+protected:
     QVector<NodeContact> mContacts;
 
     QVector<ClosedCircuit *> mCircuits;
 };
+
+inline bool operator ==(const AbstractCircuitNode::CableItem& lhs,
+                        const AbstractCircuitNode::CableItem& rhs)
+{
+    // NOTE: nodeContact should be redundant to check
+    return lhs.cable == rhs.cable && lhs.cableSide == rhs.cableSide;
+}
 
 #endif // ABSTRACTCIRCUITNODE_H

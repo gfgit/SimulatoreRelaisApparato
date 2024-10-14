@@ -22,7 +22,7 @@ void CircuitCable::setMode(Mode newMode)
 
 void CircuitCable::addCircuit(ClosedCircuit *circuit, Side s)
 {
-    const Power oldPower = power();
+    const Power oldPower = powered();
 
     if(s == Side::A1 || s == Side::B1)
     {
@@ -35,14 +35,14 @@ void CircuitCable::addCircuit(ClosedCircuit *circuit, Side s)
         mSecondCableCirctuits.append(circuit);
     }
 
-    const Power newPower = power();
+    const Power newPower = powered();
     if(oldPower != newPower)
         emit powerChanged(newPower);
 }
 
 void CircuitCable::removeCircuit(ClosedCircuit *circuit)
 {
-    const Power oldPower = power();
+    const Power oldPower = powered();
 
     Q_ASSERT(mSecondCableCirctuits.contains(circuit)
              || mSecondCableCirctuits.contains(circuit));
@@ -50,7 +50,7 @@ void CircuitCable::removeCircuit(ClosedCircuit *circuit)
     mFirstCableCirctuits.removeOne(circuit);
     mSecondCableCirctuits.removeOne(circuit);
 
-    const Power newPower = power();
+    const Power newPower = powered();
     if(oldPower != newPower)
         emit powerChanged(newPower);
 }

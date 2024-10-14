@@ -45,7 +45,7 @@ public:
     Mode mode() const;
     void setMode(Mode newMode);
 
-    Power power();
+    Power powered();
 
     void addCircuit(ClosedCircuit *circuit, Side s);
     void removeCircuit(ClosedCircuit *circuit);
@@ -67,10 +67,10 @@ public:
         }
 
         Q_UNREACHABLE();
-        return nullptr;
+        return {};
     }
 
-    static inline Side oppositeSide(Side s) const
+    static inline Side oppositeSide(Side s)
     {
         switch (s)
         {
@@ -95,6 +95,7 @@ signals:
     void powerChanged(Power p);
 
 private:
+    friend class AbstractCircuitNode;
     void setNode(Side s, CableEnd node);
 
 private:
