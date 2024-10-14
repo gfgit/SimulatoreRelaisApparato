@@ -15,7 +15,8 @@ void AbstractCircuitNode::addCircuit(ClosedCircuit *circuit)
 
     mCircuits.append(circuit);
 
-    emit circuitsChanged();
+    if(mCircuits.size() == 1)
+        emit circuitsChanged();
 }
 
 void AbstractCircuitNode::removeCircuit(ClosedCircuit *circuit)
@@ -23,7 +24,8 @@ void AbstractCircuitNode::removeCircuit(ClosedCircuit *circuit)
     Q_ASSERT(mCircuits.contains(circuit));
     mCircuits.removeOne(circuit);
 
-    emit circuitsChanged();
+    if(mCircuits.size() == 0)
+        emit circuitsChanged();
 }
 
 void AbstractCircuitNode::attachCable(CableItem item)
