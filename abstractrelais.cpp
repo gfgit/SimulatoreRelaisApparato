@@ -48,6 +48,7 @@ void AbstractRelais::addPowerNode(RelaisPowerNode *p)
 
     mPowerNodes.append(p);
     p->mRelais = this;
+    emit p->relayChanged();
 
     if(p->hasCircuits())
     {
@@ -67,6 +68,7 @@ void AbstractRelais::removePowerNode(RelaisPowerNode *p)
 
     mPowerNodes.removeOne(p);
     p->mRelais = nullptr;
+    emit p->relayChanged();
 }
 
 void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
@@ -80,7 +82,7 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
     {
         // Begin powering relais
         // TODO
-        qt_noop();
+        setState(State::Up);
     }
 }
 
@@ -95,7 +97,7 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p)
     {
         // End powering relais
         // TODO
-        qt_noop();
+        setState(State::Down);
     }
 }
 

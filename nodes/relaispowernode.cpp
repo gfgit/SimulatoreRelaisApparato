@@ -61,3 +61,8 @@ void RelaisPowerNode::removeCircuit(ClosedCircuit *circuit)
         mRelais->powerNodeDeactivated(this);
     }
 }
+
+AbstractRelais *RelaisPowerNode::relais() const
+{
+    return mRelais;
+}

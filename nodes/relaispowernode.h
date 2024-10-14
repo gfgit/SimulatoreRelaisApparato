@@ -16,6 +16,11 @@ public:
     virtual void addCircuit(ClosedCircuit *circuit) override;
     virtual void removeCircuit(ClosedCircuit *circuit) override;
 
+    AbstractRelais *relais() const;
+
+signals:
+    void relayChanged();
+
 private:
     friend class AbstractRelais;
     AbstractRelais *mRelais = nullptr;
