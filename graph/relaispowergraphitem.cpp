@@ -79,4 +79,6 @@ void RelaisPowerGraphItem::updateRelay()
         connect(mRelay, &AbstractRelais::stateChanged,
                 this, &RelaisPowerGraphItem::triggerUpdate);
     }
+
+    update();
 }
