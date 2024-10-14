@@ -2,6 +2,8 @@
 
 #include "nodes/powersourcenode.h"
 
+#include <QSet>
+
 ClosedCircuit::ClosedCircuit(QObject *parent)
     : QObject{parent}
 {
@@ -12,8 +14,10 @@ void ClosedCircuit::enableCircuit()
 {
     Q_ASSERT(!enabled);
 
-    for(const Item& item : std::as_const(mItems))
+    // First item equal to last, add only last
+    for(int i = 1; i < mItems.size(); i++)
     {
+        const Item& item = mItems[i];
         if(item.isNode)
         {
             item.node.node->addCircuit(this);
@@ -31,15 +35,28 @@ void ClosedCircuit::disableCircuit()
 {
     Q_ASSERT(enabled);
 
+    // Remove only once per item
+    // This way we can assert inside removeCircuit()
+    QSet<AbstractCircuitNode *> nodes;
+    QSet<CircuitCable *> cables;
+
     for(const Item& item : std::as_const(mItems))
     {
         if(item.isNode)
         {
-            item.node.node->removeCircuit(this);
+            if(!nodes.contains(item.node.node))
+            {
+                item.node.node->removeCircuit(this);
+                nodes.insert(item.node.node);
+            }
         }
         else
         {
-            item.cable.cable->removeCircuit(this);
+            if(!cables.contains(item.cable.cable))
+            {
+                item.cable.cable->removeCircuit(this);
+                cables.insert(item.cable.cable);
+            }
         }
     }
 
@@ -68,8 +85,11 @@ void ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
 
         CircuitCable::Side otherSide = CircuitCable::oppositeSide(nodeCable.cableSide);
         CircuitCable::CableEnd cableEnd = nodeCable.cable->getNode(otherSide);
-        if(cableEnd.node)
-            passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 0);
+
+        if(!cableEnd.node)
+            continue;
+
+        passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 0);
     }
 }
 
@@ -160,9 +180,9 @@ void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, 
     }
 }
 
-void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source)
+void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source, const QVector<AbstractCircuitNode::NodeContact>& contacts)
 {
-    for(const auto& contact : source->getContacts())
+    for(const auto& contact : contacts)
     {
         for(AbstractCircuitNode::CableItem nodeCable : contact.cables)
         {
@@ -176,6 +196,10 @@ void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source)
             items.append(item);
 
             CircuitCable::CableEnd cableEnd = nodeCable.cable->getNode(otherSide);
+
+            if(!cableEnd.node)
+                continue;
+
             searchPowerSource(cableEnd.node, cableEnd.nodeContact, items, 0);
         }
     }
@@ -191,14 +215,15 @@ void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact
     nodeItem.node.node = node;
     nodeItem.node.toContact = nodeContact; // Backwards
 
-    if(qobject_cast<PowerSourceNode *>(node))
+    if(PowerSourceNode *powerSource = qobject_cast<PowerSourceNode *>(node))
     {
+        // Make circuits start from positive source contact (0)
+        // Do not add circuits to disabled power sources
+        if(!powerSource->getEnabled() || nodeContact != 0)
+            return;
+
         // We got a power source!
-
-        if(nodeContact != 0)
-            return; // Make circuits start from positive
-
-        // Reverse item order
+        // Reverse item order, then finish building circuits
         QVector<Item> realItems = items;
         realItems.append(nodeItem);
         std::reverse(realItems.begin(), realItems.end());

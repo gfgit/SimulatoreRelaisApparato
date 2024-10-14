@@ -18,7 +18,7 @@ public:
 
 private:
     friend class AbstractRelais;
-    AbstractRelais *mRelais;
+    AbstractRelais *mRelais = nullptr;
 };
 
 #endif // RELAISPOWERNODE_H

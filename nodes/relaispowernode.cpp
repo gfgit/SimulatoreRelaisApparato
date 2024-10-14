@@ -12,7 +12,7 @@ RelaisPowerNode::RelaisPowerNode(QObject *parent)
 
 QVector<AbstractCircuitNode::CableItem> RelaisPowerNode::getConnections(CableItem source, bool invertDir)
 {
-    if(source.nodeContact != 0 || source.nodeContact != 1)
+    if(source.nodeContact != 0 && source.nodeContact != 1)
         return {};
 
     const NodeContact& side = mContacts[source.nodeContact];

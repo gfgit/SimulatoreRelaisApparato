@@ -80,7 +80,10 @@ void OnOffSwitchNode::setOn(bool newOn)
 
     if(m_isOn)
     {
-        ClosedCircuit::createCircuitsFromOtherNode(this);
+        QVector<NodeContact> contactsToScan;
+        contactsToScan.append(mContacts[0]);
+        contactsToScan.append(mContacts[1]);
+        ClosedCircuit::createCircuitsFromOtherNode(this, contactsToScan);
     }
     else
     {

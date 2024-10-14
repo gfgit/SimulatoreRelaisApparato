@@ -26,12 +26,14 @@ void CircuitCable::addCircuit(ClosedCircuit *circuit, Side s)
 
     if(s == Side::A1 || s == Side::B1)
     {
-        Q_ASSERT(!mFirstCableCirctuits.contains(circuit));
+        if(mFirstCableCirctuits.contains(circuit))
+            return; // A circuit may pass 2 times on same item
         mFirstCableCirctuits.append(circuit);
     }
     else
     {
-        Q_ASSERT(!mSecondCableCirctuits.contains(circuit));
+        if(mSecondCableCirctuits.contains(circuit))
+            return; // A circuit may pass 2 times on same item
         mSecondCableCirctuits.append(circuit);
     }
 
@@ -72,10 +74,9 @@ void CircuitCable::setNode(Side s, CableEnd node)
         mNodeB2 = node;
         break;
     default:
+        Q_UNREACHABLE();
         break;
     }
-
-    Q_UNREACHABLE();
 }
 
 CircuitCable::Power CircuitCable::powered()

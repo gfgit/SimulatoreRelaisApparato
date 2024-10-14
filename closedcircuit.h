@@ -36,7 +36,7 @@ public:
     void disableCircuit();
 
     static void createCircuitsFromPowerNode(PowerSourceNode *source);
-    static void createCircuitsFromOtherNode(AbstractCircuitNode *source);
+    static void createCircuitsFromOtherNode(AbstractCircuitNode *source, const QVector<AbstractCircuitNode::NodeContact> &contacts);
 
 private:
     static void passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item>& items, int depth);

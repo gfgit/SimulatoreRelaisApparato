@@ -80,6 +80,7 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
     {
         // Begin powering relais
         // TODO
+        qt_noop();
     }
 }
 
@@ -94,6 +95,7 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p)
     {
         // End powering relais
         // TODO
+        qt_noop();
     }
 }
 

@@ -8,7 +8,11 @@ AbstractCircuitNode::AbstractCircuitNode(QObject *parent)
 
 void AbstractCircuitNode::addCircuit(ClosedCircuit *circuit)
 {
-    Q_ASSERT(!mCircuits.contains(circuit));
+    // A circuit may pass 2 times on same node
+    // But we add it only once
+    if(mCircuits.contains(circuit))
+        return;
+
     mCircuits.append(circuit);
 
     emit circuitsChanged();
@@ -29,7 +33,11 @@ void AbstractCircuitNode::attachCable(CableItem item)
 
     NodeContact& contact = mContacts[item.nodeContact];
     contact.cables.append(item);
-    item.cable->setNode(item.cableSide, {});
+
+    CircuitCable::CableEnd cableEnd;
+    cableEnd.node = this;
+    cableEnd.nodeContact = item.nodeContact;
+    item.cable->setNode(item.cableSide, cableEnd);
 }
 
 void AbstractCircuitNode::detachCable(CableItem item)
@@ -40,8 +48,5 @@ void AbstractCircuitNode::detachCable(CableItem item)
     NodeContact& contact = mContacts[item.nodeContact];
     contact.cables.removeOne(item);
 
-    CircuitCable::CableEnd cableEnd;
-    cableEnd.node = this;
-    cableEnd.nodeContact = item.nodeContact;
-    item.cable->setNode(item.cableSide, cableEnd);
+    item.cable->setNode(item.cableSide, {});
 }
