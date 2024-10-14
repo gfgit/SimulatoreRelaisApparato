@@ -8,6 +8,15 @@ AbstractRelais::AbstractRelais(QObject *parent)
 
 }
 
+AbstractRelais::~AbstractRelais()
+{
+    auto powerNodes = mPowerNodes;
+    for(RelaisPowerNode *p : powerNodes)
+    {
+        removePowerNode(p);
+    }
+}
+
 QString AbstractRelais::name() const
 {
     return mName;
@@ -44,11 +53,10 @@ void AbstractRelais::setDownSpeed(double newDownSpeed)
 void AbstractRelais::addPowerNode(RelaisPowerNode *p)
 {
     Q_ASSERT(!mPowerNodes.contains(p));
-    Q_ASSERT(!p->mRelais);
+    Q_ASSERT(!p->relais());
 
     mPowerNodes.append(p);
-    p->mRelais = this;
-    emit p->relayChanged();
+    p->setRelais(this);
 
     if(p->hasCircuits())
     {
@@ -59,7 +67,7 @@ void AbstractRelais::addPowerNode(RelaisPowerNode *p)
 void AbstractRelais::removePowerNode(RelaisPowerNode *p)
 {
     Q_ASSERT(mPowerNodes.contains(p));
-    Q_ASSERT(p->mRelais == this);
+    Q_ASSERT(p->relais() == this);
 
     if(p->hasCircuits())
     {
@@ -67,8 +75,7 @@ void AbstractRelais::removePowerNode(RelaisPowerNode *p)
     }
 
     mPowerNodes.removeOne(p);
-    p->mRelais = nullptr;
-    emit p->relayChanged();
+    p->setRelais(nullptr);
 }
 
 void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)

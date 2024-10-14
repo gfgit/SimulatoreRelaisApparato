@@ -10,6 +10,12 @@ RelaisPowerNode::RelaisPowerNode(QObject *parent)
     mContacts.append(NodeContact());
 }
 
+RelaisPowerNode::~RelaisPowerNode()
+{
+    if(mRelais)
+        mRelais->removePowerNode(this);
+}
+
 QVector<AbstractCircuitNode::CableItem> RelaisPowerNode::getConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0 && source.nodeContact != 1)
@@ -65,4 +71,12 @@ void RelaisPowerNode::removeCircuit(ClosedCircuit *circuit)
 AbstractRelais *RelaisPowerNode::relais() const
 {
     return mRelais;
+}
+
+void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
+{
+    if(mRelais == newRelais)
+        return;
+    mRelais = newRelais;
+    emit relayChanged();
 }

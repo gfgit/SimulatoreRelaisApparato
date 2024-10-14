@@ -19,6 +19,7 @@ public:
     };
 
     explicit AbstractRelais(QObject *parent = nullptr);
+    ~AbstractRelais();
 
     State state() const;
     void setState(State newState);

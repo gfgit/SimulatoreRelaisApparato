@@ -10,6 +10,7 @@ class RelaisPowerNode : public AbstractCircuitNode
     Q_OBJECT
 public:
     explicit RelaisPowerNode(QObject *parent = nullptr);
+    ~RelaisPowerNode();
 
     virtual QVector<CableItem> getConnections(CableItem source, bool invertDir = false) override;
 
@@ -23,6 +24,9 @@ signals:
 
 private:
     friend class AbstractRelais;
+    void setRelais(AbstractRelais *newRelais);
+
+private:
     AbstractRelais *mRelais = nullptr;
 };
 
