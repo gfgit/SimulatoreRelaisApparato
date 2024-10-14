@@ -23,6 +23,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(SimulatoreRelaisApparato
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        abstractrelais.h abstractrelais.cpp
+        abstractcircuitnode.h abstractcircuitnode.cpp
+        circuitcable.h circuitcable.cpp
+        closedcircuit.h closedcircuit.cpp
+        nodes/simplecircuitnode.h nodes/simplecircuitnode.cpp
+        nodes/relaispowernode.h nodes/relaispowernode.cpp
+        nodes/powersourcenode.h nodes/powersourcenode.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SimulatoreRelaisApparato APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
