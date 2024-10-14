@@ -35,6 +35,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graph/powersourcegraphitem.h graph/powersourcegraphitem.cpp
         graph/onoffgraphitem.h graph/onoffgraphitem.cpp
         graph/relaispowergraphitem.h graph/relaispowergraphitem.cpp
+        nodes/relaiscontactnode.h nodes/relaiscontactnode.cpp
+        graph/relaiscontactgraphitem.h graph/relaiscontactgraphitem.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SimulatoreRelaisApparato APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

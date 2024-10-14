@@ -4,6 +4,7 @@
 #include <QObject>
 
 class RelaisPowerNode;
+class RelaisContactNode;
 
 class AbstractRelais : public QObject
 {
@@ -37,6 +38,9 @@ public:
     void addPowerNode(RelaisPowerNode *p);
     void removePowerNode(RelaisPowerNode *p);
 
+    void addContactNode(RelaisContactNode *c);
+    void removeContactNode(RelaisContactNode *c);
+
 signals:
     void nameChanged(const QString& name);
     void stateChanged(State s);
@@ -54,6 +58,8 @@ private:
 
     QVector<RelaisPowerNode *> mPowerNodes;
     int mActivePowerNodes = 0;
+
+    QVector<RelaisContactNode *> mContactNodes;
 };
 
 #endif // ABSTRACTRELAIS_H

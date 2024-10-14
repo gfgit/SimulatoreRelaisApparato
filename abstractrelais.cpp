@@ -1,5 +1,6 @@
 #include "abstractrelais.h"
 
+#include "nodes/relaiscontactnode.h"
 #include "nodes/relaispowernode.h"
 
 AbstractRelais::AbstractRelais(QObject *parent)
@@ -14,6 +15,12 @@ AbstractRelais::~AbstractRelais()
     for(RelaisPowerNode *p : powerNodes)
     {
         removePowerNode(p);
+    }
+
+    auto contactNodes = mContactNodes;
+    for(RelaisContactNode *c : contactNodes)
+    {
+        removeContactNode(c);
     }
 }
 
@@ -76,6 +83,24 @@ void AbstractRelais::removePowerNode(RelaisPowerNode *p)
 
     mPowerNodes.removeOne(p);
     p->setRelais(nullptr);
+}
+
+void AbstractRelais::addContactNode(RelaisContactNode *c)
+{
+    Q_ASSERT(!mContactNodes.contains(c));
+    Q_ASSERT(!c->relais());
+
+    mContactNodes.append(c);
+    c->setRelais(this);
+}
+
+void AbstractRelais::removeContactNode(RelaisContactNode *c)
+{
+    Q_ASSERT(mContactNodes.contains(c));
+    Q_ASSERT(c->relais() == this);
+
+    mContactNodes.removeOne(c);
+    c->setRelais(nullptr);
 }
 
 void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
