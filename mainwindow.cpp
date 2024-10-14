@@ -13,3 +13,8 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::setScene(QGraphicsScene *s)
+{
+    ui->graphicsView->setScene(s);
+}
+
