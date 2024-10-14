@@ -19,6 +19,7 @@ public:
 private slots:
     void triggerUpdate();
     void updateRelay();
+    void updateName();
 
 private:
     RelaisPowerNode *mNode;

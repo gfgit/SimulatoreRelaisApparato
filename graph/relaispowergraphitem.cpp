@@ -70,6 +70,8 @@ void RelaisPowerGraphItem::updateRelay()
     {
         disconnect(mRelay, &AbstractRelais::stateChanged,
                    this, &RelaisPowerGraphItem::triggerUpdate);
+        disconnect(mRelay, &AbstractRelais::objectNameChanged,
+                   this, &RelaisPowerGraphItem::updateName);
     }
 
     mRelay = mNode->relais();
@@ -78,7 +80,17 @@ void RelaisPowerGraphItem::updateRelay()
     {
         connect(mRelay, &AbstractRelais::stateChanged,
                 this, &RelaisPowerGraphItem::triggerUpdate);
+        connect(mRelay, &AbstractRelais::objectNameChanged,
+                this, &RelaisPowerGraphItem::updateName);
     }
 
+    updateName();
     update();
+}
+
+void RelaisPowerGraphItem::updateName()
+{
+    setToolTip(mRelay ?
+                   mRelay->objectName() :
+                   QLatin1String("NO RELAY SET"));
 }

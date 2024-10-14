@@ -19,6 +19,7 @@ public:
 
 private slots:
     void triggerUpdate();
+    void updateName();
 
 private:
     PowerSourceNode *mNode;

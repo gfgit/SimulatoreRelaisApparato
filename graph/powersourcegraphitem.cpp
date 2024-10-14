@@ -12,6 +12,9 @@ PowerSourceGraphItem::PowerSourceGraphItem(PowerSourceNode *node)
     setParent(mNode);
 
     connect(mNode, &PowerSourceNode::enabledChanged, this, &PowerSourceGraphItem::triggerUpdate);
+    connect(mNode, &QObject::objectNameChanged, this, &PowerSourceGraphItem::updateName);
+
+    updateName();
 }
 
 QRectF PowerSourceGraphItem::boundingRect() const
@@ -39,4 +42,9 @@ void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 void PowerSourceGraphItem::triggerUpdate()
 {
     update();
+}
+
+void PowerSourceGraphItem::updateName()
+{
+    setToolTip(mNode->objectName());
 }

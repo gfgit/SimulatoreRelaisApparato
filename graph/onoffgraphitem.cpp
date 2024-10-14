@@ -13,6 +13,9 @@ OnOffGraphItem::OnOffGraphItem(OnOffSwitchNode *node)
 
     connect(mNode, &OnOffSwitchNode::circuitsChanged, this, &OnOffGraphItem::triggerUpdate);
     connect(mNode, &OnOffSwitchNode::isOnChanged, this, &OnOffGraphItem::triggerUpdate);
+    connect(mNode, &QObject::objectNameChanged, this, &OnOffGraphItem::updateName);
+
+    updateName();
 }
 
 QRectF OnOffGraphItem::boundingRect() const
@@ -53,5 +56,10 @@ void OnOffGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 void OnOffGraphItem::triggerUpdate()
 {
     update();
+}
+
+void OnOffGraphItem::updateName()
+{
+    setToolTip(mNode->objectName());
 }
 
