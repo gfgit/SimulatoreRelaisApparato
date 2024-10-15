@@ -13,7 +13,6 @@ class RelaisPowerGraphItem : public AbstractNodeGraphItem
 public:
     RelaisPowerGraphItem(RelaisPowerNode *node_);
 
-    QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     RelaisPowerNode *node() const;

@@ -12,10 +12,11 @@ class OnOffGraphItem : public AbstractNodeGraphItem
 public:
     OnOffGraphItem(OnOffSwitchNode *node_);
 
-    QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e);
+
+    void getConnectors(std::vector<Connector>& connectors) const final;
 
     OnOffSwitchNode *node() const;
 };

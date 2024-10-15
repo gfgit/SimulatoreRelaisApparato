@@ -13,11 +13,6 @@ RelaisPowerGraphItem::RelaisPowerGraphItem(RelaisPowerNode *node_)
     updateRelay();
 }
 
-QRectF RelaisPowerGraphItem::boundingRect() const
-{
-    return QRectF(0, 0, 50, 50);
-}
-
 void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     QPen pen;

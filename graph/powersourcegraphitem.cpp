@@ -12,11 +12,6 @@ PowerSourceGraphItem::PowerSourceGraphItem(PowerSourceNode *node_)
             this, &PowerSourceGraphItem::triggerUpdate);
 }
 
-QRectF PowerSourceGraphItem::boundingRect() const
-{
-    return QRectF(0, 0, 50, 50);
-}
-
 void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(Qt::NoPen);

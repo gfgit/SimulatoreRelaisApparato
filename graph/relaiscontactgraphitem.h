@@ -12,8 +12,9 @@ class RelaisContactGraphItem : public AbstractNodeGraphItem
 public:
     RelaisContactGraphItem(RelaisContactNode *node_);
 
-    QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
+
+    void getConnectors(std::vector<Connector>& connectors) const final;
 
     RelaisContactNode *node() const;
 };

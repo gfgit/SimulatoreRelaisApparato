@@ -12,7 +12,6 @@ class PowerSourceGraphItem : public AbstractNodeGraphItem
 public:
     PowerSourceGraphItem(PowerSourceNode *node_);
 
-    QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e);
