@@ -48,6 +48,7 @@ private:
 public:
     QVector<Item> mItems;
     bool enabled = false;
+    bool isDisabling = false;
 };
 
 #endif // CLOSEDCIRCUIT_H

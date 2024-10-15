@@ -35,6 +35,12 @@ void ClosedCircuit::disableCircuit()
 {
     Q_ASSERT(enabled);
 
+    // Guard against recursive disabling of circuit
+    if(isDisabling)
+        return;
+
+    isDisabling = true;
+
     // Remove only once per item
     // This way we can assert inside removeCircuit()
     QSet<AbstractCircuitNode *> nodes;
@@ -59,6 +65,8 @@ void ClosedCircuit::disableCircuit()
             }
         }
     }
+
+    isDisabling = false;
 
     enabled = false;
 }
