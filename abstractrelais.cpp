@@ -40,6 +40,16 @@ void AbstractRelais::setName(const QString &newName)
         return;
     mName = newName;
     emit nameChanged(mName);
+
+    for(RelaisPowerNode *p : mPowerNodes)
+    {
+        p->setObjectName(mName);
+    }
+
+    for(RelaisContactNode *c : mContactNodes)
+    {
+        c->setObjectName(mName);
+    }
 }
 
 double AbstractRelais::upSpeed() const
@@ -69,6 +79,7 @@ void AbstractRelais::addPowerNode(RelaisPowerNode *p)
 
     mPowerNodes.append(p);
     p->setRelais(this);
+    p->setObjectName(mName);
 
     if(p->hasCircuits())
     {
@@ -97,6 +108,7 @@ void AbstractRelais::addContactNode(RelaisContactNode *c)
 
     mContactNodes.append(c);
     c->setRelais(this);
+    c->setObjectName(mName);
 }
 
 void AbstractRelais::removeContactNode(RelaisContactNode *c)
