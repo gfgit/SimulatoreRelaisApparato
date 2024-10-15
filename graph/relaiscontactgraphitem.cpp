@@ -37,10 +37,10 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     painter->drawLine(QLineF(25, 25, 50, 25));
 
     int startAngle = mNode->state() == RelaisContactNode::State::Down ?
-                0 : -20 * 16;
+                0 : -40 * 16;
 
     int endAngle = mNode->state() == RelaisContactNode::State::Up ?
-                90 * 16 : 110 * 16;
+                90 * 16 : 130 * 16;
 
     painter->drawArc(QRectF(10, 10, 30, 30),
                      startAngle,
