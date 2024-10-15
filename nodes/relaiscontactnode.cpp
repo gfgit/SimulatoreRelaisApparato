@@ -23,7 +23,7 @@ RelaisContactNode::~RelaisContactNode()
 
 QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getConnections(CableItem source, bool invertDir)
 {
-    if((source.nodeContact < 0) || (source.nodeContact > 3))
+    if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
 
     const NodeContact& contact = mContacts[source.nodeContact];
