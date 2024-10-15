@@ -2,27 +2,22 @@
 #define POWERSOURCEGRAPHITEM_H
 
 
-#include <QGraphicsObject>
+#include "abstractnodegraphitem.h"
 
 class PowerSourceNode;
 
-class PowerSourceGraphItem : public QGraphicsObject
+class PowerSourceGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    PowerSourceGraphItem(PowerSourceNode *node);
+    PowerSourceGraphItem(PowerSourceNode *node_);
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e);
 
-private slots:
-    void triggerUpdate();
-    void updateName();
-
-private:
-    PowerSourceNode *mNode;
+    PowerSourceNode *node() const;
 };
 
 #endif // POWERSOURCEGRAPHITEM_H

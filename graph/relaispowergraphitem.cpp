@@ -5,13 +5,10 @@
 
 #include <QPainter>
 
-RelaisPowerGraphItem::RelaisPowerGraphItem(RelaisPowerNode *node)
-    : QGraphicsObject()
-    , mNode(node)
+RelaisPowerGraphItem::RelaisPowerGraphItem(RelaisPowerNode *node_)
+    : AbstractNodeGraphItem(node_)
 {
-    setParent(mNode);
-
-    connect(mNode, &RelaisPowerNode::relayChanged,
+    connect(node(), &RelaisPowerNode::relayChanged,
             this, &RelaisPowerGraphItem::updateRelay);
     updateRelay();
 }
@@ -56,14 +53,9 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     painter->drawEllipse(QRectF(5, 5, 45, 45));
 }
 
-void RelaisPowerGraphItem::triggerUpdate()
-{
-    update();
-}
-
 void RelaisPowerGraphItem::updateRelay()
 {
-    if(mRelay == mNode->relais())
+    if(mRelay == node()->relais())
         return;
 
     if(mRelay)
@@ -74,7 +66,7 @@ void RelaisPowerGraphItem::updateRelay()
                    this, &RelaisPowerGraphItem::updateName);
     }
 
-    mRelay = mNode->relais();
+    mRelay = node()->relais();
 
     if(mRelay)
     {
@@ -93,4 +85,9 @@ void RelaisPowerGraphItem::updateName()
     setToolTip(mRelay ?
                    mRelay->objectName() :
                    QLatin1String("NO RELAY SET"));
+}
+
+RelaisPowerNode *RelaisPowerGraphItem::node() const
+{
+    return static_cast<RelaisPowerNode *>(getAbstractNode());
 }

@@ -5,17 +5,13 @@
 #include <QPainterPath>
 #include <QPainter>
 
-RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node)
-    : QGraphicsObject()
-    , mNode(node)
+RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
+    : AbstractNodeGraphItem(node_)
 {
-    setParent(mNode);
-
-    connect(mNode, &RelaisContactNode::circuitsChanged, this, &RelaisContactGraphItem::triggerUpdate);
-    connect(mNode, &RelaisContactNode::stateChanged, this, &RelaisContactGraphItem::triggerUpdate);
-    connect(mNode, &QObject::objectNameChanged, this, &RelaisContactGraphItem::updateName);
-
-    updateName();
+    connect(node(), &RelaisContactNode::circuitsChanged,
+            this, &RelaisContactGraphItem::triggerUpdate);
+    connect(node(), &RelaisContactNode::stateChanged,
+            this, &RelaisContactGraphItem::triggerUpdate);
 }
 
 QRectF RelaisContactGraphItem::boundingRect() const
@@ -27,7 +23,7 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 {
     QPen pen;
     pen.setWidthF(5.0);
-    pen.setColor(mNode->hasCircuits() ? Qt::red : Qt::black);
+    pen.setColor(node()->hasCircuits() ? Qt::red : Qt::black);
     pen.setCapStyle(Qt::FlatCap);
 
     painter->setPen(pen);
@@ -36,10 +32,10 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     painter->drawLine(QLineF(25, 0, 25, 50));
     painter->drawLine(QLineF(25, 25, 50, 25));
 
-    int startAngle = mNode->state() == RelaisContactNode::State::Down ?
+    int startAngle = node()->state() == RelaisContactNode::State::Down ?
                 0 : -40 * 16;
 
-    int endAngle = mNode->state() == RelaisContactNode::State::Up ?
+    int endAngle = node()->state() == RelaisContactNode::State::Up ?
                 90 * 16 : 130 * 16;
 
     painter->drawArc(QRectF(10, 10, 30, 30),
@@ -47,12 +43,7 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
                      endAngle - startAngle);
 }
 
-void RelaisContactGraphItem::triggerUpdate()
+RelaisContactNode *RelaisContactGraphItem::node() const
 {
-    update();
-}
-
-void RelaisContactGraphItem::updateName()
-{
-    setToolTip(mNode->objectName());
+    return static_cast<RelaisContactNode *>(getAbstractNode());
 }

@@ -2,27 +2,29 @@
 #define RELAISPOWERGRAPHITEM_H
 
 
-#include <QGraphicsObject>
+#include "abstractnodegraphitem.h"
 
 class RelaisPowerNode;
 class AbstractRelais;
 
-class RelaisPowerGraphItem : public QGraphicsObject
+class RelaisPowerGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    RelaisPowerGraphItem(RelaisPowerNode *node);
+    RelaisPowerGraphItem(RelaisPowerNode *node_);
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
+    RelaisPowerNode *node() const;
+
 private slots:
-    void triggerUpdate();
     void updateRelay();
-    void updateName();
+
+protected slots:
+    void updateName() override;
 
 private:
-    RelaisPowerNode *mNode;
     AbstractRelais *mRelay = nullptr;
 };
 

@@ -2,25 +2,20 @@
 #define RELAISCONTACTGRAPHITEM_H
 
 
-#include <QGraphicsObject>
+#include "abstractnodegraphitem.h"
 
 class RelaisContactNode;
 
-class RelaisContactGraphItem : public QGraphicsObject
+class RelaisContactGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    RelaisContactGraphItem(RelaisContactNode *node);
+    RelaisContactGraphItem(RelaisContactNode *node_);
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-private slots:
-    void triggerUpdate();
-    void updateName();
-
-private:
-    RelaisContactNode *mNode;
+    RelaisContactNode *node() const;
 };
 
 #endif // RELAISCONTACTGRAPHITEM_H

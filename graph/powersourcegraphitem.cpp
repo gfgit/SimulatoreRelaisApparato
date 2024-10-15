@@ -5,16 +5,11 @@
 #include <QPainterPath>
 #include <QPainter>
 
-PowerSourceGraphItem::PowerSourceGraphItem(PowerSourceNode *node)
-    : QGraphicsObject()
-    , mNode(node)
+PowerSourceGraphItem::PowerSourceGraphItem(PowerSourceNode *node_)
+    : AbstractNodeGraphItem(node_)
 {
-    setParent(mNode);
-
-    connect(mNode, &PowerSourceNode::enabledChanged, this, &PowerSourceGraphItem::triggerUpdate);
-    connect(mNode, &QObject::objectNameChanged, this, &PowerSourceGraphItem::updateName);
-
-    updateName();
+    connect(node(), &PowerSourceNode::enabledChanged,
+            this, &PowerSourceGraphItem::triggerUpdate);
 }
 
 QRectF PowerSourceGraphItem::boundingRect() const
@@ -25,7 +20,7 @@ QRectF PowerSourceGraphItem::boundingRect() const
 void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     painter->setPen(Qt::NoPen);
-    painter->setBrush(mNode->getEnabled() ? Qt::red : Qt::darkGreen);
+    painter->setBrush(node()->getEnabled() ? Qt::red : Qt::darkGreen);
 
     // Draw a triangle
     QPointF triangle[3] = {{0, 0}, {50, 0}, {25, 50}};
@@ -35,16 +30,11 @@ void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 {
     // Toggle on double click
-    bool val = mNode->getEnabled();
-    mNode->setEnabled(!val);
+    bool val = node()->getEnabled();
+    node()->setEnabled(!val);
 }
 
-void PowerSourceGraphItem::triggerUpdate()
+PowerSourceNode *PowerSourceGraphItem::node() const
 {
-    update();
-}
-
-void PowerSourceGraphItem::updateName()
-{
-    setToolTip(mNode->objectName());
+    return static_cast<PowerSourceNode *>(getAbstractNode());
 }

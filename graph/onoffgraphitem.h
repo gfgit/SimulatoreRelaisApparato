@@ -2,27 +2,22 @@
 #define ONOFFGRAPHITEM_H
 
 
-#include <QGraphicsObject>
+#include "abstractnodegraphitem.h"
 
 class OnOffSwitchNode;
 
-class OnOffGraphItem : public QGraphicsObject
+class OnOffGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    OnOffGraphItem(OnOffSwitchNode *node);
+    OnOffGraphItem(OnOffSwitchNode *node_);
 
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e);
 
-private slots:
-    void triggerUpdate();
-    void updateName();
-
-private:
-    OnOffSwitchNode *mNode;
+    OnOffSwitchNode *node() const;
 };
 
 #endif // ONOFFGRAPHITEM_H

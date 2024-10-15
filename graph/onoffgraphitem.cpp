@@ -5,17 +5,13 @@
 #include <QPainterPath>
 #include <QPainter>
 
-OnOffGraphItem::OnOffGraphItem(OnOffSwitchNode *node)
-    : QGraphicsObject()
-    , mNode(node)
+OnOffGraphItem::OnOffGraphItem(OnOffSwitchNode *node_)
+    : AbstractNodeGraphItem(node_)
 {
-    setParent(mNode);
-
-    connect(mNode, &OnOffSwitchNode::circuitsChanged, this, &OnOffGraphItem::triggerUpdate);
-    connect(mNode, &OnOffSwitchNode::isOnChanged, this, &OnOffGraphItem::triggerUpdate);
-    connect(mNode, &QObject::objectNameChanged, this, &OnOffGraphItem::updateName);
-
-    updateName();
+    connect(node(), &OnOffSwitchNode::circuitsChanged,
+            this, &OnOffGraphItem::triggerUpdate);
+    connect(node(), &OnOffSwitchNode::isOnChanged,
+            this, &OnOffGraphItem::triggerUpdate);
 }
 
 QRectF OnOffGraphItem::boundingRect() const
@@ -27,13 +23,13 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 {
     QPen pen;
     pen.setWidthF(5.0);
-    pen.setColor(mNode->hasCircuits() ? Qt::red : Qt::black);
+    pen.setColor(node()->hasCircuits() ? Qt::red : Qt::black);
     pen.setCapStyle(Qt::FlatCap);
 
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
 
-    if(mNode->isOn())
+    if(node()->isOn())
     {
         painter->drawLine(QLineF(25, 0, 25, 50));
         painter->drawLine(QLineF(0, 25, 25, 25));
@@ -49,17 +45,11 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 void OnOffGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 {
     // Toggle on double click
-    bool val = mNode->isOn();
-    mNode->setOn(!val);
+    bool val = node()->isOn();
+    node()->setOn(!val);
 }
 
-void OnOffGraphItem::triggerUpdate()
+OnOffSwitchNode *OnOffGraphItem::node() const
 {
-    update();
+    return static_cast<OnOffSwitchNode *>(getAbstractNode());
 }
-
-void OnOffGraphItem::updateName()
-{
-    setToolTip(mNode->objectName());
-}
-
