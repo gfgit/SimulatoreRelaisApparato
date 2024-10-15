@@ -28,7 +28,7 @@ public:
 
     inline int getContactCount() const { return mContacts.size(); }
 
-    virtual QVector<CableItem> getConnections(CableItem source, bool invertDir = false) = 0;
+    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) = 0;
 
     virtual void addCircuit(ClosedCircuit *circuit);
     virtual void removeCircuit(ClosedCircuit *circuit);

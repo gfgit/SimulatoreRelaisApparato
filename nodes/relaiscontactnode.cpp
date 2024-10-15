@@ -21,7 +21,7 @@ RelaisContactNode::~RelaisContactNode()
         mRelais->removeContactNode(this);
 }
 
-QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getConnections(CableItem source, bool invertDir)
+QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};

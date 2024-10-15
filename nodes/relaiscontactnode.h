@@ -19,7 +19,7 @@ public:
     explicit RelaisContactNode(QObject *parent = nullptr);
     ~RelaisContactNode();
 
-    virtual QVector<CableItem> getConnections(CableItem source, bool invertDir = false) override;
+    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
     AbstractRelais *relais() const;
 

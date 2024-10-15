@@ -9,7 +9,7 @@ class OnOffSwitchNode : public AbstractCircuitNode
 public:
     explicit OnOffSwitchNode(QObject *parent = nullptr);
 
-    virtual QVector<CableItem> getConnections(CableItem source, bool invertDir = false) override;
+    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
     bool isOn() const;
     void setOn(bool newOn);

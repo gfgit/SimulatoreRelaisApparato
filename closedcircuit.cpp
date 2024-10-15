@@ -153,7 +153,7 @@ void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, 
     nodeSourceCable.cable = lastCable.cable;
     nodeSourceCable.cableSide = CircuitCable::oppositeSide(lastCable.fromSide);
     nodeSourceCable.nodeContact = nodeContact;
-    const auto connections = node->getConnections(nodeSourceCable);
+    const auto connections = node->getActiveConnections(nodeSourceCable);
 
     for(const auto& conn : connections)
     {
@@ -247,7 +247,7 @@ void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact
     nodeSourceCable.cable = lastCable.cable;
     nodeSourceCable.cableSide = lastCable.fromSide; // Backwards
     nodeSourceCable.nodeContact = nodeContact;
-    const auto connections = node->getConnections(nodeSourceCable);
+    const auto connections = node->getActiveConnections(nodeSourceCable);
 
     for(const auto& conn : connections)
     {
@@ -292,7 +292,7 @@ void ClosedCircuit::continueCircuitPassingLastNode(const QVector<Item> &items, i
     nodeSourceCable.cable = lastCable.cable;
     nodeSourceCable.cableSide = CircuitCable::oppositeSide(lastCable.fromSide);
     nodeSourceCable.nodeContact = lastCableEnd.nodeContact;
-    const auto connections = lastCableEnd.node->getConnections(nodeSourceCable);
+    const auto connections = lastCableEnd.node->getActiveConnections(nodeSourceCable);
 
     Item nodeItem;
     nodeItem.isNode = true;

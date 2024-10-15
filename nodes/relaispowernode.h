@@ -12,7 +12,7 @@ public:
     explicit RelaisPowerNode(QObject *parent = nullptr);
     ~RelaisPowerNode();
 
-    virtual QVector<CableItem> getConnections(CableItem source, bool invertDir = false) override;
+    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
     virtual void addCircuit(ClosedCircuit *circuit) override;
     virtual void removeCircuit(ClosedCircuit *circuit) override;

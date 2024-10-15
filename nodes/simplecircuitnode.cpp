@@ -8,7 +8,7 @@ SimpleCircuitNode::SimpleCircuitNode(QObject *parent)
     mContacts.append(NodeContact());
 }
 
-QVector<AbstractCircuitNode::CableItem> SimpleCircuitNode::getConnections(CableItem source, bool invertDir)
+QVector<AbstractCircuitNode::CableItem> SimpleCircuitNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0 && source.nodeContact != 1)
         return {};

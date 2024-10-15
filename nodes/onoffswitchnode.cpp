@@ -12,7 +12,7 @@ OnOffSwitchNode::OnOffSwitchNode(QObject *parent)
     mContacts.append(NodeContact());
 }
 
-QVector<AbstractCircuitNode::CableItem> OnOffSwitchNode::getConnections(CableItem source, bool invertDir)
+QVector<AbstractCircuitNode::CableItem> OnOffSwitchNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || (source.nodeContact > 3))
         return {};
