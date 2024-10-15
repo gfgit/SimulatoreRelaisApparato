@@ -41,6 +41,8 @@ public:
     void addContactNode(RelaisContactNode *c);
     void removeContactNode(RelaisContactNode *c);
 
+    void timerEvent(QTimerEvent *e) override;
+
 signals:
     void nameChanged(const QString& name);
     void stateChanged(State s);
@@ -50,11 +52,19 @@ private:
     void powerNodeActivated(RelaisPowerNode *p);
     void powerNodeDeactivated(RelaisPowerNode *p);
 
+    void setPosition(double newPosition);
+    void startMove(bool up);
+
 private:
     QString mName;
     State mState = State::Down;
-    double mUpSpeed = 1.0;
-    double mDownSpeed = 2.0;
+    State mInternalState = State::Down;
+
+    // Steps per 250ms (Speed of 0.25 means it goes up in 1 sec)
+    double mUpSpeed = 0.18;
+    double mDownSpeed = 0.25;
+    double mPosition = 0.0;
+    int mTimerId = 0;
 
     QVector<RelaisPowerNode *> mPowerNodes;
     int mActivePowerNodes = 0;

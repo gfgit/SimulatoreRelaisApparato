@@ -3,6 +3,8 @@
 #include "nodes/relaiscontactnode.h"
 #include "nodes/relaispowernode.h"
 
+#include <QTimerEvent>
+
 AbstractRelais::AbstractRelais(QObject *parent)
     : QObject{parent}
 {
@@ -22,6 +24,9 @@ AbstractRelais::~AbstractRelais()
     {
         removeContactNode(c);
     }
+
+    killTimer(mTimerId);
+    mTimerId = 0;
 }
 
 QString AbstractRelais::name() const
@@ -103,6 +108,36 @@ void AbstractRelais::removeContactNode(RelaisContactNode *c)
     c->setRelais(nullptr);
 }
 
+void AbstractRelais::timerEvent(QTimerEvent *e)
+{
+    if(mTimerId && e->timerId() == mTimerId)
+    {
+        double newPosition = mPosition;
+        if(mInternalState == State::GoingUp)
+            newPosition += mUpSpeed;
+        else if(mInternalState == State::GoingDown)
+            newPosition -= mDownSpeed;
+        else
+        {
+            killTimer(mTimerId);
+            mTimerId = 0;
+        }
+
+        setPosition(newPosition);
+
+        if((newPosition < 0.0) || (newPosition > 1.0))
+        {
+            mInternalState = mState;
+            killTimer(mTimerId);
+            mTimerId = 0;
+        }
+
+        return;
+    }
+
+    QObject::timerEvent(e);
+}
+
 void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
 {
     Q_ASSERT(mPowerNodes.contains(p));
@@ -114,7 +149,7 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
     {
         // Begin powering relais
         // TODO
-        setState(State::Up);
+        startMove(true);
     }
 }
 
@@ -128,9 +163,36 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p)
     if(mActivePowerNodes == 0)
     {
         // End powering relais
-        // TODO
-        setState(State::Down);
+        startMove(false);
     }
+}
+
+void AbstractRelais::setPosition(double newPosition)
+{
+    newPosition = qBound(0.0, newPosition, 1.0);
+
+    if(qFuzzyCompare(mPosition, newPosition))
+        return;
+
+    const bool up = newPosition > mPosition;
+
+    mPosition = newPosition;
+
+    if(mPosition < 0.1)
+        setState(State::Down);
+    else if(mPosition > 0.9)
+        setState(State::Up);
+    else if(up)
+        setState(State::GoingUp);
+    else
+        setState(State::GoingDown);
+}
+
+void AbstractRelais::startMove(bool up)
+{
+    mInternalState = up ? State::GoingUp : State::GoingDown;
+    killTimer(mTimerId);
+    mTimerId = startTimer(250);
 }
 
 AbstractRelais::State AbstractRelais::state() const

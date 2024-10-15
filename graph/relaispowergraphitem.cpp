@@ -39,7 +39,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
             break;
         case AbstractRelais::State::GoingUp:
         case AbstractRelais::State::GoingDown:
-            color.setRgb(127, 0, 0); // Light red
+            color.setRgb(255, 140, 140); // Light red
             break;
         default:
             break;
