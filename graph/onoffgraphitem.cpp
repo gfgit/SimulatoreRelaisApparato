@@ -2,7 +2,6 @@
 
 #include "../nodes/onoffswitchnode.h"
 
-#include <QPainterPath>
 #include <QPainter>
 
 OnOffGraphItem::OnOffGraphItem(OnOffSwitchNode *node_)

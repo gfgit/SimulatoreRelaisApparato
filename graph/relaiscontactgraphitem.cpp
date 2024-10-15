@@ -3,7 +3,6 @@
 #include "../nodes/relaiscontactnode.h"
 #include "../abstractrelais.h"
 
-#include <QPainterPath>
 #include <QPainter>
 
 RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
