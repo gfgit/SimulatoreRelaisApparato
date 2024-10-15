@@ -7,8 +7,6 @@
 OnOffGraphItem::OnOffGraphItem(OnOffSwitchNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-    connect(node(), &OnOffSwitchNode::circuitsChanged,
-            this, &OnOffGraphItem::triggerUpdate);
     connect(node(), &OnOffSwitchNode::isOnChanged,
             this, &OnOffGraphItem::triggerUpdate);
 }

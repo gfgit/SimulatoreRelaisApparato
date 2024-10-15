@@ -8,8 +8,6 @@
 RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-    connect(node(), &RelaisContactNode::circuitsChanged,
-            this, &RelaisContactGraphItem::triggerUpdate);
     connect(node(), &RelaisContactNode::stateChanged,
             this, &RelaisContactGraphItem::triggerUpdate);
 }

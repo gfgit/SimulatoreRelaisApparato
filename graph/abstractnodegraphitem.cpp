@@ -13,6 +13,8 @@ AbstractNodeGraphItem::AbstractNodeGraphItem(AbstractCircuitNode *node_)
 
     connect(mAbstractNode, &QObject::objectNameChanged,
             this, &AbstractNodeGraphItem::updateName);
+    connect(mAbstractNode, &AbstractCircuitNode::circuitsChanged,
+            this, &AbstractNodeGraphItem::triggerUpdate);
 
     updateName();
 }
