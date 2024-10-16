@@ -100,7 +100,7 @@ private:
     void setNode(Side s, CableEnd node);
 
 private:
-    Mode mMode = Mode::Unifilar;
+    Mode mMode = Mode::Bifilar;
 
     QVector<ClosedCircuit *> mFirstCableCirctuits;
     QVector<ClosedCircuit *> mSecondCableCirctuits;
