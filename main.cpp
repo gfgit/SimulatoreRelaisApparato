@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 
     SimpleCircuitNode s2;
     s2.setObjectName("s2");
+    s2.setDisabledContact(1);
 
     OnOffSwitchNode onOff1;
     onOff1.setObjectName("On1");
@@ -79,11 +80,10 @@ int main(int argc, char *argv[])
     relCont.setObjectName("RelCont1");
 
     AbstractRelais relay;
+    relay.setName("C1");
     relay.addPowerNode(&relPow1);
     relay.addPowerNode(&relPow2);
     relay.addContactNode(&relCont);
-
-
 
     /*
     powerSource.setEnabled(true);
@@ -173,11 +173,11 @@ int main(int argc, char *argv[])
     c2.setObjectName("c2");
     conn.cable = &c2;
     conn.cableSide = Side::A1;
-    conn.nodeContact = 0;
+    conn.nodeContact = 4;
     s1.attachCable(conn);
 
     conn.cableSide = Side::A2;
-    conn.nodeContact = 1;
+    conn.nodeContact = 5;
     s1.attachCable(conn);
 
     conn.cableSide = Side::B1;
@@ -212,11 +212,11 @@ int main(int argc, char *argv[])
     onOff1.attachCable(conn);
 
     conn.cableSide = Side::B1;
-    conn.nodeContact = 0;
+    conn.nodeContact = 4;
     s2.attachCable(conn);
 
     conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.nodeContact = 5;
     s2.attachCable(conn);
 
     // c3 Graph
@@ -234,11 +234,11 @@ int main(int argc, char *argv[])
     c4.setObjectName("c4");
     conn.cable = &c4;
     conn.cableSide = Side::A1;
-    conn.nodeContact = 0;
+    conn.nodeContact = 2;
     s1.attachCable(conn);
 
     conn.cableSide = Side::A2;
-    conn.nodeContact = 1;
+    conn.nodeContact = 3;
     s1.attachCable(conn);
 
     conn.cableSide = Side::B1;
@@ -300,11 +300,11 @@ int main(int argc, char *argv[])
     onOff3.attachCable(conn);
 
     conn.cableSide = Side::B1;
-    conn.nodeContact = 0;
+    conn.nodeContact = 6;
     s2.attachCable(conn);
 
     conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.nodeContact = 7;
     s2.attachCable(conn);
 
     // c6 Graph
@@ -325,11 +325,11 @@ int main(int argc, char *argv[])
     c7.setObjectName("c7");
     conn.cable = &c7;
     conn.cableSide = Side::A1;
-    conn.nodeContact = 0;
+    conn.nodeContact = 6;
     s1.attachCable(conn);
 
     conn.cableSide = Side::A2;
-    conn.nodeContact = 1;
+    conn.nodeContact = 7;
     s1.attachCable(conn);
 
     conn.cableSide = Side::B1;
@@ -431,6 +431,7 @@ int main(int argc, char *argv[])
     scene.addItem(c8Graph);
     scene.addItem(c9Graph);
 
+    auto guard = qScopeGuard([&powerSource](){powerSource.setEnabled(false);});
 
     MainWindow w;
     w.setScene(&scene);
