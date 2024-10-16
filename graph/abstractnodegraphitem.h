@@ -6,6 +6,7 @@
 #include "../tilerotate.h"
 
 class AbstractCircuitNode;
+class CircuitScene;
 
 class AbstractNodeGraphItem : public QGraphicsObject
 {
@@ -35,17 +36,25 @@ public:
     TileRotate rotate() const;
     void setRotate(TileRotate newRotate);
 
+    CircuitScene *circuitScene() const;
+
 protected slots:
     void triggerUpdate();
     virtual void updateName();
 
 protected:
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+
     void drawMorsetti(QPainter *painter, bool on, const QString &name1, const QString &name2, TileRotate r);
     void drawName(QPainter *painter, const QString &name, TileRotate r);
 
 private:
     AbstractCircuitNode *mAbstractNode;
     TileRotate mRotate = TileRotate::Deg0;
+
+    friend class CircuitScene;
+    TileLocation mLastValidLocation = TileLocation::invalid;
 };
 
 #endif // ABSTRACTNODEGRAPHITEM_H

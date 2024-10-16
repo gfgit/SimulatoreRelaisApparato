@@ -41,6 +41,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         tilerotate.h
         tilerotate.cpp
         graph/simplenodegraphitem.h graph/simplenodegraphitem.cpp
+        graph/circuitscene.h graph/circuitscene.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SimulatoreRelaisApparato APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

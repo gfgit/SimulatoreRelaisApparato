@@ -2,6 +2,8 @@
 
 #include "../abstractcircuitnode.h"
 
+#include "circuitscene.h"
+
 #include <QPainter>
 #include <QFont>
 
@@ -17,6 +19,8 @@ AbstractNodeGraphItem::AbstractNodeGraphItem(AbstractCircuitNode *node_)
             this, &AbstractNodeGraphItem::triggerUpdate);
 
     updateName();
+
+    setFlag(ItemSendsGeometryChanges, true);
 }
 
 QRectF AbstractNodeGraphItem::boundingRect() const
@@ -32,6 +36,43 @@ void AbstractNodeGraphItem::triggerUpdate()
 void AbstractNodeGraphItem::updateName()
 {
     setToolTip(mAbstractNode->objectName());
+}
+
+void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    // After move has ended we go back to last valid location
+    if(location() != mLastValidLocation && mLastValidLocation.isValid())
+    {
+        setLocation(mLastValidLocation);
+    }
+
+    QGraphicsObject::mouseReleaseEvent(event);
+}
+
+QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+    if(change == GraphicsItemChange::ItemPositionChange)
+    {
+        // Snap to grid
+        QPointF newPos = value.toPointF();
+        newPos.rx() = std::round(newPos.x() / TileLocation::Size) * TileLocation::Size;
+        newPos.ry() = std::round(newPos.y() / TileLocation::Size) * TileLocation::Size;
+
+        if(newPos != pos() && scene())
+        {
+            CircuitScene *s = circuitScene();
+            TileLocation newLocation = TileLocation::fromPoint(newPos);
+            if(s->isLocationFree(newLocation))
+            {
+                // New position is valid
+                s->updateItemLocation(mLastValidLocation, newLocation, this);
+                mLastValidLocation = newLocation;
+            }
+        }
+        return newPos;
+    }
+
+    return QGraphicsObject::itemChange(change, value);
 }
 
 void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, bool on, const QString& name1, const QString& name2, TileRotate r)
@@ -217,4 +258,9 @@ void AbstractNodeGraphItem::setRotate(TileRotate newRotate)
         return;
     mRotate = newRotate;
     update();
+}
+
+CircuitScene *AbstractNodeGraphItem::circuitScene() const
+{
+    return qobject_cast<CircuitScene *>(scene());
 }
