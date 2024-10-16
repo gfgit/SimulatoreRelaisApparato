@@ -64,9 +64,73 @@ QPainterPath CableGraphItem::shape() const
 
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    // Draw cable path
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(mPath);
+
+    // Draw square if cable end is not connected
+    const auto startElem = mPath.elementAt(0);
+    const auto endElem = mPath.elementAt(mPath.elementCount() - 1);
+
+    bool isAconnected = mCable->getNode(CircuitCable::Side::A1).node;
+    if(isAconnected && mCable->mode() == CircuitCable::Mode::Bifilar)
+    {
+        isAconnected = mCable->getNode(CircuitCable::Side::A2).node;
+    }
+
+    bool isBconnected = mCable->getNode(CircuitCable::Side::B1).node;
+    if(isBconnected && mCable->mode() == CircuitCable::Mode::Bifilar)
+    {
+        isBconnected = mCable->getNode(CircuitCable::Side::B2).node;
+    }
+
+    if(!isAconnected || !isBconnected)
+    {
+        // Draw a cyan square on cable end
+        QRectF br = boundingRect();
+        QRectF square(QPointF(), QSizeF(20, 20));
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(Qt::darkCyan);
+
+        if(!isAconnected)
+        {
+            QPointF start(startElem.x, startElem.y);
+
+            if(br.center().x() > start.x())
+                square.moveLeft(start.x());
+            else
+                square.moveRight(start.x());
+
+            if(br.center().y() > start.y())
+                square.moveTop(start.y());
+            else
+                square.moveBottom(start.y());
+
+            painter->drawRect(square);
+        }
+
+
+
+        if(!isBconnected)
+        {
+            QPointF end(endElem.x, endElem.y);
+
+            if(br.center().x() > end.x())
+                square.moveLeft(end.x());
+            else
+                square.moveRight(end.x());
+
+            if(br.center().y() > end.y())
+                square.moveTop(end.y());
+            else
+                square.moveBottom(end.y());
+
+            painter->drawRect(square);
+        }
+    }
+
 }
 
 void CableGraphItem::setPath(const QPainterPath &path)
