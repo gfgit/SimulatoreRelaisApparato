@@ -115,4 +115,37 @@ void SimpleCircuitNode::setDisabledContact(int val)
         return;
     mDisabledContact = val;
     emit disabledContactChanged();
+
+    if(mDisabledContact > 0)
+    {
+        if(mCircuitCount[mDisabledContact - 1] > 0)
+        {
+            // Disable all circuits passing on disabled contact
+            const auto circuits = mCircuits;
+            for(ClosedCircuit *circuit : circuits)
+            {
+                const auto items = circuit->getNode(this);
+                for(ClosedCircuit::NodeItem item : items)
+                {
+                    int fromContact = std::floor(item.fromContact / 2.0);
+                    int toContact = std::floor(item.toContact / 2.0);
+
+                    if(fromContact == mDisabledContact || toContact == mDisabledContact)
+                    {
+                        circuit->disableCircuit();
+                        delete circuit;
+                    }
+                }
+            }
+        }
+
+        // Disconnect cable if any
+        auto cable1 = mContacts.at(mDisabledContact * 2).item;
+        auto cable2 = mContacts.at(mDisabledContact * 2 + 1).item;
+
+        if(cable1.cable)
+            detachCable(cable1);
+        if(cable2.cable)
+            detachCable(cable2);
+    }
 }
