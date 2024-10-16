@@ -18,8 +18,37 @@ void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     painter->setBrush(node()->getEnabled() ? Qt::red : Qt::darkGreen);
 
     // Draw a triangle
-    QPointF triangle[3] = {{0, 0}, {50, 0}, {25, 50}};
-    painter->drawConvexPolygon(triangle, 3);
+    const QPointF *triangle = nullptr;
+    constexpr QPointF north[3] = {{20, 82}, {80, 82}, {50, 22}};
+    constexpr QPointF south[3] = {{80, 18}, {20, 18}, {50, 78}};
+    constexpr QPointF east[3] = {{18, 80}, {18, 20}, {78, 50}};
+    constexpr QPointF west[3] = {{82, 20}, {82, 80}, {22, 50}};
+
+    switch (toConnectorDirection(rotate()))
+    {
+    case Connector::Direction::North:
+        triangle = north;
+        break;
+
+    case Connector::Direction::South:
+        triangle = south;
+        break;
+
+    case Connector::Direction::East:
+        triangle = east;
+        break;
+
+    case Connector::Direction::West:
+        triangle = west;
+        break;
+    default:
+        break;
+    }
+
+    if(triangle)
+        painter->drawConvexPolygon(triangle, 3);
+
+    drawMorsetti(painter, node()->hasCircuits(),  "11", "12", rotate());
 }
 
 void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
