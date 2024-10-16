@@ -14,56 +14,16 @@ OnOffSwitchNode::OnOffSwitchNode(QObject *parent)
 
 QVector<AbstractCircuitNode::CableItem> OnOffSwitchNode::getActiveConnections(CableItem source, bool invertDir)
 {
-    if((source.nodeContact < 0) || (source.nodeContact > 3))
+    if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
 
-    const NodeContact& contact = mContacts[source.nodeContact];
+    if(!m_isOn)
+        return {};
 
-    int otherContactNum = 0;
-    switch (source.nodeContact)
-    {
-    case 0:
-        otherContactNum = 2;
-        break;
-    case 1:
-        otherContactNum = 3;
-        break;
-    case 2:
-        otherContactNum = 0;
-        break;
-    case 3:
-        otherContactNum = 1;
-        break;
-    default:
-        break;
-    }
-
-    const NodeContact& otherContact = mContacts[otherContactNum];
-
-    int cableCount = contact.cables.size();
-    if(m_isOn)
-        cableCount += otherContact.cables.size();
-
-    QVector<AbstractCircuitNode::CableItem> result;
-    result.reserve(cableCount);
-
-    for(const CableItem& item : contact.cables)
-    {
-        if(item == source)
-            continue;
-
-        result.append(item);
-    }
-
-    if(m_isOn)
-    {
-        for(const CableItem& item : otherContact.cables)
-        {
-            result.append(item);
-        }
-    }
-
-    return result;
+    int otherContact = (source.nodeContact + 2) % getContactCount();
+    if(mContacts.at(otherContact).item.cable)
+        return {mContacts.at(otherContact).item};
+    return {};
 }
 
 bool OnOffSwitchNode::isOn() const

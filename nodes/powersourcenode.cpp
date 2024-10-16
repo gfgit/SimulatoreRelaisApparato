@@ -13,7 +13,6 @@ PowerSourceNode::PowerSourceNode(QObject *parent)
 QVector<AbstractCircuitNode::CableItem> PowerSourceNode::getActiveConnections(CableItem source, bool invertDir)
 {
     // Make circuits end here
-    // TODO: only allow one cable connection on each side
     return {};
 }
 

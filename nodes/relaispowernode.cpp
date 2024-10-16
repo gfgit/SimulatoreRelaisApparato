@@ -21,27 +21,14 @@ QVector<AbstractCircuitNode::CableItem> RelaisPowerNode::getActiveConnections(Ca
     if(source.nodeContact != 0 && source.nodeContact != 1)
         return {};
 
-    const NodeContact& side = mContacts[source.nodeContact];
-    const NodeContact& otherSide = mContacts[source.nodeContact == 0 ? 1 : 0];
-
-    QVector<AbstractCircuitNode::CableItem> result;
-    result.reserve(side.cables.size() + otherSide.cables.size());
-
-    for(const CableItem& item : side.cables)
-    {
-        if(item == source)
-            continue;
-
-        result.append(item);
-    }
-
     // Close the circuit
-    for(const CableItem& item : otherSide.cables)
-    {
-        result.append(item);
-    }
+    if(source.nodeContact == 0 && mContacts.at(1).item.cable)
+        return {mContacts.at(1).item};
 
-    return result;
+    if(source.nodeContact == 1 && mContacts.at(0).item.cable)
+        return {mContacts.at(0).item};
+
+    return {};
 }
 
 void RelaisPowerNode::addCircuit(ClosedCircuit *circuit)

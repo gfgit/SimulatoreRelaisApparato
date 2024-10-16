@@ -1,9 +1,54 @@
 #include "circuitcable.h"
 
+#include "abstractcircuitnode.h"
+
 CircuitCable::CircuitCable(QObject *parent)
     : QObject{parent}
 {
 
+}
+
+CircuitCable::~CircuitCable()
+{
+    Q_ASSERT(mFirstCableCirctuits.isEmpty());
+    Q_ASSERT(mSecondCableCirctuits.isEmpty());
+
+    // Detach all nodes
+    if(mNodeA1.node)
+    {
+        AbstractCircuitNode::CableItem item;
+        item.cable = this;
+        item.cableSide = Side::A1;
+        item.nodeContact = mNodeA1.nodeContact;
+        mNodeA1.node->detachCable(item);
+    }
+
+    if(mNodeA2.node)
+    {
+        AbstractCircuitNode::CableItem item;
+        item.cable = this;
+        item.cableSide = Side::A2;
+        item.nodeContact = mNodeA2.nodeContact;
+        mNodeA2.node->detachCable(item);
+    }
+
+    if(mNodeB1.node)
+    {
+        AbstractCircuitNode::CableItem item;
+        item.cable = this;
+        item.cableSide = Side::B1;
+        item.nodeContact = mNodeB1.nodeContact;
+        mNodeB1.node->detachCable(item);
+    }
+
+    if(mNodeB2.node)
+    {
+        AbstractCircuitNode::CableItem item;
+        item.cable = this;
+        item.cableSide = Side::B2;
+        item.nodeContact = mNodeB2.nodeContact;
+        mNodeB2.node->detachCable(item);
+    }
 }
 
 CircuitCable::Mode CircuitCable::mode() const

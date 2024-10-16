@@ -35,6 +35,8 @@ public:
     void enableCircuit();
     void disableCircuit();
 
+    QVector<NodeItem> getNode(AbstractCircuitNode *node) const;
+
     static void createCircuitsFromPowerNode(PowerSourceNode *source);
     static void createCircuitsFromOtherNode(AbstractCircuitNode *source, const QVector<AbstractCircuitNode::NodeContact> &contacts);
 
@@ -45,7 +47,7 @@ private:
 
     static void continueCircuitPassingLastNode(const QVector<Item> &items, int depth);
 
-public:
+private:
     QVector<Item> mItems;
     bool enabled = false;
     bool isDisabling = false;

@@ -21,10 +21,13 @@ public:
 
     struct NodeContact
     {
-        QVector<CableItem> cables;
+        QString name1;
+        QString name2;
+        CableItem item;
     };
 
     explicit AbstractCircuitNode(QObject *parent = nullptr);
+    ~AbstractCircuitNode();
 
     inline int getContactCount() const { return mContacts.size(); }
 

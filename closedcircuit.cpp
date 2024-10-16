@@ -71,6 +71,18 @@ void ClosedCircuit::disableCircuit()
     enabled = false;
 }
 
+QVector<ClosedCircuit::NodeItem> ClosedCircuit::getNode(AbstractCircuitNode *node) const
+{
+    QVector<ClosedCircuit::NodeItem> result;
+
+    for(const Item& item : std::as_const(mItems))
+    {
+        if(item.isNode && item.node.node == node)
+            result.append(item.node);
+    }
+    return result;
+}
+
 void ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
 {
     auto contact = source->getContacts().first();
@@ -79,8 +91,10 @@ void ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
     firstItem.isNode = true;
     firstItem.node.node = source;
 
-    for(AbstractCircuitNode::CableItem nodeCable : contact.cables)
+    if(contact.item.cable)
     {
+        AbstractCircuitNode::CableItem nodeCable = contact.item;
+
         firstItem.node.toContact = nodeCable.nodeContact;
 
         Item item;
@@ -95,7 +109,7 @@ void ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
         CircuitCable::CableEnd cableEnd = nodeCable.cable->getNode(otherSide);
 
         if(!cableEnd.node)
-            continue;
+            return;
 
         passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 0);
     }
@@ -157,6 +171,9 @@ void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, 
 
     for(const auto& conn : connections)
     {
+        if(!conn.cable)
+            continue;
+
         nodeItem.node.toContact = conn.nodeContact;
 
         auto otherSide = CircuitCable::oppositeSide(conn.cableSide);
@@ -192,24 +209,26 @@ void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source, con
 {
     for(const auto& contact : contacts)
     {
-        for(AbstractCircuitNode::CableItem nodeCable : contact.cables)
-        {
-            CircuitCable::Side otherSide = CircuitCable::oppositeSide(nodeCable.cableSide);
+        if(!contact.item.cable)
+            continue;
 
-            Item item;
-            item.cable.cable = nodeCable.cable;
-            item.cable.fromSide = otherSide;
+        AbstractCircuitNode::CableItem nodeCable = contact.item;
 
-            QVector<Item> items;
-            items.append(item);
+        CircuitCable::Side otherSide = CircuitCable::oppositeSide(nodeCable.cableSide);
 
-            CircuitCable::CableEnd cableEnd = nodeCable.cable->getNode(otherSide);
+        CircuitCable::CableEnd cableEnd = nodeCable.cable->getNode(otherSide);
 
-            if(!cableEnd.node)
-                continue;
+        if(!cableEnd.node)
+            continue;
 
-            searchPowerSource(cableEnd.node, cableEnd.nodeContact, items, 0);
-        }
+        Item item;
+        item.cable.cable = nodeCable.cable;
+        item.cable.fromSide = otherSide;
+
+        QVector<Item> items;
+        items.append(item);
+
+        searchPowerSource(cableEnd.node, cableEnd.nodeContact, items, 0);
     }
 }
 

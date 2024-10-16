@@ -6,6 +6,18 @@ AbstractCircuitNode::AbstractCircuitNode(QObject *parent)
 
 }
 
+AbstractCircuitNode::~AbstractCircuitNode()
+{
+    Q_ASSERT(mCircuits.isEmpty());
+
+    // Detach all contacts
+    for(int i = 0; i < mContacts.size(); i++)
+    {
+        if(mContacts.at(i).item.cable)
+            detachCable(mContacts.at(i).item);
+    }
+}
+
 void AbstractCircuitNode::addCircuit(ClosedCircuit *circuit)
 {
     // A circuit may pass 2 times on same node
@@ -33,8 +45,11 @@ void AbstractCircuitNode::attachCable(CableItem item)
     Q_ASSERT(!item.cable->getNode(item.cableSide).node);
     Q_ASSERT(item.nodeContact < mContacts.size());
 
+    if(mContacts.at(item.nodeContact).item.cable)
+        return; // Already connected
+
     NodeContact& contact = mContacts[item.nodeContact];
-    contact.cables.append(item);
+    contact.item = item;
 
     CircuitCable::CableEnd cableEnd;
     cableEnd.node = this;
@@ -46,9 +61,10 @@ void AbstractCircuitNode::detachCable(CableItem item)
 {
     Q_ASSERT(item.cable->getNode(item.cableSide).node == this);
     Q_ASSERT(item.nodeContact < mContacts.size());
+    Q_ASSERT(mContacts.at(item.nodeContact).item == item);
 
     NodeContact& contact = mContacts[item.nodeContact];
-    contact.cables.removeOne(item);
+    contact.item.cable = nullptr;
 
     item.cable->setNode(item.cableSide, {});
 }

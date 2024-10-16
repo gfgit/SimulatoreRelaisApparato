@@ -26,8 +26,6 @@ QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getActiveConnections(
     if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
 
-    const NodeContact& contact = mContacts[source.nodeContact];
-
     int otherContactNum = -1;
     if(mState != State::Middle)
     {
@@ -61,31 +59,13 @@ QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getActiveConnections(
         }
     }
 
-    int cableCount = contact.cables.size();
-    if(otherContactNum != -1)
-        cableCount += mContacts.at(otherContactNum).cables.size();
-
-    QVector<AbstractCircuitNode::CableItem> result;
-    result.reserve(cableCount);
-
-    for(const CableItem& item : contact.cables)
-    {
-        if(item == source)
-            continue;
-
-        result.append(item);
-    }
-
     if(otherContactNum != -1)
     {
-        const NodeContact& otherContact = mContacts.at(otherContactNum);
-        for(const CableItem& item : otherContact.cables)
-        {
-            result.append(item);
-        }
+        if(mContacts.at(otherContactNum).item.cable)
+            return {mContacts.at(otherContactNum).item};
     }
 
-    return result;
+    return {};
 }
 
 AbstractRelais *RelaisContactNode::relais() const

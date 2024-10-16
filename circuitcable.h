@@ -41,6 +41,7 @@ public:
     };
 
     explicit CircuitCable(QObject *parent = nullptr);
+    ~CircuitCable();
 
     Mode mode() const;
     void setMode(Mode newMode);
