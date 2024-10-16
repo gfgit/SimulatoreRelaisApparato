@@ -16,6 +16,8 @@ public:
 
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e);
 
+    void getConnectors(std::vector<Connector>& connectors) const final;
+
     PowerSourceNode *node() const;
 };
 

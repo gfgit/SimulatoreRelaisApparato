@@ -58,6 +58,11 @@ void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
     node()->setEnabled(!val);
 }
 
+void PowerSourceGraphItem::getConnectors(std::vector<Connector> &connectors) const
+{
+    connectors.emplace_back(location(), rotate());
+}
+
 PowerSourceNode *PowerSourceGraphItem::node() const
 {
     return static_cast<PowerSourceNode *>(getAbstractNode());
