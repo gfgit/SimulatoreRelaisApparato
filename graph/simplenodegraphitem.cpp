@@ -109,10 +109,20 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
 void SimpleNodeGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
+    bool hasDeg90  = node()->disabledContact() != 1;
+    bool hasDeg180 = node()->disabledContact() != 2;
+    bool hasDeg270 = node()->disabledContact() != 3;
+
     connectors.emplace_back(location(), rotate()); // Common
-    connectors.emplace_back(location(), rotate() + TileRotate::Deg90);
-    connectors.emplace_back(location(), rotate() + TileRotate::Deg180);
-    connectors.emplace_back(location(), rotate() + TileRotate::Deg270);
+
+    if(hasDeg90)
+        connectors.emplace_back(location(), rotate() + TileRotate::Deg90);
+
+    if(hasDeg180)
+        connectors.emplace_back(location(), rotate() + TileRotate::Deg180);
+
+    if(hasDeg270)
+        connectors.emplace_back(location(), rotate() + TileRotate::Deg270);
 }
 
 SimpleCircuitNode *SimpleNodeGraphItem::node() const
