@@ -7,7 +7,7 @@
 SimpleNodeGraphItem::SimpleNodeGraphItem(SimpleCircuitNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-    connect(node(), &SimpleCircuitNode::circuitsChanged,
+    connect(node(), &SimpleCircuitNode::disabledContactChanged,
             this, &SimpleNodeGraphItem::triggerUpdate);
 }
 
@@ -40,7 +40,7 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
     QPen pen;
     pen.setWidthF(5.0);
-    pen.setColor(node()->hasCircuits() ? Qt::red : Qt::black);
+    pen.setColor(Qt::black);
     pen.setCapStyle(Qt::FlatCap);
 
     painter->setPen(pen);
@@ -50,9 +50,9 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     QLineF common = lines[startIdx];
     painter->drawLine(common);
 
-    bool hasDeg90 = true;
-    bool hasDeg180 = true;
-    bool hasDeg270 = true;
+    bool hasDeg90  = node()->disabledContact() != 1;
+    bool hasDeg180 = node()->disabledContact() != 2;
+    bool hasDeg270 = node()->disabledContact() != 3;
 
     if(hasDeg90)
     {
@@ -73,6 +73,37 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
         const QLineF circuit = lines[(startIdx + 3) % 4];
         painter->drawLine(circuit);
         painter->drawLine(QLineF(circuit.p1(), common.p1()));
+    }
+
+    if(node()->hasCircuits())
+    {
+        pen.setColor(Qt::red);
+        painter->setPen(pen);
+
+        QLineF common = lines[startIdx];
+        painter->drawLine(common);
+
+        // Redraw powered wires on top
+        if(hasDeg90 && node()->hasCircuit(1))
+        {
+            const QLineF circuit = lines[(startIdx + 1) % 4];
+            painter->drawLine(circuit);
+            painter->drawLine(QLineF(circuit.p1(), common.p1()));
+        }
+
+        if(hasDeg180 && node()->hasCircuit(2))
+        {
+            const QLineF circuit = lines[(startIdx + 2) % 4];
+            painter->drawLine(circuit);
+            painter->drawLine(QLineF(circuit.p1(), common.p1()));
+        }
+
+        if(hasDeg270 && node()->hasCircuit(3))
+        {
+            const QLineF circuit = lines[(startIdx + 3) % 4];
+            painter->drawLine(circuit);
+            painter->drawLine(QLineF(circuit.p1(), common.p1()));
+        }
     }
 }
 
