@@ -10,7 +10,7 @@
 #include "circuitcable.h"
 #include "abstractrelais.h"
 
-#include <QGraphicsScene>
+#include "graph/circuitscene.h"
 #include "graph/cablegraphitem.h"
 #include "graph/onoffgraphitem.h"
 #include "graph/powersourcegraphitem.h"
@@ -98,8 +98,6 @@ int main(int argc, char *argv[])
     onOff2.setOn(false);
     onOff1.setOn(true);
     */
-
-    QGraphicsScene scene;
 
     PowerSourceGraphItem *pwGraph = new PowerSourceGraphItem(&powerSource);
     pwGraph->setLocation(TileLocation{0, 1});
@@ -409,17 +407,21 @@ int main(int argc, char *argv[])
     c9Graph->setToolTip("c9");
     c9Graph->setVisible(false);
 
+    auto guard = qScopeGuard([&powerSource](){powerSource.setEnabled(false);});
 
-    scene.addItem(pwGraph);
-    scene.addItem(onOff1Graph);
-    scene.addItem(onOff2Graph);
-    scene.addItem(onOff3Graph);
-    scene.addItem(relPowGraph1);
-    scene.addItem(s1Graph);
-    scene.addItem(s2Graph);
+    MainWindow w;
 
-    scene.addItem(relContGraph1);
-    scene.addItem(relPowGraph2);
+    CircuitScene& scene = *w.scene();
+    scene.addNode(pwGraph);
+    scene.addNode(onOff1Graph);
+    scene.addNode(onOff2Graph);
+    scene.addNode(onOff3Graph);
+    scene.addNode(relPowGraph1);
+    scene.addNode(s1Graph);
+    scene.addNode(s2Graph);
+
+    scene.addNode(relContGraph1);
+    scene.addNode(relPowGraph2);
 
     scene.addItem(c1Graph);
     scene.addItem(c2Graph);
@@ -431,10 +433,6 @@ int main(int argc, char *argv[])
     scene.addItem(c8Graph);
     scene.addItem(c9Graph);
 
-    auto guard = qScopeGuard([&powerSource](){powerSource.setEnabled(false);});
-
-    MainWindow w;
-    w.setScene(&scene);
     w.show();
     return a.exec();
 }

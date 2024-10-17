@@ -9,6 +9,8 @@ class SimpleNodeGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
+    typedef SimpleCircuitNode Node;
+
     SimpleNodeGraphItem(SimpleCircuitNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;

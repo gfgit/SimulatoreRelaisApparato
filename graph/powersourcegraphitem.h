@@ -10,6 +10,8 @@ class PowerSourceGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
+    typedef PowerSourceNode Node;
+
     PowerSourceGraphItem(PowerSourceNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;

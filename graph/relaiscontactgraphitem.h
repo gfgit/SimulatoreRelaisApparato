@@ -10,6 +10,8 @@ class RelaisContactGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
+    typedef RelaisContactNode Node;
+
     RelaisContactGraphItem(RelaisContactNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;

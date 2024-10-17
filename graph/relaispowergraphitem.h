@@ -11,6 +11,8 @@ class RelaisPowerGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
+    typedef RelaisPowerNode Node;
+
     RelaisPowerGraphItem(RelaisPowerNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;

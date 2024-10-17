@@ -7,7 +7,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class QGraphicsScene;
+class CircuitScene;
 
 class MainWindow : public QMainWindow
 {
@@ -17,9 +17,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void setScene(QGraphicsScene *s);
+    CircuitScene *scene() const;
+
+private:
+    void buildToolBar();
 
 private:
     Ui::MainWindow *ui;
+    CircuitScene *mScene;
 };
 #endif // MAINWINDOW_H
