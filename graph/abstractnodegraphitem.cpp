@@ -7,6 +7,8 @@
 #include <QPainter>
 #include <QFont>
 
+#include <QGraphicsSceneMouseEvent>
+
 AbstractNodeGraphItem::AbstractNodeGraphItem(AbstractCircuitNode *node_)
     : QGraphicsObject()
     , mAbstractNode(node_)
@@ -38,15 +40,25 @@ void AbstractNodeGraphItem::updateName()
     setToolTip(mAbstractNode->objectName());
 }
 
-void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    // After move has ended we go back to last valid location
-    if(location() != mLastValidLocation && mLastValidLocation.isValid())
+    CircuitScene *s = circuitScene();
+    if(s && s->mode() == CircuitScene::Mode::Editing)
     {
-        setLocation(mLastValidLocation);
+        if(ev->button() == Qt::RightButton)
+        {
+            // Rotate clockwise 90
+            setRotate(rotate() + TileRotate::Deg90);
+        }
+
+        // After move has ended we go back to last valid location
+        if(location() != mLastValidLocation && mLastValidLocation.isValid())
+        {
+            setLocation(mLastValidLocation);
+        }
     }
 
-    QGraphicsObject::mouseReleaseEvent(event);
+    QGraphicsObject::mouseReleaseEvent(ev);
 }
 
 QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVariant &value)

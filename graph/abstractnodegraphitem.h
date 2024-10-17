@@ -43,7 +43,7 @@ protected slots:
     virtual void updateName();
 
 protected:
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     void drawMorsetti(QPainter *painter, bool on, const QString &name1, const QString &name2, TileRotate r);
