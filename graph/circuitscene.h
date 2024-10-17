@@ -8,6 +8,7 @@
 #include "../tilerotate.h"
 
 class AbstractNodeGraphItem;
+class PowerSourceGraphItem;
 
 class CircuitScene : public QGraphicsScene
 {
@@ -25,7 +26,7 @@ public:
     Mode mode() const;
     void setMode(Mode newMode);
 
-    void addNode(AbstractNodeGraphItem *node);
+    void addNode(AbstractNodeGraphItem *item);
 
     TileLocation getNewFreeLocation();
 
@@ -43,6 +44,8 @@ private:
     Mode mMode = Mode::Editing;
 
     std::unordered_map<TileLocation, AbstractNodeGraphItem *, TileLocationHash> mItemMap;
+
+    QVector<PowerSourceGraphItem *> mPowerSources;
 };
 
 #endif // CIRCUITSCENE_H

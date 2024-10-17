@@ -2,6 +2,9 @@
 
 #include "abstractnodegraphitem.h"
 
+#include "powersourcegraphitem.h"
+#include "../nodes/powersourcenode.h"
+
 CircuitScene::CircuitScene(QObject *parent)
     : QGraphicsScene{parent}
 {
@@ -20,28 +23,41 @@ void CircuitScene::setMode(Mode newMode)
     mMode = newMode;
     emit modeChanged(mMode);
 
-    bool itemMovable = mMode == Mode::Editing;
+    const bool itemMovable = mMode == Mode::Editing;
     for(auto it = mItemMap.cbegin(); it != mItemMap.cend(); it++)
     {
         AbstractNodeGraphItem *node = it->second;
         node->setFlag(QGraphicsItem::ItemIsMovable, itemMovable);
     }
+
+    const bool powerSourceEnabled = mMode == Mode::Simulation;
+    for(PowerSourceGraphItem *powerSource : mPowerSources)
+    {
+        powerSource->node()->setEnabled(powerSourceEnabled);
+    }
 }
 
-void CircuitScene::addNode(AbstractNodeGraphItem *node)
+void CircuitScene::addNode(AbstractNodeGraphItem *item)
 {
-    addItem(node);
+    addItem(item);
 
-    if(!isLocationFree(node->location()))
+    if(!isLocationFree(item->location()))
     {
         // Assign a new location to node
-        node->setLocation(getNewFreeLocation());
+        item->setLocation(getNewFreeLocation());
     }
 
-    mItemMap.insert({node->location(), node});
-    node->mLastValidLocation = node->location();
+    mItemMap.insert({item->location(), item});
+    item->mLastValidLocation = item->location();
 
-    node->setFlag(QGraphicsItem::ItemIsMovable, mMode == Mode::Editing);
+    item->setFlag(QGraphicsItem::ItemIsMovable, mMode == Mode::Editing);
+
+    PowerSourceGraphItem *powerSource = qobject_cast<PowerSourceGraphItem *>(item);
+    if(powerSource)
+    {
+        powerSource->node()->setEnabled(mMode == Mode::Simulation);
+        mPowerSources.append(powerSource);
+    }
 }
 
 TileLocation CircuitScene::getNewFreeLocation()
