@@ -64,11 +64,6 @@ QPainterPath CableGraphItem::shape() const
 
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    // Draw cable path
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
-    painter->drawPath(mPath);
-
     // Draw square if cable end is not connected
     const auto startElem = mPath.elementAt(0);
     const auto endElem = mPath.elementAt(mPath.elementCount() - 1);
@@ -129,8 +124,18 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 
             painter->drawRect(square);
         }
+
+        pen.setColor(Qt::darkCyan);
+    }
+    else
+    {
+        pen.setColor(Qt::black);
     }
 
+    // Draw cable path
+    painter->setPen(pen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawPath(mPath);
 }
 
 void CableGraphItem::setPath(const QPainterPath &path)
