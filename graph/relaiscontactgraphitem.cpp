@@ -40,6 +40,8 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     bool commonOn = node()->hasCircuits();
     bool contact1On = node()->state() == RelaisContactNode::State::Up;
     bool contact2On = node()->state() == RelaisContactNode::State::Down;
+    if(node()->swapContactState())
+        std::swap(contact1On, contact2On);
 
     int startAngle = 0;
     int endAngle = 0;
@@ -48,7 +50,10 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     {
     case Connector::Direction::North:
         commonLine = centerToNorth;
-        contact1Line = centerToEast;
+        if(node()->flipContact())
+            contact1Line = centerToWest;
+        else
+            contact1Line = centerToEast;
         contact2Line = centerToSouth;
 
         startAngle = 0;
@@ -57,7 +62,10 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     case Connector::Direction::South:
         commonLine = centerToSouth;
-        contact1Line = centerToWest;
+        if(node()->flipContact())
+            contact1Line = centerToEast;
+        else
+            contact1Line = centerToWest;
         contact2Line = centerToNorth;
 
         startAngle = -180;
@@ -66,7 +74,10 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     case Connector::Direction::East:
         commonLine = centerToEast;
-        contact1Line = centerToSouth;
+        if(node()->flipContact())
+            contact1Line = centerToNorth;
+        else
+            contact1Line = centerToSouth;
         contact2Line = centerToWest;
 
         startAngle = -90;
@@ -75,7 +86,10 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     case Connector::Direction::West:
         commonLine = centerToWest;
-        contact1Line = centerToNorth;
+        if(node()->flipContact())
+            contact1Line = centerToSouth;
+        else
+            contact1Line = centerToNorth;
         contact2Line = centerToEast;
 
         startAngle = 90;
@@ -155,8 +169,12 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
 void RelaisContactGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
+    TileRotate centralConnectorRotate = TileRotate::Deg90;
+    if(node()->flipContact())
+        centralConnectorRotate = TileRotate::Deg270;
+
     connectors.emplace_back(location(), rotate(), 0); // Common
-    connectors.emplace_back(location(), rotate() + TileRotate::Deg90, 1);  // Up
+    connectors.emplace_back(location(), rotate() + centralConnectorRotate, 1);  // Up
     connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 2); // Down
 }
 

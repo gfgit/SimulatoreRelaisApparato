@@ -35,6 +35,9 @@ QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getActiveConnections(
     else if(mState != State::Middle)
     {
         bool isDown = mState == State::Down;
+        if(swapContactState())
+            isDown = mState == State::Up;
+
         switch (source.nodeContact)
         {
         case 0:
@@ -91,6 +94,32 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais)
 
     emit relayChanged();
     onRelaisStateChanged();
+}
+
+bool RelaisContactNode::swapContactState() const
+{
+    return mSwapContactState;
+}
+
+void RelaisContactNode::setSwapContactState(bool newSwapContactState)
+{
+    if(mSwapContactState == newSwapContactState)
+        return;
+    mSwapContactState = newSwapContactState;
+    emit shapeChanged();
+}
+
+bool RelaisContactNode::flipContact() const
+{
+    return mFlipContact;
+}
+
+void RelaisContactNode::setFlipContact(bool newFlipContact)
+{
+    if(mFlipContact == newFlipContact)
+        return;
+    mFlipContact = newFlipContact;
+    emit shapeChanged();
 }
 
 RelaisContactNode::State RelaisContactNode::state() const

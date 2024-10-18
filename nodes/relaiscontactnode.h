@@ -26,9 +26,16 @@ public:
     State state() const;
     void setState(State newState);
 
+    bool flipContact() const;
+    void setFlipContact(bool newFlipContact);
+
+    bool swapContactState() const;
+    void setSwapContactState(bool newSwapContactState);
+
 signals:
     void stateChanged();
     void relayChanged();
+    void shapeChanged();
 
 private slots:
     void onRelaisStateChanged();
@@ -40,6 +47,8 @@ private:
 private:
     AbstractRelais *mRelais = nullptr;
     State mState = State::Middle;
+    bool mFlipContact = false;
+    bool mSwapContactState = false;
 };
 
 #endif // RELAISCONTACTNODE_H
