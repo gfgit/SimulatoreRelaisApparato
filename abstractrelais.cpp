@@ -135,14 +135,14 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
             mTimerId = 0;
         }
 
-        setPosition(newPosition);
-
         if((newPosition < 0.0) || (newPosition > 1.0))
         {
             mInternalState = mState;
             killTimer(mTimerId);
             mTimerId = 0;
         }
+
+        setPosition(newPosition);
 
         return;
     }
