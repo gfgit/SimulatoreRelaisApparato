@@ -30,6 +30,11 @@ MainWindow::MainWindow(QWidget *parent)
     mScene = new CircuitScene(this);
     ui->graphicsView->setScene(mScene);
 
+    connect(mScene, &CircuitScene::nodeEditRequested,
+            this, &MainWindow::nodeEditRequested);
+    connect(mScene, &CircuitScene::cableEditRequested,
+            this, &MainWindow::cableEditRequested);
+
     buildToolBar();
 }
 
@@ -119,5 +124,15 @@ void MainWindow::buildToolBar()
         toggleEditMode->setChecked(mode == CircuitScene::Mode::Editing);
         newItem->setEnabled(mode == CircuitScene::Mode::Editing);
     });
+}
+
+void MainWindow::nodeEditRequested(AbstractNodeGraphItem *item)
+{
+    // Allow delete or custom node options
+}
+
+void MainWindow::cableEditRequested(CableGraphItem *item)
+{
+    // Allow delete or modify path
 }
 

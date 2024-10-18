@@ -8,6 +8,8 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 class CircuitScene;
+class AbstractNodeGraphItem;
+class CableGraphItem;
 
 class MainWindow : public QMainWindow
 {
@@ -21,6 +23,10 @@ public:
 
 private:
     void buildToolBar();
+
+private slots:
+    void nodeEditRequested(AbstractNodeGraphItem *item);
+    void cableEditRequested(CableGraphItem *item);
 
 private:
     Ui::MainWindow *ui;
