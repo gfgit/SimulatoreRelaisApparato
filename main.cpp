@@ -138,21 +138,21 @@ int main(int argc, char *argv[])
     CircuitCable c1;
     c1.setObjectName("c1");
     AbstractCircuitNode::CableItem conn;
-    conn.cable = &c1;
-    conn.cableSide = Side::A1;
+    conn.cable.cable = &c1;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
     powerSource.attachCable(conn);
 
-    conn.cableSide = Side::A2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     powerSource.attachCable(conn);
 
-    conn.cableSide = Side::B1;
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
     s1.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     s1.attachCable(conn);
 
     // c1 Graph
@@ -169,21 +169,21 @@ int main(int argc, char *argv[])
     // c2 cable from s1 to on/off1
     CircuitCable c2;
     c2.setObjectName("c2");
-    conn.cable = &c2;
-    conn.cableSide = Side::A1;
-    conn.nodeContact = 4;
+    conn.cable.cable = &c2;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
+    conn.nodeContact = 2;
     s1.attachCable(conn);
 
-    conn.cableSide = Side::A2;
-    conn.nodeContact = 5;
+    conn.cable.pole = CircuitCable::Pole::Second;
     s1.attachCable(conn);
 
-    conn.cableSide = Side::B1;
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
     onOff1.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     onOff1.attachCable(conn);
 
     // c2 Graph
@@ -200,21 +200,21 @@ int main(int argc, char *argv[])
     // c3 cable from on/off1 to s2
     CircuitCable c3;
     c3.setObjectName("c3");
-    conn.cable = &c3;
-    conn.cableSide = Side::A1;
+    conn.cable.cable = &c3;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
+    conn.nodeContact = 1;
+    onOff1.attachCable(conn);
+
+    conn.cable.pole = CircuitCable::Pole::Second;
+    onOff1.attachCable(conn);
+
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 2;
-    onOff1.attachCable(conn);
-
-    conn.cableSide = Side::A2;
-    conn.nodeContact = 3;
-    onOff1.attachCable(conn);
-
-    conn.cableSide = Side::B1;
-    conn.nodeContact = 4;
     s2.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 5;
+    conn.cable.pole = CircuitCable::Pole::Second;
     s2.attachCable(conn);
 
     // c3 Graph
@@ -230,21 +230,21 @@ int main(int argc, char *argv[])
     // c4 cable from s1 to on/off2
     CircuitCable c4;
     c4.setObjectName("c4");
-    conn.cable = &c4;
-    conn.cableSide = Side::A1;
-    conn.nodeContact = 2;
+    conn.cable.cable = &c4;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
+    conn.nodeContact = 1;
     s1.attachCable(conn);
 
-    conn.cableSide = Side::A2;
-    conn.nodeContact = 3;
+    conn.cable.pole = CircuitCable::Pole::Second;
     s1.attachCable(conn);
 
-    conn.cableSide = Side::B1;
-    conn.nodeContact = 0;
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
+    conn.nodeContact = 1;
     onOff2.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     onOff2.attachCable(conn);
 
     // c4 Graph
@@ -263,21 +263,21 @@ int main(int argc, char *argv[])
     // c5 cable from on/off2 to on/off3
     CircuitCable c5;
     c5.setObjectName("c5");
-    conn.cable = &c5;
-    conn.cableSide = Side::A1;
-    conn.nodeContact = 2;
+    conn.cable.cable = &c5;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
+    conn.nodeContact = 0;
     onOff2.attachCable(conn);
 
-    conn.cableSide = Side::A2;
-    conn.nodeContact = 3;
+    conn.cable.pole = CircuitCable::Pole::Second;
     onOff2.attachCable(conn);
 
-    conn.cableSide = Side::B1;
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
     onOff3.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     onOff3.attachCable(conn);
 
     // c5 Graph
@@ -285,24 +285,32 @@ int main(int argc, char *argv[])
     c5Graph->setToolTip("c5");
     c5Graph->setVisible(false); // TODO
 
+    c5Graph->setPos(0, 0);
+    QPainterPath pathC5;
+    auto startC5 = getConnectorPoint(onOff2Graph, TileRotate::Deg0);
+    auto endC5 = getConnectorPoint(onOff3Graph, TileRotate::Deg180);
+    pathC5.moveTo(startC5);
+    pathC5.lineTo(endC5);
+    c5Graph->setPath(pathC5);
+
     // c6 cable from on/off3 to s2
     CircuitCable c6;
     c6.setObjectName("c6");
-    conn.cable = &c6;
-    conn.cableSide = Side::A1;
-    conn.nodeContact = 2;
+    conn.cable.cable = &c6;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
+    conn.nodeContact = 1;
     onOff3.attachCable(conn);
 
-    conn.cableSide = Side::A2;
+    conn.cable.pole = CircuitCable::Pole::Second;
+    onOff3.attachCable(conn);
+
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 3;
-    onOff3.attachCable(conn);
-
-    conn.cableSide = Side::B1;
-    conn.nodeContact = 6;
     s2.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 7;
+    conn.cable.pole = CircuitCable::Pole::Second;
     s2.attachCable(conn);
 
     // c6 Graph
@@ -321,21 +329,21 @@ int main(int argc, char *argv[])
     // c7 cable from s1 to relay contact common
     CircuitCable c7;
     c7.setObjectName("c7");
-    conn.cable = &c7;
-    conn.cableSide = Side::A1;
-    conn.nodeContact = 6;
+    conn.cable.cable = &c7;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
+    conn.nodeContact = 3;
     s1.attachCable(conn);
 
-    conn.cableSide = Side::A2;
-    conn.nodeContact = 7;
+    conn.cable.pole = CircuitCable::Pole::Second;
     s1.attachCable(conn);
 
-    conn.cableSide = Side::B1;
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
     relCont.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     relCont.attachCable(conn);
 
     // c7 Graph
@@ -353,21 +361,21 @@ int main(int argc, char *argv[])
     // c8 cable from relay contact up to relay power 2
     CircuitCable c8;
     c8.setObjectName("c8");
-    conn.cable = &c8;
-    conn.cableSide = Side::A1;
-    conn.nodeContact = 4;
+    conn.cable.cable = &c8;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
+    conn.nodeContact = 1;
     relCont.attachCable(conn);
 
-    conn.cableSide = Side::A2;
-    conn.nodeContact = 5;
+    conn.cable.pole = CircuitCable::Pole::Second;
     relCont.attachCable(conn);
 
-    conn.cableSide = Side::B1;
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
     relPow2.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     relPow2.attachCable(conn);
 
     // c8 Graph
@@ -385,27 +393,35 @@ int main(int argc, char *argv[])
     // c9 cable from s2 to relay power 1
     CircuitCable c9;
     c9.setObjectName("c9");
-    conn.cable = &c9;
-    conn.cableSide = Side::A1;
+    conn.cable.cable = &c9;
+    conn.cable.side = Side::A;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
     s2.attachCable(conn);
 
-    conn.cableSide = Side::A2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     s2.attachCable(conn);
 
-    conn.cableSide = Side::B1;
+    conn.cable.side = Side::B;
+    conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
     relPow1.attachCable(conn);
 
-    conn.cableSide = Side::B2;
-    conn.nodeContact = 1;
+    conn.cable.pole = CircuitCable::Pole::Second;
     relPow1.attachCable(conn);
 
-    // c8 Graph
+    // c9 Graph
     CableGraphItem *c9Graph = new CableGraphItem(&c9);
     c9Graph->setToolTip("c9");
     c9Graph->setVisible(false);
+
+    c9Graph->setPos(0, 0);
+    QPainterPath pathC9;
+    auto startC9 = getConnectorPoint(s2Graph, TileRotate::Deg0);
+    auto endC9 = getConnectorPoint(relPowGraph1, TileRotate::Deg180);
+    pathC9.moveTo(startC9);
+    pathC9.lineTo(endC9);
+    c9Graph->setPath(pathC9);
 
     auto guard = qScopeGuard([&powerSource](){powerSource.setEnabled(false);});
 
@@ -423,15 +439,15 @@ int main(int argc, char *argv[])
     scene.addNode(relContGraph1);
     scene.addNode(relPowGraph2);
 
-    scene.addItem(c1Graph);
-    scene.addItem(c2Graph);
-    scene.addItem(c3Graph);
-    scene.addItem(c4Graph);
-    scene.addItem(c5Graph);
-    scene.addItem(c6Graph);
-    scene.addItem(c7Graph);
-    scene.addItem(c8Graph);
-    scene.addItem(c9Graph);
+    scene.addCable(c1Graph);
+    scene.addCable(c2Graph);
+    scene.addCable(c3Graph);
+    scene.addCable(c4Graph);
+    scene.addCable(c5Graph);
+    scene.addCable(c6Graph);
+    scene.addCable(c7Graph);
+    scene.addCable(c8Graph);
+    scene.addCable(c9Graph);
 
     w.show();
     return a.exec();
