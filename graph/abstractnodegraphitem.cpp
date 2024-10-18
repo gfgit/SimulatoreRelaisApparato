@@ -83,6 +83,14 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
         }
         return newPos;
     }
+    else if(change == GraphicsItemChange::ItemPositionHasChanged)
+    {
+        // Detach all contacts, will be revaluated later
+        for(int i = 0; i < getAbstractNode()->getContactCount(); i++)
+        {
+            getAbstractNode()->detachCable(i);
+        }
+    }
 
     return QGraphicsObject::itemChange(change, value);
 }
@@ -269,6 +277,13 @@ void AbstractNodeGraphItem::setRotate(TileRotate newRotate)
     if(mRotate == newRotate)
         return;
     mRotate = newRotate;
+
+    // Detach all contacts, will be revaluated later
+    for(int i = 0; i < getAbstractNode()->getContactCount(); i++)
+    {
+        getAbstractNode()->detachCable(i);
+    }
+
     update();
 }
 
