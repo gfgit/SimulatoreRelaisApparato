@@ -25,11 +25,14 @@ static QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, cons
     return p;
 }
 
-CableGraphItem::CableGraphItem(CircuitCable *cable)
+CableGraphItem::CableGraphItem(CircuitCable *cable_)
     : QGraphicsObject()
-    , mCable(cable)
+    , mCable(cable_)
 {
     setParent(mCable);
+
+    QRectF square(QPointF(), QSizeF(20, 20));
+    mUnconnectedRectA = mUnconnectedRectB = square;
 
     mPath.moveTo(0, 1);
     mPath.lineTo(0, 49);
@@ -39,6 +42,7 @@ CableGraphItem::CableGraphItem(CircuitCable *cable)
 
     connect(mCable, &CircuitCable::modeChanged, this, &CableGraphItem::updatePen);
     connect(mCable, &CircuitCable::powerChanged, this, &CableGraphItem::updatePen);
+    connect(mCable, &CircuitCable::nodesChanged, this, &CableGraphItem::triggerUpdate);
 
     updatePen();
 }
@@ -59,83 +63,64 @@ QRectF CableGraphItem::boundingRect() const
 
 QPainterPath CableGraphItem::shape() const
 {
-    return qt_graphicsItem_shapeFromPath(mPath, pen);
+    QPainterPath p = mPath;
+
+    bool isAconnected = mCable->getNode(CircuitCable::Side::A).node;
+    bool isBconnected = mCable->getNode(CircuitCable::Side::B).node;
+
+    if(!isAconnected)
+        p.addRect(mUnconnectedRectA);
+    if(!isBconnected)
+        p.addRect(mUnconnectedRectB);
+
+    return qt_graphicsItem_shapeFromPath(p, pen);
 }
 
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     // Draw square if cable end is not connected
-    const auto startElem = mPath.elementAt(0);
-    const auto endElem = mPath.elementAt(mPath.elementCount() - 1);
+    bool isAconnected = mCable->getNode(CircuitCable::Side::A).node;
+    bool isBconnected = mCable->getNode(CircuitCable::Side::B).node;
 
-    bool isAconnected = mCable->getNode(CircuitCable::Side::A1).node;
-    if(isAconnected && mCable->mode() == CircuitCable::Mode::Bifilar)
-    {
-        isAconnected = mCable->getNode(CircuitCable::Side::A2).node;
-    }
-
-    bool isBconnected = mCable->getNode(CircuitCable::Side::B1).node;
-    if(isBconnected && mCable->mode() == CircuitCable::Mode::Bifilar)
-    {
-        isBconnected = mCable->getNode(CircuitCable::Side::B2).node;
-    }
-
+    QColor oldColor = pen.color();
     if(!isAconnected || !isBconnected)
     {
         // Draw a cyan square on cable end
-        QRectF br = boundingRect();
-        QRectF square(QPointF(), QSizeF(20, 20));
-
         painter->setPen(Qt::NoPen);
         painter->setBrush(Qt::darkCyan);
 
         if(!isAconnected)
         {
-            QPointF start(startElem.x, startElem.y);
-
-            if(br.center().x() > start.x())
-                square.moveLeft(start.x());
-            else
-                square.moveRight(start.x());
-
-            if(br.center().y() > start.y())
-                square.moveTop(start.y());
-            else
-                square.moveBottom(start.y());
-
-            painter->drawRect(square);
+            painter->drawRect(mUnconnectedRectA);
         }
-
-
 
         if(!isBconnected)
         {
-            QPointF end(endElem.x, endElem.y);
-
-            if(br.center().x() > end.x())
-                square.moveLeft(end.x());
-            else
-                square.moveRight(end.x());
-
-            if(br.center().y() > end.y())
-                square.moveTop(end.y());
-            else
-                square.moveBottom(end.y());
-
-            painter->drawRect(square);
+            painter->drawRect(mUnconnectedRectB);
         }
 
+        // Also draw line with cyan color
         pen.setColor(Qt::darkCyan);
-    }
-    else
-    {
-        pen.setColor(Qt::black);
     }
 
     // Draw cable path
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(mPath);
+
+    pen.setColor(oldColor);
+}
+
+void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
+{
+    auto *s = circuitScene();
+    if(s->mode() == CircuitScene::Mode::Editing)
+    {
+        emit editRequested(this);
+        return;
+    }
+
+    QGraphicsObject::mouseDoubleClickEvent(e);
 }
 
 void CableGraphItem::setPath(const QPainterPath &path)
@@ -145,6 +130,108 @@ void CableGraphItem::setPath(const QPainterPath &path)
     prepareGeometryChange();
     mPath = path;
     mBoundingRect = QRectF();
+
+    auto start = mPath.elementAt(0);
+    auto end = mPath.elementAt(mPath.elementCount() - 1);
+
+    // Calculate start end
+    if(mPath.elementCount() > 1)
+    {
+        auto startDir = mPath.elementAt(1);
+        auto endDir = mPath.elementAt(mPath.elementCount() - 2);
+
+        if(qFuzzyCompare(start.x, startDir.x))
+        {
+            if(start.y < startDir.y)
+                mDirectionA = Connector::Direction::North;
+            else
+                mDirectionA = Connector::Direction::South;
+        }
+        else
+        {
+            if(start.x < startDir.x)
+                mDirectionA = Connector::Direction::West;
+            else
+                mDirectionA = Connector::Direction::East;
+        }
+
+        if(qFuzzyCompare(end.x, endDir.x))
+        {
+            if(end.y < endDir.y)
+                mDirectionB = Connector::Direction::North;
+            else
+                mDirectionB = Connector::Direction::South;
+        }
+        else
+        {
+            if(end.x < endDir.x)
+                mDirectionB = Connector::Direction::West;
+            else
+                mDirectionB = Connector::Direction::East;
+        }
+
+        mSideA.x = static_cast<int16_t>(std::floor(start.x / TileLocation::Size));
+        mSideA.y = static_cast<int16_t>(std::floor(start.y / TileLocation::Size));
+        if(mDirectionA == Connector::Direction::South)
+            mSideA.y--;
+        if(mDirectionA == Connector::Direction::East)
+            mSideA.x--;
+
+        mSideB.x = static_cast<int16_t>(std::floor(end.x / TileLocation::Size));
+        mSideB.y = static_cast<int16_t>(std::floor(end.y / TileLocation::Size));
+        if(mDirectionB == Connector::Direction::South)
+            mSideB.y--;
+        if(mDirectionB == Connector::Direction::East)
+            mSideB.x--;
+
+        mCableZeroLength = false;
+    }
+    else
+    {
+        mSideA.x = static_cast<int16_t>(std::floor(start.x / TileLocation::Size));
+        mSideA.y = static_cast<int16_t>(std::floor(start.y / TileLocation::Size));
+
+        if(qFuzzyCompare(start.x, mSideA.x * TileLocation::Size))
+        {
+            mDirectionA = Connector::Direction::West;
+            mDirectionB = Connector::Direction::East;
+        }
+        else
+        {
+            mDirectionA = Connector::Direction::North;
+            mDirectionB = Connector::Direction::South;
+        }
+
+        mSideB = mSideA;
+
+        mCableZeroLength = true;
+    }
+
+    // Recalculate position of unconnected rects
+    const QRectF br = mPath.controlPointRect();
+
+    // Rect A
+    if(br.center().x() > start.x)
+        mUnconnectedRectA.moveLeft(start.x);
+    else
+        mUnconnectedRectA.moveRight(start.x);
+
+    if(br.center().y() > start.y)
+        mUnconnectedRectA.moveTop(start.y);
+    else
+        mUnconnectedRectA.moveBottom(start.y);
+
+    // Rect B
+    if(br.center().x() > end.x)
+        mUnconnectedRectB.moveLeft(end.x);
+    else
+        mUnconnectedRectB.moveRight(end.x);
+
+    if(br.center().y() > end.y)
+        mUnconnectedRectB.moveTop(end.y);
+    else
+        mUnconnectedRectB.moveBottom(end.y);
+
     update();
 }
 
@@ -162,11 +249,46 @@ void CableGraphItem::updatePen()
     Qt::PenStyle style = Qt::SolidLine;
     if(power != CircuitCable::Power::None &&
             power != CircuitCable::Power::BothOn &&
-            mCable->mode() == CircuitCable::Mode::Bifilar)
+            mCable->mode() == CircuitCable::Mode::Unifilar)
         style = Qt::DashLine;
 
     pen.setColor(color);
     pen.setStyle(style);
 
     update();
+}
+
+void CableGraphItem::triggerUpdate()
+{
+    update();
+}
+
+Connector::Direction CableGraphItem::directionB() const
+{
+    return mDirectionB;
+}
+
+Connector::Direction CableGraphItem::directionA() const
+{
+    return mDirectionA;
+}
+
+TileLocation CableGraphItem::sideB() const
+{
+    return mSideB;
+}
+
+TileLocation CableGraphItem::sideA() const
+{
+    return mSideA;
+}
+
+bool CableGraphItem::cableZeroLength() const
+{
+    return mCableZeroLength;
+}
+
+CircuitCable *CableGraphItem::cable() const
+{
+    return mCable;
 }
