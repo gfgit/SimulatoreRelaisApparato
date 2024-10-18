@@ -135,20 +135,19 @@ struct Connector
         West = 4,
     };
 
-    TileLocation location;
-    Direction direction;
+    TileLocation location = TileLocation::invalid;
+    Direction direction = Direction::South;
+    int nodeContact = 0;
 
-    Connector(TileLocation location_, Direction direction_);
+    Connector(TileLocation location_, Direction direction_, int contact);
 
-    Connector(TileLocation location_, TileRotate rotate);
+    Connector(TileLocation location_, TileRotate rotate, int contact);
 
     bool operator ==(const Connector& other) const
     {
         return location == other.location &&
                direction == other.direction;
     }
-
-    Connector opposite() const;
 };
 
 constexpr Connector::Direction operator ~(Connector::Direction value)

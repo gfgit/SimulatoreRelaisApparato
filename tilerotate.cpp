@@ -1,18 +1,15 @@
 #include "tilerotate.h"
 
-Connector::Connector(TileLocation location_, Direction direction_)
+Connector::Connector(TileLocation location_, Direction direction_, int contact)
     : location{location_}
     , direction{direction_}
+    , nodeContact(contact)
 {
 }
 
-Connector::Connector(TileLocation location_, TileRotate rotate)
+Connector::Connector(TileLocation location_, TileRotate rotate, int contact)
     : location{location_}
     , direction{toConnectorDirection(rotate)}
+    , nodeContact(contact)
 {
-}
-
-Connector Connector::opposite() const
-{
-    return {location + direction, ~direction};
 }
