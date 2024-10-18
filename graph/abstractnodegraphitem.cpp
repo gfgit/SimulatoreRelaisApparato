@@ -61,6 +61,18 @@ void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     QGraphicsObject::mouseReleaseEvent(ev);
 }
 
+void AbstractNodeGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
+{
+    auto *s = circuitScene();
+    if(s->mode() == CircuitScene::Mode::Editing)
+    {
+        emit editRequested(this);
+        return;
+    }
+
+    QGraphicsObject::mouseDoubleClickEvent(e);
+}
+
 QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if(change == GraphicsItemChange::ItemPositionChange)

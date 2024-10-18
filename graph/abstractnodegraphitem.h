@@ -38,6 +38,9 @@ public:
 
     CircuitScene *circuitScene() const;
 
+signals:
+    void editRequested(AbstractNodeGraphItem *self);
+
 protected slots:
     void triggerUpdate();
     virtual void updateName();
