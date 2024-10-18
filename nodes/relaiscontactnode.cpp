@@ -7,12 +7,9 @@ RelaisContactNode::RelaisContactNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
     // 6 sides
-    mContacts.append(NodeContact()); // A
-    mContacts.append(NodeContact()); // B
-    mContacts.append(NodeContact()); // Down A
-    mContacts.append(NodeContact()); // Down B
-    mContacts.append(NodeContact()); // Up   A
-    mContacts.append(NodeContact()); // Up   B
+    mContacts.append(NodeContact()); // Common
+    mContacts.append(NodeContact()); // Up
+    mContacts.append(NodeContact()); // Down
 }
 
 RelaisContactNode::~RelaisContactNode()
@@ -26,43 +23,47 @@ QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getActiveConnections(
     if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
 
-    int otherContactNum = -1;
-    if(mState != State::Middle)
+    int otherContactIdx = -1;
+
+    const NodeContact& sourceContact = mContacts.at(source.nodeContact);
+    if(sourceContact.getType(source.cable.pole) == ContactType::Passthrough &&
+            (source.nodeContact == 0 || source.nodeContact == 2))
+    {
+        // Pass to other contact straight
+        otherContactIdx = source.nodeContact == 0 ? 2 : 0;
+    }
+    else if(mState != State::Middle)
     {
         bool isDown = mState == State::Down;
         switch (source.nodeContact)
         {
         case 0:
-            otherContactNum = isDown ? 2 : 4;
+            otherContactIdx = isDown ? 2 : 1;
             break;
         case 1:
-            otherContactNum = isDown ? 3 : 5;
+            if(!isDown)
+                otherContactIdx = 0;
             break;
         case 2:
             if(isDown)
-                otherContactNum = 0;
-            break;
-        case 3:
-            if(isDown)
-                otherContactNum = 1;
-            break;
-        case 4:
-            if(!isDown)
-                otherContactNum = 0;
-            break;
-        case 5:
-            if(!isDown)
-                otherContactNum = 1;
+                otherContactIdx = 0;
             break;
         default:
             break;
         }
     }
 
-    if(otherContactNum != -1)
+    if(otherContactIdx != -1)
     {
-        if(mContacts.at(otherContactNum).item.cable)
-            return {mContacts.at(otherContactNum).item};
+        const NodeContact& otherContact = mContacts.at(otherContactIdx);
+        CableItem other;
+        other.cable.cable = otherContact.cable;
+        other.cable.side = otherContact.cableSide;
+        other.cable.pole = source.cable.pole;
+        other.nodeContact = otherContactIdx;
+
+        if(other.cable.cable)
+            return {other};
     }
 
     return {};
@@ -117,7 +118,6 @@ void RelaisContactNode::setState(State newState)
         // Scan for new circuits
         QVector<NodeContact> contactsToScan;
         contactsToScan.append(mContacts[0]);
-        contactsToScan.append(mContacts[1]);
         ClosedCircuit::createCircuitsFromOtherNode(this, contactsToScan);
     }
 }

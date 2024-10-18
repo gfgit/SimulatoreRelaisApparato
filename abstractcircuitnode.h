@@ -14,16 +14,41 @@ class AbstractCircuitNode : public QObject
 public:
     struct CableItem
     {
-        CircuitCable *cable = nullptr;
-        CircuitCable::Side cableSide = CircuitCable::Side::A1;
+        CircuitCable::CableContact cable;
         int nodeContact = 0;
+    };
+
+    enum class ContactType
+    {
+        NotConnected = 0,
+        Connected,
+        Passthrough
     };
 
     struct NodeContact
     {
         QString name1;
         QString name2;
-        CableItem item;
+
+        CircuitCable *cable = nullptr;
+        CircuitCable::Side cableSide = CircuitCable::Side::A;
+        ContactType type1;
+        ContactType type2;
+
+        inline ContactType getType(CircuitCable::Pole pole) const
+        {
+            if(!cable)
+                return ContactType::NotConnected;
+            return pole == CircuitCable::Pole::First ? type1 : type2;
+        }
+
+        inline void setType(CircuitCable::Pole pole, ContactType t)
+        {
+            if(pole == CircuitCable::Pole::First)
+                type1 = t;
+            else
+                type2 = t;
+        }
     };
 
     explicit AbstractCircuitNode(QObject *parent = nullptr);
@@ -41,10 +66,22 @@ public:
         return mContacts;
     }
 
+    inline ContactType getContactType(int idx, CircuitCable::Pole pole) const
+    {
+        if(idx < 0 || idx >= mContacts.size())
+            return ContactType::NotConnected;
+        return mContacts.at(idx).getType(pole);
+    }
+
     inline bool hasCircuits() const { return mCircuits.size(); }
 
-    void attachCable(CableItem item);
-    void detachCable(CableItem item);
+    void attachCable(const CableItem &item);
+    void detachCable(const CableItem &item);
+
+protected:
+    friend class CircuitScene;
+    friend class AbstractNodeGraphItem;
+    void detachCable(int contactIdx);
 
 signals:
     void circuitsChanged();
@@ -54,12 +91,5 @@ protected:
 
     QVector<ClosedCircuit *> mCircuits;
 };
-
-inline bool operator ==(const AbstractCircuitNode::CableItem& lhs,
-                        const AbstractCircuitNode::CableItem& rhs)
-{
-    // NOTE: nodeContact should be redundant to check
-    return lhs.cable == rhs.cable && lhs.cableSide == rhs.cableSide;
-}
 
 #endif // ABSTRACTCIRCUITNODE_H

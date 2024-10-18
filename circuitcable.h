@@ -15,15 +15,21 @@ public:
     enum class Mode
     {
         Unifilar = 0,
-        Bifilar = 1
+        Bifilar1,
+        Bifilar2,
+        BifilarBoth
+    };
+
+    enum class Pole
+    {
+        First = 0,
+        Second
     };
 
     enum class Side
     {
-        A1 = 0,
-        A2 = 1,
-        B1 = 2,
-        B2 = 3
+        A = 0,
+        B = 1
     };
 
     enum class Power
@@ -40,6 +46,13 @@ public:
         int nodeContact = 0;
     };
 
+    struct CableContact
+    {
+        CircuitCable *cable = nullptr;
+        CircuitCable::Side side = CircuitCable::Side::A;
+        CircuitCable::Pole pole = CircuitCable::Pole::First;
+    };
+
     explicit CircuitCable(QObject *parent = nullptr);
     ~CircuitCable();
 
@@ -48,21 +61,17 @@ public:
 
     Power powered();
 
-    void addCircuit(ClosedCircuit *circuit, Side s);
+    void addCircuit(ClosedCircuit *circuit, Pole pole);
     void removeCircuit(ClosedCircuit *circuit);
 
     inline CableEnd getNode(Side s) const
     {
         switch (s)
         {
-        case Side::A1:
-            return mNodeA1;
-        case Side::A2:
-            return mNodeA2;
-        case Side::B1:
-            return mNodeB1;
-        case Side::B2:
-            return mNodeB2;
+        case Side::A:
+            return mNodeA;
+        case Side::B:
+            return mNodeB;
         default:
             break;
         }
@@ -71,44 +80,36 @@ public:
         return {};
     }
 
-    static inline Side oppositeSide(Side s)
-    {
-        switch (s)
-        {
-        case Side::A1:
-            return Side::B1;
-        case Side::A2:
-            return Side::B2;
-        case Side::B1:
-            return Side::A1;
-        case Side::B2:
-            return Side::A2;
-        default:
-            break;
-        }
-
-        Q_UNREACHABLE();
-        return Side::B1;
-    }
-
 signals:
     void modeChanged(Mode m);
     void powerChanged(Power p);
+    void nodesChanged();
 
 private:
     friend class AbstractCircuitNode;
     void setNode(Side s, CableEnd node);
 
 private:
-    Mode mMode = Mode::Bifilar;
+    Mode mMode = Mode::Unifilar;
 
     QVector<ClosedCircuit *> mFirstCableCirctuits;
     QVector<ClosedCircuit *> mSecondCableCirctuits;
 
-    CableEnd mNodeA1;
-    CableEnd mNodeA2;
-    CableEnd mNodeB1;
-    CableEnd mNodeB2;
+    CableEnd mNodeA;
+    CableEnd mNodeB;
 };
+
+inline CircuitCable::Side operator ~(CircuitCable::Side s)
+{
+    return s == CircuitCable::Side::A ? CircuitCable::Side::B :
+                                        CircuitCable::Side::A;
+}
+
+constexpr CircuitCable::Pole operator ~(CircuitCable::Pole value)
+{
+    if(value == CircuitCable::Pole::First)
+        return CircuitCable::Pole::Second;
+    return CircuitCable::Pole::First;
+}
 
 #endif // CIRCUITCABLE_H

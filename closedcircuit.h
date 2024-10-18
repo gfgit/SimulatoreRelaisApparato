@@ -10,22 +10,18 @@ class ClosedCircuit : public QObject
 {
     Q_OBJECT
 public:
-    struct CableItem
-    {
-        CircuitCable *cable = nullptr;
-        CircuitCable::Side fromSide = CircuitCable::Side::A1;
-    };
-
     struct NodeItem
     {
         AbstractCircuitNode *node = nullptr;
         int fromContact = 0;
         int toContact = 0;
+        CircuitCable::Pole fromPole = CircuitCable::Pole::First;
+        CircuitCable::Pole toPole = CircuitCable::Pole::First;
     };
 
     struct Item
     {
-        CableItem cable;
+        CircuitCable::CableContact cable;
         NodeItem node;
         bool isNode = false;
     };

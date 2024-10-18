@@ -14,40 +14,44 @@ CircuitCable::~CircuitCable()
     Q_ASSERT(mSecondCableCirctuits.isEmpty());
 
     // Detach all nodes
-    if(mNodeA1.node)
+    if(mNodeA.node)
     {
         AbstractCircuitNode::CableItem item;
-        item.cable = this;
-        item.cableSide = Side::A1;
-        item.nodeContact = mNodeA1.nodeContact;
-        mNodeA1.node->detachCable(item);
+        item.cable.cable = this;
+        item.cable.side = Side::A;
+        item.nodeContact = mNodeA.nodeContact;
+
+        item.cable.pole = Pole::First;
+        if(mNodeA.node->getContactType(mNodeA.nodeContact, item.cable.pole) != AbstractCircuitNode::ContactType::NotConnected)
+        {
+            mNodeA.node->detachCable(item);
+        }
+
+        item.cable.pole = Pole::Second;
+        if(mNodeA.node->getContactType(mNodeA.nodeContact, item.cable.pole) != AbstractCircuitNode::ContactType::NotConnected)
+        {
+            mNodeA.node->detachCable(item);
+        }
     }
 
-    if(mNodeA2.node)
+    if(mNodeB.node)
     {
         AbstractCircuitNode::CableItem item;
-        item.cable = this;
-        item.cableSide = Side::A2;
-        item.nodeContact = mNodeA2.nodeContact;
-        mNodeA2.node->detachCable(item);
-    }
+        item.cable.cable = this;
+        item.cable.side = Side::B;
+        item.nodeContact = mNodeB.nodeContact;
 
-    if(mNodeB1.node)
-    {
-        AbstractCircuitNode::CableItem item;
-        item.cable = this;
-        item.cableSide = Side::B1;
-        item.nodeContact = mNodeB1.nodeContact;
-        mNodeB1.node->detachCable(item);
-    }
+        item.cable.pole = Pole::First;
+        if(mNodeB.node->getContactType(mNodeB.nodeContact, item.cable.pole) != AbstractCircuitNode::ContactType::NotConnected)
+        {
+            mNodeB.node->detachCable(item);
+        }
 
-    if(mNodeB2.node)
-    {
-        AbstractCircuitNode::CableItem item;
-        item.cable = this;
-        item.cableSide = Side::B2;
-        item.nodeContact = mNodeB2.nodeContact;
-        mNodeB2.node->detachCable(item);
+        item.cable.pole = Pole::Second;
+        if(mNodeB.node->getContactType(mNodeB.nodeContact, item.cable.pole) != AbstractCircuitNode::ContactType::NotConnected)
+        {
+            mNodeB.node->detachCable(item);
+        }
     }
 }
 
@@ -65,11 +69,11 @@ void CircuitCable::setMode(Mode newMode)
     emit modeChanged(mMode);
 }
 
-void CircuitCable::addCircuit(ClosedCircuit *circuit, Side s)
+void CircuitCable::addCircuit(ClosedCircuit *circuit, Pole pole)
 {
     const Power oldPower = powered();
 
-    if(s == Side::A1 || s == Side::B1)
+    if(pole == Pole::First)
     {
         if(mFirstCableCirctuits.contains(circuit))
             return; // A circuit may pass 2 times on same item
@@ -106,22 +110,18 @@ void CircuitCable::setNode(Side s, CableEnd node)
 {
     switch (s)
     {
-    case Side::A1:
-        mNodeA1 = node;
+    case Side::A:
+        mNodeA = node;
         break;
-    case Side::A2:
-        mNodeA2 = node;
-        break;
-    case Side::B1:
-        mNodeB1 = node;
-        break;
-    case Side::B2:
-        mNodeB2 = node;
+    case Side::B:
+        mNodeB = node;
         break;
     default:
         Q_UNREACHABLE();
         break;
     }
+
+    emit nodesChanged();
 }
 
 CircuitCable::Power CircuitCable::powered()
@@ -129,7 +129,7 @@ CircuitCable::Power CircuitCable::powered()
     // Cable is powered if there are
     // closed circuits passing on it
 
-    bool firstOn = !mFirstCableCirctuits.isEmpty();
+    const bool firstOn = !mFirstCableCirctuits.isEmpty();
 
     if(mSecondCableCirctuits.isEmpty())
     {

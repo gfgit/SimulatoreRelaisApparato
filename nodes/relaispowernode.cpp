@@ -5,8 +5,7 @@
 RelaisPowerNode::RelaisPowerNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
-    // 2 sides
-    mContacts.append(NodeContact());
+    // 1 side
     mContacts.append(NodeContact());
 }
 
@@ -18,17 +17,14 @@ RelaisPowerNode::~RelaisPowerNode()
 
 QVector<AbstractCircuitNode::CableItem> RelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)
 {
-    if(source.nodeContact != 0 && source.nodeContact != 1)
+    if(source.nodeContact != 0 || !mContacts.at(0).cable)
         return {};
 
     // Close the circuit
-    if(source.nodeContact == 0 && mContacts.at(1).item.cable)
-        return {mContacts.at(1).item};
-
-    if(source.nodeContact == 1 && mContacts.at(0).item.cable)
-        return {mContacts.at(0).item};
-
-    return {};
+    // TODO: polarized relays?
+    CableItem dest = source;
+    dest.cable.pole = ~source.cable.pole; // Invert pole
+    return {dest};
 }
 
 void RelaisPowerNode::addCircuit(ClosedCircuit *circuit)

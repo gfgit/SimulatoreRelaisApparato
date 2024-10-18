@@ -13,8 +13,7 @@ AbstractCircuitNode::~AbstractCircuitNode()
     // Detach all contacts
     for(int i = 0; i < mContacts.size(); i++)
     {
-        if(mContacts.at(i).item.cable)
-            detachCable(mContacts.at(i).item);
+        detachCable(i);
     }
 }
 
@@ -40,31 +39,64 @@ void AbstractCircuitNode::removeCircuit(ClosedCircuit *circuit)
         emit circuitsChanged();
 }
 
-void AbstractCircuitNode::attachCable(CableItem item)
+void AbstractCircuitNode::attachCable(const CableItem& item)
 {
-    Q_ASSERT(!item.cable->getNode(item.cableSide).node);
+    // Either contact if free or we are adding poles to same cable
+    Q_ASSERT(item.cable.cable->getNode(item.cable.side).node == this || !item.cable.cable->getNode(item.cable.side).node);
     Q_ASSERT(item.nodeContact < mContacts.size());
-
-    if(mContacts.at(item.nodeContact).item.cable)
-        return; // Already connected
+    Q_ASSERT(mContacts.at(item.nodeContact).cable == item.cable.cable || !mContacts.at(item.nodeContact).cable);
+    Q_ASSERT(mContacts.at(item.nodeContact).getType(item.cable.pole) == ContactType::NotConnected);
 
     NodeContact& contact = mContacts[item.nodeContact];
-    contact.item = item;
+    if(!contact.cable)
+    {
+        // Connect new cable
+        contact.cable = item.cable.cable;
+        contact.cableSide = item.cable.side;
+        contact.setType(item.cable.pole, ContactType::Connected);
 
-    CircuitCable::CableEnd cableEnd;
-    cableEnd.node = this;
-    cableEnd.nodeContact = item.nodeContact;
-    item.cable->setNode(item.cableSide, cableEnd);
+        CircuitCable::CableEnd cableEnd;
+        cableEnd.node = this;
+        cableEnd.nodeContact = item.nodeContact;
+        item.cable.cable->setNode(item.cable.side, cableEnd);
+    }
+    else
+    {
+        // Add a pole
+        contact.setType(item.cable.pole, ContactType::Connected);
+    }
 }
 
-void AbstractCircuitNode::detachCable(CableItem item)
+void AbstractCircuitNode::detachCable(const CableItem &item)
 {
-    Q_ASSERT(item.cable->getNode(item.cableSide).node == this);
+    Q_ASSERT(item.cable.cable->getNode(item.cable.side).node == this);
     Q_ASSERT(item.nodeContact < mContacts.size());
-    Q_ASSERT(mContacts.at(item.nodeContact).item == item);
+    Q_ASSERT(mContacts.at(item.nodeContact).cable == item.cable.cable);
+    Q_ASSERT(mContacts.at(item.nodeContact).getType(item.cable.pole) != ContactType::NotConnected);
 
     NodeContact& contact = mContacts[item.nodeContact];
-    contact.item.cable = nullptr;
 
-    item.cable->setNode(item.cableSide, {});
+    // Check other pole
+    if(contact.getType(~item.cable.pole) != ContactType::Connected)
+    {
+        // Other pole is not connected, remove cable
+        contact.cable = nullptr;
+        item.cable.cable->setNode(item.cable.side, {});
+    }
+    else
+    {
+        // Keep other pole
+        contact.setType(item.cable.pole, ContactType::NotConnected);
+    }
+}
+
+void AbstractCircuitNode::detachCable(int contactIdx)
+{
+    NodeContact& contact = mContacts[contactIdx];
+    if(contact.cable)
+    {
+        contact.cable->setNode(contact.cableSide, {});
+        contact.type1 = contact.type2 = ContactType::NotConnected;
+        contact.cable = nullptr;
+    }
 }

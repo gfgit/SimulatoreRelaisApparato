@@ -5,24 +5,44 @@
 OnOffSwitchNode::OnOffSwitchNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
-    // 4 sides
-    mContacts.append(NodeContact());
-    mContacts.append(NodeContact());
+    // 2 sides
     mContacts.append(NodeContact());
     mContacts.append(NodeContact());
 }
 
 QVector<AbstractCircuitNode::CableItem> OnOffSwitchNode::getActiveConnections(CableItem source, bool invertDir)
 {
-    if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
+    if((source.nodeContact < 0) || (source.nodeContact > 1))
         return {};
 
     if(!m_isOn)
         return {};
 
-    int otherContact = (source.nodeContact + 2) % getContactCount();
-    if(mContacts.at(otherContact).item.cable)
-        return {mContacts.at(otherContact).item};
+    const NodeContact& sourceContact = mContacts.at(source.nodeContact);
+    if(sourceContact.getType(source.cable.pole) == ContactType::NotConnected)
+        return {};
+
+    const NodeContact& otherContact = mContacts.at(source.nodeContact == 0 ? 1 : 0);
+
+    CableItem other;
+    other.cable.cable = otherContact.cable;
+    other.cable.side = otherContact.cableSide;
+    other.nodeContact = source.nodeContact == 0 ? 1 : 0;
+    other.cable.pole = source.cable.pole;
+
+    switch (otherContact.getType(source.cable.pole))
+    {
+    case ContactType::NotConnected:
+    default:
+        return {};
+    case ContactType::Connected:
+        if(m_isOn)
+            return {other};
+        return {};
+    case ContactType::Passthrough:
+        return {other};
+    }
+
     return {};
 }
 
@@ -42,7 +62,6 @@ void OnOffSwitchNode::setOn(bool newOn)
     {
         QVector<NodeContact> contactsToScan;
         contactsToScan.append(mContacts[0]);
-        contactsToScan.append(mContacts[1]);
         ClosedCircuit::createCircuitsFromOtherNode(this, contactsToScan);
     }
     else

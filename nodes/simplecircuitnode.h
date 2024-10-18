@@ -23,18 +23,17 @@ public:
 
     inline bool isContactEnabled(int nodeContact) const
     {
-        Q_ASSERT(nodeContact >= 0 && nodeContact < 8);
-        if(nodeContact < 2)
+        if(nodeContact == 0)
             return true; // Common is always enables
-        return int(std::floor(nodeContact / 2.0)) != mDisabledContact;
+        return nodeContact != mDisabledContact;
     }
 
-    inline bool hasCircuit(int connector) const
+    inline bool hasCircuit(int nodeContact) const
     {
-        Q_ASSERT(connector >= 0 && connector < 4);
-        if(connector == 0)
+        Q_ASSERT(nodeContact >= 0 && nodeContact < 4);
+        if(nodeContact == 0)
             return hasCircuits(); // Common
-        return mCircuitCount[connector - 1] > 0;
+        return mCircuitCount[nodeContact - 1] > 0;
     }
 
 signals:
@@ -42,7 +41,7 @@ signals:
 
 private:
     int mDisabledContact = 0; // All enabled
-    int mCircuitCount[3] = {0, 0, 0};
+    int mCircuitCount[3] = {0, 0, 0}; // Circuits on every branch
 };
 
 #endif // SIMPLECIRCUITNODE_H

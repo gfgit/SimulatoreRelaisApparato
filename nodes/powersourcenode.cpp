@@ -5,8 +5,7 @@
 PowerSourceNode::PowerSourceNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
-    // 2 sides
-    mContacts.append(NodeContact());
+    // 1 side
     mContacts.append(NodeContact());
 }
 

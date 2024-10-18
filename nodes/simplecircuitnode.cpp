@@ -5,11 +5,7 @@
 SimpleCircuitNode::SimpleCircuitNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
-    // 8 sides (4 connectors bifilar)
-    mContacts.append(NodeContact());
-    mContacts.append(NodeContact());
-    mContacts.append(NodeContact());
-    mContacts.append(NodeContact());
+    // 4 sides
     mContacts.append(NodeContact());
     mContacts.append(NodeContact());
     mContacts.append(NodeContact());
@@ -18,7 +14,7 @@ SimpleCircuitNode::SimpleCircuitNode(QObject *parent)
 
 QVector<AbstractCircuitNode::CableItem> SimpleCircuitNode::getActiveConnections(CableItem source, bool invertDir)
 {
-    if((source.nodeContact < 0) || source.nodeContact >= 8)
+    if((source.nodeContact < 0) || source.nodeContact >= getContactCount())
         return {};
 
     if(!isContactEnabled(source.nodeContact))
@@ -27,8 +23,7 @@ QVector<AbstractCircuitNode::CableItem> SimpleCircuitNode::getActiveConnections(
     QVector<AbstractCircuitNode::CableItem> result;
     result.reserve(3);
 
-    int odd = source.nodeContact % 2;
-    for(int i = odd; i < 8; i += 2) // Loop contacts of same polarity
+    for(int i = 0; i < 4; i++) // Loop contacts of same polarity
     {
         if(i == source.nodeContact)
             continue; // Skip self
@@ -36,10 +31,16 @@ QVector<AbstractCircuitNode::CableItem> SimpleCircuitNode::getActiveConnections(
         if(!isContactEnabled(i))
             continue;
 
-        if(!mContacts.at(i).item.cable)
+        if(!mContacts.at(i).cable)
             continue;
 
-        result.append(mContacts.at(i).item);
+        CableItem dest;
+        dest.cable.cable = mContacts.at(i).cable;
+        dest.cable.side = mContacts.at(i).cableSide;
+        dest.nodeContact = i;
+        dest.cable.pole = source.cable.pole;
+
+        result.append(dest);
     }
 
     return result;
@@ -56,17 +57,14 @@ void SimpleCircuitNode::addCircuit(ClosedCircuit *circuit)
         const auto items = circuit->getNode(this);
         for(ClosedCircuit::NodeItem item : items)
         {
-            int fromContact = std::floor(item.fromContact / 2.0);
-            int toContact = std::floor(item.toContact / 2.0);
-
-            if(fromContact > 0)
+            if(item.fromContact > 0)
             {
-                mCircuitCount[fromContact - 1]++;
+                mCircuitCount[item.fromContact - 1]++;
                 updateNeeded = true;
             }
-            if(toContact > 0)
+            if(item.toContact > 0)
             {
-                mCircuitCount[toContact - 1]++;
+                mCircuitCount[item.toContact - 1]++;
                 updateNeeded = true;
             }
         }
@@ -85,19 +83,16 @@ void SimpleCircuitNode::removeCircuit(ClosedCircuit *circuit)
     const auto items = circuit->getNode(this);
     for(ClosedCircuit::NodeItem item : items)
     {
-        int fromContact = std::floor(item.fromContact / 2.0);
-        int toContact = std::floor(item.toContact / 2.0);
-
-        if(fromContact > 0)
+        if(item.fromContact > 0)
         {
-            Q_ASSERT(mCircuitCount[fromContact - 1] > 0);
-            mCircuitCount[fromContact - 1]--;
+            Q_ASSERT(mCircuitCount[item.fromContact - 1] > 0);
+            mCircuitCount[item.fromContact - 1]--;
             updateNeeded = true;
         }
-        if(toContact > 0)
+        if(item.toContact > 0)
         {
-            Q_ASSERT(mCircuitCount[toContact - 1] > 0);
-            mCircuitCount[toContact - 1]--;
+            Q_ASSERT(mCircuitCount[item.toContact - 1] > 0);
+            mCircuitCount[item.toContact - 1]--;
             updateNeeded = true;
         }
     }
@@ -127,10 +122,7 @@ void SimpleCircuitNode::setDisabledContact(int val)
                 const auto items = circuit->getNode(this);
                 for(ClosedCircuit::NodeItem item : items)
                 {
-                    int fromContact = std::floor(item.fromContact / 2.0);
-                    int toContact = std::floor(item.toContact / 2.0);
-
-                    if(fromContact == mDisabledContact || toContact == mDisabledContact)
+                    if(item.fromContact == mDisabledContact || item.toContact == mDisabledContact)
                     {
                         circuit->disableCircuit();
                         delete circuit;
@@ -139,13 +131,6 @@ void SimpleCircuitNode::setDisabledContact(int val)
             }
         }
 
-        // Disconnect cable if any
-        auto cable1 = mContacts.at(mDisabledContact * 2).item;
-        auto cable2 = mContacts.at(mDisabledContact * 2 + 1).item;
-
-        if(cable1.cable)
-            detachCable(cable1);
-        if(cable2.cable)
-            detachCable(cable2);
+        detachCable(mDisabledContact);
     }
 }
