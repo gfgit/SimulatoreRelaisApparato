@@ -112,7 +112,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
 void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
-    connectors.emplace_back(location(), rotate());
+    connectors.emplace_back(location(), rotate(), 0);
 }
 
 void RelaisPowerGraphItem::updateRelay()

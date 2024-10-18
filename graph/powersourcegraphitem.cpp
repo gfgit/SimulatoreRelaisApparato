@@ -1,6 +1,7 @@
 #include "powersourcegraphitem.h"
 
 #include "../nodes/powersourcenode.h"
+#include "circuitscene.h"
 
 #include <QPainterPath>
 #include <QPainter>
@@ -53,6 +54,12 @@ void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
 void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 {
+    AbstractNodeGraphItem::mouseDoubleClickEvent(e);
+
+    auto *s = circuitScene();
+    if(s->mode() != CircuitScene::Mode::Simulation)
+        return; // TODO: block the node instead
+
     // Toggle on double click
     bool val = node()->getEnabled();
     node()->setEnabled(!val);
@@ -60,7 +67,7 @@ void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 
 void PowerSourceGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
-    connectors.emplace_back(location(), rotate());
+    connectors.emplace_back(location(), rotate(), 0);
 }
 
 PowerSourceNode *PowerSourceGraphItem::node() const

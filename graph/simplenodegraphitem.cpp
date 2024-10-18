@@ -113,16 +113,16 @@ void SimpleNodeGraphItem::getConnectors(std::vector<Connector> &connectors) cons
     bool hasDeg180 = node()->disabledContact() != 2;
     bool hasDeg270 = node()->disabledContact() != 3;
 
-    connectors.emplace_back(location(), rotate()); // Common
+    connectors.emplace_back(location(), rotate(), 0); // Common
 
     if(hasDeg90)
-        connectors.emplace_back(location(), rotate() + TileRotate::Deg90);
+        connectors.emplace_back(location(), rotate() + TileRotate::Deg90, 1);
 
     if(hasDeg180)
-        connectors.emplace_back(location(), rotate() + TileRotate::Deg180);
+        connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 2);
 
     if(hasDeg270)
-        connectors.emplace_back(location(), rotate() + TileRotate::Deg270);
+        connectors.emplace_back(location(), rotate() + TileRotate::Deg270, 3);
 }
 
 SimpleCircuitNode *SimpleNodeGraphItem::node() const

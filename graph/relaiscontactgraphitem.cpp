@@ -155,9 +155,9 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
 void RelaisContactGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
-    connectors.emplace_back(location(), rotate()); // Common
-    connectors.emplace_back(location(), rotate() + TileRotate::Deg90);  // Down
-    connectors.emplace_back(location(), rotate() + TileRotate::Deg180); // Up
+    connectors.emplace_back(location(), rotate(), 0); // Common
+    connectors.emplace_back(location(), rotate() + TileRotate::Deg90, 1);  // Up
+    connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 2); // Down
 }
 
 RelaisContactNode *RelaisContactGraphItem::node() const

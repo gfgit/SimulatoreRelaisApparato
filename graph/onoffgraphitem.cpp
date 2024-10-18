@@ -99,8 +99,8 @@ void OnOffGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 
 void OnOffGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
-    connectors.emplace_back(location(), rotate());
-    connectors.emplace_back(location(), rotate() + TileRotate::Deg180);
+    connectors.emplace_back(location(), rotate(), 0);
+    connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 1);
 }
 
 OnOffSwitchNode *OnOffGraphItem::node() const
