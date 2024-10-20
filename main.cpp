@@ -25,13 +25,13 @@ QPointF getConnectorPoint(AbstractNodeGraphItem *item, TileRotate r)
     switch (toConnectorDirection(r))
     {
     case Connector::Direction::North:
-        return {pos.x() + TileLocation::Size / 2.0, pos.y()};
+        return {pos.x() + TileLocation::HalfSize, pos.y()};
     case Connector::Direction::South:
-        return {pos.x() + TileLocation::Size / 2.0, pos.y() + TileLocation::Size};
+        return {pos.x() + TileLocation::HalfSize, pos.y() + TileLocation::Size};
     case Connector::Direction::East:
-        return {pos.x() + TileLocation::Size, pos.y() + TileLocation::Size / 2.0};
+        return {pos.x() + TileLocation::Size, pos.y() + TileLocation::HalfSize};
     case Connector::Direction::West:
-        return {pos.x(), pos.y() + TileLocation::Size / 2.0};
+        return {pos.x(), pos.y() + TileLocation::HalfSize};
     default:
         break;
     }

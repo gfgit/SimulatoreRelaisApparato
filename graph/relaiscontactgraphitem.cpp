@@ -14,8 +14,8 @@ RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
 
 void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    constexpr QPointF center(TileLocation::Size / 2.0,
-                             TileLocation::Size / 2.0);
+    constexpr QPointF center(TileLocation::HalfSize,
+                             TileLocation::HalfSize);
     constexpr double morsettiOffset = 22.0;
 
     constexpr QLineF centerToNorth(center,

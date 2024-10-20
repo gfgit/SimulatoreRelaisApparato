@@ -424,16 +424,204 @@ QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction dir
     switch (direction)
     {
     case Connector::Direction::North:
-        return {pos.x() + TileLocation::Size / 2.0, pos.y()};
+        return {pos.x() + TileLocation::HalfSize, pos.y()};
     case Connector::Direction::South:
-        return {pos.x() + TileLocation::Size / 2.0, pos.y() + TileLocation::Size};
+        return {pos.x() + TileLocation::HalfSize, pos.y() + TileLocation::Size};
     case Connector::Direction::East:
-        return {pos.x() + TileLocation::Size, pos.y() + TileLocation::Size / 2.0};
+        return {pos.x() + TileLocation::Size, pos.y() + TileLocation::HalfSize};
     case Connector::Direction::West:
-        return {pos.x(), pos.y() + TileLocation::Size / 2.0};
+        return {pos.x(), pos.y() + TileLocation::HalfSize};
     default:
         break;
     }
 
     return QPointF();
+}
+
+void CircuitScene::startEditCable(CableGraphItem *item)
+{
+    if(isEditingCable())
+        endEditCable(false);
+
+    mEditingCable = item;
+
+    QPen pen;
+    pen.setWidthF(6.0);
+    pen.setColor(Qt::darkGreen);
+    mEditOverlay = addPath(mEditingCable->path(), pen);
+    mEditOverlay->setZValue(1.0);
+
+    pen.setColor(Qt::red);
+    mEditNewPath = addPath(QPainterPath(), pen);
+    mEditNewPath->setZValue(2.0);
+
+    mEditPathEmpty = true;
+}
+
+void CircuitScene::endEditCable(bool apply)
+{
+    if(!isEditingCable())
+        return;
+
+    if(apply && !mEditNewPath->path().isEmpty())
+        mEditingCable->setPath(mEditNewPath->path());
+
+    mEditingCable = nullptr;
+    delete mEditOverlay;
+    delete mEditNewPath;
+}
+
+void CircuitScene::editCableAddPoint(const QPointF &p)
+{
+    int16_t hx = static_cast<int16_t>(std::round(p.x() / TileLocation::HalfSize));
+    int16_t hy = static_cast<int16_t>(std::round(p.y() / TileLocation::HalfSize));
+
+    TileLocation location{hx / 2, hy / 2};
+
+    QPointF realPoint(hx * TileLocation::HalfSize,
+                      hy * TileLocation::HalfSize);
+
+    const bool isEdge = (hy % 2) != (hx % 2);
+
+    Connector::Direction direction = Connector::Direction::North;
+    if(hy % 2 == 1)
+    {
+        if(isEdge)
+            direction = Connector::Direction::West;
+        location.y = (hy - 1) / 2;
+    }
+    else
+    {
+        location.y = hy / 2;
+        if(p.y() < realPoint.y())
+        {
+            location.y--;
+            if(isEdge)
+                direction = Connector::Direction::South;
+        }
+    }
+
+    if(hx % 2 == 1)
+    {
+        location.x = (hx - 1) / 2;
+    }
+    else
+    {
+        location.x = hx / 2;
+        if(p.x() < realPoint.x())
+        {
+            location.x--;
+            if(isEdge)
+                direction = Connector::Direction::East;
+        }
+    }
+
+    QPointF tileCenter = location.toPoint();
+    tileCenter.rx() += TileLocation::HalfSize;
+    tileCenter.ry() += TileLocation::HalfSize;
+
+    QPainterPath path = mEditNewPath->path();
+    if(mEditPathEmpty && isEdge)
+    {
+        mEditPathEmpty = false;
+        path.moveTo(realPoint);
+        path.lineTo(tileCenter);
+    }
+    else if(!mEditPathEmpty)
+    {
+        auto el = path.elementAt(path.elementCount() - 1);
+        bool sameX = qFuzzyCompare(tileCenter.x(), el.x);
+        bool sameY = qFuzzyCompare(tileCenter.y(), el.y);
+
+        if(sameX || sameY)
+        {
+            if(!(sameX && sameY))
+            {
+                path.lineTo(tileCenter);
+            }
+
+            path.lineTo(realPoint);
+        }
+    }
+
+    mEditNewPath->setPath(path);
+}
+
+void CircuitScene::editCableUndoLast()
+{
+    if(!isEditingCable())
+        return;
+
+    QPainterPath path = mEditNewPath->path();
+    QPainterPath newPath;
+    if(path.elementCount() >= 3)
+    {
+        // Copy all elements except last to newPath
+        // If less than 3 elements, leave empty
+
+        const int newCount = path.elementCount() - 1;
+        for(int i = 0; i < newCount; i++)
+        {
+            const QPainterPath::Element& e = path.elementAt(i);
+            if(e.isMoveTo())
+                newPath.moveTo(e.x, e.y);
+            else if(e.isLineTo())
+                newPath.lineTo(e.x, e.y);
+        }
+    }
+    else
+    {
+        mEditPathEmpty = true;
+    }
+
+    mEditNewPath->setPath(newPath);
+}
+
+void CircuitScene::keyReleaseEvent(QKeyEvent *e)
+{
+    if(isEditingCable())
+    {
+        bool consumed = true;
+
+        switch (e->key())
+        {
+        case Qt::Key_Escape:
+            endEditCable(false);
+            break;
+        case Qt::Key_Enter:
+        case Qt::Key_Return:
+            endEditCable(true);
+            break;
+        default:
+            consumed = false;
+            break;
+        }
+
+        if(!consumed && e->matches(QKeySequence::Undo))
+        {
+            consumed = true;
+
+            editCableUndoLast();
+        }
+
+        if(consumed)
+        {
+            e->accept();
+            return;
+        }
+    }
+
+    QGraphicsScene::keyReleaseEvent(e);
+}
+
+void CircuitScene::mousePressEvent(QGraphicsSceneMouseEvent *e)
+{
+    if(isEditingCable() && e->button() == Qt::LeftButton)
+    {
+        editCableAddPoint(e->scenePos());
+        e->accept();
+        return;
+    }
+
+    QGraphicsScene::mousePressEvent(e);
 }

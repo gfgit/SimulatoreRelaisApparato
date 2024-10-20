@@ -15,8 +15,8 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 {
     // We do not draw morsetti on this node
 
-    constexpr QPointF center(TileLocation::Size / 2.0,
-                             TileLocation::Size / 2.0);
+    constexpr QPointF center(TileLocation::HalfSize,
+                             TileLocation::HalfSize);
     constexpr double centerOffset = 22.0;
 
     QLineF lines[4] =

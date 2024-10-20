@@ -21,31 +21,31 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     switch (toConnectorDirection(rotate() - TileRotate::Deg90))
     {
     case Connector::Direction::North:
-        switchLine.setP1(QPointF(TileLocation::Size / 2.0 + 15,
-                                 TileLocation::Size / 2.0 - 15));
-        switchLine.setP2(QPointF(TileLocation::Size / 2.0 + 15,
-                                 TileLocation::Size / 2.0 + endOffset));
+        switchLine.setP1(QPointF(TileLocation::HalfSize + 15,
+                                 TileLocation::HalfSize - 15));
+        switchLine.setP2(QPointF(TileLocation::HalfSize + 15,
+                                 TileLocation::HalfSize + endOffset));
         break;
 
     case Connector::Direction::South:
-        switchLine.setP1(QPointF(TileLocation::Size / 2.0 + 15,
-                                 TileLocation::Size / 2.0 - endOffset));
-        switchLine.setP2(QPointF(TileLocation::Size / 2.0 + 15,
-                                 TileLocation::Size / 2.0 + 15));
+        switchLine.setP1(QPointF(TileLocation::HalfSize + 15,
+                                 TileLocation::HalfSize - endOffset));
+        switchLine.setP2(QPointF(TileLocation::HalfSize + 15,
+                                 TileLocation::HalfSize + 15));
         break;
 
     case Connector::Direction::East:
-        switchLine.setP1(QPointF(TileLocation::Size / 2.0 - endOffset,
-                                 TileLocation::Size / 2.0 + 15));
-        switchLine.setP2(QPointF(TileLocation::Size / 2.0 + 15,
-                                 TileLocation::Size / 2.0 + 15));
+        switchLine.setP1(QPointF(TileLocation::HalfSize - endOffset,
+                                 TileLocation::HalfSize + 15));
+        switchLine.setP2(QPointF(TileLocation::HalfSize + 15,
+                                 TileLocation::HalfSize + 15));
         break;
 
     case Connector::Direction::West:
-        switchLine.setP1(QPointF(TileLocation::Size / 2.0 - 15,
-                                 TileLocation::Size / 2.0 + 15));
-        switchLine.setP2(QPointF(TileLocation::Size / 2.0 + endOffset,
-                                 TileLocation::Size / 2.0 + 15));
+        switchLine.setP1(QPointF(TileLocation::HalfSize - 15,
+                                 TileLocation::HalfSize + 15));
+        switchLine.setP2(QPointF(TileLocation::HalfSize + endOffset,
+                                 TileLocation::HalfSize + 15));
         break;
     default:
         break;
@@ -56,16 +56,16 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     case Connector::Direction::North:
     case Connector::Direction::South:
         contactLine.setP1(QPointF(22.0,
-                                  TileLocation::Size / 2.0));
+                                  TileLocation::HalfSize));
         contactLine.setP2(QPointF(TileLocation::Size - 22.0,
-                                  TileLocation::Size / 2.0));
+                                  TileLocation::HalfSize));
         break;
 
     case Connector::Direction::East:
     case Connector::Direction::West:
-        contactLine.setP1(QPointF(TileLocation::Size / 2.0,
+        contactLine.setP1(QPointF(TileLocation::HalfSize,
                                   22.0));
-        contactLine.setP2(QPointF(TileLocation::Size / 2.0,
+        contactLine.setP2(QPointF(TileLocation::HalfSize,
                                   TileLocation::Size - 22.0));
         break;
     default:

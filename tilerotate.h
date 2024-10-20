@@ -73,6 +73,7 @@ struct TileLocation
     static const TileLocation invalid;
 
     static constexpr double Size = 100.0;
+    static constexpr double HalfSize = Size / 2.0;
 
     int16_t x;
     int16_t y;

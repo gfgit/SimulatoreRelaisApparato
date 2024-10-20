@@ -15,8 +15,8 @@ RelaisPowerGraphItem::RelaisPowerGraphItem(RelaisPowerNode *node_)
 
 void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    constexpr QPointF center(TileLocation::Size / 2.0,
-                             TileLocation::Size / 2.0);
+    constexpr QPointF center(TileLocation::HalfSize,
+                             TileLocation::HalfSize);
     constexpr double morsettiOffset = 22.0;
     constexpr double centerOffset = 22.0;
     constexpr double relaySize = 38.0;

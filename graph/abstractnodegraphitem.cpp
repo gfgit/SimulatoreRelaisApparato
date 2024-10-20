@@ -125,9 +125,9 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, bool on, const QStri
     switch (toConnectorDirection(r))
     {
     case Connector::Direction::North:
-        morsettoLine.setP1(QPointF(TileLocation::Size / 2.0,  0.0));
-        morsettoLine.setP2(QPointF(TileLocation::Size / 2.0, 22.0));
-        morsettoEllipse.moveCenter(QPointF(TileLocation::Size / 2.0, 11.0));
+        morsettoLine.setP1(QPointF(TileLocation::HalfSize,  0.0));
+        morsettoLine.setP2(QPointF(TileLocation::HalfSize, 22.0));
+        morsettoEllipse.moveCenter(QPointF(TileLocation::HalfSize, 11.0));
 
         textRect1.moveTopLeft(QPointF(1.0, 0.0));
         textRect2.moveTopRight(QPointF(TileLocation::Size - 1.0, 0.0));
@@ -137,11 +137,11 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, bool on, const QStri
         break;
 
     case Connector::Direction::South:
-        morsettoLine.setP1(QPointF(TileLocation::Size / 2.0,
+        morsettoLine.setP1(QPointF(TileLocation::HalfSize,
                                    TileLocation::Size));
-        morsettoLine.setP2(QPointF(TileLocation::Size / 2.0,
+        morsettoLine.setP2(QPointF(TileLocation::HalfSize,
                                    TileLocation::Size - 22.0));
-        morsettoEllipse.moveCenter(QPointF(TileLocation::Size / 2.0,
+        morsettoEllipse.moveCenter(QPointF(TileLocation::HalfSize,
                                            TileLocation::Size - 11.0));
 
         // Text 1 is on the right
@@ -156,17 +156,17 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, bool on, const QStri
 
     case Connector::Direction::East:
         morsettoLine.setP1(QPointF(TileLocation::Size - 22.0,
-                                   TileLocation::Size / 2.0));
+                                   TileLocation::HalfSize));
         morsettoLine.setP2(QPointF(TileLocation::Size,
-                                   TileLocation::Size / 2.0));
+                                   TileLocation::HalfSize));
         morsettoEllipse.moveCenter(QPointF(TileLocation::Size - 11.0,
-                                           TileLocation::Size / 2.0));
+                                           TileLocation::HalfSize));
 
         // Text 1 goes above Text 2
         textRect1.moveBottomRight(QPointF(TileLocation::Size - 1.0,
-                                          TileLocation::Size / 2.0 - 6.0));
+                                          TileLocation::HalfSize - 6.0));
         textRect2.moveTopRight(QPointF(TileLocation::Size - 1.0,
-                                       TileLocation::Size / 2.0 + 6.0));
+                                       TileLocation::HalfSize + 6.0));
 
         text1Align |= Qt::AlignRight;
         text2Align |= Qt::AlignRight;
@@ -174,17 +174,17 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, bool on, const QStri
 
     case Connector::Direction::West:
         morsettoLine.setP1(QPointF(0.0,
-                                   TileLocation::Size / 2.0));
+                                   TileLocation::HalfSize));
         morsettoLine.setP2(QPointF(22.0,
-                                   TileLocation::Size / 2.0));
+                                   TileLocation::HalfSize));
         morsettoEllipse.moveCenter(QPointF(11.0,
-                                           TileLocation::Size / 2.0));
+                                           TileLocation::HalfSize));
 
         // Text 1 goes below Text 2
         textRect2.moveBottomLeft(QPointF(1.0,
-                                         TileLocation::Size / 2.0 - 6.0));
+                                         TileLocation::HalfSize - 6.0));
         textRect1.moveTopLeft(QPointF(1.0,
-                                      TileLocation::Size / 2.0 + 6.0));
+                                      TileLocation::HalfSize + 6.0));
 
         text1Align |= Qt::AlignLeft;
         text2Align |= Qt::AlignLeft;
@@ -228,7 +228,7 @@ void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, Til
     case Connector::Direction::North:
         textRect.setLeft(26.0);
         textRect.setWidth(50.0);
-        textRect.setBottom(TileLocation::Size / 2.0 - 12.0);
+        textRect.setBottom(TileLocation::HalfSize - 12.0);
         textRect.setTop(5.0);
 
         textAlign |= Qt::AlignLeft;
@@ -237,26 +237,26 @@ void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, Til
     case Connector::Direction::South:
         textRect.setLeft(26.0);
         textRect.setWidth(50.0);
-        textRect.setTop(TileLocation::Size / 2.0 + 12.0);
+        textRect.setTop(TileLocation::HalfSize + 12.0);
         textRect.setBottom(TileLocation::Size - 5.0);
 
         textAlign |= Qt::AlignLeft;
         break;
 
     case Connector::Direction::East:
-        textRect.setLeft(TileLocation::Size / 2.0 + 3.0);
+        textRect.setLeft(TileLocation::HalfSize + 3.0);
         textRect.setRight(TileLocation::Size - 5.0);
         textRect.setTop(23.0);
-        textRect.setBottom(TileLocation::Size / 2.0);
+        textRect.setBottom(TileLocation::HalfSize);
 
         textAlign |= Qt::AlignRight;
         break;
 
     case Connector::Direction::West:
         textRect.setLeft(3.0);
-        textRect.setRight(TileLocation::Size / 2.0 - 5.0);
+        textRect.setRight(TileLocation::HalfSize - 5.0);
         textRect.setTop(23.0);
-        textRect.setBottom(TileLocation::Size / 2.0);
+        textRect.setBottom(TileLocation::HalfSize);
 
         textAlign |= Qt::AlignLeft;
         break;
