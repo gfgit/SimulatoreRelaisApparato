@@ -228,6 +228,9 @@ void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source, con
         items.append(item);
 
         searchPowerSource(cableEnd.node, cableEnd.nodeContact, items, 0);
+
+        items.first().cable.pole = CircuitCable::Pole::Second;
+        searchPowerSource(cableEnd.node, cableEnd.nodeContact, items, 0);
     }
 }
 
