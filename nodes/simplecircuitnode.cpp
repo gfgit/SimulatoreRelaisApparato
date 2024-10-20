@@ -2,6 +2,8 @@
 
 #include "../closedcircuit.h"
 
+#include <QJsonObject>
+
 SimpleCircuitNode::SimpleCircuitNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
@@ -133,4 +135,29 @@ void SimpleCircuitNode::setDisabledContact(int val)
 
         detachCable(mDisabledContact);
     }
+}
+
+bool SimpleCircuitNode::loadFromJSON(const QJsonObject &obj)
+{
+    if(!AbstractCircuitNode::loadFromJSON(obj))
+        return false;
+
+    int val = obj.value("disabledContact").toInt();
+    if(val < 0 || val >= 4)
+        return false;
+
+    setDisabledContact(val);
+    return true;
+}
+
+void SimpleCircuitNode::saveToJSON(QJsonObject &obj)
+{
+    AbstractCircuitNode::saveToJSON(obj);
+
+    obj["disabledContact"] = disabledContact();
+}
+
+QString SimpleCircuitNode::nodeType() const
+{
+    return NodeType;
 }

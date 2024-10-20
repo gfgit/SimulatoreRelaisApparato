@@ -15,6 +15,11 @@ QVector<AbstractCircuitNode::CableItem> PowerSourceNode::getActiveConnections(Ca
     return {};
 }
 
+QString PowerSourceNode::nodeType() const
+{
+    return NodeType;
+}
+
 bool PowerSourceNode::getEnabled() const
 {
     return enabled;

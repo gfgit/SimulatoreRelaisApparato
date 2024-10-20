@@ -9,7 +9,10 @@ class PowerSourceNode : public AbstractCircuitNode
 public:
     explicit PowerSourceNode(QObject *parent = nullptr);
 
-    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+
+    static constexpr QLatin1String NodeType = QLatin1String("power_source");
+    QString nodeType() const override;
 
     bool getEnabled() const;
     void setEnabled(bool newEnabled);

@@ -8,6 +8,8 @@
 class AbstractCircuitNode;
 class CircuitScene;
 
+class QJsonObject;
+
 class AbstractNodeGraphItem : public QGraphicsObject
 {
     Q_OBJECT
@@ -37,6 +39,9 @@ public:
     void setRotate(TileRotate newRotate);
 
     CircuitScene *circuitScene() const;
+
+    virtual bool loadFromJSON(const QJsonObject& obj);
+    virtual void saveToJSON(QJsonObject& obj);
 
 signals:
     void editRequested(AbstractNodeGraphItem *self);

@@ -1,5 +1,7 @@
 #include "abstractcircuitnode.h"
 
+#include <QJsonObject>
+
 AbstractCircuitNode::AbstractCircuitNode(QObject *parent)
     : QObject{parent}
 {
@@ -89,6 +91,21 @@ void AbstractCircuitNode::detachCable(const CableItem &item)
         // Keep other pole
         contact.setType(item.cable.pole, ContactType::NotConnected);
     }
+}
+
+bool AbstractCircuitNode::loadFromJSON(const QJsonObject &obj)
+{
+    if(obj.value("type") != nodeType())
+        return false;
+
+    setObjectName(obj.value("name").toString());
+    return true;
+}
+
+void AbstractCircuitNode::saveToJSON(QJsonObject &obj)
+{
+    obj["type"] = nodeType();
+    obj["name"] = objectName();
 }
 
 void AbstractCircuitNode::detachCable(int contactIdx)

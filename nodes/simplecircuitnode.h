@@ -9,10 +9,16 @@ class SimpleCircuitNode : public AbstractCircuitNode
 public:
     explicit SimpleCircuitNode(QObject *parent = nullptr);
 
-    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
-    virtual void addCircuit(ClosedCircuit *circuit);
-    virtual void removeCircuit(ClosedCircuit *circuit);
+    void addCircuit(ClosedCircuit *circuit) override;
+    void removeCircuit(ClosedCircuit *circuit) override;
+
+    bool loadFromJSON(const QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) override;
+
+    static constexpr QLatin1String NodeType = QLatin1String("simple_node");
+    QString nodeType() const override;
 
     inline int disabledContact() const
     {

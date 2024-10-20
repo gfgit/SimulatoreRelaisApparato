@@ -13,12 +13,16 @@ public:
     explicit RelaisPowerNode(QObject *parent = nullptr);
     ~RelaisPowerNode();
 
-    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
-    virtual void addCircuit(ClosedCircuit *circuit) override;
-    virtual void removeCircuit(ClosedCircuit *circuit) override;
+    void addCircuit(ClosedCircuit *circuit) override;
+    void removeCircuit(ClosedCircuit *circuit) override;
 
+    bool loadFromJSON(const QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) override;
 
+    static constexpr QLatin1String NodeType = QLatin1String("relais_power");
+    QString nodeType() const override;
 
     AbstractRelais *relais() const;
     void setRelais(AbstractRelais *newRelais);

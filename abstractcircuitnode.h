@@ -8,6 +8,8 @@
 
 class ClosedCircuit;
 
+class QJsonObject;
+
 class AbstractCircuitNode : public QObject
 {
     Q_OBJECT
@@ -77,6 +79,11 @@ public:
 
     void attachCable(const CableItem &item);
     void detachCable(const CableItem &item);
+
+    virtual bool loadFromJSON(const QJsonObject& obj);
+    virtual void saveToJSON(QJsonObject& obj);
+
+    virtual QString nodeType() const = 0;
 
 protected:
     friend class CircuitScene;

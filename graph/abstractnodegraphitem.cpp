@@ -9,6 +9,8 @@
 
 #include <QGraphicsSceneMouseEvent>
 
+#include <QJsonObject>
+
 AbstractNodeGraphItem::AbstractNodeGraphItem(AbstractCircuitNode *node_)
     : QGraphicsObject()
     , mAbstractNode(node_)
@@ -302,4 +304,30 @@ void AbstractNodeGraphItem::setRotate(TileRotate newRotate)
 CircuitScene *AbstractNodeGraphItem::circuitScene() const
 {
     return qobject_cast<CircuitScene *>(scene());
+}
+
+bool AbstractNodeGraphItem::loadFromJSON(const QJsonObject &obj)
+{
+    if(!getAbstractNode()->loadFromJSON(obj))
+        return false;
+
+    TileLocation tile{0, 0};
+    tile.x = obj.value("x").toInt();
+    tile.y = obj.value("y").toInt();
+    setLocation(tile);
+
+    setRotate(TileRotate(obj.value("rotation").toInt()));
+
+    return true;
+}
+
+void AbstractNodeGraphItem::saveToJSON(QJsonObject &obj)
+{
+    TileLocation tile = location();
+    obj["x"] = tile.x;
+    obj["y"] = tile.y;
+
+    obj["rotation"] = int(mRotate);
+
+    getAbstractNode()->saveToJSON(obj);
 }

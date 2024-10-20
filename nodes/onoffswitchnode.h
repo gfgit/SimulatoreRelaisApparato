@@ -11,6 +11,9 @@ public:
 
     virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
+    static constexpr QLatin1String NodeType = QLatin1String("on_off_switch");
+    QString nodeType() const override;
+
     bool isOn() const;
     void setOn(bool newOn);
 

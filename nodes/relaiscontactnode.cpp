@@ -3,6 +3,10 @@
 #include "../closedcircuit.h"
 #include "../abstractrelais.h"
 
+#include "../relaismodel.h"
+
+#include <QJsonObject>
+
 RelaisContactNode::RelaisContactNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
@@ -69,6 +73,30 @@ QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getActiveConnections(
     }
 
     return {};
+}
+
+bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
+{
+    if(!AbstractCircuitNode::loadFromJSON(obj))
+        return false;
+
+    QString relaisName = obj.value("relais").toString();
+
+    setRelais(relaisModel()->getRelay(relaisName));
+
+    return true;
+}
+
+void RelaisContactNode::saveToJSON(QJsonObject &obj)
+{
+    AbstractCircuitNode::saveToJSON(obj);
+
+    obj["relais"] = mRelais ? mRelais->objectName() : QString();
+}
+
+QString RelaisContactNode::nodeType() const
+{
+    return NodeType;
 }
 
 AbstractRelais *RelaisContactNode::relais() const

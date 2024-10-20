@@ -46,6 +46,11 @@ QVector<AbstractCircuitNode::CableItem> OnOffSwitchNode::getActiveConnections(Ca
     return {};
 }
 
+QString OnOffSwitchNode::nodeType() const
+{
+    return NodeType;
+}
+
 bool OnOffSwitchNode::isOn() const
 {
     return m_isOn;

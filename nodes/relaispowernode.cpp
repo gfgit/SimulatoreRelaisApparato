@@ -1,6 +1,9 @@
 #include "relaispowernode.h"
 
 #include "../abstractrelais.h"
+#include "../relaismodel.h"
+
+#include <QJsonObject>
 
 RelaisPowerNode::RelaisPowerNode(QObject *parent)
     : AbstractCircuitNode{parent}
@@ -48,6 +51,30 @@ void RelaisPowerNode::removeCircuit(ClosedCircuit *circuit)
     {
         mRelais->powerNodeDeactivated(this);
     }
+}
+
+bool RelaisPowerNode::loadFromJSON(const QJsonObject &obj)
+{
+    if(!AbstractCircuitNode::loadFromJSON(obj))
+        return false;
+
+    QString relaisName = obj.value("relais").toString();
+
+    setRelais(relaisModel()->getRelay(relaisName));
+
+    return true;
+}
+
+void RelaisPowerNode::saveToJSON(QJsonObject &obj)
+{
+    AbstractCircuitNode::saveToJSON(obj);
+
+    obj["relais"] = mRelais ? mRelais->objectName() : QString();
+}
+
+QString RelaisPowerNode::nodeType() const
+{
+    return NodeType;
 }
 
 AbstractRelais *RelaisPowerNode::relais() const

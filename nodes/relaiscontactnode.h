@@ -20,7 +20,13 @@ public:
     explicit RelaisContactNode(QObject *parent = nullptr);
     ~RelaisContactNode();
 
-    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+
+    bool loadFromJSON(const QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) override;
+
+    static constexpr QLatin1String NodeType = QLatin1String("relais_contact");
+    QString nodeType() const override;
 
     AbstractRelais *relais() const;
     void setRelais(AbstractRelais *newRelais);
