@@ -10,7 +10,7 @@
 #include <QGraphicsPathItem>
 #include <QPen>
 
-#include <QSet>
+#include <unordered_set>
 
 #include <QKeyEvent>
 #include <QGraphicsSceneMouseEvent>
@@ -87,7 +87,7 @@ void CircuitScene::addCable(CableGraphItem *item)
 {
     Q_ASSERT(item->cable());
 
-    if(cablePathIsValid(item->cablePath(), nullptr))
+    if(!cablePathIsValid(item->cablePath(), nullptr))
         return; // TODO: error
 
     connect(item, &CableGraphItem::editRequested,
@@ -173,7 +173,7 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
 {
     // Check all tiles are free
 
-    QSet<TileLocation> repeatedTiles;
+    std::unordered_set<TileLocation, TileLocationHash> repeatedTiles;
 
     for(int i = 0; i < cablePath.getTilesCount(); i++)
     {
@@ -184,7 +184,7 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
             return false;
         }
 
-        TileCablePair pair = getCablesAt(l);
+        TileCablePair pair = getCablesAt(tile);
         if(item)
         {
             // Do not consider ourselves
@@ -200,7 +200,7 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
             return false;
         }
 
-        if(repeatedTiles.contains(tile))
+        if(repeatedTiles.find(tile) != repeatedTiles.cend())
         {
             // Cable passes 2 times on same tile
             // Then this tile cannot have other cables
@@ -216,10 +216,13 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
             int otherIdx = otherPath.tiles().indexOf(tile);
             Q_ASSERT(otherIdx >= 0);
 
+            const bool isLastTile = i == cablePath.getTilesCount() - 1;
+            const bool canCheckExit = !isLastTile || cablePath.isComplete();
+
             // Check if first passage was straigh
             const auto enterDir1 = cablePath.getEnterDirection(i);
             const auto exitDir1 = cablePath.getExitDirection(i);
-            if(enterDir1 != ~exitDir1)
+            if(canCheckExit && enterDir1 != ~exitDir1)
             {
                 // Directions are not opposite, it bends
                 return false;
@@ -233,7 +236,7 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
                 return false;
             }
 
-            if(enterDir2 == enterDir1 || enterDir2 == exitDir1)
+            if(enterDir1 == enterDir2 || enterDir1 == exitDir2)
                 return false; // Both passages have same direction
         }
     }
@@ -585,6 +588,21 @@ void CircuitScene::removeCableTiles(CableGraphItem *item)
     }
 }
 
+void CircuitScene::editCableUpdatePen()
+{
+    if(!isEditingCable())
+        return;
+
+    QPen pen;
+    pen.setWidthF(6.0);
+
+    if(mEditNewCablePath->isComplete())
+        pen.setColor(Qt::red);
+    else
+        pen.setColor(Qt::green);
+    mEditNewPath->setPen(pen);
+}
+
 QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction direction)
 {
     const QPointF pos = l.toPoint();
@@ -707,14 +725,16 @@ void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
     tileCenter.rx() += TileLocation::HalfSize;
     tileCenter.ry() += TileLocation::HalfSize;
 
-    if(mEditNewCablePath->isEmpty() && isEdge)
+    CableGraphPath newCablePath = *mEditNewCablePath;
+
+    if(newCablePath.isEmpty() && isEdge)
     {
-        mEditNewCablePath->setStartDirection(direction);
-        mEditNewCablePath->addTile(location);
+        newCablePath.setStartDirection(direction);
+        newCablePath.addTile(location);
     }
-    else if(!mEditNewCablePath->isEmpty())
+    else if(!newCablePath.isEmpty())
     {
-        TileLocation lastTile = mEditNewCablePath->last();
+        TileLocation lastTile = newCablePath.last();
 
         const auto deltaX = std::abs(lastTile.x - location.x);
         const auto deltaY = std::abs(lastTile.y - location.y);
@@ -745,14 +765,14 @@ void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
                 {
                     for(int16_t y = lastTile.y + 1; y <= location.y; y++)
                     {
-                        mEditNewCablePath->addTile({location.x, y});
+                        newCablePath.addTile({location.x, y});
                     }
                 }
                 else
                 {
                     for(int16_t y = lastTile.y - 1; y >= location.y; y--)
                     {
-                        mEditNewCablePath->addTile({location.x, y});
+                        newCablePath.addTile({location.x, y});
                     }
                 }
             }
@@ -762,14 +782,14 @@ void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
                 {
                     for(int16_t x = lastTile.x + 1; x <= location.x; x++)
                     {
-                        mEditNewCablePath->addTile({x, location.y});
+                        newCablePath.addTile({x, location.y});
                     }
                 }
                 else
                 {
                     for(int16_t x = lastTile.x - 1; x >= location.x; x--)
                     {
-                        mEditNewCablePath->addTile({x, location.y});
+                        newCablePath.addTile({x, location.y});
                     }
                 }
             }
@@ -778,11 +798,18 @@ void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
         if(isEdge && allowEdge && deltaX == 0 && deltaY == 0)
         {
             // Allow edge only if last point was center of same tile
-            mEditNewCablePath->setEndDirection(direction);
+            newCablePath.setEndDirection(direction);
         }
     }
 
+    if(!cablePathIsValid(newCablePath, mEditingCable))
+        return;
+
+    // Store new path
+    *mEditNewCablePath = newCablePath;
+
     mEditNewPath->setPath(mEditNewCablePath->generatePath());
+    editCableUpdatePen();
 }
 
 void CircuitScene::editCableUndoLast()
@@ -792,6 +819,7 @@ void CircuitScene::editCableUndoLast()
 
     mEditNewCablePath->removeLastLine();
     mEditNewPath->setPath(mEditNewCablePath->generatePath());
+    editCableUpdatePen();
 }
 
 void CircuitScene::keyReleaseEvent(QKeyEvent *e)

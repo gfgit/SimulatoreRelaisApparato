@@ -96,6 +96,7 @@ private:
     friend class CableGraphItem;
     void addCableTiles(CableGraphItem *item);
     void removeCableTiles(CableGraphItem *item);
+    void editCableUpdatePen();
 
 private:
     Mode mMode = Mode::Editing;
@@ -106,7 +107,7 @@ private:
 
     std::unordered_map<CircuitCable *, CableGraphItem *> mCables;
 
-    std::unordered_map<TileLocation, TileCablePair> mCableTiles;
+    std::unordered_map<TileLocation, TileCablePair, TileLocationHash> mCableTiles;
 
     CableGraphItem *mEditingCable = nullptr;
     QGraphicsPathItem *mEditOverlay = nullptr;
