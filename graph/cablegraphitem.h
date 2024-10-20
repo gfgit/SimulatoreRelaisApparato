@@ -15,6 +15,7 @@ class CableGraphItem : public QGraphicsObject
 public:
     CableGraphItem(CircuitCable *cable_);
 
+    QPainterPath path() const;
     void setPath(const QPainterPath &path);
 
     QRectF boundingRect() const override;
