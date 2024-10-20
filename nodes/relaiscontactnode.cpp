@@ -83,17 +83,35 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais)
         return;
 
     if(mRelais)
+    {
         disconnect(mRelais, &AbstractRelais::stateChanged,
                    this, &RelaisContactNode::onRelaisStateChanged);
+
+        mRelais->removeContactNode(this);
+    }
 
     mRelais = newRelais;
 
     if(mRelais)
+    {
         connect(mRelais, &AbstractRelais::stateChanged,
                 this, &RelaisContactNode::onRelaisStateChanged);
 
-    emit relayChanged();
+        mRelais->addContactNode(this);
+    }
+
+    emit relayChanged(mRelais);
     onRelaisStateChanged();
+}
+
+RelaisModel *RelaisContactNode::relaisModel() const
+{
+    return mRelaisModel;
+}
+
+void RelaisContactNode::setRelaisModel(RelaisModel *newRelaisModel)
+{
+    mRelaisModel = newRelaisModel;
 }
 
 bool RelaisContactNode::swapContactState() const

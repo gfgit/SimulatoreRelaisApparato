@@ -60,6 +60,22 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
 {
     if(mRelais == newRelais)
         return;
+
+    if(mRelais)
+        mRelais->removePowerNode(this);
     mRelais = newRelais;
-    emit relayChanged();
+    if(mRelais)
+        mRelais->addPowerNode(this);
+
+    emit relayChanged(mRelais);
+}
+
+RelaisModel *RelaisPowerNode::relaisModel() const
+{
+    return mRelaisModel;
+}
+
+void RelaisPowerNode::setRelaisModel(RelaisModel *newRelaisModel)
+{
+    mRelaisModel = newRelaisModel;
 }

@@ -35,20 +35,21 @@ public:
     double downSpeed() const;
     void setDownSpeed(double newDownSpeed);
 
-    void addPowerNode(RelaisPowerNode *p);
-    void removePowerNode(RelaisPowerNode *p);
-
-    void addContactNode(RelaisContactNode *c);
-    void removeContactNode(RelaisContactNode *c);
-
     void timerEvent(QTimerEvent *e) override;
 
 signals:
-    void nameChanged(const QString& name);
-    void stateChanged(State s);
+    void nameChanged(AbstractRelais *self, const QString& name);
+    void stateChanged(AbstractRelais *self, State s);
 
 private:
     friend class RelaisPowerNode;
+    void addPowerNode(RelaisPowerNode *p);
+    void removePowerNode(RelaisPowerNode *p);
+
+    friend class RelaisContactNode;
+    void addContactNode(RelaisContactNode *c);
+    void removeContactNode(RelaisContactNode *c);
+
     void powerNodeActivated(RelaisPowerNode *p);
     void powerNodeDeactivated(RelaisPowerNode *p);
 

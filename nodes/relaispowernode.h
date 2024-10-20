@@ -4,6 +4,7 @@
 #include "../abstractcircuitnode.h"
 
 class AbstractRelais;
+class RelaisModel;
 
 class RelaisPowerNode : public AbstractCircuitNode
 {
@@ -17,17 +18,20 @@ public:
     virtual void addCircuit(ClosedCircuit *circuit) override;
     virtual void removeCircuit(ClosedCircuit *circuit) override;
 
+
+
     AbstractRelais *relais() const;
+    void setRelais(AbstractRelais *newRelais);
+
+    RelaisModel *relaisModel() const;
+    void setRelaisModel(RelaisModel *newRelaisModel);
 
 signals:
-    void relayChanged();
-
-private:
-    friend class AbstractRelais;
-    void setRelais(AbstractRelais *newRelais);
+    void relayChanged(AbstractRelais *r);
 
 private:
     AbstractRelais *mRelais = nullptr;
+    RelaisModel *mRelaisModel = nullptr;
 };
 
 #endif // RELAISPOWERNODE_H

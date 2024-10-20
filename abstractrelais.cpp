@@ -16,13 +16,13 @@ AbstractRelais::~AbstractRelais()
     auto powerNodes = mPowerNodes;
     for(RelaisPowerNode *p : powerNodes)
     {
-        removePowerNode(p);
+        p->setRelais(nullptr);
     }
 
     auto contactNodes = mContactNodes;
     for(RelaisContactNode *c : contactNodes)
     {
-        removeContactNode(c);
+        c->setRelais(nullptr);
     }
 
     killTimer(mTimerId);
@@ -39,7 +39,7 @@ void AbstractRelais::setName(const QString &newName)
     if (mName == newName)
         return;
     mName = newName;
-    emit nameChanged(mName);
+    emit nameChanged(this, mName);
 
     for(RelaisPowerNode *p : mPowerNodes)
     {
@@ -75,7 +75,6 @@ void AbstractRelais::setDownSpeed(double newDownSpeed)
 void AbstractRelais::addPowerNode(RelaisPowerNode *p)
 {
     Q_ASSERT(!mPowerNodes.contains(p));
-    Q_ASSERT(!p->relais());
 
     mPowerNodes.append(p);
     p->setRelais(this);
@@ -98,16 +97,13 @@ void AbstractRelais::removePowerNode(RelaisPowerNode *p)
     }
 
     mPowerNodes.removeOne(p);
-    p->setRelais(nullptr);
 }
 
 void AbstractRelais::addContactNode(RelaisContactNode *c)
 {
     Q_ASSERT(!mContactNodes.contains(c));
-    Q_ASSERT(!c->relais());
 
     mContactNodes.append(c);
-    c->setRelais(this);
     c->setObjectName(mName);
 }
 
@@ -153,7 +149,7 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
 void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
 {
     Q_ASSERT(mPowerNodes.contains(p));
-    Q_ASSERT(p->mRelais == this);
+    Q_ASSERT(p->relais() == this);
     Q_ASSERT(mActivePowerNodes < mPowerNodes.size());
 
     mActivePowerNodes++;
@@ -168,7 +164,7 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
 void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p)
 {
     Q_ASSERT(mPowerNodes.contains(p));
-    Q_ASSERT(p->mRelais == this);
+    Q_ASSERT(p->relais() == this);
     Q_ASSERT(mActivePowerNodes > 0);
 
     mActivePowerNodes--;
@@ -217,5 +213,5 @@ void AbstractRelais::setState(State newState)
     if (mState == newState)
         return;
     mState = newState;
-    emit stateChanged(mState);
+    emit stateChanged(this, mState);
 }
