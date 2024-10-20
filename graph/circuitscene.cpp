@@ -734,7 +734,7 @@ void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
     int16_t hx = static_cast<int16_t>(std::round(p.x() / TileLocation::HalfSize));
     int16_t hy = static_cast<int16_t>(std::round(p.y() / TileLocation::HalfSize));
 
-    TileLocation location{hx / 2, hy / 2};
+    TileLocation location{int16_t(hx / 2), int16_t(hy / 2)};
 
     QPointF realPoint(hx * TileLocation::HalfSize,
                       hy * TileLocation::HalfSize);
@@ -742,7 +742,7 @@ void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
     const bool isEdge = (hy % 2) != (hx % 2);
 
     Connector::Direction direction = Connector::Direction::North;
-    if(hy % 2 == 1)
+    if(std::abs(hy) % 2 == 1)
     {
         if(isEdge)
             direction = Connector::Direction::West;
@@ -759,7 +759,7 @@ void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
         }
     }
 
-    if(hx % 2 == 1)
+    if(std::abs(hx) % 2 == 1)
     {
         location.x = (hx - 1) / 2;
     }
