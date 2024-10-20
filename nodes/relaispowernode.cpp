@@ -11,8 +11,7 @@ RelaisPowerNode::RelaisPowerNode(QObject *parent)
 
 RelaisPowerNode::~RelaisPowerNode()
 {
-    if(mRelais)
-        mRelais->removePowerNode(this);
+    setRelais(nullptr);
 }
 
 QVector<AbstractCircuitNode::CableItem> RelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)

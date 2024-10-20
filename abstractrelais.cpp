@@ -77,7 +77,6 @@ void AbstractRelais::addPowerNode(RelaisPowerNode *p)
     Q_ASSERT(!mPowerNodes.contains(p));
 
     mPowerNodes.append(p);
-    p->setRelais(this);
     p->setObjectName(mName);
 
     if(p->hasCircuits())
@@ -113,7 +112,6 @@ void AbstractRelais::removeContactNode(RelaisContactNode *c)
     Q_ASSERT(c->relais() == this);
 
     mContactNodes.removeOne(c);
-    c->setRelais(nullptr);
 }
 
 void AbstractRelais::timerEvent(QTimerEvent *e)

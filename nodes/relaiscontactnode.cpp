@@ -14,8 +14,7 @@ RelaisContactNode::RelaisContactNode(QObject *parent)
 
 RelaisContactNode::~RelaisContactNode()
 {
-    if(mRelais)
-        mRelais->removeContactNode(this);
+    setRelais(nullptr);
 }
 
 QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getActiveConnections(CableItem source, bool invertDir)
