@@ -199,6 +199,7 @@ void CircuitScene::calculateConnections()
                     break;
 
                 connectItems(node1, node2, c1, c2, verifiedCables);
+                break;
             }
         }
     }
