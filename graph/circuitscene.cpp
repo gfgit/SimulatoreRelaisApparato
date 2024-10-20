@@ -10,6 +10,8 @@
 #include <QGraphicsPathItem>
 #include <QPen>
 
+#include <QSet>
+
 #include <QKeyEvent>
 #include <QGraphicsSceneMouseEvent>
 
@@ -85,6 +87,9 @@ void CircuitScene::addCable(CableGraphItem *item)
 {
     Q_ASSERT(item->cable());
 
+    if(cablePathIsValid(item->cablePath(), nullptr))
+        return; // TODO: error
+
     connect(item, &CableGraphItem::editRequested,
             this, &CircuitScene::cableEditRequested);
 
@@ -97,6 +102,9 @@ void CircuitScene::addCable(CableGraphItem *item)
 
     addItem(item);
     mCables.insert({item->cable(), item});
+
+    // Add cable tiles
+    addCableTiles(item);
 }
 
 void CircuitScene::removeCable(CircuitCable *cable)
@@ -135,7 +143,102 @@ TileLocation CircuitScene::getNewFreeLocation()
 
 bool CircuitScene::isLocationFree(TileLocation l) const
 {
-    return mItemMap.find(l) == mItemMap.cend();
+    if(getItemAt(l))
+        return false;
+
+    auto pair = getCablesAt(l);
+    if(pair.first || pair.second)
+        return false;
+
+    return true;
+}
+
+AbstractNodeGraphItem *CircuitScene::getNodeAt(TileLocation l) const
+{
+    auto it = mItemMap.find(l);
+    if(it == mItemMap.cend())
+        return nullptr;
+    return it->second;
+}
+
+CircuitScene::TileCablePair CircuitScene::getCablesAt(TileLocation l) const
+{
+    auto it = mCableTiles.find(l);
+    if(it == mCableTiles.cend())
+        return {nullptr, nullptr};
+    return it->second;
+}
+
+bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphItem *item) const
+{
+    // Check all tiles are free
+
+    QSet<TileLocation> repeatedTiles;
+
+    for(int i = 0; i < cablePath.getTilesCount(); i++)
+    {
+        TileLocation tile = cablePath.at(i);
+
+        if(getItemAt(tile))
+        {
+            return false;
+        }
+
+        TileCablePair pair = getCablesAt(l);
+        if(item)
+        {
+            // Do not consider ourselves
+            if(pair.first == item)
+                pair.first = nullptr;
+            if(pair.second == item)
+                pair.second = nullptr;
+        }
+
+        if(pair.first && pair.second)
+        {
+            // There are already 2 cables on this tile
+            return false;
+        }
+
+        if(repeatedTiles.contains(tile))
+        {
+            // Cable passes 2 times on same tile
+            // Then this tile cannot have other cables
+            if(pair.first || pair.second)
+                return false;
+        }
+        repeatedTiles.insert(tile);
+
+        CableGraphItem *otherCable = pair.first ? pair.first : pair.second;
+        if(otherCable)
+        {
+            const auto& otherPath = otherCable->cablePath();
+            int otherIdx = otherPath.tiles().indexOf(tile);
+            Q_ASSERT(otherIdx >= 0);
+
+            // Check if first passage was straigh
+            const auto enterDir1 = cablePath.getEnterDirection(i);
+            const auto exitDir1 = cablePath.getExitDirection(i);
+            if(enterDir1 != ~exitDir1)
+            {
+                // Directions are not opposite, it bends
+                return false;
+            }
+
+            const auto enterDir2 = otherPath.getEnterDirection(otherIdx);
+            const auto exitDir2 = otherPath.getExitDirection(otherIdx);
+            if(enterDir2 != ~exitDir2)
+            {
+                // Directions are not opposite, it bends
+                return false;
+            }
+
+            if(enterDir2 == enterDir1 || enterDir2 == exitDir1)
+                return false; // Both passages have same direction
+        }
+    }
+
+    return true;
 }
 
 void CircuitScene::updateItemLocation(TileLocation oldLocation, TileLocation newLocation, AbstractNodeGraphItem *item)
@@ -275,12 +378,10 @@ void CircuitScene::connectItems(AbstractCircuitNode *node1, AbstractCircuitNode 
             CircuitCable *newCable = new CircuitCable(this);
 
             // First we set graph path
-            CableGraphItem *item = new CableGraphItem(cableA);
+            CableGraphItem *item = new CableGraphItem(newCable);
             item->setPos(0, 0);
-            QPainterPath path;
-            path.moveTo(getConnectorPoint(c1.location, c1.direction));
-            path.lineTo(getConnectorPoint(c2.location, c2.direction));
-            item->setPath(path);
+            item->setCablePath(CableGraphPath::createZeroLength(c1.location,
+                                                                c2.location));
 
             // Then we create cable connection
             AbstractCircuitNode::CableItem cableItem;
@@ -314,10 +415,8 @@ bool CircuitScene::checkCable(CableGraphItem *item)
     if(item->sideA() == TileLocation::invalid || item->sideB() == TileLocation::invalid)
         return false;
 
-    TileLocation nodeLocA = item->sideA() + item->directionA();
+    TileLocation nodeLocA = item->sideA();
     TileLocation nodeLocB = item->sideB();
-    if(!item->cableZeroLength())
-        nodeLocB = nodeLocB + item->directionB();
 
     AbstractNodeGraphItem *itemA = getItemAt(nodeLocA);
     AbstractNodeGraphItem *itemB = getItemAt(nodeLocB);
@@ -439,6 +538,53 @@ bool CircuitScene::checkCable(CableGraphItem *item)
     return sideConnectedA && sideConnectedB;
 }
 
+void CircuitScene::addCableTiles(CableGraphItem *item)
+{
+    for(int i = 0; i < item->cablePath().getTilesCount(); i++)
+    {
+        TileLocation tile = item->cablePath().at(i);
+
+        auto it = mCableTiles.find(tile);
+        if(it == mCableTiles.end())
+        {
+            TileCablePair pair;
+            pair.first = item;
+            pair.second = nullptr;
+            mCableTiles.insert({tile, pair});
+        }
+        else
+        {
+            TileCablePair &pair = it->second;
+            if(pair.first)
+                pair.second = item;
+            else
+                pair.first = item;
+        }
+    }
+}
+
+void CircuitScene::removeCableTiles(CableGraphItem *item)
+{
+    for(int i = 0; i < item->cablePath().getTilesCount(); i++)
+    {
+        TileLocation tile = item->cablePath().at(i);
+
+        auto it = mCableTiles.find(tile);
+        Q_ASSERT(it != mCableTiles.end());
+
+        TileCablePair &pair = it->second;
+        Q_ASSERT(pair.first == item || pair.second == item);
+
+        if(pair.first == item)
+            pair.first = nullptr;
+        else
+            pair.second = nullptr;
+
+        if(!pair.first && !pair.second)
+            mCableTiles.erase(it); // No more cables on this tile
+    }
+}
+
 QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction direction)
 {
     const QPointF pos = l.toPoint();
@@ -465,19 +611,23 @@ void CircuitScene::startEditCable(CableGraphItem *item)
     if(isEditingCable())
         endEditCable(false);
 
+    // Cable being edited
     mEditingCable = item;
 
+    // Overlay to highlight cable
     QPen pen;
     pen.setWidthF(6.0);
-    pen.setColor(Qt::darkGreen);
+    pen.setColor(Qt::blue);
     mEditOverlay = addPath(mEditingCable->path(), pen);
     mEditOverlay->setZValue(1.0);
 
-    pen.setColor(Qt::red);
+    // New cable path, starts empty
+    pen.setColor(Qt::green);
     mEditNewPath = addPath(QPainterPath(), pen);
     mEditNewPath->setZValue(2.0);
 
-    mEditPathEmpty = true;
+    // Cable path logic
+    mEditNewCablePath = new CableGraphPath;
 }
 
 void CircuitScene::endEditCable(bool apply)
@@ -485,15 +635,30 @@ void CircuitScene::endEditCable(bool apply)
     if(!isEditingCable())
         return;
 
-    if(apply && !mEditNewPath->path().isEmpty())
-        mEditingCable->setPath(mEditNewPath->path());
+    if(apply)
+    {
+        if(!mEditNewCablePath->isComplete())
+            return; // TODO: error message
+
+        mEditingCable->setCablePath(*mEditNewCablePath);
+
+        // Try to connect it right away
+        checkCable(mEditingCable);
+    }
 
     mEditingCable = nullptr;
+
     delete mEditOverlay;
+    mEditOverlay = nullptr;
+
     delete mEditNewPath;
+    mEditNewPath = nullptr;
+
+    delete mEditNewCablePath;
+    mEditNewCablePath = nullptr;
 }
 
-void CircuitScene::editCableAddPoint(const QPointF &p)
+void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
 {
     int16_t hx = static_cast<int16_t>(std::round(p.x() / TileLocation::HalfSize));
     int16_t hy = static_cast<int16_t>(std::round(p.y() / TileLocation::HalfSize));
@@ -542,31 +707,82 @@ void CircuitScene::editCableAddPoint(const QPointF &p)
     tileCenter.rx() += TileLocation::HalfSize;
     tileCenter.ry() += TileLocation::HalfSize;
 
-    QPainterPath path = mEditNewPath->path();
-    if(mEditPathEmpty && isEdge)
+    if(mEditNewCablePath->isEmpty() && isEdge)
     {
-        mEditPathEmpty = false;
-        path.moveTo(realPoint);
-        path.lineTo(tileCenter);
+        mEditNewCablePath->setStartDirection(direction);
+        mEditNewCablePath->addTile(location);
     }
-    else if(!mEditPathEmpty)
+    else if(!mEditNewCablePath->isEmpty())
     {
-        auto el = path.elementAt(path.elementCount() - 1);
-        bool sameX = qFuzzyCompare(tileCenter.x(), el.x);
-        bool sameY = qFuzzyCompare(tileCenter.y(), el.y);
+        TileLocation lastTile = mEditNewCablePath->last();
 
-        if(sameX || sameY)
+        const auto deltaX = std::abs(lastTile.x - location.x);
+        const auto deltaY = std::abs(lastTile.y - location.y);
+
+        const double maxDiff = 2;
+
+        bool validPoint = true;
+        if(deltaY > deltaX && deltaX <= maxDiff && deltaY != 0)
         {
-            if(!(sameX && sameY))
-            {
-                path.lineTo(tileCenter);
-            }
+            // Vertical line from last center to new center
+            location.x = lastTile.x;
+        }
+        else if(deltaY < deltaX && deltaY <= maxDiff && deltaX != 0)
+        {
+            // Horizontal line from last center to new center
+            location.y = lastTile.y;
+        }
+        else
+        {
+            validPoint = false;
+        }
 
-            path.lineTo(realPoint);
+        if(validPoint)
+        {
+            if(location.x == lastTile.x)
+            {
+                if(location.y > lastTile.y)
+                {
+                    for(int16_t y = lastTile.y + 1; y <= location.y; y++)
+                    {
+                        mEditNewCablePath->addTile({location.x, y});
+                    }
+                }
+                else
+                {
+                    for(int16_t y = lastTile.y - 1; y >= location.y; y--)
+                    {
+                        mEditNewCablePath->addTile({location.x, y});
+                    }
+                }
+            }
+            else
+            {
+                if(location.x > lastTile.x)
+                {
+                    for(int16_t x = lastTile.x + 1; x <= location.x; x++)
+                    {
+                        mEditNewCablePath->addTile({x, location.y});
+                    }
+                }
+                else
+                {
+                    for(int16_t x = lastTile.x - 1; x >= location.x; x--)
+                    {
+                        mEditNewCablePath->addTile({x, location.y});
+                    }
+                }
+            }
+        }
+
+        if(isEdge && allowEdge && deltaX == 0 && deltaY == 0)
+        {
+            // Allow edge only if last point was center of same tile
+            mEditNewCablePath->setEndDirection(direction);
         }
     }
 
-    mEditNewPath->setPath(path);
+    mEditNewPath->setPath(mEditNewCablePath->generatePath());
 }
 
 void CircuitScene::editCableUndoLast()
@@ -574,29 +790,8 @@ void CircuitScene::editCableUndoLast()
     if(!isEditingCable())
         return;
 
-    QPainterPath path = mEditNewPath->path();
-    QPainterPath newPath;
-    if(path.elementCount() >= 3)
-    {
-        // Copy all elements except last to newPath
-        // If less than 3 elements, leave empty
-
-        const int newCount = path.elementCount() - 1;
-        for(int i = 0; i < newCount; i++)
-        {
-            const QPainterPath::Element& e = path.elementAt(i);
-            if(e.isMoveTo())
-                newPath.moveTo(e.x, e.y);
-            else if(e.isLineTo())
-                newPath.lineTo(e.x, e.y);
-        }
-    }
-    else
-    {
-        mEditPathEmpty = true;
-    }
-
-    mEditNewPath->setPath(newPath);
+    mEditNewCablePath->removeLastLine();
+    mEditNewPath->setPath(mEditNewCablePath->generatePath());
 }
 
 void CircuitScene::keyReleaseEvent(QKeyEvent *e)
@@ -638,9 +833,10 @@ void CircuitScene::keyReleaseEvent(QKeyEvent *e)
 
 void CircuitScene::mousePressEvent(QGraphicsSceneMouseEvent *e)
 {
-    if(isEditingCable() && e->button() == Qt::LeftButton)
+    if(isEditingCable() && (e->button() == Qt::LeftButton || e->button() == Qt::RightButton))
     {
-        editCableAddPoint(e->scenePos());
+        const bool allowEdge = e->button() == Qt::RightButton;
+        editCableAddPoint(e->scenePos(), allowEdge);
         e->accept();
         return;
     }

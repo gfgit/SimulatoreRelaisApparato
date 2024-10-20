@@ -4,10 +4,79 @@
 #include <QGraphicsObject>
 #include <QPainterPath>
 #include <QPen>
+#include <QVector>
 
 #include "../tilerotate.h"
 
 class CircuitCable;
+
+class CableGraphPath
+{
+public:
+    CableGraphPath() = default;
+
+    inline const QVector<TileLocation>& tiles() const
+    {
+        return mTiles;
+    }
+
+    inline int getTilesCount() const
+    {
+        return mTiles.size();
+    }
+
+    inline bool isEmpty() const
+    {
+        return mTiles.isEmpty();
+    }
+
+    inline TileLocation first() const { return mTiles.first(); }
+    inline TileLocation last() const { return mTiles.last(); }
+    inline TileLocation at(int i) const { return mTiles.at(i); }
+
+    Connector::Direction getEnterDirection(int tileIdx) const;
+    Connector::Direction getExitDirection(int tileIdx) const;
+
+    bool addTile(const TileLocation& l);
+
+    Connector::Direction startDirection() const;
+    bool setStartDirection(Connector::Direction newStartDirection);
+
+    Connector::Direction endDirection() const;
+    bool setEndDirection(Connector::Direction newEndDirection);
+
+    bool removeLastLine();
+
+    QPainterPath generatePath() const;
+
+    inline bool isZeroLength() const
+    {
+        return mIsZeroLength;
+    }
+
+    inline bool isComplete() const
+    {
+        return mPathIsComplete;
+    }
+
+    static CableGraphPath createZeroLength(const TileLocation& a,
+                                           const TileLocation& b);
+
+private:
+    static Connector::Direction getDirection(const TileLocation& a,
+                                             const TileLocation& b);
+
+private:
+    QVector<TileLocation> mTiles;
+    Connector::Direction mStartDirection;
+    Connector::Direction mEndDirection;
+
+    bool mExitDirectionIsFree = true;
+    Connector::Direction mWantedExitDirection = Connector::Direction::South;
+
+    bool mPathIsComplete = false;
+    bool mIsZeroLength = false;
+};
 
 class CableGraphItem : public QGraphicsObject
 {
@@ -16,7 +85,9 @@ public:
     CableGraphItem(CircuitCable *cable_);
 
     QPainterPath path() const;
-    void setPath(const QPainterPath &path);
+
+    const CableGraphPath& cablePath() const;
+    void setCablePath(const CableGraphPath &newCablePath);
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
@@ -49,15 +120,7 @@ private:
     QPen pen;
     QPainterPath mPath;
     QRectF mBoundingRect;
-    QRectF mUnconnectedRectA;
-    QRectF mUnconnectedRectB;
-
-    TileLocation mSideA = TileLocation::invalid;
-    Connector::Direction mDirectionA = Connector::Direction::North;
-
-    TileLocation mSideB = TileLocation::invalid;
-    Connector::Direction mDirectionB = Connector::Direction::South;
-    bool mCableZeroLength = true;
+    CableGraphPath mCablePath;
 };
 
 #endif // CABLEGRAPHITEM_H

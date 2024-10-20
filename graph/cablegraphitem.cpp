@@ -34,12 +34,6 @@ CableGraphItem::CableGraphItem(CircuitCable *cable_)
 {
     setParent(mCable);
 
-    QRectF square(QPointF(), QSizeF(20, 20));
-    mUnconnectedRectA = mUnconnectedRectB = square;
-
-    mPath.moveTo(0, 1);
-    mPath.lineTo(0, 49);
-
     pen.setColor(Qt::black);
     pen.setWidthF(5.0);
 
@@ -66,17 +60,7 @@ QRectF CableGraphItem::boundingRect() const
 
 QPainterPath CableGraphItem::shape() const
 {
-    QPainterPath p = mPath;
-
-    bool isAconnected = mCable->getNode(CircuitCable::Side::A).node;
-    bool isBconnected = mCable->getNode(CircuitCable::Side::B).node;
-
-    if(!isAconnected)
-        p.addRect(mUnconnectedRectA);
-    if(!isBconnected)
-        p.addRect(mUnconnectedRectB);
-
-    return qt_graphicsItem_shapeFromPath(p, pen);
+    return qt_graphicsItem_shapeFromPath(mPath, pen);
 }
 
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -88,21 +72,7 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     QColor oldColor = pen.color();
     if(!isAconnected || !isBconnected)
     {
-        // Draw a cyan square on cable end
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(Qt::darkCyan);
-
-        if(!isAconnected)
-        {
-            painter->drawRect(mUnconnectedRectA);
-        }
-
-        if(!isBconnected)
-        {
-            painter->drawRect(mUnconnectedRectB);
-        }
-
-        // Also draw line with cyan color
+        // Draw line with cyan color
         pen.setColor(Qt::darkCyan);
     }
 
@@ -131,114 +101,29 @@ QPainterPath CableGraphItem::path() const
     return mPath;
 }
 
-void CableGraphItem::setPath(const QPainterPath &path)
+const CableGraphPath &CableGraphItem::cablePath() const
 {
-    if (mPath == path)
-        return;
+    return mCablePath;
+}
+
+void CableGraphItem::setCablePath(const CableGraphPath &newCablePath)
+{
     prepareGeometryChange();
-    mPath = path;
+
+    // Update scene
+    auto *s = qobject_cast<CircuitScene *>(scene());
+    if(s)
+        s->removeCableTiles(this);
+
+    mCablePath = newCablePath;
+
+    if(s)
+        s->addCableTiles(this);
+
+    mPath = mCablePath.generatePath();
     mBoundingRect = QRectF();
 
-    auto start = mPath.elementAt(0);
-    auto end = mPath.elementAt(mPath.elementCount() - 1);
-
-    // Calculate start end
-    if(mPath.elementCount() > 1)
-    {
-        auto startDir = mPath.elementAt(1);
-        auto endDir = mPath.elementAt(mPath.elementCount() - 2);
-
-        if(qFuzzyCompare(start.x, startDir.x))
-        {
-            if(start.y < startDir.y)
-                mDirectionA = Connector::Direction::North;
-            else
-                mDirectionA = Connector::Direction::South;
-        }
-        else
-        {
-            if(start.x < startDir.x)
-                mDirectionA = Connector::Direction::West;
-            else
-                mDirectionA = Connector::Direction::East;
-        }
-
-        if(qFuzzyCompare(end.x, endDir.x))
-        {
-            if(end.y < endDir.y)
-                mDirectionB = Connector::Direction::North;
-            else
-                mDirectionB = Connector::Direction::South;
-        }
-        else
-        {
-            if(end.x < endDir.x)
-                mDirectionB = Connector::Direction::West;
-            else
-                mDirectionB = Connector::Direction::East;
-        }
-
-        mSideA.x = static_cast<int16_t>(std::floor(start.x / TileLocation::Size));
-        mSideA.y = static_cast<int16_t>(std::floor(start.y / TileLocation::Size));
-        if(mDirectionA == Connector::Direction::South)
-            mSideA.y--;
-        if(mDirectionA == Connector::Direction::East)
-            mSideA.x--;
-
-        mSideB.x = static_cast<int16_t>(std::floor(end.x / TileLocation::Size));
-        mSideB.y = static_cast<int16_t>(std::floor(end.y / TileLocation::Size));
-        if(mDirectionB == Connector::Direction::South)
-            mSideB.y--;
-        if(mDirectionB == Connector::Direction::East)
-            mSideB.x--;
-
-        mCableZeroLength = false;
-    }
-    else
-    {
-        mSideA.x = static_cast<int16_t>(std::floor(start.x / TileLocation::Size));
-        mSideA.y = static_cast<int16_t>(std::floor(start.y / TileLocation::Size));
-
-        if(qFuzzyCompare(start.x, mSideA.x * TileLocation::Size))
-        {
-            mDirectionA = Connector::Direction::West;
-            mDirectionB = Connector::Direction::East;
-        }
-        else
-        {
-            mDirectionA = Connector::Direction::North;
-            mDirectionB = Connector::Direction::South;
-        }
-
-        mSideB = mSideA;
-
-        mCableZeroLength = true;
-    }
-
-    // Recalculate position of unconnected rects
-    const QRectF br = mPath.controlPointRect();
-
-    // Rect A
-    if(br.center().x() > start.x)
-        mUnconnectedRectA.moveLeft(start.x);
-    else
-        mUnconnectedRectA.moveRight(start.x);
-
-    if(br.center().y() > start.y)
-        mUnconnectedRectA.moveTop(start.y);
-    else
-        mUnconnectedRectA.moveBottom(start.y);
-
-    // Rect B
-    if(br.center().x() > end.x)
-        mUnconnectedRectB.moveLeft(end.x);
-    else
-        mUnconnectedRectB.moveRight(end.x);
-
-    if(br.center().y() > end.y)
-        mUnconnectedRectB.moveTop(end.y);
-    else
-        mUnconnectedRectB.moveBottom(end.y);
+    setVisible(!mCablePath.isZeroLength());
 
     // Detach nodes, they will be reattached later
     CircuitCable::CableEnd cableEnd = cable()->getNode(CircuitCable::Side::A);
@@ -314,32 +199,301 @@ void CableGraphItem::triggerUpdate()
     update();
 }
 
-Connector::Direction CableGraphItem::directionB() const
-{
-    return mDirectionB;
-}
-
 Connector::Direction CableGraphItem::directionA() const
 {
-    return mDirectionA;
+    return mCablePath.startDirection();
 }
 
-TileLocation CableGraphItem::sideB() const
+Connector::Direction CableGraphItem::directionB() const
 {
-    return mSideB;
+    return mCablePath.endDirection();
 }
 
 TileLocation CableGraphItem::sideA() const
 {
-    return mSideA;
+    if(mCablePath.isEmpty())
+        return TileLocation::invalid;
+
+    if(mCablePath.isZeroLength())
+        return mCablePath.first();
+
+    return mCablePath.first() + mCablePath.startDirection();
+}
+
+TileLocation CableGraphItem::sideB() const
+{
+    if(mCablePath.isEmpty())
+        return TileLocation::invalid;
+
+    if(mCablePath.isZeroLength())
+        return mCablePath.last();
+
+    return mCablePath.last() + mCablePath.endDirection();
 }
 
 bool CableGraphItem::cableZeroLength() const
 {
-    return mCableZeroLength;
+    return mCablePath.isZeroLength();
 }
 
 CircuitCable *CableGraphItem::cable() const
 {
     return mCable;
 }
+
+Connector::Direction CableGraphPath::getEnterDirection(int tileIdx) const
+{
+    if(tileIdx == 0)
+        return mStartDirection;
+
+    if(tileIdx >= mTiles.size())
+        return Connector::Direction::South; // Error
+
+    const TileLocation& tile = mTiles.at(tileIdx);
+    const TileLocation& prevTile = mTiles.at(tileIdx - 1);
+    return getDirection(tile, prevTile);
+}
+
+Connector::Direction CableGraphPath::getExitDirection(int tileIdx) const
+{
+    if(tileIdx == mTiles.size() - 1)
+        return mEndDirection;
+
+    if(tileIdx >= mTiles.size())
+        return Connector::Direction::South; // Error
+
+    const TileLocation& tile = mTiles.at(tileIdx);
+    const TileLocation& nextTile = mTiles.at(tileIdx + 1);
+    return getDirection(tile, nextTile);
+}
+
+bool CableGraphPath::addTile(const TileLocation &l)
+{
+    if(mPathIsComplete)
+        return false;
+
+    if(!mTiles.isEmpty())
+    {
+        if(mTiles.last() == l)
+            return false; // Cannot add same tile twice
+
+        const TileLocation& prevTile = mTiles.last();
+        if(prevTile.x != l.x && prevTile.y != l.y)
+        {
+            // Adjacent tiles must have one coordinate in common
+            return false;
+        }
+
+        const auto newPrevTileExitDir = getDirection(mTiles.last(), l);
+        const auto newTileStartDir = ~newPrevTileExitDir; // Opposite
+        if(!mExitDirectionIsFree)
+        {
+            // We didn't respect last exit direction
+            if(newPrevTileExitDir != mWantedExitDirection)
+                return false;
+        }
+
+        // Check we are not going back
+        const auto prevTileStartDir = getEnterDirection(mTiles.size() - 1);
+        if(newPrevTileExitDir == prevTileStartDir)
+            return false;
+
+        // Cable can pass on same tile twice if:
+        // - it's not same as previous tile
+        // - Both times it passes it does not bend, but goes straight
+        // - Direction is different in the 2 passages
+
+        int idx = mTiles.indexOf(l);
+        if(idx >= 0)
+        {
+            // Check if first passage was straigh
+            const auto enterDir1 = getEnterDirection(idx);
+            const auto exitDir1 = getExitDirection(idx);
+            if(enterDir1 != ~exitDir1)
+                return false; // Directions are not opposite, it bends
+
+            if(newTileStartDir == enterDir1 || newTileStartDir == exitDir1)
+                return false; // Both passages have same direction
+
+            // We do not want to bend second passage
+            mExitDirectionIsFree = false;
+            mWantedExitDirection = ~newTileStartDir; // Opposite
+        }
+        else
+        {
+            // Reset
+            mExitDirectionIsFree = true;
+        }
+    }
+
+    mTiles.append(l);
+    return true;
+}
+
+Connector::Direction CableGraphPath::startDirection() const
+{
+    return mStartDirection;
+}
+
+bool CableGraphPath::setStartDirection(Connector::Direction newStartDirection)
+{
+    if(!mTiles.isEmpty())
+        return false; // Must be set before adding tiles
+
+    mStartDirection = newStartDirection;
+    return true;
+}
+
+Connector::Direction CableGraphPath::endDirection() const
+{
+    return mEndDirection;
+}
+
+bool CableGraphPath::setEndDirection(Connector::Direction newEndDirection)
+{
+    if(mTiles.isEmpty())
+        return false; // Must add tiles first
+
+    if(!mExitDirectionIsFree && newEndDirection != mWantedExitDirection)
+    {
+        // We didn't respect last exit direction
+        return false;
+    }
+
+    if(getEnterDirection(mTiles.size() - 1) == newEndDirection)
+        return false; // Cannot enter and exit on same direction
+
+    mEndDirection = newEndDirection;
+
+    mPathIsComplete = true;
+
+    return true;
+}
+
+bool CableGraphPath::removeLastLine()
+{
+    if(mTiles.isEmpty() || isZeroLength())
+        return false;
+
+    if(mPathIsComplete)
+    {
+        // Remove end connector direction
+        mPathIsComplete = false;
+        return true;
+    }
+
+    if(mTiles.size() == 1)
+    {
+        // Remove first
+        mTiles.removeLast();
+        return true;
+    }
+
+    // Remove last straight line
+    const auto startDir = getEnterDirection(mTiles.size() - 1);
+    while(mTiles.size() > 1) // Do not remove first
+    {
+        const auto otherStartDir = getEnterDirection(mTiles.size() - 1);
+        if(otherStartDir != startDir)
+            break; // We reached a bend
+
+        mTiles.removeLast();
+    }
+
+    return true;
+}
+
+QPainterPath CableGraphPath::generatePath() const
+{
+    QPainterPath path;
+    if(mTiles.isEmpty() || isZeroLength())
+        return path; // Empty
+
+    // Move to start connector
+    path.moveTo(CircuitScene::getConnectorPoint(mTiles.first(), mStartDirection));
+
+    // Draw start connector line
+    QPointF center = mTiles.first().toPoint();
+    center.rx() += TileLocation::HalfSize;
+    center.ry() += TileLocation::HalfSize;
+    path.lineTo(center);
+
+    Connector::Direction exitDir = getExitDirection(0);
+    for(int i = 1; i < mTiles.size() - 1; i++)
+    {
+        // Go from second to just before last tile
+        Connector::Direction exitDir2 = getExitDirection(i);
+        if(exitDir2 == exitDir)
+            continue; // Line is straigh, go to next tile
+
+        // We reached a bend
+        center = mTiles.at(i).toPoint();
+        center.rx() += TileLocation::HalfSize;
+        center.ry() += TileLocation::HalfSize;
+        path.lineTo(center);
+
+        exitDir = exitDir2;
+    }
+
+    if(mTiles.size() > 1)
+    {
+        // Go to last tile
+        center = mTiles.last().toPoint();
+        center.rx() += TileLocation::HalfSize;
+        center.ry() += TileLocation::HalfSize;
+        path.lineTo(center);
+    }
+
+    if(mPathIsComplete)
+    {
+        // Draw end connector line
+        path.lineTo(CircuitScene::getConnectorPoint(mTiles.last(), mEndDirection));
+    }
+
+    return path;
+}
+
+CableGraphPath CableGraphPath::createZeroLength(const TileLocation &a, const TileLocation &b)
+{
+    CableGraphPath path;
+    path.mIsZeroLength = true;
+
+    if(a.x == b.x)
+    {
+        Q_ASSERT(std::abs(a.y - b.y) == 1);
+        path.mStartDirection = getDirection(b, a); // Opposite
+    }
+    else if(a.y == b.y)
+    {
+        Q_ASSERT(std::abs(a.x - b.x) == 1);
+        path.mStartDirection = getDirection(b, a); // Opposite
+    }
+    else
+    {
+        // Tiles are not adjacent
+        Q_ASSERT(false);
+    }
+
+    path.mTiles.append(a);
+    path.mTiles.append(b);
+    path.mEndDirection = ~path.mStartDirection;
+
+    return path;
+}
+
+Connector::Direction CableGraphPath::getDirection(const TileLocation &a, const TileLocation &b)
+{
+    if(a.x == b.x)
+    {
+        if(a.y > b.y)
+            return Connector::Direction::North;
+        return Connector::Direction::South;
+    }
+
+    // Tiles have same y
+    if(a.x > b.x)
+        return Connector::Direction::West;
+    return Connector::Direction::East;
+}
+
+

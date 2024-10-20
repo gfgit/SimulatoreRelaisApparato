@@ -13,6 +13,7 @@ class PowerSourceGraphItem;
 class Connector;
 class CircuitCable;
 class CableGraphItem;
+class CableGraphPath;
 
 class QGraphicsPathItem;
 
@@ -26,6 +27,11 @@ public:
         Simulation,
         Editing
     };
+
+    // On a tile there can be 2 cables if they go in squared directions
+    // See CableGraphPath::addTile()
+    typedef std::pair<CableGraphItem *, CableGraphItem*> TileCablePair;
+
 
     explicit CircuitScene(QObject *parent = nullptr);
 
@@ -46,8 +52,14 @@ public:
 
     inline bool isEditingCable() const { return mEditingCable; }
 
-    void editCableAddPoint(const QPointF& p);
+    void editCableAddPoint(const QPointF& p, bool allowEdge);
     void editCableUndoLast();
+
+    bool isLocationFree(TileLocation l) const;
+    AbstractNodeGraphItem *getNodeAt(TileLocation l) const;
+    TileCablePair getCablesAt(TileLocation l) const;
+
+    bool cablePathIsValid(const CableGraphPath& cablePath, CableGraphItem *item) const;
 
 signals:
     void modeChanged(Mode mode);
@@ -60,7 +72,7 @@ protected:
 
 private:
     friend class AbstractNodeGraphItem;
-    bool isLocationFree(TileLocation l) const;
+
     void updateItemLocation(TileLocation oldLocation,
                             TileLocation newLocation,
                             AbstractNodeGraphItem *item);
@@ -81,6 +93,10 @@ private:
         return nullptr;
     }
 
+    friend class CableGraphItem;
+    void addCableTiles(CableGraphItem *item);
+    void removeCableTiles(CableGraphItem *item);
+
 private:
     Mode mMode = Mode::Editing;
 
@@ -90,10 +106,12 @@ private:
 
     std::unordered_map<CircuitCable *, CableGraphItem *> mCables;
 
+    std::unordered_map<TileLocation, TileCablePair> mCableTiles;
+
     CableGraphItem *mEditingCable = nullptr;
     QGraphicsPathItem *mEditOverlay = nullptr;
     QGraphicsPathItem *mEditNewPath = nullptr;
-    bool mEditPathEmpty = true;
+    CableGraphPath *mEditNewCablePath = nullptr;
 };
 
 #endif // CIRCUITSCENE_H
