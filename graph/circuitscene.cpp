@@ -254,6 +254,15 @@ void CircuitScene::connectItems(AbstractCircuitNode *node1, AbstractCircuitNode 
 
             CircuitCable *newCable = new CircuitCable(this);
 
+            // First we set graph path
+            CableGraphItem *item = new CableGraphItem(cableA);
+            item->setPos(0, 0);
+            QPainterPath path;
+            path.moveTo(getConnectorPoint(c1.location, c1.direction));
+            path.lineTo(getConnectorPoint(c2.location, c2.direction));
+            item->setPath(path);
+
+            // Then we create cable connection
             AbstractCircuitNode::CableItem cableItem;
             cableItem.cable.cable = newCable;
             cableItem.cable.side = CircuitCable::Side::A;
@@ -274,13 +283,6 @@ void CircuitScene::connectItems(AbstractCircuitNode *node1, AbstractCircuitNode 
 
             cableA = newCable;
             verifiedCables.append(cableA);
-
-            CableGraphItem *item = new CableGraphItem(cableA);
-            item->setPos(0, 0);
-            QPainterPath path;
-            path.moveTo(getConnectorPoint(c1.location, c1.direction));
-            path.lineTo(getConnectorPoint(c2.location, c2.direction));
-            item->setPath(path);
 
             addCable(item);
         }
