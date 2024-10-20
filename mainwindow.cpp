@@ -117,6 +117,12 @@ void MainWindow::buildToolBar()
                                      tr("New Simple Node"),
                                      mScene,
                                      ui->graphicsView);
+    QAction *newCableAct = newItemMenu->addAction(tr("New Cable"));
+    connect(newCableAct, &QAction::triggered, mScene,
+                     [this]()
+    {
+        mScene->startEditNewCable();
+    });
 
     connect(mScene, &CircuitScene::modeChanged,
             this, [this, toggleEditMode, newItem](CircuitScene::Mode mode)

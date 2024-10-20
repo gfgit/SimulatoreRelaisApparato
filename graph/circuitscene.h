@@ -47,10 +47,11 @@ public:
 
     static QPointF getConnectorPoint(TileLocation l, Connector::Direction direction);
 
+    void startEditNewCable();
     void startEditCable(CableGraphItem *item);
     void endEditCable(bool apply = true);
 
-    inline bool isEditingCable() const { return mEditingCable; }
+    inline bool isEditingCable() const { return mEditingCable || mIsEditingNewCable; }
 
     void editCableAddPoint(const QPointF& p, bool allowEdge);
     void editCableUndoLast();
@@ -109,6 +110,7 @@ private:
 
     std::unordered_map<TileLocation, TileCablePair, TileLocationHash> mCableTiles;
 
+    bool mIsEditingNewCable = false;
     CableGraphItem *mEditingCable = nullptr;
     QGraphicsPathItem *mEditOverlay = nullptr;
     QGraphicsPathItem *mEditNewPath = nullptr;

@@ -624,6 +624,30 @@ QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction dir
     return QPointF();
 }
 
+void CircuitScene::startEditNewCable()
+{
+    if(isEditingCable())
+        endEditCable(false);
+
+    // Cable being edited
+    mIsEditingNewCable = true;
+
+    // Overlay to highlight cable
+    QPen pen;
+    pen.setWidthF(6.0);
+    pen.setColor(Qt::blue);
+    mEditOverlay = addPath(QPainterPath(), pen);
+    mEditOverlay->setZValue(1.0);
+
+    // New cable path, starts empty
+    pen.setColor(Qt::green);
+    mEditNewPath = addPath(QPainterPath(), pen);
+    mEditNewPath->setZValue(2.0);
+
+    // Cable path logic
+    mEditNewCablePath = new CableGraphPath;
+}
+
 void CircuitScene::startEditCable(CableGraphItem *item)
 {
     if(isEditingCable())
@@ -658,12 +682,24 @@ void CircuitScene::endEditCable(bool apply)
         if(!mEditNewCablePath->isComplete())
             return; // TODO: error message
 
+        if(mIsEditingNewCable)
+        {
+            // Create new cable
+            CircuitCable *cable = new CircuitCable(this);
+            mEditingCable = new CableGraphItem(cable);
+            mEditingCable->setPos(0, 0);
+        }
+
         mEditingCable->setCablePath(*mEditNewCablePath);
+
+        if(mIsEditingNewCable)
+            addCable(mEditingCable);
 
         // Try to connect it right away
         checkCable(mEditingCable);
     }
 
+    mIsEditingNewCable = false;
     mEditingCable = nullptr;
 
     delete mEditOverlay;
