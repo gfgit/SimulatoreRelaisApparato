@@ -66,7 +66,7 @@ void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 void AbstractNodeGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 {
     auto *s = circuitScene();
-    if(s->mode() == CircuitScene::Mode::Editing)
+    if(s->mode() == CircuitScene::Mode::Editing && e->button() == Qt::LeftButton)
     {
         emit editRequested(this);
         return;
