@@ -51,6 +51,11 @@ int main(int argc, char *argv[])
      *
      */
 
+    MainWindow w;
+
+    CircuitScene *scene = w.scene();
+    scene->setMode(CircuitScene::Mode::Editing);
+
     PowerSourceNode powerSource;
     powerSource.setObjectName("PowerSource");
 
@@ -135,23 +140,21 @@ int main(int argc, char *argv[])
     using Side = CircuitCable::Side;
 
     // c1 cable from power to s1
-    CircuitCable c1;
-    c1.setObjectName("c1");
+    CircuitCable *c1 = new CircuitCable(scene);
+    c1->setObjectName("c1");
 
     // c1 Graph
-    CableGraphItem *c1Graph = new CableGraphItem(&c1);
+    CableGraphItem *c1Graph = new CableGraphItem(c1);
     c1Graph->setToolTip("c1");
-    c1Graph->setVisible(false);
 
+    CableGraphPath c1Path = CableGraphPath::createZeroLength(pwGraph->location(),
+                                                             s1Graph->location());
     c1Graph->setPos(0, 0);
-    QPainterPath pathC1;
-    pathC1.moveTo(getConnectorPoint(pwGraph, pwGraph->rotate()));
-    pathC1.lineTo(getConnectorPoint(s1Graph, s1Graph->rotate()));
-    c1Graph->setPath(pathC1);
+    c1Graph->setCablePath(c1Path);
 
     // Connection
     AbstractCircuitNode::CableItem conn;
-    conn.cable.cable = &c1;
+    conn.cable.cable = c1;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
@@ -169,22 +172,20 @@ int main(int argc, char *argv[])
     s1.attachCable(conn);
 
     // c2 cable from s1 to on/off1
-    CircuitCable c2;
-    c2.setObjectName("c2");
+    CircuitCable *c2 = new CircuitCable(scene);
+    c2->setObjectName("c2");
 
     // c2 Graph
-    CableGraphItem *c2Graph = new CableGraphItem(&c2);
+    CableGraphItem *c2Graph = new CableGraphItem(c2);
     c2Graph->setToolTip("c2");
 
+    CableGraphPath c2Path = CableGraphPath::createZeroLength(s1Graph->location(),
+                                                             onOff1Graph->location());
     c2Graph->setPos(0, 0);
-    QPainterPath pathC2;
-    pathC2.moveTo(getConnectorPoint(s1Graph, TileRotate::Deg0));
-    pathC2.lineTo(getConnectorPoint(onOff1Graph, TileRotate::Deg180));
-    c2Graph->setPath(pathC2);
-    c2Graph->setVisible(false);
+    c2Graph->setCablePath(c2Path);
 
     // Connection
-    conn.cable.cable = &c2;
+    conn.cable.cable = c2;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 2;
@@ -202,21 +203,23 @@ int main(int argc, char *argv[])
     onOff1.attachCable(conn);
 
     // c3 cable from on/off1 to s2
-    CircuitCable c3;
-    c3.setObjectName("c3");
+    CircuitCable *c3 = new CircuitCable(scene);
+    c3->setObjectName("c3");
 
     // c3 Graph
-    CableGraphItem *c3Graph = new CableGraphItem(&c3);
+    CableGraphItem *c3Graph = new CableGraphItem(c3);
     c3Graph->setToolTip("c3");
 
+    CableGraphPath c3Path;
+    c3Path.setStartDirection(Connector::Direction::North);
+    c3Path.addTile(onOff1Graph->location() + Connector::Direction::South);
+    c3Path.setEndDirection(Connector::Direction::South);
+
     c3Graph->setPos(0, 0);
-    QPainterPath pathC3;
-    pathC3.moveTo(getConnectorPoint(onOff1Graph, TileRotate::Deg0));
-    pathC3.lineTo(getConnectorPoint(s2Graph, TileRotate::Deg180));
-    c3Graph->setPath(pathC3);
+    c3Graph->setCablePath(c3Path);
 
     // Connection
-    conn.cable.cable = &c3;
+    conn.cable.cable = c3;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 1;
@@ -234,24 +237,25 @@ int main(int argc, char *argv[])
     s2.attachCable(conn);
 
     // c4 cable from s1 to on/off2
-    CircuitCable c4;
-    c4.setObjectName("c4");
+    CircuitCable *c4 = new CircuitCable(scene);
+    c4->setObjectName("c4");
 
     // c4 Graph
-    CableGraphItem *c4Graph = new CableGraphItem(&c4);
+    CableGraphItem *c4Graph = new CableGraphItem(c4);
     c4Graph->setToolTip("c4");
 
+    CableGraphPath c4Path;
+    c4Path.setStartDirection(Connector::Direction::West);
+    c4Path.addTile(s1Graph->location() + Connector::Direction::East);
+    c4Path.addTile(c4Path.last() + Connector::Direction::East);
+    c4Path.addTile(onOff2Graph->location() + Connector::Direction::North);
+    c4Path.setEndDirection(Connector::Direction::South);
+
     c4Graph->setPos(0, 0);
-    QPainterPath pathC4;
-    auto startC4 = getConnectorPoint(s1Graph, TileRotate::Deg270);
-    auto endC4 = getConnectorPoint(onOff2Graph, TileRotate::Deg180);
-    pathC4.moveTo(startC4);
-    pathC4.lineTo(endC4.x(), startC4.y());
-    pathC4.lineTo(endC4);
-    c4Graph->setPath(pathC4);
+    c4Graph->setCablePath(c4Path);
 
     // Connection
-    conn.cable.cable = &c4;
+    conn.cable.cable = c4;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 1;
@@ -269,24 +273,20 @@ int main(int argc, char *argv[])
     onOff2.attachCable(conn);
 
     // c5 cable from on/off2 to on/off3
-    CircuitCable c5;
-    c5.setObjectName("c5");
+    CircuitCable *c5 = new CircuitCable(scene);
+    c5->setObjectName("c5");
 
     // c5 Graph
-    CableGraphItem *c5Graph = new CableGraphItem(&c5);
+    CableGraphItem *c5Graph = new CableGraphItem(c5);
     c5Graph->setToolTip("c5");
-    c5Graph->setVisible(false); // TODO
 
+    CableGraphPath c5Path = CableGraphPath::createZeroLength(onOff2Graph->location(),
+                                                             onOff3Graph->location());
     c5Graph->setPos(0, 0);
-    QPainterPath pathC5;
-    auto startC5 = getConnectorPoint(onOff2Graph, TileRotate::Deg0);
-    auto endC5 = getConnectorPoint(onOff3Graph, TileRotate::Deg180);
-    pathC5.moveTo(startC5);
-    pathC5.lineTo(endC5);
-    c5Graph->setPath(pathC5);
+    c5Graph->setCablePath(c5Path);
 
     // Connection
-    conn.cable.cable = &c5;
+    conn.cable.cable = c5;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
@@ -304,24 +304,25 @@ int main(int argc, char *argv[])
     onOff3.attachCable(conn);
 
     // c6 cable from on/off3 to s2
-    CircuitCable c6;
-    c6.setObjectName("c6");
+    CircuitCable *c6 = new CircuitCable(scene);
+    c6->setObjectName("c6");
 
     // c6 Graph
-    CableGraphItem *c6Graph = new CableGraphItem(&c6);
+    CableGraphItem *c6Graph = new CableGraphItem(c6);
     c6Graph->setToolTip("c6");
 
+    CableGraphPath c6Path;
+    c6Path.setStartDirection(Connector::Direction::North);
+    c6Path.addTile(onOff3Graph->location() + Connector::Direction::South);
+    c6Path.addTile(c6Path.last() + Connector::Direction::West);
+    c6Path.addTile(s2Graph->location() + Connector::Direction::East);
+    c6Path.setEndDirection(Connector::Direction::West);
+
     c6Graph->setPos(0, 0);
-    QPainterPath pathC6;
-    auto startC6 = getConnectorPoint(s2Graph, TileRotate::Deg270);
-    auto endC6 = getConnectorPoint(onOff3Graph, TileRotate::Deg0);
-    pathC6.moveTo(startC6);
-    pathC6.lineTo(endC6.x(), startC6.y());
-    pathC6.lineTo(endC6);
-    c6Graph->setPath(pathC6);
+    c6Graph->setCablePath(c6Path);
 
     // Connection
-    conn.cable.cable = &c6;
+    conn.cable.cable = c6;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 1;
@@ -339,23 +340,23 @@ int main(int argc, char *argv[])
     s2.attachCable(conn);
 
     // c7 cable from s1 to relay contact common
-    CircuitCable c7;
-    c7.setObjectName("c7");
+    CircuitCable *c7 = new CircuitCable(scene);
+    c7->setObjectName("c7");
 
     // c7 Graph
-    CableGraphItem *c7Graph = new CableGraphItem(&c7);
+    CableGraphItem *c7Graph = new CableGraphItem(c7);
     c7Graph->setToolTip("c7");
 
+    CableGraphPath c7Path;
+    c7Path.setStartDirection(Connector::Direction::East);
+    c7Path.addTile(s1Graph->location() + Connector::Direction::West);
+    c7Path.setEndDirection(Connector::Direction::West);
+
     c7Graph->setPos(0, 0);
-    QPainterPath pathC7;
-    auto startC7 = getConnectorPoint(relContGraph1, TileRotate::Deg270);
-    auto endC7 = getConnectorPoint(s1Graph, TileRotate::Deg90);
-    pathC7.moveTo(startC7);
-    pathC7.lineTo(endC7);
-    c7Graph->setPath(pathC7);
+    c7Graph->setCablePath(c7Path);
 
     // Connection
-    conn.cable.cable = &c7;
+    conn.cable.cable = c7;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 3;
@@ -373,23 +374,25 @@ int main(int argc, char *argv[])
     relCont.attachCable(conn);
 
     // c8 cable from relay contact up to relay power 2
-    CircuitCable c8;
-    c8.setObjectName("c8");
+    CircuitCable *c8 = new CircuitCable(scene);
+    c8->setObjectName("c8");
 
     // c8 Graph
-    CableGraphItem *c8Graph = new CableGraphItem(&c8);
+    CableGraphItem *c8Graph = new CableGraphItem(c8);
     c8Graph->setToolTip("c8");
 
+    CableGraphPath c8Path;
+    c8Path.setStartDirection(Connector::Direction::North);
+    c8Path.addTile(relContGraph1->location() + Connector::Direction::South);
+    c8Path.addTile(c8Path.last() + Connector::Direction::South);
+    c8Path.addTile(c8Path.last() + Connector::Direction::South);
+    c8Path.setEndDirection(Connector::Direction::South);
+
     c8Graph->setPos(0, 0);
-    QPainterPath pathC8;
-    auto startC8 = getConnectorPoint(relContGraph1, TileRotate::Deg0);
-    auto endC8 = getConnectorPoint(relPowGraph2, TileRotate::Deg180);
-    pathC8.moveTo(startC8);
-    pathC8.lineTo(endC8);
-    c8Graph->setPath(pathC8);
+    c8Graph->setCablePath(c8Path);
 
     // Connection
-    conn.cable.cable = &c8;
+    conn.cable.cable = c8;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 1;
@@ -407,24 +410,20 @@ int main(int argc, char *argv[])
     relPow2.attachCable(conn);
 
     // c9 cable from s2 to relay power 1
-    CircuitCable c9;
-    c9.setObjectName("c9");
+    CircuitCable *c9 = new CircuitCable(scene);
+    c9->setObjectName("c9");
 
     // c9 Graph
-    CableGraphItem *c9Graph = new CableGraphItem(&c9);
+    CableGraphItem *c9Graph = new CableGraphItem(c9);
     c9Graph->setToolTip("c9");
-    c9Graph->setVisible(false);
 
+    CableGraphPath c9Path = CableGraphPath::createZeroLength(s2Graph->location(),
+                                                             relPowGraph1->location());
     c9Graph->setPos(0, 0);
-    QPainterPath pathC9;
-    auto startC9 = getConnectorPoint(s2Graph, TileRotate::Deg0);
-    auto endC9 = getConnectorPoint(relPowGraph1, TileRotate::Deg180);
-    pathC9.moveTo(startC9);
-    pathC9.lineTo(endC9);
-    c9Graph->setPath(pathC9);
+    c9Graph->setCablePath(c9Path);
 
     // Connection
-    conn.cable.cable = &c9;
+    conn.cable.cable = c9;
     conn.cable.side = Side::A;
     conn.cable.pole = CircuitCable::Pole::First;
     conn.nodeContact = 0;
@@ -443,29 +442,26 @@ int main(int argc, char *argv[])
 
     auto guard = qScopeGuard([&powerSource](){powerSource.setEnabled(false);});
 
-    MainWindow w;
+    scene->addNode(pwGraph);
+    scene->addNode(onOff1Graph);
+    scene->addNode(onOff2Graph);
+    scene->addNode(onOff3Graph);
+    scene->addNode(relPowGraph1);
+    scene->addNode(s1Graph);
+    scene->addNode(s2Graph);
 
-    CircuitScene& scene = *w.scene();
-    scene.addNode(pwGraph);
-    scene.addNode(onOff1Graph);
-    scene.addNode(onOff2Graph);
-    scene.addNode(onOff3Graph);
-    scene.addNode(relPowGraph1);
-    scene.addNode(s1Graph);
-    scene.addNode(s2Graph);
+    scene->addNode(relContGraph1);
+    scene->addNode(relPowGraph2);
 
-    scene.addNode(relContGraph1);
-    scene.addNode(relPowGraph2);
-
-    scene.addCable(c1Graph);
-    scene.addCable(c2Graph);
-    scene.addCable(c3Graph);
-    scene.addCable(c4Graph);
-    scene.addCable(c5Graph);
-    scene.addCable(c6Graph);
-    scene.addCable(c7Graph);
-    scene.addCable(c8Graph);
-    scene.addCable(c9Graph);
+    scene->addCable(c1Graph);
+    scene->addCable(c2Graph);
+    scene->addCable(c3Graph);
+    scene->addCable(c4Graph);
+    scene->addCable(c5Graph);
+    scene->addCable(c6Graph);
+    scene->addCable(c7Graph);
+    scene->addCable(c8Graph);
+    scene->addCable(c9Graph);
 
     w.show();
     return a.exec();
