@@ -86,9 +86,9 @@ int main(int argc, char *argv[])
 
     AbstractRelais relay;
     relay.setName("C1");
-    relay.addPowerNode(&relPow1);
-    relay.addPowerNode(&relPow2);
-    relay.addContactNode(&relCont);
+    relPow1.setRelais(&relay);
+    relPow2.setRelais(&relay);
+    relCont.setRelais(&relay);
 
     /*
     powerSource.setEnabled(true);

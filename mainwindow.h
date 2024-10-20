@@ -10,6 +10,8 @@ QT_END_NAMESPACE
 class CircuitScene;
 class AbstractNodeGraphItem;
 class CableGraphItem;
+class RelaisModel;
+class NodeEditFactory;
 
 class MainWindow : public QMainWindow
 {
@@ -31,5 +33,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     CircuitScene *mScene;
+    RelaisModel *mRelaisModel;
+    NodeEditFactory *mEditFactory;
 };
 #endif // MAINWINDOW_H

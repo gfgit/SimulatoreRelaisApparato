@@ -3,23 +3,19 @@
 
 #include "graph/circuitscene.h"
 
-#include "nodes/onoffswitchnode.h"
-#include "nodes/powersourcenode.h"
-#include "nodes/simplecircuitnode.h"
-#include "nodes/relaispowernode.h"
-#include "nodes/relaiscontactnode.h"
-#include "circuitcable.h"
+#include "abstractcircuitnode.h"
+#include "graph/abstractnodegraphitem.h"
+
 #include "abstractrelais.h"
 
-#include "graph/cablegraphitem.h"
-#include "graph/onoffgraphitem.h"
-#include "graph/powersourcegraphitem.h"
-#include "graph/relaispowergraphitem.h"
-#include "graph/relaiscontactgraphitem.h"
-#include "graph/simplenodegraphitem.h"
+#include "relaismodel.h"
+
+#include "nodes/edit/nodeeditfactory.h"
+#include "nodes/edit/standardnodetypes.h"
 
 #include <QAction>
 #include <QInputDialog>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -27,7 +23,51 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    mRelaisModel = new RelaisModel(this);
+    ui->relaisView->setModel(mRelaisModel);
+
+    connect(ui->addRelayBut, &QPushButton::clicked,
+            mRelaisModel, [this]()
+    {
+        QString name = QInputDialog::getText(this,
+                                             tr("New Relay"),
+                                             tr("Choose Name"));
+        if(name.isEmpty())
+            return;
+
+        AbstractRelais *relay = new AbstractRelais(mRelaisModel);
+        relay->setName(name);
+
+        mRelaisModel->addRelay(relay);
+    });
+
+    connect(ui->removeRelayBut, &QPushButton::clicked,
+            ui->relaisView, [this]()
+    {
+        QModelIndex idx = ui->relaisView->currentIndex();
+        if(!idx.isValid())
+            return;
+
+        AbstractRelais *relay = mRelaisModel->relayAt(idx.row());
+        if(!relay)
+            return;
+
+        QString name = relay->name();
+        int ret = QMessageBox::question(this,
+                                        tr("Delete Relais %1").arg(name),
+                                        tr("Are you sure to delete <b>%1</b>?").arg(name));
+        if(ret == QMessageBox::Yes)
+        {
+            mRelaisModel->removeRelay(relay);
+        }
+    });
+
+    mEditFactory = new NodeEditFactory(this);
+    StandardNodeTypes::registerTypes(mEditFactory);
+
     mScene = new CircuitScene(this);
+    mScene->setRelaisModel(mRelaisModel);
+
     ui->graphicsView->setScene(mScene);
 
     connect(mScene, &CircuitScene::nodeEditRequested,
@@ -46,36 +86,6 @@ MainWindow::~MainWindow()
 CircuitScene *MainWindow::scene() const
 {
     return mScene;
-}
-
-template <typename Node, typename Graph>
-Node* addNewNodeToScene(CircuitScene *s, QGraphicsView *v)
-{
-    Node *node = new Node(s);
-    Graph *graph = new Graph(node);
-    s->addNode(graph);
-
-    v->ensureVisible(graph);
-
-    return node;
-}
-
-template <typename Graph>
-void addNewNodeToMenu(QMenu *menu, const QString& title, CircuitScene *s, QGraphicsView *v)
-{
-    QAction *act = menu->addAction(title);
-    QObject::connect(act, &QAction::triggered, s,
-                     [s, v, menu]()
-    {
-        QString name = QInputDialog::getText(v,
-                                             MainWindow::tr("Choose Item Name"),
-                                             MainWindow::tr("Name:"));
-        if(name.isEmpty())
-            return;
-
-        typename Graph::Node *node = addNewNodeToScene<typename Graph::Node, Graph>(s, v);
-        node->setObjectName(name);
-    });
 }
 
 void MainWindow::buildToolBar()
@@ -97,30 +107,41 @@ void MainWindow::buildToolBar()
     newItem->setMenu(newItemMenu);
     ui->toolBar->addAction(newItem);
 
-    addNewNodeToMenu<OnOffGraphItem>(newItemMenu,
-                                     tr("New On/Off Switch"),
-                                     mScene,
-                                     ui->graphicsView);
-    addNewNodeToMenu<PowerSourceGraphItem>(newItemMenu,
-                                     tr("New Power Source"),
-                                     mScene,
-                                     ui->graphicsView);
-    addNewNodeToMenu<RelaisContactGraphItem>(newItemMenu,
-                                     tr("New Relay Contact"),
-                                     mScene,
-                                     ui->graphicsView);
-    addNewNodeToMenu<RelaisPowerGraphItem>(newItemMenu,
-                                     tr("New Relay Power"),
-                                     mScene,
-                                     ui->graphicsView);
-    addNewNodeToMenu<SimpleNodeGraphItem>(newItemMenu,
-                                     tr("New Simple Node"),
-                                     mScene,
-                                     ui->graphicsView);
+    for(const QString& nodeType : mEditFactory->getRegisteredTypes())
+    {
+        QString title = tr("New %1").arg(mEditFactory->prettyName(nodeType));
+
+        QAction *act = newItemMenu->addAction(title);
+        connect(act, &QAction::triggered, mScene,
+                [nodeType, this]()
+        {
+            ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
+
+            const bool needsName = mEditFactory->needsName(nodeType);
+            QString name;
+            if(needsName)
+            {
+                name = QInputDialog::getText(ui->graphicsView,
+                                             MainWindow::tr("Choose Item Name"),
+                                             MainWindow::tr("Name:"));
+                if(name.isEmpty())
+                    return;
+            }
+
+            auto item = mEditFactory->createItem(nodeType, mScene);
+            if(needsName)
+                item->getAbstractNode()->setObjectName(name);
+
+            ui->graphicsView->centerOn(item->boundingRect().center());
+        });
+    }
+
     QAction *newCableAct = newItemMenu->addAction(tr("New Cable"));
     connect(newCableAct, &QAction::triggered, mScene,
                      [this]()
     {
+        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
+
         mScene->startEditNewCable();
     });
 
@@ -135,10 +156,12 @@ void MainWindow::buildToolBar()
 void MainWindow::nodeEditRequested(AbstractNodeGraphItem *item)
 {
     // Allow delete or custom node options
+    mEditFactory->editItem(this, item);
 }
 
 void MainWindow::cableEditRequested(CableGraphItem *item)
 {
     // Allow delete or modify path
+    mEditFactory->editCable(this, item);
 }
 
