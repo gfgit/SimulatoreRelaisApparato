@@ -14,6 +14,8 @@ class Connector;
 class CircuitCable;
 class CableGraphItem;
 
+class QGraphicsPathItem;
+
 class CircuitScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -39,10 +41,22 @@ public:
 
     static QPointF getConnectorPoint(TileLocation l, Connector::Direction direction);
 
+    void startEditCable(CableGraphItem *item);
+    void endEditCable(bool apply = true);
+
+    inline bool isEditingCable() const { return mEditingCable; }
+
+    void editCableAddPoint(const QPointF& p);
+    void editCableUndoLast();
+
 signals:
     void modeChanged(Mode mode);
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);
+
+protected:
+    void keyReleaseEvent(QKeyEvent *e) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
 
 private:
     friend class AbstractNodeGraphItem;
@@ -75,6 +89,11 @@ private:
     QVector<PowerSourceGraphItem *> mPowerSources;
 
     std::unordered_map<CircuitCable *, CableGraphItem *> mCables;
+
+    CableGraphItem *mEditingCable = nullptr;
+    QGraphicsPathItem *mEditOverlay = nullptr;
+    QGraphicsPathItem *mEditNewPath = nullptr;
+    bool mEditPathEmpty = true;
 };
 
 #endif // CIRCUITSCENE_H

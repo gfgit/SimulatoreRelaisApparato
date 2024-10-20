@@ -7,6 +7,12 @@
 #include "../graph/cablegraphitem.h"
 #include "../circuitcable.h"
 
+#include <QGraphicsPathItem>
+#include <QPen>
+
+#include <QKeyEvent>
+#include <QGraphicsSceneMouseEvent>
+
 CircuitScene::CircuitScene(QObject *parent)
     : QGraphicsScene{parent}
 {
@@ -36,6 +42,9 @@ void CircuitScene::setMode(Mode newMode)
 
     if(oldMode == Mode::Editing)
     {
+        if(isEditingCable())
+            endEditCable(false);
+
         calculateConnections();
     }
 
@@ -79,6 +88,13 @@ void CircuitScene::addCable(CableGraphItem *item)
     connect(item, &CableGraphItem::editRequested,
             this, &CircuitScene::cableEditRequested);
 
+    // TODO: remove
+    connect(item, &CableGraphItem::editRequested,
+            [this, item]()
+    {
+        startEditCable(item);
+    });
+
     addItem(item);
     mCables.insert({item->cable(), item});
 }
@@ -91,6 +107,9 @@ void CircuitScene::removeCable(CircuitCable *cable)
         // Delete graph item
         CableGraphItem *item = it->second;
         mCables.erase(it);
+
+        if(item == mEditingCable)
+            endEditCable(false);
 
         delete item;
     }
