@@ -100,10 +100,7 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
     else if(change == GraphicsItemChange::ItemPositionHasChanged)
     {
         // Detach all contacts, will be revaluated later
-        for(int i = 0; i < getAbstractNode()->getContactCount(); i++)
-        {
-            getAbstractNode()->detachCable(i);
-        }
+        invalidateConnections();
     }
 
     return QGraphicsObject::itemChange(change, value);
@@ -281,6 +278,15 @@ void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, Til
     painter->drawText(textRect, name, textAlign);
 }
 
+void AbstractNodeGraphItem::invalidateConnections()
+{
+    // Detach all contacts, will be revaluated later
+    for(int i = 0; i < getAbstractNode()->getContactCount(); i++)
+    {
+        getAbstractNode()->detachCable(i);
+    }
+}
+
 TileRotate AbstractNodeGraphItem::rotate() const
 {
     return mRotate;
@@ -293,10 +299,7 @@ void AbstractNodeGraphItem::setRotate(TileRotate newRotate)
     mRotate = newRotate;
 
     // Detach all contacts, will be revaluated later
-    for(int i = 0; i < getAbstractNode()->getContactCount(); i++)
-    {
-        getAbstractNode()->detachCable(i);
-    }
+    invalidateConnections();
 
     update();
 }

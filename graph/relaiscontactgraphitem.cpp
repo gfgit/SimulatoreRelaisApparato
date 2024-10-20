@@ -10,6 +10,8 @@ RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
 {
     connect(node(), &RelaisContactNode::stateChanged,
             this, &RelaisContactGraphItem::triggerUpdate);
+    connect(node(), &RelaisContactNode::shapeChanged,
+            this, &RelaisContactGraphItem::onShapeChanged);
 }
 
 void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -99,13 +101,34 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
         break;
     }
 
+    int angleIncrement = 35;
+    if(node()->flipContact())
+    {
+        startAngle -= 90;
+        endAngle -= 90;
+        angleIncrement = -angleIncrement;
+    }
+
+    int startIncrement = 0;
+    int endIncrement = 0;
+
     if(!contact1On)
-        startAngle += 35;
+        startIncrement += angleIncrement;
     if(!contact2On)
-        endAngle -= 35;
+        endIncrement -= angleIncrement;
+
+    if(node()->flipContact())
+        std::swap(startIncrement, endIncrement);
+
+    startAngle += startIncrement;
+    endAngle += endIncrement;
+
+    TileRotate centralConnectorRotate = TileRotate::Deg90;
+    if(node()->flipContact())
+        centralConnectorRotate = TileRotate::Deg270;
 
     drawMorsetti(painter, commonOn,   "11", "12", rotate() + TileRotate::Deg0);
-    drawMorsetti(painter, commonOn && contact1On, "21", "22", rotate() + TileRotate::Deg90);
+    drawMorsetti(painter, commonOn && contact1On, "21", "22", rotate() + centralConnectorRotate);
     drawMorsetti(painter, commonOn && contact2On, "32", "31", rotate() + TileRotate::Deg180);
 
     QPen pen;
@@ -163,7 +186,11 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
         }
 
         painter->setPen(color);
-        drawName(painter, node()->objectName(), rotate());
+
+        TileRotate nameRotate = rotate();
+        if(node()->flipContact())
+            nameRotate += TileRotate::Deg180;
+        drawName(painter, node()->objectName(), nameRotate);
     }
 }
 
@@ -181,4 +208,11 @@ void RelaisContactGraphItem::getConnectors(std::vector<Connector> &connectors) c
 RelaisContactNode *RelaisContactGraphItem::node() const
 {
     return static_cast<RelaisContactNode *>(getAbstractNode());
+}
+
+void RelaisContactGraphItem::onShapeChanged()
+{
+    // Detach all contacts, will be revaluated later
+    invalidateConnections();
+    update();
 }
