@@ -17,6 +17,8 @@ class CableGraphPath;
 
 class QGraphicsPathItem;
 
+class RelaisModel;
+
 class CircuitScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -39,6 +41,8 @@ public:
     void setMode(Mode newMode);
 
     void addNode(AbstractNodeGraphItem *item);
+    void removeNode(AbstractNodeGraphItem *item);
+
     void addCable(CableGraphItem *item);
     void removeCable(CircuitCable *cable);
     CableGraphItem *graphForCable(CircuitCable *cable) const;
@@ -61,6 +65,10 @@ public:
     TileCablePair getCablesAt(TileLocation l) const;
 
     bool cablePathIsValid(const CableGraphPath& cablePath, CableGraphItem *item) const;
+
+    RelaisModel *relaisModel() const;
+
+    void setRelaisModel(RelaisModel *newRelaisModel);
 
 signals:
     void modeChanged(Mode mode);
@@ -115,6 +123,8 @@ private:
     QGraphicsPathItem *mEditOverlay = nullptr;
     QGraphicsPathItem *mEditNewPath = nullptr;
     CableGraphPath *mEditNewCablePath = nullptr;
+
+    RelaisModel *mRelaisModel = nullptr;
 };
 
 #endif // CIRCUITSCENE_H

@@ -60,7 +60,7 @@ void CircuitScene::setMode(Mode newMode)
 void CircuitScene::addNode(AbstractNodeGraphItem *item)
 {
     connect(item, &AbstractNodeGraphItem::editRequested,
-            this, &CircuitScene::nodeEditRequested );
+            this, &CircuitScene::nodeEditRequested);
 
     addItem(item);
 
@@ -83,6 +83,18 @@ void CircuitScene::addNode(AbstractNodeGraphItem *item)
     }
 }
 
+void CircuitScene::removeNode(AbstractNodeGraphItem *item)
+{
+    disconnect(item, &AbstractNodeGraphItem::editRequested,
+            this, &CircuitScene::nodeEditRequested);
+    removeItem(item);
+    mItemMap.erase(item->location());
+
+    auto *node = item->getAbstractNode();
+    delete item;
+    delete node;
+}
+
 void CircuitScene::addCable(CableGraphItem *item)
 {
     Q_ASSERT(item->cable());
@@ -92,13 +104,6 @@ void CircuitScene::addCable(CableGraphItem *item)
 
     connect(item, &CableGraphItem::editRequested,
             this, &CircuitScene::cableEditRequested);
-
-    // TODO: remove
-    connect(item, &CableGraphItem::editRequested,
-            [this, item]()
-    {
-        startEditCable(item);
-    });
 
     addItem(item);
     mCables.insert({item->cable(), item});
@@ -115,6 +120,8 @@ void CircuitScene::removeCable(CircuitCable *cable)
         // Delete graph item
         CableGraphItem *item = it->second;
         mCables.erase(it);
+
+        removeCableTiles(item);
 
         if(item == mEditingCable)
             endEditCable(false);
@@ -601,6 +608,16 @@ void CircuitScene::editCableUpdatePen()
     else
         pen.setColor(Qt::green);
     mEditNewPath->setPen(pen);
+}
+
+void CircuitScene::setRelaisModel(RelaisModel *newRelaisModel)
+{
+    mRelaisModel = newRelaisModel;
+}
+
+RelaisModel *CircuitScene::relaisModel() const
+{
+    return mRelaisModel;
 }
 
 QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction direction)

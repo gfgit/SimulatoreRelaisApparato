@@ -86,7 +86,7 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 
 void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 {
-    auto *s = qobject_cast<CircuitScene *>(scene());
+    auto *s = circuitScene();
     if(s && s->mode() == CircuitScene::Mode::Editing)
     {
         emit editRequested(this);
@@ -94,6 +94,11 @@ void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
     }
 
     QGraphicsObject::mouseDoubleClickEvent(e);
+}
+
+CircuitScene *CableGraphItem::circuitScene() const
+{
+    return qobject_cast<CircuitScene *>(scene());
 }
 
 QPainterPath CableGraphItem::path() const
@@ -111,7 +116,7 @@ void CableGraphItem::setCablePath(const CableGraphPath &newCablePath)
     prepareGeometryChange();
 
     // Update scene
-    auto *s = qobject_cast<CircuitScene *>(scene());
+    auto *s = circuitScene();
     if(s)
         s->removeCableTiles(this);
 

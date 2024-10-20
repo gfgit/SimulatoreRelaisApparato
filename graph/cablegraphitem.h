@@ -9,6 +9,7 @@
 #include "../tilerotate.h"
 
 class CircuitCable;
+class CircuitScene;
 
 class CableGraphPath
 {
@@ -83,6 +84,8 @@ class CableGraphItem : public QGraphicsObject
     Q_OBJECT
 public:
     CableGraphItem(CircuitCable *cable_);
+
+    CircuitScene *circuitScene() const;
 
     QPainterPath path() const;
 
