@@ -1,6 +1,7 @@
 #include "onoffgraphitem.h"
 
 #include "../nodes/onoffswitchnode.h"
+#include "circuitscene.h"
 
 #include <QPainter>
 
@@ -92,6 +93,12 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 
 void OnOffGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
 {
+    AbstractNodeGraphItem::mouseDoubleClickEvent(e);
+
+    auto *s = circuitScene();
+    if(s && s->mode() != CircuitScene::Mode::Simulation)
+        return; // TODO: block the node instead
+
     // Toggle on double click
     bool val = node()->isOn();
     node()->setOn(!val);
