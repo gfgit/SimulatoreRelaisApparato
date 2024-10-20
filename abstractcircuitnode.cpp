@@ -82,6 +82,7 @@ void AbstractCircuitNode::detachCable(const CableItem &item)
         // Other pole is not connected, remove cable
         contact.cable = nullptr;
         item.cable.cable->setNode(item.cable.side, {});
+        contact.setType(item.cable.pole, ContactType::NotConnected);
     }
     else
     {
