@@ -96,12 +96,13 @@ void OnOffGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
     AbstractNodeGraphItem::mouseDoubleClickEvent(e);
 
     auto *s = circuitScene();
-    if(s && s->mode() != CircuitScene::Mode::Simulation)
-        return; // TODO: block the node instead
-
-    // Toggle on double click
-    bool val = node()->isOn();
-    node()->setOn(!val);
+    if(s && s->mode() == CircuitScene::Mode::Simulation)
+    {
+        // TODO: block the node instead
+        // Toggle on double click
+        bool val = node()->isOn();
+        node()->setOn(!val);
+    }
 }
 
 void OnOffGraphItem::getConnectors(std::vector<Connector> &connectors) const

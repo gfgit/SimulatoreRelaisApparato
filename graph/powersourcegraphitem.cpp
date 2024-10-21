@@ -57,12 +57,13 @@ void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
     AbstractNodeGraphItem::mouseDoubleClickEvent(e);
 
     auto *s = circuitScene();
-    if(s && s->mode() != CircuitScene::Mode::Simulation)
-        return; // TODO: block the node instead
-
-    // Toggle on double click
-    bool val = node()->getEnabled();
-    node()->setEnabled(!val);
+    if(s && s->mode() == CircuitScene::Mode::Simulation)
+    {
+        // TODO: block the node instead
+        // Toggle on double click
+        bool val = node()->getEnabled();
+        node()->setEnabled(!val);
+    }
 }
 
 void PowerSourceGraphItem::getConnectors(std::vector<Connector> &connectors) const
