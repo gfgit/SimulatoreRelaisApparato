@@ -249,9 +249,9 @@ void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact
 
     if(PowerSourceNode *powerSource = qobject_cast<PowerSourceNode *>(node))
     {
-        // Make circuits start from positive source contact (0)
+        // Make circuits start from positive source pole (First pole)
         // Do not add circuits to disabled power sources
-        if(!powerSource->getEnabled() || nodeContact != 0)
+        if(!powerSource->getEnabled() || nodeItem.node.toPole != CircuitCable::Pole::First)
             return;
 
         // We got a power source!
@@ -265,10 +265,11 @@ void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact
         return;
     }
 
+    // Go backwards
     AbstractCircuitNode::CableItem nodeSourceCable;
     nodeSourceCable.cable = lastCable; // Backwards
     nodeSourceCable.nodeContact = nodeContact;
-    const auto connections = node->getActiveConnections(nodeSourceCable);
+    const auto connections = node->getActiveConnections(nodeSourceCable, true);
 
     for(const auto& conn : connections)
     {
