@@ -56,8 +56,12 @@ void SimpleCircuitNode::setDisabledContact(int val)
     mDisabledContact = val;
     emit disabledContactChanged();
 
+    // Commmon cannot be disabled
     if(mDisabledContact > 0)
     {
+        // Remove circuits and detach cable
+        // No need to add circuits to previous disabled contact
+        // Since it will not have cable attached
         if(hasCircuit(mDisabledContact) > 0)
         {
             // Disable all circuits passing on disabled contact
