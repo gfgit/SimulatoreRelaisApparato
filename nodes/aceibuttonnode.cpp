@@ -99,8 +99,7 @@ void ACEIButtonNode::addCircuit(ClosedCircuit *circuit)
         const auto items = circuit->getNode(this);
         for(const ClosedCircuit::NodeItem& item : items)
         {
-            if((item.fromContact == 0 && item.toContact == 1) ||
-                    (item.fromContact == 1 && item.toContact == 0))
+            if(item.fromContact == 1 || item.toContact == 1)
             {
                 mPressedCircuits.append(circuit);
                 break; // It's sufficient to register once
@@ -116,8 +115,7 @@ void ACEIButtonNode::removeCircuit(ClosedCircuit *circuit)
     const auto items = circuit->getNode(this);
     for(const ClosedCircuit::NodeItem& item : items)
     {
-        if((item.fromContact == 0 && item.toContact == 1) ||
-                (item.fromContact == 1 && item.toContact == 0))
+        if(item.fromContact == 1 || item.toContact == 1)
         {
             Q_ASSERT(mPressedCircuits.contains(circuit));
             mPressedCircuits.removeOne(circuit);
