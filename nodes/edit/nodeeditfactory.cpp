@@ -30,13 +30,15 @@ QStringList NodeEditFactory::getRegisteredTypes() const
     return result;
 }
 
-AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType, CircuitScene *parent)
+AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType, CircuitScene *scene)
 {
     const FactoryItem *factory = getItemForType(nodeType);
     if(!factory)
         return nullptr;
 
-    return factory->create(parent);
+    AbstractNodeGraphItem *item = factory->create(scene);
+    scene->addNode(item);
+    return item;
 }
 
 void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)

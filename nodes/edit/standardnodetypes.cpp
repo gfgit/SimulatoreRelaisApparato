@@ -44,8 +44,6 @@ AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s)
     }
 
     Graph *graph = new Graph(node);
-    s->addNode(graph);
-
     return graph;
 }
 

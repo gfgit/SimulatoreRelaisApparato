@@ -640,6 +640,8 @@ void CircuitScene::setRelaisModel(RelaisModel *newRelaisModel)
 
 void CircuitScene::removeAllItems()
 {
+    endEditCable(false);
+
     const auto cableCopy = mCables;
     for(const auto& it : cableCopy)
     {
@@ -658,6 +660,8 @@ void CircuitScene::removeAllItems()
 bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory)
 {
     removeAllItems();
+
+    setMode(Mode::Simulation);
 
     if(!obj.contains("cables") || !obj.contains("nodes"))
         return false;
@@ -692,6 +696,13 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
         {
             item->loadFromJSON(obj);
         }
+    }
+
+    calculateConnections();
+
+    for(PowerSourceGraphItem *powerSource : mPowerSources)
+    {
+        powerSource->node()->setEnabled(true);
     }
 
     return true;
