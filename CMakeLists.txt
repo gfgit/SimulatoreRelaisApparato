@@ -48,6 +48,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         nodes/edit/relaylineedit.h nodes/edit/relaylineedit.cpp
         nodes/aceibuttonnode.h nodes/aceibuttonnode.cpp
         graph/aceibuttongraphitem.h graph/aceibuttongraphitem.cpp
+        nodes/lightbulbnode.h nodes/lightbulbnode.cpp
+        graph/lightbulbgraphitem.h graph/lightbulbgraphitem.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SimulatoreRelaisApparato APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

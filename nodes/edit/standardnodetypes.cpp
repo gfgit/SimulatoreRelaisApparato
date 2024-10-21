@@ -20,6 +20,9 @@
 #include "../../graph/aceibuttongraphitem.h"
 #include "../../nodes/aceibuttonnode.h"
 
+#include "../../graph/lightbulbgraphitem.h"
+#include "../../nodes/lightbulbnode.h"
+
 #include "../../abstractrelais.h"
 
 #include <QWidget>
@@ -242,6 +245,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             return w;
         };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Light Bulb node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = true;
+        factory.nodeType = LightBulbGraphItem::Node::NodeType;
+        factory.prettyName = tr("Light Bulb");
+        factory.create = &addNewNodeToScene<LightBulbGraphItem>;
+        factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
     }
