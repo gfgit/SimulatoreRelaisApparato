@@ -4,6 +4,9 @@
 
 #include <QColor>
 
+#include <QJsonObject>
+#include <QJsonArray>
+
 RelaisModel::RelaisModel(QObject *parent)
     : QAbstractListModel(parent)
 {
@@ -125,6 +128,56 @@ AbstractRelais *RelaisModel::getRelay(const QString &name)
             return mRelais.at(i);
     }
     return nullptr;
+}
+
+void RelaisModel::clear()
+{
+    beginResetModel();
+
+    for(AbstractRelais *r : std::as_const(mRelais))
+    {
+        disconnect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
+        disconnect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
+        disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayChanged);
+    }
+    mRelais.clear();
+
+    endResetModel();
+}
+
+bool RelaisModel::loadFromJSON(const QJsonObject &obj)
+{
+    beginResetModel();
+
+    const QJsonArray arr = obj.value("relais").toArray();
+    for(const QJsonValue& v : arr)
+    {
+        AbstractRelais *r = new AbstractRelais(this);
+        r->loadFromJSON(v.toObject());
+
+        connect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
+        connect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
+        connect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayChanged);
+        mRelais.append(r);
+    }
+
+    endResetModel();
+    
+    return true;
+}
+
+void RelaisModel::saveToJSON(QJsonObject &obj) const
+{
+    QJsonArray arr;
+
+    for(AbstractRelais *r : std::as_const(mRelais))
+    {
+        QJsonObject relay;
+        r->saveToJSON(relay);
+        arr.append(relay);
+    }
+
+    obj["relais"] = arr;
 }
 
 void RelaisModel::onRelayChanged(AbstractRelais *r)

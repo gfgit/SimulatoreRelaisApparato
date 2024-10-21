@@ -6,6 +6,8 @@
 class RelaisPowerNode;
 class RelaisContactNode;
 
+class QJsonObject;
+
 class AbstractRelais : public QObject
 {
     Q_OBJECT
@@ -21,6 +23,9 @@ public:
 
     explicit AbstractRelais(QObject *parent = nullptr);
     ~AbstractRelais();
+
+    virtual bool loadFromJSON(const QJsonObject& obj);
+    virtual void saveToJSON(QJsonObject& obj) const;
 
     State state() const;
     void setState(State newState);

@@ -6,6 +6,7 @@
 #include <QVector>
 
 class AbstractRelais;
+class QJsonObject;
 
 class RelaisModel : public QAbstractListModel
 {
@@ -31,6 +32,10 @@ public:
     AbstractRelais *relayAt(int row) const;
 
     AbstractRelais *getRelay(const QString& name);
+
+    void clear();
+    bool loadFromJSON(const QJsonObject& obj);
+    void saveToJSON(QJsonObject& obj) const;
 
 private slots:
     void onRelayChanged(AbstractRelais *r);

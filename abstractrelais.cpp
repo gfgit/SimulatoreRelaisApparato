@@ -5,6 +5,8 @@
 
 #include <QTimerEvent>
 
+#include <QJsonObject>
+
 AbstractRelais::AbstractRelais(QObject *parent)
     : QObject{parent}
 {
@@ -27,6 +29,21 @@ AbstractRelais::~AbstractRelais()
 
     killTimer(mTimerId);
     mTimerId = 0;
+}
+
+bool AbstractRelais::loadFromJSON(const QJsonObject &obj)
+{
+    setName(obj.value("name").toString());
+    setUpSpeed(obj.value("speed_up").toDouble());
+    setDownSpeed(obj.value("speed_down").toDouble());
+    return true;
+}
+
+void AbstractRelais::saveToJSON(QJsonObject &obj) const
+{
+    obj["name"] = mName;
+    obj["speed_up"] = mUpSpeed;
+    obj["speed_down"] = mDownSpeed;
 }
 
 QString AbstractRelais::name() const
