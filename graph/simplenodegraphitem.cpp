@@ -81,9 +81,13 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
         painter->setPen(pen);
 
         QLineF common = lines[startIdx];
-        painter->drawLine(common);
 
         // Redraw powered wires on top
+        if(node()->hasCircuit(0))
+        {
+            painter->drawLine(common);
+        }
+
         if(hasDeg90 && node()->hasCircuit(1))
         {
             const QLineF circuit = lines[(startIdx + 1) % 4];

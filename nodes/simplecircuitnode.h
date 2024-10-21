@@ -37,9 +37,7 @@ public:
     inline bool hasCircuit(int nodeContact) const
     {
         Q_ASSERT(nodeContact >= 0 && nodeContact < 4);
-        if(nodeContact == 0)
-            return hasCircuits(); // Common
-        return mCircuitCount[nodeContact - 1] > 0;
+        return mCircuitCount[nodeContact] > 0;
     }
 
 signals:
@@ -47,7 +45,7 @@ signals:
 
 private:
     int mDisabledContact = 0; // All enabled
-    int mCircuitCount[3] = {0, 0, 0}; // Circuits on every branch
+    int mCircuitCount[4] = {0, 0, 0, 0}; // Circuits on every branch
 };
 
 #endif // SIMPLECIRCUITNODE_H

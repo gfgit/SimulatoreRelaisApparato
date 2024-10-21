@@ -59,17 +59,10 @@ void SimpleCircuitNode::addCircuit(ClosedCircuit *circuit)
         const auto items = circuit->getNode(this);
         for(ClosedCircuit::NodeItem item : items)
         {
-            if(item.fromContact > 0)
-            {
-                mCircuitCount[item.fromContact - 1]++;
-                updateNeeded = true;
-            }
-            if(item.toContact > 0)
-            {
-                mCircuitCount[item.toContact - 1]++;
-                updateNeeded = true;
-            }
+            mCircuitCount[item.fromContact]++;
+            mCircuitCount[item.toContact]++;
         }
+        updateNeeded = true;
     }
 
     AbstractCircuitNode::addCircuit(circuit);
@@ -85,18 +78,12 @@ void SimpleCircuitNode::removeCircuit(ClosedCircuit *circuit)
     const auto items = circuit->getNode(this);
     for(ClosedCircuit::NodeItem item : items)
     {
-        if(item.fromContact > 0)
-        {
-            Q_ASSERT(mCircuitCount[item.fromContact - 1] > 0);
-            mCircuitCount[item.fromContact - 1]--;
-            updateNeeded = true;
-        }
-        if(item.toContact > 0)
-        {
-            Q_ASSERT(mCircuitCount[item.toContact - 1] > 0);
-            mCircuitCount[item.toContact - 1]--;
-            updateNeeded = true;
-        }
+        Q_ASSERT(mCircuitCount[item.fromContact] > 0);
+        mCircuitCount[item.fromContact]--;
+
+        Q_ASSERT(mCircuitCount[item.toContact] > 0);
+        mCircuitCount[item.toContact]--;
+        updateNeeded = true;
     }
 
     AbstractCircuitNode::removeCircuit(circuit);
@@ -115,7 +102,7 @@ void SimpleCircuitNode::setDisabledContact(int val)
 
     if(mDisabledContact > 0)
     {
-        if(mCircuitCount[mDisabledContact - 1] > 0)
+        if(mCircuitCount[mDisabledContact] > 0)
         {
             // Disable all circuits passing on disabled contact
             const auto circuits = mCircuits;
