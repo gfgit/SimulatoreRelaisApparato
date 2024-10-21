@@ -1,5 +1,7 @@
 #include "abstractcircuitnode.h"
 
+#include "closedcircuit.h"
+
 #include <QJsonObject>
 
 AbstractCircuitNode::AbstractCircuitNode(QObject *parent)
@@ -28,16 +30,49 @@ void AbstractCircuitNode::addCircuit(ClosedCircuit *circuit)
 
     mCircuits.append(circuit);
 
-    if(mCircuits.size() == 1)
+    bool updateNeeded = false;
+
+    const auto items = circuit->getNode(this);
+    for(const ClosedCircuit::NodeItem& item : items)
+    {
+        int &fromCount = mContacts[item.fromContact].circuitsCount;
+        int &toCount = mContacts[item.toContact].circuitsCount;
+
+        fromCount++;
+        toCount++;
+
+        if(fromCount == 1 || toCount == 1)
+            updateNeeded = true;
+    }
+
+    if(mCircuits.size() == 1 || updateNeeded)
         emit circuitsChanged();
 }
 
 void AbstractCircuitNode::removeCircuit(ClosedCircuit *circuit)
 {
     Q_ASSERT(mCircuits.contains(circuit));
+
+    bool updateNeeded = false;
+
+    const auto items = circuit->getNode(this);
+    for(const ClosedCircuit::NodeItem& item : items)
+    {
+        int &fromCount = mContacts[item.fromContact].circuitsCount;
+        int &toCount = mContacts[item.toContact].circuitsCount;
+
+        Q_ASSERT(fromCount > 0 && toCount > 0);
+
+        fromCount--;
+        toCount--;
+
+        if(fromCount == 0 || toCount == 0)
+            updateNeeded = true;
+    }
+
     mCircuits.removeOne(circuit);
 
-    if(mCircuits.size() == 0)
+    if(mCircuits.size() == 0 || updateNeeded)
         emit circuitsChanged();
 }
 

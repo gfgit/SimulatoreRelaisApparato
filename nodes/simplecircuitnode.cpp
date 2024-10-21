@@ -48,50 +48,6 @@ QVector<AbstractCircuitNode::CableItem> SimpleCircuitNode::getActiveConnections(
     return result;
 }
 
-void SimpleCircuitNode::addCircuit(ClosedCircuit *circuit)
-{
-    bool updateNeeded = false;
-
-    // A circuit may pass 2 times on same node
-    // But we add it only once
-    if(!mCircuits.contains(circuit))
-    {
-        const auto items = circuit->getNode(this);
-        for(ClosedCircuit::NodeItem item : items)
-        {
-            mCircuitCount[item.fromContact]++;
-            mCircuitCount[item.toContact]++;
-        }
-        updateNeeded = true;
-    }
-
-    AbstractCircuitNode::addCircuit(circuit);
-
-    if(updateNeeded)
-        emit circuitsChanged();
-}
-
-void SimpleCircuitNode::removeCircuit(ClosedCircuit *circuit)
-{
-    bool updateNeeded = false;
-
-    const auto items = circuit->getNode(this);
-    for(ClosedCircuit::NodeItem item : items)
-    {
-        Q_ASSERT(mCircuitCount[item.fromContact] > 0);
-        mCircuitCount[item.fromContact]--;
-
-        Q_ASSERT(mCircuitCount[item.toContact] > 0);
-        mCircuitCount[item.toContact]--;
-        updateNeeded = true;
-    }
-
-    AbstractCircuitNode::removeCircuit(circuit);
-
-    if(updateNeeded)
-        emit circuitsChanged();
-}
-
 void SimpleCircuitNode::setDisabledContact(int val)
 {
     Q_ASSERT(val >= 0 && val < 4);
@@ -102,7 +58,7 @@ void SimpleCircuitNode::setDisabledContact(int val)
 
     if(mDisabledContact > 0)
     {
-        if(mCircuitCount[mDisabledContact] > 0)
+        if(hasCircuit(mDisabledContact) > 0)
         {
             // Disable all circuits passing on disabled contact
             const auto circuits = mCircuits;

@@ -34,8 +34,9 @@ public:
 
         CircuitCable *cable = nullptr;
         CircuitCable::Side cableSide = CircuitCable::Side::A;
-        ContactType type1;
-        ContactType type2;
+        ContactType type1 = ContactType::NotConnected;
+        ContactType type2 = ContactType::NotConnected;
+        int circuitsCount = 0;
 
         inline ContactType getType(CircuitCable::Pole pole) const
         {
@@ -79,6 +80,15 @@ public:
     }
 
     inline bool hasCircuits() const { return mCircuits.size(); }
+
+    inline bool hasCircuit(int nodeContact) const
+    {
+        if(!hasCircuits())
+            return false;
+
+        Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
+        return mContacts.at(nodeContact).circuitsCount > 0;
+    }
 
     void attachCable(const CableItem &item);
     void detachCable(const CableItem &item);

@@ -11,9 +11,6 @@ public:
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
-    void addCircuit(ClosedCircuit *circuit) override;
-    void removeCircuit(ClosedCircuit *circuit) override;
-
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
@@ -34,18 +31,11 @@ public:
         return nodeContact != mDisabledContact;
     }
 
-    inline bool hasCircuit(int nodeContact) const
-    {
-        Q_ASSERT(nodeContact >= 0 && nodeContact < 4);
-        return mCircuitCount[nodeContact] > 0;
-    }
-
 signals:
     void disabledContactChanged();
 
 private:
     int mDisabledContact = 0; // All enabled
-    int mCircuitCount[4] = {0, 0, 0, 0}; // Circuits on every branch
 };
 
 #endif // SIMPLECIRCUITNODE_H
