@@ -86,6 +86,7 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
 
     setFlipContact(obj.value("flip").toBool());
     setSwapContactState(obj.value("swap_state").toBool());
+    setHasCentralConnector(obj.value("central_connector").toBool(true));
 
     return true;
 }
@@ -97,6 +98,7 @@ void RelaisContactNode::saveToJSON(QJsonObject &obj) const
     obj["relais"] = mRelais ? mRelais->name() : QString();
     obj["flip"] = flipContact();
     obj["swap_state"] = swapContactState();
+    obj["central_connector"] = hasCentralConnector();
 }
 
 QString RelaisContactNode::nodeType() const
@@ -170,6 +172,45 @@ void RelaisContactNode::setFlipContact(bool newFlipContact)
         return;
     mFlipContact = newFlipContact;
     emit shapeChanged();
+}
+
+bool RelaisContactNode::hasCentralConnector() const
+{
+    return mHasCentralConnector;
+}
+
+void RelaisContactNode::setHasCentralConnector(bool newHasCentralConnector)
+{
+    if(mHasCentralConnector == newHasCentralConnector)
+        return;
+    mHasCentralConnector = newHasCentralConnector;
+    emit shapeChanged();
+
+    if(!mHasCentralConnector)
+    {
+        // Remove circuits and detach cable
+        // No need to re-add circuits later
+        // Since it will not have cable attached
+        if(hasCircuit(1) > 0)
+        {
+            // Disable all circuits passing on disabled contact
+            const auto circuits = mCircuits;
+            for(ClosedCircuit *circuit : circuits)
+            {
+                const auto items = circuit->getNode(this);
+                for(ClosedCircuit::NodeItem item : items)
+                {
+                    if(item.fromContact == 1 || item.toContact == 1)
+                    {
+                        circuit->disableCircuit();
+                        delete circuit;
+                    }
+                }
+            }
+        }
+
+        detachCable(1);
+    }
 }
 
 RelaisContactNode::State RelaisContactNode::state() const

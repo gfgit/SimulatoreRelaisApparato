@@ -128,8 +128,9 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
         centralConnectorRotate = TileRotate::Deg270;
 
     drawMorsetti(painter, commonOn,   "11", "12", rotate() + TileRotate::Deg0);
-    drawMorsetti(painter, commonOn && contact1On, "21", "22", rotate() + centralConnectorRotate);
     drawMorsetti(painter, commonOn && contact2On, "32", "31", rotate() + TileRotate::Deg180);
+    if(node()->hasCentralConnector())
+        drawMorsetti(painter, commonOn && contact1On, "21", "22", rotate() + centralConnectorRotate);
 
     QPen pen;
     pen.setWidthF(5.0);
@@ -201,8 +202,9 @@ void RelaisContactGraphItem::getConnectors(std::vector<Connector> &connectors) c
         centralConnectorRotate = TileRotate::Deg270;
 
     connectors.emplace_back(location(), rotate(), 0); // Common
-    connectors.emplace_back(location(), rotate() + centralConnectorRotate, 1);  // Up
     connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 2); // Down
+    if(node()->hasCentralConnector())
+        connectors.emplace_back(location(), rotate() + centralConnectorRotate, 1);  // Up
 }
 
 RelaisContactNode *RelaisContactGraphItem::node() const

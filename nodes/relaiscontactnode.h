@@ -34,14 +34,18 @@ public:
     State state() const;
     void setState(State newState);
 
-    bool flipContact() const;
-    void setFlipContact(bool newFlipContact);
-
     bool swapContactState() const;
     void setSwapContactState(bool newSwapContactState);
 
+    bool flipContact() const;
+    void setFlipContact(bool newFlipContact);
+
+    bool hasCentralConnector() const;
+    void setHasCentralConnector(bool newHasCentralConnector);
+
     RelaisModel *relaisModel() const;
     void setRelaisModel(RelaisModel *newRelaisModel);
+
 
 signals:
     void stateChanged();
@@ -57,6 +61,7 @@ private:
     State mState = State::Middle;
     bool mFlipContact = false;
     bool mSwapContactState = false;
+    bool mHasCentralConnector = true;
 };
 
 #endif // RELAISCONTACTNODE_H

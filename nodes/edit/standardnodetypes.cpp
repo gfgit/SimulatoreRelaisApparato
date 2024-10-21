@@ -182,10 +182,20 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                 node->setSwapContactState(val);
             });
 
-            auto updLambda = [flipContact, swapContacts, node]()
+            QCheckBox *hasCentralConn = new QCheckBox(tr("Has central connector"));
+            lay->addRow(hasCentralConn);
+
+            QObject::connect(hasCentralConn, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setHasCentralConnector(val);
+            });
+
+            auto updLambda = [flipContact, swapContacts, hasCentralConn, node]()
             {
                 flipContact->setChecked(node->flipContact());
                 swapContacts->setChecked(node->swapContactState());
+                hasCentralConn->setChecked(node->hasCentralConnector());
             };
 
             QObject::connect(node, &RelaisContactNode::shapeChanged,
