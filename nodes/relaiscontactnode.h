@@ -23,7 +23,7 @@ public:
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
     bool loadFromJSON(const QJsonObject& obj) override;
-    void saveToJSON(QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) const override;
 
     static constexpr QLatin1String NodeType = QLatin1String("relais_contact");
     QString nodeType() const override;

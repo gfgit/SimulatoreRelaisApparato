@@ -41,7 +41,7 @@ public:
     CircuitScene *circuitScene() const;
 
     virtual bool loadFromJSON(const QJsonObject& obj);
-    virtual void saveToJSON(QJsonObject& obj);
+    virtual void saveToJSON(QJsonObject& obj) const;
 
 signals:
     void editRequested(AbstractNodeGraphItem *self);

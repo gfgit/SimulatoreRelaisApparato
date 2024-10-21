@@ -87,11 +87,11 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
     return true;
 }
 
-void RelaisContactNode::saveToJSON(QJsonObject &obj)
+void RelaisContactNode::saveToJSON(QJsonObject &obj) const
 {
     AbstractCircuitNode::saveToJSON(obj);
 
-    obj["relais"] = mRelais ? mRelais->objectName() : QString();
+    obj["relais"] = mRelais ? mRelais->name() : QString();
 }
 
 QString RelaisContactNode::nodeType() const

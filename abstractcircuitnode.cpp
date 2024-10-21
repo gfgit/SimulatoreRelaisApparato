@@ -102,7 +102,7 @@ bool AbstractCircuitNode::loadFromJSON(const QJsonObject &obj)
     return true;
 }
 
-void AbstractCircuitNode::saveToJSON(QJsonObject &obj)
+void AbstractCircuitNode::saveToJSON(QJsonObject &obj) const
 {
     obj["type"] = nodeType();
     obj["name"] = objectName();

@@ -19,7 +19,7 @@ public:
     void removeCircuit(ClosedCircuit *circuit) override;
 
     bool loadFromJSON(const QJsonObject& obj) override;
-    void saveToJSON(QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) const override;
 
     static constexpr QLatin1String NodeType = QLatin1String("relais_power");
     QString nodeType() const override;

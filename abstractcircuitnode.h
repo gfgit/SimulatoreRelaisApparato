@@ -63,6 +63,9 @@ public:
     virtual void addCircuit(ClosedCircuit *circuit);
     virtual void removeCircuit(ClosedCircuit *circuit);
 
+    virtual bool loadFromJSON(const QJsonObject& obj);
+    virtual void saveToJSON(QJsonObject& obj) const;
+
     inline const QVector<NodeContact> &getContacts() const
     {
         return mContacts;
@@ -79,9 +82,6 @@ public:
 
     void attachCable(const CableItem &item);
     void detachCable(const CableItem &item);
-
-    virtual bool loadFromJSON(const QJsonObject& obj);
-    virtual void saveToJSON(QJsonObject& obj);
 
     virtual QString nodeType() const = 0;
 

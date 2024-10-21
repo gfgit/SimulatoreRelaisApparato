@@ -324,7 +324,7 @@ bool AbstractNodeGraphItem::loadFromJSON(const QJsonObject &obj)
     return true;
 }
 
-void AbstractNodeGraphItem::saveToJSON(QJsonObject &obj)
+void AbstractNodeGraphItem::saveToJSON(QJsonObject &obj) const
 {
     TileLocation tile = location();
     obj["x"] = tile.x;
