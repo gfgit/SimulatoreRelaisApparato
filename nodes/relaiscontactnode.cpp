@@ -10,7 +10,7 @@
 RelaisContactNode::RelaisContactNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
-    // 6 sides
+    // 3 sides
     mContacts.append(NodeContact()); // Common
     mContacts.append(NodeContact()); // Up
     mContacts.append(NodeContact()); // Down
