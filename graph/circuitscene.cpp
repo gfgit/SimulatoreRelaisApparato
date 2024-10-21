@@ -28,11 +28,6 @@ CircuitScene::CircuitScene(QObject *parent)
 
 CircuitScene::~CircuitScene()
 {
-    for(PowerSourceGraphItem *powerSource : mPowerSources)
-    {
-        powerSource->node()->setEnabled(false);
-    }
-
     removeAllItems();
 }
 
@@ -66,7 +61,7 @@ void CircuitScene::setMode(Mode newMode)
     }
 
     const bool powerSourceEnabled = mMode == Mode::Simulation;
-    for(PowerSourceGraphItem *powerSource : mPowerSources)
+    for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
     {
         powerSource->node()->setEnabled(powerSourceEnabled);
     }
@@ -104,6 +99,13 @@ void CircuitScene::removeNode(AbstractNodeGraphItem *item)
             this, &CircuitScene::nodeEditRequested);
     removeItem(item);
     mItemMap.erase(item->location());
+
+    PowerSourceGraphItem *powerSource = qobject_cast<PowerSourceGraphItem *>(item);
+    if(powerSource)
+    {
+        powerSource->node()->setEnabled(false);
+        mPowerSources.removeOne(powerSource);
+    }
 
     auto *node = item->getAbstractNode();
     delete item;
@@ -642,6 +644,12 @@ void CircuitScene::removeAllItems()
 {
     endEditCable(false);
 
+    // Disable all circuits
+    for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
+    {
+        powerSource->node()->setEnabled(false);
+    }
+
     const auto cableCopy = mCables;
     for(const auto& it : cableCopy)
     {
@@ -700,7 +708,7 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
 
     calculateConnections();
 
-    for(PowerSourceGraphItem *powerSource : mPowerSources)
+    for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
     {
         powerSource->node()->setEnabled(true);
     }
