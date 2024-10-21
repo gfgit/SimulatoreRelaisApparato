@@ -413,22 +413,22 @@ void CircuitScene::connectItems(AbstractCircuitNode *node1, AbstractCircuitNode 
                                                                 c2.location));
 
             // Then we create cable connection
-            AbstractCircuitNode::CableItem cableItem;
+            CableItem cableItem;
             cableItem.cable.cable = newCable;
-            cableItem.cable.side = CircuitCable::Side::A;
+            cableItem.cable.side = CableSide::A;
             cableItem.nodeContact = c1.nodeContact;
-            cableItem.cable.pole = CircuitCable::Pole::First;
+            cableItem.cable.pole = CircuitPole::First;
             node1->attachCable(cableItem);
 
-            cableItem.cable.pole = CircuitCable::Pole::Second;
+            cableItem.cable.pole = CircuitPole::Second;
             node1->attachCable(cableItem);
 
-            cableItem.cable.side = CircuitCable::Side::B;
+            cableItem.cable.side = CableSide::B;
             cableItem.nodeContact = c2.nodeContact;
-            cableItem.cable.pole = CircuitCable::Pole::First;
+            cableItem.cable.pole = CircuitPole::First;
             node2->attachCable(cableItem);
 
-            cableItem.cable.pole = CircuitCable::Pole::Second;
+            cableItem.cable.pole = CircuitPole::Second;
             node2->attachCable(cableItem);
 
             cableA = newCable;
@@ -486,14 +486,14 @@ bool CircuitScene::checkCable(CableGraphItem *item)
     if(!nodeA || connA == connectorsA.cend() || !nodeB || connB == connectorsB.cend())
     {
         // Detach side A
-        CircuitCable::CableEnd end = cable->getNode(CircuitCable::Side::A);
+        CableEnd end = cable->getNode(CableSide::A);
         if(end.node)
         {
             end.node->detachCable(end.nodeContact);
         }
 
         // Detach side B
-        end = cable->getNode(CircuitCable::Side::B);
+        end = cable->getNode(CableSide::B);
         if(end.node)
         {
             end.node->detachCable(end.nodeContact);
@@ -504,16 +504,16 @@ bool CircuitScene::checkCable(CableGraphItem *item)
 
     const auto& contactA = nodeA->getContacts().at(connA->nodeContact);
 
-    if(contactA.cable == item->cable() && contactA.cableSide == CircuitCable::Side::B)
+    if(contactA.cable == item->cable() && contactA.cableSide == CableSide::B)
     {
         // We have a swapped cable, detach and let it rewire later
-        CircuitCable::CableEnd end = cable->getNode(CircuitCable::Side::A);
+        CableEnd end = cable->getNode(CableSide::A);
         if(end.node)
         {
             end.node->detachCable(end.nodeContact);
         }
 
-        end = cable->getNode(CircuitCable::Side::B);
+        end = cable->getNode(CableSide::B);
         if(end.node)
         {
             end.node->detachCable(end.nodeContact);
@@ -525,17 +525,17 @@ bool CircuitScene::checkCable(CableGraphItem *item)
     {
         sideConnectedA = true;
     }
-    else if(!contactA.cable && !item->cable()->getNode(CircuitCable::Side::A).node)
+    else if(!contactA.cable && !item->cable()->getNode(CableSide::A).node)
     {
         // Make the connection
-        AbstractCircuitNode::CableItem cableItem;
+        CableItem cableItem;
         cableItem.cable.cable = item->cable();
-        cableItem.cable.side = CircuitCable::Side::A;
+        cableItem.cable.side = CableSide::A;
         cableItem.nodeContact = connA->nodeContact;
-        cableItem.cable.pole = CircuitCable::Pole::First;
+        cableItem.cable.pole = CircuitPole::First;
         nodeA->attachCable(cableItem);
 
-        cableItem.cable.pole = CircuitCable::Pole::Second;
+        cableItem.cable.pole = CircuitPole::Second;
         nodeA->attachCable(cableItem);
 
         sideConnectedA = true;
@@ -548,17 +548,17 @@ bool CircuitScene::checkCable(CableGraphItem *item)
     {
         sideConnectedB = true;
     }
-    else if(!contactB.cable && !item->cable()->getNode(CircuitCable::Side::B).node)
+    else if(!contactB.cable && !item->cable()->getNode(CableSide::B).node)
     {
         // Make the connection
-        AbstractCircuitNode::CableItem cableItem;
+        CableItem cableItem;
         cableItem.cable.cable = item->cable();
-        cableItem.cable.side = CircuitCable::Side::B;
+        cableItem.cable.side = CableSide::B;
         cableItem.nodeContact = connB->nodeContact;
-        cableItem.cable.pole = CircuitCable::Pole::First;
+        cableItem.cable.pole = CircuitPole::First;
         nodeB->attachCable(cableItem);
 
-        cableItem.cable.pole = CircuitCable::Pole::Second;
+        cableItem.cable.pole = CircuitPole::Second;
         nodeB->attachCable(cableItem);
 
         sideConnectedB = true;

@@ -69,8 +69,8 @@ QPainterPath CableGraphItem::shape() const
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     // Draw square if cable end is not connected
-    bool isAconnected = mCable->getNode(CircuitCable::Side::A).node;
-    bool isBconnected = mCable->getNode(CircuitCable::Side::B).node;
+    bool isAconnected = mCable->getNode(CableSide::A).node;
+    bool isBconnected = mCable->getNode(CableSide::B).node;
 
     QColor oldColor = pen.color();
     if(!isAconnected || !isBconnected)
@@ -134,43 +134,43 @@ void CableGraphItem::setCablePath(const CableGraphPath &newCablePath)
     setVisible(!mCablePath.isZeroLength());
 
     // Detach nodes, they will be reattached later
-    CircuitCable::CableEnd cableEnd = cable()->getNode(CircuitCable::Side::A);
+    CableEnd cableEnd = cable()->getNode(CableSide::A);
     if(cableEnd.node)
     {
-        AbstractCircuitNode::CableItem item;
+        CableItem item;
         item.cable.cable = cable();
-        item.cable.side = CircuitCable::Side::A;
+        item.cable.side = CableSide::A;
         item.nodeContact = cableEnd.nodeContact;
 
-        item.cable.pole = CircuitCable::Pole::First;
-        if(cableEnd.node->getContactType(cableEnd.nodeContact, item.cable.pole) != AbstractCircuitNode::ContactType::NotConnected)
+        item.cable.pole = CircuitPole::First;
+        if(cableEnd.node->getContactType(cableEnd.nodeContact, item.cable.pole) != ContactType::NotConnected)
         {
             cableEnd.node->detachCable(item);
         }
 
-        item.cable.pole = CircuitCable::Pole::Second;
-        if(cableEnd.node->getContactType(cableEnd.nodeContact, item.cable.pole) != AbstractCircuitNode::ContactType::NotConnected)
+        item.cable.pole = CircuitPole::Second;
+        if(cableEnd.node->getContactType(cableEnd.nodeContact, item.cable.pole) != ContactType::NotConnected)
         {
             cableEnd.node->detachCable(item);
         }
     }
 
-    cableEnd = cable()->getNode(CircuitCable::Side::B);
+    cableEnd = cable()->getNode(CableSide::B);
     if(cableEnd.node)
     {
-        AbstractCircuitNode::CableItem item;
+        CableItem item;
         item.cable.cable = cable();
-        item.cable.side = CircuitCable::Side::B;
+        item.cable.side = CableSide::B;
         item.nodeContact = cableEnd.nodeContact;
 
-        item.cable.pole = CircuitCable::Pole::First;
-        if(cableEnd.node->getContactType(cableEnd.nodeContact, item.cable.pole) != AbstractCircuitNode::ContactType::NotConnected)
+        item.cable.pole = CircuitPole::First;
+        if(cableEnd.node->getContactType(cableEnd.nodeContact, item.cable.pole) != ContactType::NotConnected)
         {
             cableEnd.node->detachCable(item);
         }
 
-        item.cable.pole = CircuitCable::Pole::Second;
-        if(cableEnd.node->getContactType(cableEnd.nodeContact, item.cable.pole) != AbstractCircuitNode::ContactType::NotConnected)
+        item.cable.pole = CircuitPole::Second;
+        if(cableEnd.node->getContactType(cableEnd.nodeContact, item.cable.pole) != ContactType::NotConnected)
         {
             cableEnd.node->detachCable(item);
         }

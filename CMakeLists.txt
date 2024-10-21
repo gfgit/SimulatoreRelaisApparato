@@ -26,7 +26,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         abstractrelais.h abstractrelais.cpp
         abstractcircuitnode.h abstractcircuitnode.cpp
         circuitcable.h circuitcable.cpp
-        closedcircuit.h closedcircuit.cpp
+        electriccircuit.h electriccircuit.cpp
         nodes/simplecircuitnode.h nodes/simplecircuitnode.cpp
         nodes/relaispowernode.h nodes/relaispowernode.cpp
         nodes/powersourcenode.h nodes/powersourcenode.cpp
@@ -50,6 +50,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graph/aceibuttongraphitem.h graph/aceibuttongraphitem.cpp
         nodes/lightbulbnode.h nodes/lightbulbnode.cpp
         graph/lightbulbgraphitem.h graph/lightbulbgraphitem.cpp
+        enums/circuittypes.h
+        enums/cabletypes.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SimulatoreRelaisApparato APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

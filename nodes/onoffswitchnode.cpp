@@ -1,6 +1,6 @@
 #include "onoffswitchnode.h"
 
-#include "../closedcircuit.h"
+#include "../electriccircuit.h"
 
 OnOffSwitchNode::OnOffSwitchNode(QObject *parent)
     : AbstractCircuitNode{parent}
@@ -10,7 +10,7 @@ OnOffSwitchNode::OnOffSwitchNode(QObject *parent)
     mContacts.append(NodeContact());
 }
 
-QVector<AbstractCircuitNode::CableItem> OnOffSwitchNode::getActiveConnections(CableItem source, bool invertDir)
+QVector<CableItem> OnOffSwitchNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || (source.nodeContact > 1))
         return {};
@@ -67,12 +67,12 @@ void OnOffSwitchNode::setOn(bool newOn)
     {
         QVector<NodeContact> contactsToScan;
         contactsToScan.append(mContacts[0]);
-        ClosedCircuit::createCircuitsFromOtherNode(this, contactsToScan);
+        ElectricCircuit::createCircuitsFromOtherNode(this, contactsToScan);
     }
     else
     {
-        const auto circuits = mCircuits;
-        for(ClosedCircuit *circuit : circuits)
+        const auto circuits = mClosedCircuits;
+        for(ElectricCircuit *circuit : circuits)
         {
             circuit->disableCircuit();
             delete circuit;

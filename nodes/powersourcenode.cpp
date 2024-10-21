@@ -1,6 +1,6 @@
 #include "powersourcenode.h"
 
-#include "../closedcircuit.h"
+#include "../electriccircuit.h"
 
 PowerSourceNode::PowerSourceNode(QObject *parent)
     : AbstractCircuitNode{parent}
@@ -9,7 +9,7 @@ PowerSourceNode::PowerSourceNode(QObject *parent)
     mContacts.append(NodeContact());
 }
 
-QVector<AbstractCircuitNode::CableItem> PowerSourceNode::getActiveConnections(CableItem source, bool invertDir)
+QVector<CableItem> PowerSourceNode::getActiveConnections(CableItem source, bool invertDir)
 {
     // Make circuits end here
     return {};
@@ -34,12 +34,12 @@ void PowerSourceNode::setEnabled(bool newEnabled)
 
     if(enabled)
     {
-        ClosedCircuit::createCircuitsFromPowerNode(this);
+        ElectricCircuit::createCircuitsFromPowerNode(this);
     }
     else
     {
-        const auto circuits = mCircuits;
-        for(ClosedCircuit *circuit : circuits)
+        const auto circuits = mClosedCircuits;
+        for(ElectricCircuit *circuit : circuits)
         {
             circuit->disableCircuit();
             delete circuit;

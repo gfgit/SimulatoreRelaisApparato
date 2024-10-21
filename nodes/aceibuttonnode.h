@@ -19,8 +19,8 @@ public:
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
-    void addCircuit(ClosedCircuit *circuit) override;
-    void removeCircuit(ClosedCircuit *circuit) override;
+    void addCircuit(ElectricCircuit *circuit) override;
+    void removeCircuit(ElectricCircuit *circuit) override;
 
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
@@ -39,7 +39,7 @@ signals:
     void shapeChanged();
 
 private:
-    QVector<ClosedCircuit *> mPressedCircuits;
+    QVector<ElectricCircuit *> mPressedCircuits;
 
     State mState = State::Normal;
     bool mFlipContact = false;

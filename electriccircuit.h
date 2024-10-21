@@ -1,12 +1,12 @@
-#ifndef CLOSEDCIRCUIT_H
-#define CLOSEDCIRCUIT_H
+#ifndef ELECTRICCIRCUIT_H
+#define ELECTRICCIRCUIT_H
 
-#include "circuitcable.h"
+#include "enums/circuittypes.h"
 #include "abstractcircuitnode.h"
 
 class PowerSourceNode;
 
-class ClosedCircuit : public QObject
+class ElectricCircuit : public QObject
 {
     Q_OBJECT
 public:
@@ -15,23 +15,27 @@ public:
         AbstractCircuitNode *node = nullptr;
         int fromContact = 0;
         int toContact = 0;
-        CircuitCable::Pole fromPole = CircuitCable::Pole::First;
-        CircuitCable::Pole toPole = CircuitCable::Pole::First;
+        CircuitPole fromPole = CircuitPole::First;
+        CircuitPole toPole = CircuitPole::First;
     };
 
     struct Item
     {
-        CircuitCable::CableContact cable;
+        CableContact cable;
         NodeItem node;
         bool isNode = false;
     };
 
-    explicit ClosedCircuit(QObject *parent = nullptr);
+    explicit ElectricCircuit(QObject *parent = nullptr);
 
     void enableCircuit();
     void disableCircuit();
 
+    inline CircuitType type() const { return mType; }
+
     QVector<NodeItem> getNode(AbstractCircuitNode *node) const;
+
+    bool isLastNode(AbstractCircuitNode *node) const;
 
     static void createCircuitsFromPowerNode(PowerSourceNode *source);
     static void createCircuitsFromOtherNode(AbstractCircuitNode *source, const QVector<AbstractCircuitNode::NodeContact> &contacts);
@@ -47,6 +51,7 @@ private:
     QVector<Item> mItems;
     bool enabled = false;
     bool isDisabling = false;
+    CircuitType mType = CircuitType::Open;
 };
 
-#endif // CLOSEDCIRCUIT_H
+#endif // ELECTRICCIRCUIT_H

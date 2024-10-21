@@ -4,7 +4,10 @@
 #include <QObject>
 #include <QVector>
 
-class ClosedCircuit;
+#include "enums/circuittypes.h"
+#include "enums/cabletypes.h"
+
+class ElectricCircuit;
 class AbstractCircuitNode;
 
 class CircuitCable : public QObject
@@ -20,37 +23,12 @@ public:
         BifilarBoth
     };
 
-    enum class Pole
-    {
-        First = 0,
-        Second
-    };
-
-    enum class Side
-    {
-        A = 0,
-        B = 1
-    };
-
     enum class Power
     {
         None = 0,
         FirstCable = 1,
         SecondCable = 2,
         BothOn = 3
-    };
-
-    struct CableEnd
-    {
-        AbstractCircuitNode *node = nullptr;
-        int nodeContact = 0;
-    };
-
-    struct CableContact
-    {
-        CircuitCable *cable = nullptr;
-        CircuitCable::Side side = CircuitCable::Side::A;
-        CircuitCable::Pole pole = CircuitCable::Pole::First;
     };
 
     explicit CircuitCable(QObject *parent = nullptr);
@@ -61,16 +39,16 @@ public:
 
     Power powered();
 
-    void addCircuit(ClosedCircuit *circuit, Pole pole);
-    void removeCircuit(ClosedCircuit *circuit);
+    void addCircuit(ElectricCircuit *circuit, CircuitPole pole);
+    void removeCircuit(ElectricCircuit *circuit);
 
-    inline CableEnd getNode(Side s) const
+    inline CableEnd getNode(CableSide s) const
     {
         switch (s)
         {
-        case Side::A:
+        case CableSide::A:
             return mNodeA;
-        case Side::B:
+        case CableSide::B:
             return mNodeB;
         default:
             break;
@@ -87,29 +65,16 @@ signals:
 
 private:
     friend class AbstractCircuitNode;
-    void setNode(Side s, CableEnd node);
+    void setNode(CableSide s, CableEnd node);
 
 private:
     Mode mMode = Mode::Unifilar;
 
-    QVector<ClosedCircuit *> mFirstCableCirctuits;
-    QVector<ClosedCircuit *> mSecondCableCirctuits;
+    QVector<ElectricCircuit *> mFirstCableCirctuits;
+    QVector<ElectricCircuit *> mSecondCableCirctuits;
 
     CableEnd mNodeA;
     CableEnd mNodeB;
 };
-
-inline CircuitCable::Side operator ~(CircuitCable::Side s)
-{
-    return s == CircuitCable::Side::A ? CircuitCable::Side::B :
-                                        CircuitCable::Side::A;
-}
-
-constexpr CircuitCable::Pole operator ~(CircuitCable::Pole value)
-{
-    if(value == CircuitCable::Pole::First)
-        return CircuitCable::Pole::Second;
-    return CircuitCable::Pole::First;
-}
 
 #endif // CIRCUITCABLE_H

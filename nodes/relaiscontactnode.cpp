@@ -1,6 +1,6 @@
 #include "relaiscontactnode.h"
 
-#include "../closedcircuit.h"
+#include "../electriccircuit.h"
 #include "../abstractrelais.h"
 
 #include "../relaismodel.h"
@@ -21,7 +21,7 @@ RelaisContactNode::~RelaisContactNode()
     setRelais(nullptr);
 }
 
-QVector<AbstractCircuitNode::CableItem> RelaisContactNode::getActiveConnections(CableItem source, bool invertDir)
+QVector<CableItem> RelaisContactNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
@@ -194,11 +194,11 @@ void RelaisContactNode::setHasCentralConnector(bool newHasCentralConnector)
         if(hasCircuit(1) > 0)
         {
             // Disable all circuits passing on disabled contact
-            const auto circuits = mCircuits;
-            for(ClosedCircuit *circuit : circuits)
+            const auto circuits = mClosedCircuits;
+            for(ElectricCircuit *circuit : circuits)
             {
                 const auto items = circuit->getNode(this);
-                for(ClosedCircuit::NodeItem item : items)
+                for(ElectricCircuit::NodeItem item : items)
                 {
                     if(item.fromContact == 1 || item.toContact == 1)
                     {
@@ -226,8 +226,8 @@ void RelaisContactNode::setState(State newState)
     emit stateChanged();
 
     // Delete old circuits
-    const auto circuits = mCircuits;
-    for(ClosedCircuit *circuit : circuits)
+    const auto circuits = mClosedCircuits;
+    for(ElectricCircuit *circuit : circuits)
     {
         circuit->disableCircuit();
         delete circuit;
@@ -238,7 +238,7 @@ void RelaisContactNode::setState(State newState)
         // Scan for new circuits
         QVector<NodeContact> contactsToScan;
         contactsToScan.append(mContacts[0]);
-        ClosedCircuit::createCircuitsFromOtherNode(this, contactsToScan);
+        ElectricCircuit::createCircuitsFromOtherNode(this, contactsToScan);
     }
 }
 

@@ -1,16 +1,17 @@
-#include "closedcircuit.h"
+#include "electriccircuit.h"
 
+#include "circuitcable.h"
 #include "nodes/powersourcenode.h"
 
 #include <QSet>
 
-ClosedCircuit::ClosedCircuit(QObject *parent)
+ElectricCircuit::ElectricCircuit(QObject *parent)
     : QObject{parent}
 {
 
 }
 
-void ClosedCircuit::enableCircuit()
+void ElectricCircuit::enableCircuit()
 {
     Q_ASSERT(!enabled);
 
@@ -31,7 +32,7 @@ void ClosedCircuit::enableCircuit()
     enabled = true;
 }
 
-void ClosedCircuit::disableCircuit()
+void ElectricCircuit::disableCircuit()
 {
     Q_ASSERT(enabled);
 
@@ -71,9 +72,9 @@ void ClosedCircuit::disableCircuit()
     enabled = false;
 }
 
-QVector<ClosedCircuit::NodeItem> ClosedCircuit::getNode(AbstractCircuitNode *node) const
+QVector<ElectricCircuit::NodeItem> ElectricCircuit::getNode(AbstractCircuitNode *node) const
 {
-    QVector<ClosedCircuit::NodeItem> result;
+    QVector<ElectricCircuit::NodeItem> result;
 
     for(const Item& item : std::as_const(mItems))
     {
@@ -83,19 +84,30 @@ QVector<ClosedCircuit::NodeItem> ClosedCircuit::getNode(AbstractCircuitNode *nod
     return result;
 }
 
-void ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
+bool ElectricCircuit::isLastNode(AbstractCircuitNode *node) const
+{
+    if(mItems.isEmpty())
+        return false;
+
+    const Item& item = mItems.last();
+    if(item.isNode && item.node.node == node)
+        return true;
+    return false;
+}
+
+void ElectricCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
 {
     auto contact = source->getContacts().first();
 
     Item firstItem;
     firstItem.isNode = true;
     firstItem.node.node = source;
-    firstItem.node.fromPole = CircuitCable::Pole::First;
+    firstItem.node.fromPole = CircuitPole::First;
 
     if(contact.cable)
     {
         firstItem.node.toContact = 0; // First
-        firstItem.node.toPole = CircuitCable::Pole::First;
+        firstItem.node.toPole = CircuitPole::First;
 
         Item item;
         item.cable.cable = contact.cable;
@@ -105,8 +117,8 @@ void ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
         items.append(firstItem);
         items.append(item);
 
-        CircuitCable::Side otherSide = ~contact.cableSide;
-        CircuitCable::CableEnd cableEnd = contact.cable->getNode(otherSide);
+        CableSide otherSide = ~contact.cableSide;
+        CableEnd cableEnd = contact.cable->getNode(otherSide);
 
         if(!cableEnd.node)
             return;
@@ -115,7 +127,7 @@ void ClosedCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
     }
 }
 
-bool containsNode(const QVector<ClosedCircuit::Item> &items, AbstractCircuitNode *node, int nodeContact, CircuitCable::Pole pole)
+bool containsNode(const QVector<ElectricCircuit::Item> &items, AbstractCircuitNode *node, int nodeContact, CircuitPole pole)
 {
     for(auto item : items)
     {
@@ -135,12 +147,12 @@ bool containsNode(const QVector<ClosedCircuit::Item> &items, AbstractCircuitNode
     return false;
 }
 
-void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
+void ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
 {
     if(depth > 1000)
         return; // TODO
 
-    CircuitCable::CableContact lastCable = items.constLast().cable;
+    CableContact lastCable = items.constLast().cable;
 
     Item nodeItem;
     nodeItem.isNode = true;
@@ -150,12 +162,13 @@ void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, 
 
     if(node == items.first().node.node)
     {
-        if(nodeItem.node.fromPole == CircuitCable::Pole::Second)
+        if(nodeItem.node.fromPole == CircuitPole::Second)
         {
             // We closed the circuit
-            ClosedCircuit *circuit = new ClosedCircuit(node);
+            ElectricCircuit *circuit = new ElectricCircuit(node);
             circuit->mItems = items;
             circuit->mItems.append(nodeItem);
+            circuit->mType = CircuitType::Closed;
             circuit->enableCircuit();
         }
         return;
@@ -167,11 +180,13 @@ void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, 
         return;
     }
 
-    AbstractCircuitNode::CableItem nodeSourceCable;
+    CableItem nodeSourceCable;
     nodeSourceCable.cable = lastCable;
     nodeSourceCable.cable.side = ~lastCable.side;
     nodeSourceCable.nodeContact = nodeContact;
     const auto connections = node->getActiveConnections(nodeSourceCable);
+
+    bool circuitEndsHere = true;
 
     for(const auto& conn : connections)
     {
@@ -182,7 +197,7 @@ void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, 
         nodeItem.node.toPole = conn.cable.pole;
 
         // Get opposite side
-        CircuitCable::CableEnd cableEnd = conn.cable.cable->getNode(~conn.cable.side);
+        CableEnd cableEnd = conn.cable.cable->getNode(~conn.cable.side);
 
         if(!cableEnd.node)
             continue;
@@ -202,11 +217,24 @@ void ClosedCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, 
         item.cable = conn.cable;
         newItems.append(item);
 
+        // Circuit will pass to next node
+        circuitEndsHere = false;
+
         passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, depth + 1);
+    }
+
+    if(circuitEndsHere)
+    {
+        // Register an open circuit
+        ElectricCircuit *circuit = new ElectricCircuit(node);
+        circuit->mItems = items;
+        circuit->mItems.append(nodeItem);
+        circuit->mType = CircuitType::Open;
+        circuit->enableCircuit();
     }
 }
 
-void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source, const QVector<AbstractCircuitNode::NodeContact>& contacts)
+void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source, const QVector<AbstractCircuitNode::NodeContact>& contacts)
 {
     for(const auto& contact : contacts)
     {
@@ -214,7 +242,7 @@ void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source, con
             continue;
 
         // Get opposite side
-        CircuitCable::CableEnd cableEnd = contact.cable->getNode(~contact.cableSide);
+        CableEnd cableEnd = contact.cable->getNode(~contact.cableSide);
 
         if(!cableEnd.node)
             continue;
@@ -222,24 +250,24 @@ void ClosedCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *source, con
         Item item;
         item.cable.cable = contact.cable;
         item.cable.side = ~contact.cableSide;
-        item.cable.pole = CircuitCable::Pole::First;
+        item.cable.pole = CircuitPole::First;
 
         QVector<Item> items;
         items.append(item);
 
         searchPowerSource(cableEnd.node, cableEnd.nodeContact, items, 0);
 
-        items.first().cable.pole = CircuitCable::Pole::Second;
+        items.first().cable.pole = CircuitPole::Second;
         searchPowerSource(cableEnd.node, cableEnd.nodeContact, items, 0);
     }
 }
 
-void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
+void ElectricCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
 {
     if(depth > 1000)
         return; // TODO
 
-    CircuitCable::CableContact lastCable = items.constLast().cable;
+    CableContact lastCable = items.constLast().cable;
 
     Item nodeItem;
     nodeItem.isNode = true;
@@ -251,7 +279,7 @@ void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact
     {
         // Make circuits start from positive source pole (First pole)
         // Do not add circuits to disabled power sources
-        if(!powerSource->getEnabled() || nodeItem.node.toPole != CircuitCable::Pole::First)
+        if(!powerSource->getEnabled() || nodeItem.node.toPole != CircuitPole::First)
             return;
 
         // We got a power source!
@@ -266,7 +294,7 @@ void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact
     }
 
     // Go backwards
-    AbstractCircuitNode::CableItem nodeSourceCable;
+    CableItem nodeSourceCable;
     nodeSourceCable.cable = lastCable; // Backwards
     nodeSourceCable.nodeContact = nodeContact;
     const auto connections = node->getActiveConnections(nodeSourceCable, true);
@@ -301,14 +329,14 @@ void ClosedCircuit::searchPowerSource(AbstractCircuitNode *node, int nodeContact
     }
 }
 
-void ClosedCircuit::continueCircuitPassingLastNode(const QVector<Item> &items, int depth)
+void ElectricCircuit::continueCircuitPassingLastNode(const QVector<Item> &items, int depth)
 {
-    CircuitCable::CableContact lastCable = items.constLast().cable;
+    CableContact lastCable = items.constLast().cable;
 
     // Get opposite side
-    CircuitCable::CableEnd lastCableEnd = lastCable.cable->getNode(~lastCable.side);
+    CableEnd lastCableEnd = lastCable.cable->getNode(~lastCable.side);
 
-    AbstractCircuitNode::CableItem nodeSourceCable;
+    CableItem nodeSourceCable;
     nodeSourceCable.cable = lastCable;
     nodeSourceCable.cable.side = ~lastCable.side;
     nodeSourceCable.nodeContact = lastCableEnd.nodeContact;

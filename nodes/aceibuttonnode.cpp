@@ -1,6 +1,6 @@
 #include "aceibuttonnode.h"
 
-#include "../closedcircuit.h"
+#include "../electriccircuit.h"
 
 #include <QJsonObject>
 
@@ -18,7 +18,7 @@ ACEIButtonNode::~ACEIButtonNode()
 
 }
 
-QVector<AbstractCircuitNode::CableItem> ACEIButtonNode::getActiveConnections(CableItem source, bool invertDir)
+QVector<CableItem> ACEIButtonNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
@@ -59,7 +59,7 @@ QVector<AbstractCircuitNode::CableItem> ACEIButtonNode::getActiveConnections(Cab
         }
     }
 
-    QVector<AbstractCircuitNode::CableItem> result;
+    QVector<CableItem> result;
 
     if(otherContactIdx != -1)
     {
@@ -90,14 +90,14 @@ QVector<AbstractCircuitNode::CableItem> ACEIButtonNode::getActiveConnections(Cab
     return result;
 }
 
-void ACEIButtonNode::addCircuit(ClosedCircuit *circuit)
+void ACEIButtonNode::addCircuit(ElectricCircuit *circuit)
 {
     // A circuit may pass 2 times on same node
     // But we add it only once
-    if(!mCircuits.contains(circuit))
+    if(!mClosedCircuits.contains(circuit))
     {
         const auto items = circuit->getNode(this);
-        for(const ClosedCircuit::NodeItem& item : items)
+        for(const ElectricCircuit::NodeItem& item : items)
         {
             if(item.fromContact == 1 || item.toContact == 1)
             {
@@ -110,10 +110,10 @@ void ACEIButtonNode::addCircuit(ClosedCircuit *circuit)
     AbstractCircuitNode::addCircuit(circuit);
 }
 
-void ACEIButtonNode::removeCircuit(ClosedCircuit *circuit)
+void ACEIButtonNode::removeCircuit(ElectricCircuit *circuit)
 {
     const auto items = circuit->getNode(this);
-    for(const ClosedCircuit::NodeItem& item : items)
+    for(const ElectricCircuit::NodeItem& item : items)
     {
         if(item.fromContact == 1 || item.toContact == 1)
         {
@@ -180,9 +180,9 @@ void ACEIButtonNode::setState(State newState)
         // If pressed all circuits are enabled
         // Else delete old circuits
         const auto circuits = mState == State::Extracted ?
-                    mCircuits : // All disabled when Extracted
+                    mClosedCircuits : // All disabled when Extracted
                     mPressedCircuits; // Only pressed circuits
-        for(ClosedCircuit *circuit : circuits)
+        for(ElectricCircuit *circuit : circuits)
         {
             circuit->disableCircuit();
             delete circuit;
@@ -207,6 +207,6 @@ void ACEIButtonNode::setState(State newState)
         }
 
         if(!contactsToScan.isEmpty())
-            ClosedCircuit::createCircuitsFromOtherNode(this, contactsToScan);
+            ElectricCircuit::createCircuitsFromOtherNode(this, contactsToScan);
     }
 }

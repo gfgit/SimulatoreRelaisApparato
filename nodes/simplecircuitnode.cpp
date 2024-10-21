@@ -1,6 +1,6 @@
 #include "simplecircuitnode.h"
 
-#include "../closedcircuit.h"
+#include "../electriccircuit.h"
 
 #include <QJsonObject>
 
@@ -14,7 +14,7 @@ SimpleCircuitNode::SimpleCircuitNode(QObject *parent)
     mContacts.append(NodeContact());
 }
 
-QVector<AbstractCircuitNode::CableItem> SimpleCircuitNode::getActiveConnections(CableItem source, bool invertDir)
+QVector<CableItem> SimpleCircuitNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || source.nodeContact >= getContactCount())
         return {};
@@ -22,7 +22,7 @@ QVector<AbstractCircuitNode::CableItem> SimpleCircuitNode::getActiveConnections(
     if(!isContactEnabled(source.nodeContact))
         return {};
 
-    QVector<AbstractCircuitNode::CableItem> result;
+    QVector<CableItem> result;
     result.reserve(3);
 
     for(int i = 0; i < 4; i++) // Loop contacts of same polarity
@@ -65,11 +65,11 @@ void SimpleCircuitNode::setDisabledContact(int val)
         if(hasCircuit(mDisabledContact) > 0)
         {
             // Disable all circuits passing on disabled contact
-            const auto circuits = mCircuits;
-            for(ClosedCircuit *circuit : circuits)
+            const auto circuits = mClosedCircuits;
+            for(ElectricCircuit *circuit : circuits)
             {
                 const auto items = circuit->getNode(this);
-                for(ClosedCircuit::NodeItem item : items)
+                for(ElectricCircuit::NodeItem item : items)
                 {
                     if(item.fromContact == mDisabledContact || item.toContact == mDisabledContact)
                     {

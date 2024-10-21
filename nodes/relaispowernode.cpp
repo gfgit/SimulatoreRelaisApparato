@@ -17,7 +17,7 @@ RelaisPowerNode::~RelaisPowerNode()
     setRelais(nullptr);
 }
 
-QVector<AbstractCircuitNode::CableItem> RelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)
+QVector<CableItem> RelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0 || !mContacts.at(0).cable)
         return {};
@@ -29,25 +29,25 @@ QVector<AbstractCircuitNode::CableItem> RelaisPowerNode::getActiveConnections(Ca
     return {dest};
 }
 
-void RelaisPowerNode::addCircuit(ClosedCircuit *circuit)
+void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
 {
-    bool wasEmpty = mCircuits.isEmpty();
+    bool wasEmpty = mClosedCircuits.isEmpty();
 
     AbstractCircuitNode::addCircuit(circuit);
 
-    if(mRelais && wasEmpty && !mCircuits.isEmpty())
+    if(mRelais && wasEmpty && !mClosedCircuits.isEmpty())
     {
         mRelais->powerNodeActivated(this);
     }
 }
 
-void RelaisPowerNode::removeCircuit(ClosedCircuit *circuit)
+void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit)
 {
-    bool hadCircuit = !mCircuits.isEmpty();
+    bool hadCircuit = !mClosedCircuits.isEmpty();
 
     AbstractCircuitNode::removeCircuit(circuit);
 
-    if(mRelais && hadCircuit && mCircuits.isEmpty())
+    if(mRelais && hadCircuit && mClosedCircuits.isEmpty())
     {
         mRelais->powerNodeDeactivated(this);
     }

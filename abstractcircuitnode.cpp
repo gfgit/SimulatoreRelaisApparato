@@ -1,6 +1,7 @@
 #include "abstractcircuitnode.h"
 
-#include "closedcircuit.h"
+#include "electriccircuit.h"
+#include "circuitcable.h"
 
 #include <QJsonObject>
 
@@ -21,7 +22,7 @@ AbstractCircuitNode::~AbstractCircuitNode()
     }
 }
 
-void AbstractCircuitNode::addCircuit(ClosedCircuit *circuit)
+void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
 {
     // A circuit may pass 2 times on same node
     // But we add it only once
@@ -33,7 +34,7 @@ void AbstractCircuitNode::addCircuit(ClosedCircuit *circuit)
     bool updateNeeded = false;
 
     const auto items = circuit->getNode(this);
-    for(const ClosedCircuit::NodeItem& item : items)
+    for(const ElectricCircuit::NodeItem& item : items)
     {
         int &fromCount = mContacts[item.fromContact].circuitsCount;
         int &toCount = mContacts[item.toContact].circuitsCount;
@@ -49,14 +50,14 @@ void AbstractCircuitNode::addCircuit(ClosedCircuit *circuit)
         emit circuitsChanged();
 }
 
-void AbstractCircuitNode::removeCircuit(ClosedCircuit *circuit)
+void AbstractCircuitNode::removeCircuit(ElectricCircuit *circuit)
 {
     Q_ASSERT(mCircuits.contains(circuit));
 
     bool updateNeeded = false;
 
     const auto items = circuit->getNode(this);
-    for(const ClosedCircuit::NodeItem& item : items)
+    for(const ElectricCircuit::NodeItem& item : items)
     {
         int &fromCount = mContacts[item.fromContact].circuitsCount;
         int &toCount = mContacts[item.toContact].circuitsCount;
@@ -92,7 +93,7 @@ void AbstractCircuitNode::attachCable(const CableItem& item)
         contact.cableSide = item.cable.side;
         contact.setType(item.cable.pole, ContactType::Connected);
 
-        CircuitCable::CableEnd cableEnd;
+        CableEnd cableEnd;
         cableEnd.node = this;
         cableEnd.nodeContact = item.nodeContact;
         item.cable.cable->setNode(item.cable.side, cableEnd);

@@ -12,7 +12,7 @@ LightBulbNode::~LightBulbNode()
 
 }
 
-QVector<AbstractCircuitNode::CableItem> LightBulbNode::getActiveConnections(CableItem source, bool invertDir)
+QVector<CableItem> LightBulbNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0 || !mContacts.at(0).cable)
         return {};
