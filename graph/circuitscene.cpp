@@ -15,6 +15,11 @@
 #include <QKeyEvent>
 #include <QGraphicsSceneMouseEvent>
 
+#include <QJsonObject>
+#include <QJsonArray>
+
+#include "../nodes/edit/nodeeditfactory.h"
+
 CircuitScene::CircuitScene(QObject *parent)
     : QGraphicsScene{parent}
 {
@@ -179,6 +184,8 @@ CircuitScene::TileCablePair CircuitScene::getCablesAt(TileLocation l) const
 bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphItem *item) const
 {
     // Check all tiles are free
+    if(cablePath.isZeroLength())
+        return true;
 
     std::unordered_set<TileLocation, TileLocationHash> repeatedTiles;
 
@@ -550,6 +557,9 @@ bool CircuitScene::checkCable(CableGraphItem *item)
 
 void CircuitScene::addCableTiles(CableGraphItem *item)
 {
+    if(item->cableZeroLength())
+        return;
+
     for(int i = 0; i < item->cablePath().getTilesCount(); i++)
     {
         TileLocation tile = item->cablePath().at(i);
@@ -575,6 +585,9 @@ void CircuitScene::addCableTiles(CableGraphItem *item)
 
 void CircuitScene::removeCableTiles(CableGraphItem *item)
 {
+    if(item->cableZeroLength())
+        return;
+
     for(int i = 0; i < item->cablePath().getTilesCount(); i++)
     {
         TileLocation tile = item->cablePath().at(i);
@@ -613,6 +626,91 @@ void CircuitScene::editCableUpdatePen()
 void CircuitScene::setRelaisModel(RelaisModel *newRelaisModel)
 {
     mRelaisModel = newRelaisModel;
+}
+
+void CircuitScene::removeAllItems()
+{
+    const auto cableCopy = mCables;
+    for(const auto& it : cableCopy)
+    {
+        CableGraphItem *item = it.second;
+        removeCable(item->cable());
+    }
+
+    const auto itemsCopy = mItemMap;
+    for(const auto& it : itemsCopy)
+    {
+        AbstractNodeGraphItem *item = it.second;
+        removeNode(item);
+    }
+}
+
+bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory)
+{
+    removeAllItems();
+
+    if(!obj.contains("cables") || !obj.contains("nodes"))
+        return false;
+
+    const QJsonArray cables = obj.value("cables").toArray();
+
+    for(const QJsonValue& v : cables)
+    {
+        const QJsonObject cableObj = v.toObject();
+
+        // Create new cable
+        CircuitCable *cable = new CircuitCable(this);
+        CableGraphItem *item = new CableGraphItem(cable);
+        item->setPos(0, 0);
+
+        item->loadFromJSON(cableObj);
+        addCable(item);
+    }
+
+    const QJsonArray nodes = obj.value("nodes").toArray();
+
+    for(const QJsonValue& v : nodes)
+    {
+        const QJsonObject obj = v.toObject();
+        const QString nodeType = obj.value("type").toString();
+        if(nodeType.isEmpty())
+            continue;
+
+        // Create new node
+        AbstractNodeGraphItem *item = factory->createItem(nodeType, this);
+        if(item)
+        {
+            item->loadFromJSON(obj);
+        }
+    }
+
+    return true;
+}
+
+void CircuitScene::saveToJSON(QJsonObject &obj) const
+{
+    QJsonArray cables;
+    for(const auto& it : mCables)
+    {
+        CableGraphItem *item = it.second;
+
+        QJsonObject obj;
+        item->saveToJSON(obj);
+        cables.append(obj);
+    }
+
+    obj["cables"] = cables;
+
+    QJsonArray nodes;
+    for(const auto& it : mItemMap)
+    {
+        AbstractNodeGraphItem *item = it.second;
+        QJsonObject obj;
+        item->saveToJSON(obj);
+        nodes.append(obj);
+    }
+
+    obj["nodes"] = nodes;
 }
 
 RelaisModel *CircuitScene::relaisModel() const

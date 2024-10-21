@@ -30,6 +30,9 @@ private slots:
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);
 
+    void loadFile();
+    void saveFile();
+
 private:
     Ui::MainWindow *ui;
     CircuitScene *mScene;

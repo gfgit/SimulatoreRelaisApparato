@@ -19,6 +19,9 @@ class QGraphicsPathItem;
 
 class RelaisModel;
 
+class QJsonObject;
+class NodeEditFactory;
+
 class CircuitScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -69,6 +72,10 @@ public:
     RelaisModel *relaisModel() const;
 
     void setRelaisModel(RelaisModel *newRelaisModel);
+
+    void removeAllItems();
+    bool loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory);
+    void saveToJSON(QJsonObject &obj) const;
 
 signals:
     void modeChanged(Mode mode);

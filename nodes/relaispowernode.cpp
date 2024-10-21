@@ -65,11 +65,11 @@ bool RelaisPowerNode::loadFromJSON(const QJsonObject &obj)
     return true;
 }
 
-void RelaisPowerNode::saveToJSON(QJsonObject &obj)
+void RelaisPowerNode::saveToJSON(QJsonObject &obj) const
 {
     AbstractCircuitNode::saveToJSON(obj);
 
-    obj["relais"] = mRelais ? mRelais->objectName() : QString();
+    obj["relais"] = mRelais ? mRelais->name() : QString();
 }
 
 QString RelaisPowerNode::nodeType() const

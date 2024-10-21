@@ -16,6 +16,10 @@
 #include <QAction>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QFileDialog>
+
+#include <QJsonDocument>
+#include <QJsonObject>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -74,6 +78,11 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::nodeEditRequested);
     connect(mScene, &CircuitScene::cableEditRequested,
             this, &MainWindow::cableEditRequested);
+
+    connect(ui->actionOpen, &QAction::triggered,
+            this, &MainWindow::loadFile);
+    connect(ui->actionSave, &QAction::triggered,
+            this, &MainWindow::saveFile);
 
     buildToolBar();
 }
@@ -163,5 +172,53 @@ void MainWindow::cableEditRequested(CableGraphItem *item)
 {
     // Allow delete or modify path
     mEditFactory->editCable(this, item);
+}
+
+void MainWindow::loadFile()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Open Circuit"));
+    if(fileName.isEmpty())
+        return;
+
+    QFile f(fileName);
+    if(!f.open(QFile::ReadOnly))
+        return;
+
+    QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
+
+    const QJsonObject rootObj = doc.object();
+
+    const QJsonObject relais = rootObj.value("relais_model").toObject();
+    mRelaisModel->loadFromJSON(relais);
+
+    const QJsonObject sceneObj = rootObj.value("scene").toObject();
+    mScene->loadFromJSON(sceneObj, mEditFactory);
+}
+
+void MainWindow::saveFile()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Save Circuit"));
+    if(fileName.isEmpty())
+        return;
+
+    QJsonObject relais;
+    mRelaisModel->saveToJSON(relais);
+
+    QJsonObject sceneObj;
+    mScene->saveToJSON(sceneObj);
+
+    QJsonObject rootObj;
+    rootObj["relais_model"] = relais;
+    rootObj["scene"] = sceneObj;
+
+    QJsonDocument doc(rootObj);
+
+    QFile f(fileName);
+    if(!f.open(QFile::WriteOnly))
+        return;
+
+    f.write(doc.toJson());
 }
 
