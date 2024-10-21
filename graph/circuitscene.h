@@ -39,6 +39,7 @@ public:
 
 
     explicit CircuitScene(QObject *parent = nullptr);
+    ~CircuitScene();
 
     Mode mode() const;
     void setMode(Mode newMode);

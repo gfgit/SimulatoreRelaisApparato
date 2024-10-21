@@ -26,6 +26,16 @@ CircuitScene::CircuitScene(QObject *parent)
 
 }
 
+CircuitScene::~CircuitScene()
+{
+    for(PowerSourceGraphItem *powerSource : mPowerSources)
+    {
+        powerSource->node()->setEnabled(false);
+    }
+
+    removeAllItems();
+}
+
 CircuitScene::Mode CircuitScene::mode() const
 {
     return mMode;
