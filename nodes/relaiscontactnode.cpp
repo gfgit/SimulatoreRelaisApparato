@@ -84,6 +84,9 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
 
     setRelais(relaisModel()->getRelay(relaisName));
 
+    setFlipContact(obj.value("flip").toBool());
+    setSwapContactState(obj.value("swap_state").toBool());
+
     return true;
 }
 
@@ -92,6 +95,8 @@ void RelaisContactNode::saveToJSON(QJsonObject &obj) const
     AbstractCircuitNode::saveToJSON(obj);
 
     obj["relais"] = mRelais ? mRelais->name() : QString();
+    obj["flip"] = flipContact();
+    obj["swap_state"] = swapContactState();
 }
 
 QString RelaisContactNode::nodeType() const
