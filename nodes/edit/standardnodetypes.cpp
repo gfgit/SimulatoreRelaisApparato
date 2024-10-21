@@ -17,6 +17,9 @@
 #include "../../graph/relaiscontactgraphitem.h"
 #include "../../nodes/relaiscontactnode.h"
 
+#include "../../graph/aceibuttongraphitem.h"
+#include "../../nodes/aceibuttonnode.h"
+
 #include "../../abstractrelais.h"
 
 #include <QWidget>
@@ -186,6 +189,44 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             };
 
             QObject::connect(node, &RelaisContactNode::shapeChanged,
+                             w, updLambda);
+            updLambda();
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // ACEI Button Contact
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = true;
+        factory.nodeType = ACEIButtonGraphItem::Node::NodeType;
+        factory.prettyName = tr("ACEI Button");
+        factory.create = &addNewNodeToScene<ACEIButtonGraphItem>;
+        factory.edit = [](AbstractNodeGraphItem *item) -> QWidget*
+        {
+            ACEIButtonNode *node = static_cast<ACEIButtonNode *>(item->getAbstractNode());
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            QCheckBox *flipContact = new QCheckBox(tr("Flip contact"));
+            lay->addRow(flipContact);
+
+            QObject::connect(flipContact, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setFlipContact(val);
+            });
+
+            auto updLambda = [flipContact, node]()
+            {
+                flipContact->setChecked(node->flipContact());
+            };
+
+            QObject::connect(node, &ACEIButtonNode::shapeChanged,
                              w, updLambda);
             updLambda();
 
