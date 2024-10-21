@@ -11,6 +11,8 @@
 class CircuitCable;
 class CircuitScene;
 
+class QJsonObject;
+
 class CableGraphPath
 {
 public:
@@ -107,6 +109,9 @@ public:
     Connector::Direction directionA() const;
 
     Connector::Direction directionB() const;
+
+    bool loadFromJSON(const QJsonObject& obj);
+    void saveToJSON(QJsonObject& obj) const;
 
 signals:
     void editRequested(CableGraphItem *self);

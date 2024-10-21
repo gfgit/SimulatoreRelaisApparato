@@ -8,6 +8,9 @@
 #include <QPainterPathStroker>
 #include <QPainter>
 
+#include <QJsonObject>
+#include <QJsonArray>
+
 static QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen)
 {
     // We unfortunately need this hack as QPainterPathStroker will set a width of 1.0
@@ -212,6 +215,85 @@ Connector::Direction CableGraphItem::directionA() const
 Connector::Direction CableGraphItem::directionB() const
 {
     return mCablePath.endDirection();
+}
+
+bool CableGraphItem::loadFromJSON(const QJsonObject &obj)
+{
+    if(!obj.contains("path"))
+        return false;
+
+    CableGraphPath newPath;
+
+    const QJsonObject pathObj = obj.value("path").toObject();
+
+    const QJsonArray tiles = pathObj.value("tiles").toArray();
+
+    bool zero = pathObj.value("zero").toBool(false);
+    if(zero)
+    {
+        if(tiles.size() != 2)
+            return false;
+
+        QJsonObject tileObj = tiles.first().toObject();
+        TileLocation a;
+        a.x = int16_t(tileObj.value("x").toInt());
+        a.y = int16_t(tileObj.value("y").toInt());
+
+        tileObj = tiles.last().toObject();
+        TileLocation b;
+        b.x = int16_t(tileObj.value("x").toInt());
+        b.y = int16_t(tileObj.value("y").toInt());
+
+        newPath = CableGraphPath::createZeroLength(a, b);
+    }
+    else
+    {
+        int startDir = pathObj.value("start_dir").toInt();
+        int endDir = pathObj.value("end_dir").toInt();
+
+        newPath.setStartDirection(Connector::Direction(startDir));
+
+        for(const QJsonValue& v : tiles)
+        {
+            const QJsonObject tileObj = v.toObject();
+            TileLocation tile;
+            tile.x = int16_t(tileObj.value("x").toInt());
+            tile.y = int16_t(tileObj.value("y").toInt());
+            newPath.addTile(tile);
+        }
+
+        newPath.setEndDirection(Connector::Direction(endDir));
+
+        if(!newPath.isComplete())
+            return false;
+    }
+
+    setCablePath(newPath);
+    return true;
+}
+
+void CableGraphItem::saveToJSON(QJsonObject &obj) const
+{
+    QJsonObject pathObj;
+    pathObj["zero"] = mCablePath.isZeroLength();
+
+    QJsonArray tiles;
+    for(const TileLocation tile : mCablePath.tiles())
+    {
+        QJsonObject tileObj;
+        tileObj["x"] = tile.x;
+        tileObj["y"] = tile.y;
+        tiles.append(tileObj);
+    }
+    pathObj["tiles"] = tiles;
+
+    if(!mCablePath.isZeroLength())
+    {
+        pathObj["start_dir"] = int(mCablePath.startDirection());
+        pathObj["end_dir"] = int(mCablePath.endDirection());
+    }
+
+    obj["path"] = pathObj;
 }
 
 TileLocation CableGraphItem::sideA() const
