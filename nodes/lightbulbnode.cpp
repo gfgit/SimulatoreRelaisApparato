@@ -18,7 +18,10 @@ QVector<CableItem> LightBulbNode::getActiveConnections(CableItem source, bool in
         return {};
 
     // Close the circuit
-    CableItem dest = source;
+    CableItem dest;
+    dest.cable.cable = mContacts.at(0).cable;
+    dest.cable.side = mContacts.at(0).cableSide;
+    dest.nodeContact = 0;
     dest.cable.pole = ~source.cable.pole; // Invert pole
     return {dest};
 }

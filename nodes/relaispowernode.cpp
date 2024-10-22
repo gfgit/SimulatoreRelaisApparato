@@ -19,35 +19,40 @@ RelaisPowerNode::~RelaisPowerNode()
 
 QVector<CableItem> RelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)
 {
-    if(source.nodeContact != 0 || !mContacts.at(0).cable)
+    if(source.nodeContact != 0)
         return {};
 
     // Close the circuit
     // TODO: polarized relays?
-    CableItem dest = source;
+    CableItem dest;
+    dest.cable.cable = mContacts.at(0).cable;
+    dest.cable.side = mContacts.at(0).cableSide;
+    dest.nodeContact = 0;
     dest.cable.pole = ~source.cable.pole; // Invert pole
     return {dest};
 }
 
 void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
 {
-    bool wasEmpty = mClosedCircuits.isEmpty();
+    const CircuitList &closedCircuits = getCircuits(CircuitType::Closed);
+    bool wasEmpty = closedCircuits.isEmpty();
 
     AbstractCircuitNode::addCircuit(circuit);
 
-    if(mRelais && wasEmpty && !mClosedCircuits.isEmpty())
+    if(mRelais && wasEmpty && !closedCircuits.isEmpty())
     {
         mRelais->powerNodeActivated(this);
     }
 }
 
-void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit)
+void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
 {
-    bool hadCircuit = !mClosedCircuits.isEmpty();
+    const CircuitList &closedCircuits = getCircuits(CircuitType::Closed);
+    bool hadCircuit = !closedCircuits.isEmpty();
 
-    AbstractCircuitNode::removeCircuit(circuit);
+    AbstractCircuitNode::removeCircuit(circuit, items);
 
-    if(mRelais && hadCircuit && mClosedCircuits.isEmpty())
+    if(mRelais && hadCircuit && closedCircuits.isEmpty())
     {
         mRelais->powerNodeDeactivated(this);
     }

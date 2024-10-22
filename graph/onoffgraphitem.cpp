@@ -14,7 +14,8 @@ OnOffGraphItem::OnOffGraphItem(OnOffSwitchNode *node_)
 
 void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QLineF contactLine;
+    QLineF commonLine;
+    QLineF contact1Line;
     QLineF switchLine;
 
     double endOffset = node()->isOn() ? 0.0 : 15.0;
@@ -52,36 +53,85 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         break;
     }
 
-    switch (toConnectorDirection(rotate() - TileRotate::Deg90))
+    const auto cableDirection = toConnectorDirection(rotate());
+    switch (cableDirection)
     {
-    case Connector::Direction::North:
     case Connector::Direction::South:
-        contactLine.setP1(QPointF(22.0,
-                                  TileLocation::HalfSize));
-        contactLine.setP2(QPointF(TileLocation::Size - 22.0,
-                                  TileLocation::HalfSize));
+    case Connector::Direction::North:
+        // From switch to South
+        commonLine.setP1(QPointF(TileLocation::HalfSize,
+                                 TileLocation::HalfSize + 15));
+        commonLine.setP2(QPointF(TileLocation::HalfSize,
+                                 TileLocation::Size - 22.0));
+
+        // From switch to North
+        contact1Line.setP1(commonLine.p1());
+        contact1Line.setP2(QPointF(TileLocation::HalfSize, 22.0));
+
+        if(cableDirection == Connector::Direction::North)
+            std::swap(commonLine, contact1Line);
+
         break;
 
     case Connector::Direction::East:
     case Connector::Direction::West:
-        contactLine.setP1(QPointF(TileLocation::HalfSize,
-                                  22.0));
-        contactLine.setP2(QPointF(TileLocation::HalfSize,
-                                  TileLocation::Size - 22.0));
+        // From switch to East
+        commonLine.setP1(QPointF(TileLocation::HalfSize + 15,
+                                 TileLocation::HalfSize));
+        commonLine.setP2(QPointF(TileLocation::Size - 22.0,
+                                 TileLocation::HalfSize));
+
+        // From switch to West
+        contact1Line.setP1(commonLine.p1());
+        contact1Line.setP2(QPointF(22.0, TileLocation::HalfSize));
+
+        if(cableDirection == Connector::Direction::West)
+            std::swap(commonLine, contact1Line);
         break;
     default:
         break;
     }
 
+    const QColor closedColor = Qt::red;
+    const QColor openColor(255, 140, 140); // Light red
+
+    // Draw wires
+    painter->setBrush(Qt::NoBrush);
     QPen pen;
     pen.setWidthF(5.0);
-    pen.setColor(node()->hasCircuits() ? Qt::red : Qt::black);
     pen.setCapStyle(Qt::FlatCap);
 
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
+    // Draw common contact (0)
+    if(node()->hasCircuit(0, CircuitType::Closed))
+        pen.setColor(closedColor);
+    else if(node()->hasCircuit(0, CircuitType::Open))
+        pen.setColor(openColor);
+    else
+        pen.setColor(Qt::black);
 
-    painter->drawLine(contactLine);
+    painter->setPen(pen);
+    painter->drawLine(commonLine);
+
+    // Draw first contact (1)
+    if(node()->hasCircuit(1, CircuitType::Closed))
+        pen.setColor(closedColor);
+    else if(node()->hasCircuit(1, CircuitType::Open))
+        pen.setColor(openColor);
+    else
+        pen.setColor(Qt::black);
+
+    painter->setPen(pen);
+    painter->drawLine(contact1Line);
+
+    // Draw switch line
+    if(node()->hasCircuits(CircuitType::Closed))
+        pen.setColor(closedColor);
+    else if(node()->hasCircuit(0, CircuitType::Open) && node()->hasCircuit(1, CircuitType::Open))
+        pen.setColor(openColor);
+    else
+        pen.setColor(Qt::black);
+
+    painter->setPen(pen);
     painter->drawLine(switchLine);
 
     drawMorsetti(painter, 0, rotate());

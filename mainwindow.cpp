@@ -107,8 +107,13 @@ void MainWindow::buildToolBar()
     connect(toggleEditMode, &QAction::toggled,
             this, [this](bool val)
     {
-        mScene->setMode(val ? CircuitScene::Mode::Editing :
-                              CircuitScene::Mode::Simulation);
+        // If was Editing set to Simulation when unchecked
+        // Otherwise leave current mode on
+        const bool isEditing = mScene->mode() == CircuitScene::Mode::Editing;
+        if(val && !isEditing)
+            mScene->setMode(CircuitScene::Mode::Editing);
+        else if(!val && isEditing)
+            mScene->setMode(CircuitScene::Mode::Simulation);
     });
 
     QAction *newItem = new QAction(tr("New Item"));

@@ -185,14 +185,21 @@ void CableGraphItem::updatePen()
     mBoundingRect = QRectF();
 
     const auto power = mCable->powered();
+    const auto powerPole = toCablePowerPole(power);
+    const auto powerType = toCircuitType(power);
 
-    Qt::GlobalColor color = Qt::black;
-    if(power != CircuitCable::Power::None)
-        color = Qt::red;
+    QColor color = Qt::black;
+    if(powerPole != CablePowerPole::None)
+    {
+        if(powerType == CircuitType::Closed)
+            color = Qt::red;
+        else
+            color.setRgb(255, 140, 140); // Light red
+    }
 
     Qt::PenStyle style = Qt::SolidLine;
-    if(power != CircuitCable::Power::None &&
-            power != CircuitCable::Power::BothOn &&
+    if(powerPole != CablePowerPole::None &&
+            powerPole != CablePowerPole::Both &&
             mCable->mode() == CircuitCable::Mode::Unifilar)
         style = Qt::DashLine;
 

@@ -75,38 +75,89 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
         painter->drawLine(QLineF(circuit.p1(), common.p1()));
     }
 
-    if(node()->hasCircuits())
+    if(node()->hasCircuits(CircuitType::Closed) ||
+            node()->hasCircuits(CircuitType::Open))
     {
-        pen.setColor(Qt::red);
-        painter->setPen(pen);
+        QColor closedColor = Qt::red;
+        QColor openColor(255, 140, 140); // Light red
 
         QLineF common = lines[startIdx];
 
         // Redraw powered wires on top
-        if(node()->hasCircuit(0))
+        if(node()->hasCircuit(0, CircuitType::Closed))
         {
+            pen.setColor(closedColor);
+            painter->setPen(pen);
+            painter->drawLine(common);
+        }
+        else if(node()->hasCircuit(0, CircuitType::Open))
+        {
+            pen.setColor(openColor);
+            painter->setPen(pen);
             painter->drawLine(common);
         }
 
-        if(hasDeg90 && node()->hasCircuit(1))
+        if(hasDeg90)
         {
-            const QLineF circuit = lines[(startIdx + 1) % 4];
-            painter->drawLine(circuit);
-            painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            const int nodeContactIdx = 1;
+            const QLineF circuit = lines[(startIdx + nodeContactIdx) % 4];
+
+            if(node()->hasCircuit(nodeContactIdx, CircuitType::Closed))
+            {
+                pen.setColor(closedColor);
+                painter->setPen(pen);
+                painter->drawLine(circuit);
+                painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            }
+            else if(node()->hasCircuit(nodeContactIdx, CircuitType::Open))
+            {
+                pen.setColor(openColor);
+                painter->setPen(pen);
+                painter->drawLine(circuit);
+                painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            }
         }
 
-        if(hasDeg180 && node()->hasCircuit(2))
+        if(hasDeg180)
         {
-            const QLineF circuit = lines[(startIdx + 2) % 4];
-            painter->drawLine(circuit);
-            painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            const int nodeContactIdx = 2;
+            const QLineF circuit = lines[(startIdx + nodeContactIdx) % 4];
+
+            if(node()->hasCircuit(nodeContactIdx, CircuitType::Closed))
+            {
+                pen.setColor(closedColor);
+                painter->setPen(pen);
+                painter->drawLine(circuit);
+                painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            }
+            else if(node()->hasCircuit(nodeContactIdx, CircuitType::Open))
+            {
+                pen.setColor(openColor);
+                painter->setPen(pen);
+                painter->drawLine(circuit);
+                painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            }
         }
 
-        if(hasDeg270 && node()->hasCircuit(3))
+        if(hasDeg270)
         {
-            const QLineF circuit = lines[(startIdx + 3) % 4];
-            painter->drawLine(circuit);
-            painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            const int nodeContactIdx = 3;
+            const QLineF circuit = lines[(startIdx + nodeContactIdx) % 4];
+
+            if(node()->hasCircuit(nodeContactIdx, CircuitType::Closed))
+            {
+                pen.setColor(closedColor);
+                painter->setPen(pen);
+                painter->drawLine(circuit);
+                painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            }
+            else if(node()->hasCircuit(nodeContactIdx, CircuitType::Open))
+            {
+                pen.setColor(openColor);
+                painter->setPen(pen);
+                painter->drawLine(circuit);
+                painter->drawLine(QLineF(circuit.p1(), common.p1()));
+            }
         }
     }
 }

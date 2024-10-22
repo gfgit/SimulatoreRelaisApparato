@@ -38,11 +38,11 @@ void PowerSourceNode::setEnabled(bool newEnabled)
     }
     else
     {
-        const auto circuits = mClosedCircuits;
-        for(ElectricCircuit *circuit : circuits)
-        {
-            circuit->disableCircuit();
-            delete circuit;
-        }
+        // Disable circuits
+        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+        disableCircuits(closedCopy, this);
+
+        const CircuitList openCopy = getCircuits(CircuitType::Open);
+        truncateCircuits(openCopy, this);
     }
 }

@@ -30,7 +30,8 @@ public:
     {
         Static = 0,
         Simulation,
-        Editing
+        Editing,
+        LoadingFile
     };
 
     // On a tile there can be 2 cables if they go in squared directions

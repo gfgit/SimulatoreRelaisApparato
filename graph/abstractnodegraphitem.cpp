@@ -199,6 +199,10 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, Til
     if(getAbstractNode()->hasCircuit(nodeContact,
                                      CircuitType::Closed))
         color = Qt::red;
+    else if(getAbstractNode()->hasCircuit(nodeContact,
+                                     CircuitType::Open))
+        color.setRgb(255, 140, 140); // Light red
+
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
     pen.setStyle(Qt::SolidLine);

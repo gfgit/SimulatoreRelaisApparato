@@ -6,19 +6,9 @@
 
 class PowerSourceNode;
 
-class ElectricCircuit : public QObject
+class ElectricCircuit
 {
-    Q_OBJECT
 public:
-    struct NodeItem
-    {
-        AbstractCircuitNode *node = nullptr;
-        int fromContact = 0;
-        int toContact = 0;
-        CircuitPole fromPole = CircuitPole::First;
-        CircuitPole toPole = CircuitPole::First;
-    };
-
     struct Item
     {
         CableContact cable;
@@ -26,26 +16,27 @@ public:
         bool isNode = false;
     };
 
-    explicit ElectricCircuit(QObject *parent = nullptr);
+    explicit ElectricCircuit();
 
     void enableCircuit();
-    void disableCircuit();
+    void disableOrTerminate(AbstractCircuitNode *node);
+    void terminateHere(AbstractCircuitNode *goalNode, QVector<ElectricCircuit *>& deduplacteList);
 
     inline CircuitType type() const { return mType; }
 
-    QVector<NodeItem> getNode(AbstractCircuitNode *node) const;
+    NodeOccurences getNode(AbstractCircuitNode *node) const;
 
     bool isLastNode(AbstractCircuitNode *node) const;
 
+    PowerSourceNode *getSource() const;
+
     static void createCircuitsFromPowerNode(PowerSourceNode *source);
-    static void createCircuitsFromOtherNode(AbstractCircuitNode *source, const QVector<AbstractCircuitNode::NodeContact> &contacts);
+    static void createCircuitsFromOtherNode(AbstractCircuitNode *node);
 
 private:
-    static void passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item>& items, int depth);
+    bool tryReachOpen(AbstractCircuitNode *goalNode);
 
-    static void searchPowerSource(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth);
-
-    static void continueCircuitPassingLastNode(const QVector<Item> &items, int depth);
+    static bool passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item>& items, int depth);
 
 private:
     QVector<Item> mItems;
@@ -53,5 +44,18 @@ private:
     bool isDisabling = false;
     CircuitType mType = CircuitType::Open;
 };
+
+constexpr bool operator ==(const ElectricCircuit::Item& lhs, const ElectricCircuit::Item& rhs)
+{
+    if(lhs.isNode != rhs.isNode)
+        return false;
+
+    if(lhs.isNode)
+    {
+        return lhs.node == rhs.node;
+    }
+
+    return lhs.cable == rhs.cable;
+}
 
 #endif // ELECTRICCIRCUIT_H

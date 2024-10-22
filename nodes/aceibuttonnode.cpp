@@ -70,8 +70,7 @@ QVector<CableItem> ACEIButtonNode::getActiveConnections(CableItem source, bool i
         other.cable.pole = source.cable.pole;
         other.nodeContact = otherContactIdx;
 
-        if(other.cable.cable)
-            result.append(other);
+        result.append(other);
     }
 
     if(otherContactIdx2 != -1)
@@ -83,47 +82,10 @@ QVector<CableItem> ACEIButtonNode::getActiveConnections(CableItem source, bool i
         other.cable.pole = source.cable.pole;
         other.nodeContact = otherContactIdx2;
 
-        if(other.cable.cable)
-            result.append(other);
+        result.append(other);
     }
 
     return result;
-}
-
-void ACEIButtonNode::addCircuit(ElectricCircuit *circuit)
-{
-    // A circuit may pass 2 times on same node
-    // But we add it only once
-    if(!mClosedCircuits.contains(circuit))
-    {
-        const auto items = circuit->getNode(this);
-        for(const ElectricCircuit::NodeItem& item : items)
-        {
-            if(item.fromContact == 1 || item.toContact == 1)
-            {
-                mPressedCircuits.append(circuit);
-                break; // It's sufficient to register once
-            }
-        }
-    }
-
-    AbstractCircuitNode::addCircuit(circuit);
-}
-
-void ACEIButtonNode::removeCircuit(ElectricCircuit *circuit)
-{
-    const auto items = circuit->getNode(this);
-    for(const ElectricCircuit::NodeItem& item : items)
-    {
-        if(item.fromContact == 1 || item.toContact == 1)
-        {
-            Q_ASSERT(mPressedCircuits.contains(circuit));
-            mPressedCircuits.removeOne(circuit);
-            break;
-        }
-    }
-
-    AbstractCircuitNode::removeCircuit(circuit);
 }
 
 bool ACEIButtonNode::loadFromJSON(const QJsonObject &obj)
@@ -179,34 +141,23 @@ void ACEIButtonNode::setState(State newState)
     {
         // If pressed all circuits are enabled
         // Else delete old circuits
-        const auto circuits = mState == State::Extracted ?
-                    mClosedCircuits : // All disabled when Extracted
-                    mPressedCircuits; // Only pressed circuits
-        for(ElectricCircuit *circuit : circuits)
-        {
-            circuit->disableCircuit();
-            delete circuit;
-        }
+        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+        if(mState == State::Extracted)
+            disableCircuits(closedCopy, this); // Disable all
+        else
+            disableCircuits(closedCopy, this, 1); // Only pressed circuits
+
+        const CircuitList openCopy = getCircuits(CircuitType::Open);
+        if(mState == State::Extracted)
+            truncateCircuits(openCopy, this); // Disable all
+        else
+            truncateCircuits(openCopy, this, 1); // Only pressed circuits
+
     }
 
     if(mState != State::Extracted)
     {
         // Scan for new circuits
-        QVector<NodeContact> contactsToScan;
-
-        if(oldState != State::Pressed)
-        {
-            // Add pressed contacts
-            contactsToScan.append(mContacts[1]);
-        }
-
-        if(oldState == State::Extracted)
-        {
-            // Add normal contacts
-            contactsToScan.append(mContacts[0]);
-        }
-
-        if(!contactsToScan.isEmpty())
-            ElectricCircuit::createCircuitsFromOtherNode(this, contactsToScan);
+        ElectricCircuit::createCircuitsFromOtherNode(this);
     }
 }

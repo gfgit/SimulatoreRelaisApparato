@@ -29,7 +29,22 @@ public:
         CableSide cableSide = CableSide::A;
         ContactType type1 = ContactType::NotConnected;
         ContactType type2 = ContactType::NotConnected;
-        int circuitsCount = 0;
+        int closedCircuitCount = 0;
+        int openCircuitCount = 0;
+
+        inline int& count(CircuitType type)
+        {
+            return type == CircuitType::Closed ?
+                        closedCircuitCount :
+                        openCircuitCount;
+        }
+
+        inline int count(CircuitType type) const
+        {
+            return type == CircuitType::Closed ?
+                        closedCircuitCount :
+                        openCircuitCount;
+        }
 
         inline ContactType getType(CircuitPole pole) const
         {
@@ -55,7 +70,9 @@ public:
     virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) = 0;
 
     virtual void addCircuit(ElectricCircuit *circuit);
-    virtual void removeCircuit(ElectricCircuit *circuit);
+    virtual void removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items);
+    virtual void partialRemoveCircuit(ElectricCircuit *circuit,
+                                      const NodeOccurences &items);
 
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
@@ -72,15 +89,19 @@ public:
         return mContacts.at(idx).getType(pole);
     }
 
-    inline bool hasCircuits() const { return mCircuits.size(); }
-
-    inline bool hasCircuit(int nodeContact) const
+    inline bool hasCircuits(CircuitType type = CircuitType::Closed) const
     {
-        if(!hasCircuits())
+        return getCircuits(type).size() > 0;
+    }
+
+    inline bool hasCircuit(int nodeContact,
+                           CircuitType type = CircuitType::Closed) const
+    {
+        if(!hasCircuits(type))
             return false;
 
         Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
-        return mContacts.at(nodeContact).circuitsCount > 0;
+        return mContacts.at(nodeContact).count(type) > 0;
     }
 
     void attachCable(const CableItem &item);
@@ -99,7 +120,37 @@ signals:
 protected:
     QVector<NodeContact> mContacts;
 
-    QVector<ClosedCircuit *> mCircuits;
+    typedef QVector<ElectricCircuit *> CircuitList;
+    void disableCircuits(const CircuitList& listCopy,
+                         AbstractCircuitNode *node);
+
+    void disableCircuits(const CircuitList& listCopy,
+                         AbstractCircuitNode *node,
+                         const int contact);
+
+    void truncateCircuits(const CircuitList& listCopy,
+                          AbstractCircuitNode *node);
+
+    void truncateCircuits(const CircuitList &listCopy,
+                          AbstractCircuitNode *node,
+                          const int contact);
+
+    friend class ElectricCircuit;
+    inline CircuitList& getCircuits(CircuitType type)
+    {
+        return type == CircuitType::Closed ? mClosedCircuits : mOpenCircuits;
+    }
+
+    inline const CircuitList& getCircuits(CircuitType type) const
+    {
+        return type == CircuitType::Closed ? mClosedCircuits : mOpenCircuits;
+    }
+
+    void unregisterOpenCircuitExit(ElectricCircuit *circuit);
+
+private:
+    CircuitList mClosedCircuits;
+    CircuitList mOpenCircuits;
 };
 
 #endif // ABSTRACTCIRCUITNODE_H

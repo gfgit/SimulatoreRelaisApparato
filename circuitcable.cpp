@@ -2,6 +2,8 @@
 
 #include "abstractcircuitnode.h"
 
+#include "electriccircuit.h"
+
 CircuitCable::CircuitCable(QObject *parent)
     : QObject{parent}
 {
@@ -10,8 +12,14 @@ CircuitCable::CircuitCable(QObject *parent)
 
 CircuitCable::~CircuitCable()
 {
-    Q_ASSERT(mFirstCableCirctuits.isEmpty());
-    Q_ASSERT(mSecondCableCirctuits.isEmpty());
+    Q_ASSERT(getCircuits(CircuitType::Closed,
+                         CircuitPole::First).isEmpty());
+    Q_ASSERT(getCircuits(CircuitType::Closed,
+                         CircuitPole::Second).isEmpty());
+    Q_ASSERT(getCircuits(CircuitType::Open,
+                         CircuitPole::First).isEmpty());
+    Q_ASSERT(getCircuits(CircuitType::Open,
+                         CircuitPole::Second).isEmpty());
 
     // Detach all nodes
     if(mNodeA.node)
@@ -71,37 +79,36 @@ void CircuitCable::setMode(Mode newMode)
 
 void CircuitCable::addCircuit(ElectricCircuit *circuit, CircuitPole pole)
 {
-    const Power oldPower = powered();
+    const CablePower oldPower = powered();
 
-    if(pole == CircuitPole::First)
-    {
-        if(mFirstCableCirctuits.contains(circuit))
-            return; // A circuit may pass 2 times on same item
-        mFirstCableCirctuits.append(circuit);
-    }
-    else
-    {
-        if(mSecondCableCirctuits.contains(circuit))
-            return; // A circuit may pass 2 times on same item
-        mSecondCableCirctuits.append(circuit);
-    }
+    CircuitList& circuitList = getCircuits(circuit->type(),
+                                           pole);
 
-    const Power newPower = powered();
+    if(circuitList.contains(circuit))
+        return; // A circuit may pass 2 times on same item
+    circuitList.append(circuit);
+
+    const CablePower newPower = powered();
     if(oldPower != newPower)
         emit powerChanged(newPower);
 }
 
 void CircuitCable::removeCircuit(ElectricCircuit *circuit)
 {
-    const Power oldPower = powered();
+    const CablePower oldPower = powered();
 
-    Q_ASSERT(mFirstCableCirctuits.contains(circuit)
-             || mSecondCableCirctuits.contains(circuit));
+    CircuitList& circuitList1 = getCircuits(circuit->type(),
+                                            CircuitPole::First);
+    CircuitList& circuitList2 = getCircuits(circuit->type(),
+                                            CircuitPole::Second);
 
-    mFirstCableCirctuits.removeOne(circuit);
-    mSecondCableCirctuits.removeOne(circuit);
+    Q_ASSERT(circuitList1.contains(circuit) ||
+             circuitList2.contains(circuit));
 
-    const Power newPower = powered();
+    circuitList1.removeOne(circuit);
+    circuitList2.removeOne(circuit);
+
+    const CablePower newPower = powered();
     if(oldPower != newPower)
         emit powerChanged(newPower);
 }
@@ -124,17 +131,42 @@ void CircuitCable::setNode(CableSide s, CableEnd node)
     emit nodesChanged();
 }
 
-CircuitCable::Power CircuitCable::powered()
+CablePower CircuitCable::powered()
 {
     // Cable is powered if there are
     // closed circuits passing on it
 
-    const bool firstOn = !mFirstCableCirctuits.isEmpty();
+    const bool firstOn = !getCircuits(CircuitType::Closed,
+                                      CircuitPole::First).isEmpty();
+    const bool secondOn = !getCircuits(CircuitType::Closed,
+                                       CircuitPole::Second).isEmpty();
 
-    if(mSecondCableCirctuits.isEmpty())
+    if(firstOn)
     {
-        return firstOn ? Power::FirstCable : Power::None;
+        if(secondOn)
+            return CablePowerPole::Both | CircuitType::Closed;
+        return CablePowerPole::First | CircuitType::Closed;
+    }
+    else if(secondOn)
+    {
+        return CablePowerPole::Second | CircuitType::Closed;
     }
 
-    return firstOn ? Power::BothOn : Power::SecondCable;
+    const bool firstOpenOn = !getCircuits(CircuitType::Open,
+                                          CircuitPole::First).isEmpty();
+    const bool secondOpenOn = !getCircuits(CircuitType::Open,
+                                           CircuitPole::Second).isEmpty();
+
+    if(firstOpenOn)
+    {
+        if(secondOpenOn)
+            return CablePowerPole::Both | CircuitType::Open;
+        return CablePowerPole::First | CircuitType::Open;
+    }
+    else if(secondOpenOn)
+    {
+        return CablePowerPole::Second | CircuitType::Open;
+    }
+
+    return CablePowerPole::None | CircuitType::Open;
 }

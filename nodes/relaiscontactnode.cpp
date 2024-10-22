@@ -68,8 +68,7 @@ QVector<CableItem> RelaisContactNode::getActiveConnections(CableItem source, boo
         other.cable.pole = source.cable.pole;
         other.nodeContact = otherContactIdx;
 
-        if(other.cable.cable)
-            return {other};
+        return {other};
     }
 
     return {};
@@ -194,19 +193,11 @@ void RelaisContactNode::setHasCentralConnector(bool newHasCentralConnector)
         if(hasCircuit(1) > 0)
         {
             // Disable all circuits passing on disabled contact
-            const auto circuits = mClosedCircuits;
-            for(ElectricCircuit *circuit : circuits)
-            {
-                const auto items = circuit->getNode(this);
-                for(ElectricCircuit::NodeItem item : items)
-                {
-                    if(item.fromContact == 1 || item.toContact == 1)
-                    {
-                        circuit->disableCircuit();
-                        delete circuit;
-                    }
-                }
-            }
+            const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+            disableCircuits(closedCopy, this, 1);
+
+            const CircuitList openCopy = getCircuits(CircuitType::Open);
+            truncateCircuits(openCopy, this, 1);
         }
 
         detachCable(1);
@@ -225,20 +216,17 @@ void RelaisContactNode::setState(State newState)
     mState = newState;
     emit stateChanged();
 
-    // Delete old circuits
-    const auto circuits = mClosedCircuits;
-    for(ElectricCircuit *circuit : circuits)
-    {
-        circuit->disableCircuit();
-        delete circuit;
-    }
+    // Disable circuits
+    const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+    disableCircuits(closedCopy, this);
+
+    const CircuitList openCopy = getCircuits(CircuitType::Open);
+    truncateCircuits(openCopy, this);
 
     if(mState != State::Middle)
     {
         // Scan for new circuits
-        QVector<NodeContact> contactsToScan;
-        contactsToScan.append(mContacts[0]);
-        ElectricCircuit::createCircuitsFromOtherNode(this, contactsToScan);
+        ElectricCircuit::createCircuitsFromOtherNode(this);
     }
 }
 

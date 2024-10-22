@@ -13,7 +13,8 @@ AbstractCircuitNode::AbstractCircuitNode(QObject *parent)
 
 AbstractCircuitNode::~AbstractCircuitNode()
 {
-    Q_ASSERT(mCircuits.isEmpty());
+    Q_ASSERT(mClosedCircuits.isEmpty());
+    Q_ASSERT(mOpenCircuits.isEmpty());
 
     // Detach all contacts
     for(int i = 0; i < mContacts.size(); i++)
@@ -24,56 +25,85 @@ AbstractCircuitNode::~AbstractCircuitNode()
 
 void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
 {
+    CircuitList& circuitList = getCircuits(circuit->type());
+
     // A circuit may pass 2 times on same node
     // But we add it only once
-    if(mCircuits.contains(circuit))
+    if(circuitList.contains(circuit))
         return;
 
-    mCircuits.append(circuit);
+    circuitList.append(circuit);
 
     bool updateNeeded = false;
 
     const auto items = circuit->getNode(this);
-    for(const ElectricCircuit::NodeItem& item : items)
+    for(int i = 0; i < items.size(); i++)
     {
-        int &fromCount = mContacts[item.fromContact].circuitsCount;
-        int &toCount = mContacts[item.toContact].circuitsCount;
+        const NodeItem& item = items.at(i);
 
-        fromCount++;
-        toCount++;
+        if(item.fromContact != NodeItem::InvalidContact)
+        {
+            int &fromCount = mContacts[item.fromContact].count(circuit->type());
+            fromCount++;
+            if(fromCount == 1)
+                updateNeeded = true;
+        }
 
-        if(fromCount == 1 || toCount == 1)
-            updateNeeded = true;
+        if(item.toContact != NodeItem::InvalidContact)
+        {
+            int &toCount = mContacts[item.toContact].count(circuit->type());
+            toCount++;
+            if(toCount == 1)
+                updateNeeded = true;
+        }
     }
 
-    if(mCircuits.size() == 1 || updateNeeded)
+    if(circuitList.size() == 1 || updateNeeded)
         emit circuitsChanged();
 }
 
-void AbstractCircuitNode::removeCircuit(ElectricCircuit *circuit)
+void AbstractCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences& items)
 {
-    Q_ASSERT(mCircuits.contains(circuit));
+    CircuitList& circuitList = getCircuits(circuit->type());
+    Q_ASSERT(circuitList.contains(circuit));
+
+    partialRemoveCircuit(circuit, items);
+
+    circuitList.removeOne(circuit);
+}
+
+void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
+{
+    Q_ASSERT(getCircuits(circuit->type()).contains(circuit));
 
     bool updateNeeded = false;
 
-    const auto items = circuit->getNode(this);
-    for(const ElectricCircuit::NodeItem& item : items)
+    for(int i = 0; i < items.size(); i++)
     {
-        int &fromCount = mContacts[item.fromContact].circuitsCount;
-        int &toCount = mContacts[item.toContact].circuitsCount;
+        const NodeItem& item = items.at(i);
 
-        Q_ASSERT(fromCount > 0 && toCount > 0);
+        if(item.fromContact != NodeItem::InvalidContact)
+        {
+            int &fromCount = mContacts[item.fromContact].count(circuit->type());
+            Q_ASSERT(fromCount > 0);
 
-        fromCount--;
-        toCount--;
+            fromCount--;
+            if(fromCount == 0)
+                updateNeeded = true;
+        }
 
-        if(fromCount == 0 || toCount == 0)
-            updateNeeded = true;
+        if(item.toContact != NodeItem::InvalidContact)
+        {
+            int &toCount = mContacts[item.toContact].count(circuit->type());
+            Q_ASSERT(toCount > 0);
+
+            toCount--;
+            if(toCount == 0)
+                updateNeeded = true;
+        }
     }
 
-    mCircuits.removeOne(circuit);
-
-    if(mCircuits.size() == 0 || updateNeeded)
+    if(updateNeeded)
         emit circuitsChanged();
 }
 
@@ -152,5 +182,82 @@ void AbstractCircuitNode::detachCable(int contactIdx)
         contact.cable->setNode(contact.cableSide, {});
         contact.type1 = contact.type2 = ContactType::NotConnected;
         contact.cable = nullptr;
+    }
+}
+
+void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
+                                          AbstractCircuitNode *node)
+{
+    for(ElectricCircuit *circuit : listCopy)
+    {
+        circuit->disableOrTerminate(node);
+    }
+}
+
+void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
+                                          AbstractCircuitNode *node,
+                                          const int contact)
+{
+    for(ElectricCircuit *circuit : listCopy)
+    {
+        const auto items = circuit->getNode(this);
+        for(const NodeItem& item : items)
+        {
+            if(item.fromContact == contact || item.toContact == contact)
+            {
+                circuit->disableOrTerminate(node);
+                break;
+            }
+        }
+    }
+}
+
+void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
+                                           AbstractCircuitNode *node)
+{
+    CircuitList duplicateList;
+    for(ElectricCircuit *circuit : listCopy)
+    {
+        circuit->terminateHere(node, duplicateList);
+    }
+}
+
+void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
+                                          AbstractCircuitNode *node,
+                                          const int contact)
+{
+    CircuitList duplicateList;
+    for(ElectricCircuit *circuit : listCopy)
+    {
+        const auto items = circuit->getNode(this);
+        for(const NodeItem& item : items)
+        {
+            if(item.fromContact == contact || item.toContact == contact)
+            {
+                circuit->terminateHere(node, duplicateList);
+                break;
+            }
+        }
+    }
+}
+
+void AbstractCircuitNode::unregisterOpenCircuitExit(ElectricCircuit *circuit)
+{
+    Q_ASSERT(circuit->type() == CircuitType::Open);
+    Q_ASSERT(mOpenCircuits.contains(circuit));
+    Q_ASSERT(circuit->isLastNode(this));
+
+    const auto item = circuit->getNode(this).last();
+
+    if(item.toContact != NodeItem::InvalidContact)
+    {
+        // We enabled exit contact only for circuit passing through
+        // Open circuits which end here (last node) do not enable toCount
+        int &toCount = mContacts[item.toContact].count(circuit->type());
+        Q_ASSERT(toCount > 0);
+
+        toCount--;
+        if(toCount == 0)
+            emit circuitsChanged();
     }
 }

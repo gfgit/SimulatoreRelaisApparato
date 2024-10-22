@@ -32,10 +32,9 @@ QVector<CableItem> OnOffSwitchNode::getActiveConnections(CableItem source, bool 
 
     switch (otherContact.getType(source.cable.pole))
     {
-    case ContactType::NotConnected:
     default:
-        return {};
     case ContactType::Connected:
+    case ContactType::NotConnected:
         if(m_isOn)
             return {other};
         return {};
@@ -65,17 +64,15 @@ void OnOffSwitchNode::setOn(bool newOn)
 
     if(m_isOn)
     {
-        QVector<NodeContact> contactsToScan;
-        contactsToScan.append(mContacts[0]);
-        ElectricCircuit::createCircuitsFromOtherNode(this, contactsToScan);
+        ElectricCircuit::createCircuitsFromOtherNode(this);
     }
     else
     {
-        const auto circuits = mClosedCircuits;
-        for(ElectricCircuit *circuit : circuits)
-        {
-            circuit->disableCircuit();
-            delete circuit;
-        }
+        // Disable circuits
+        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+        disableCircuits(closedCopy, this);
+
+        const CircuitList openCopy = getCircuits(CircuitType::Open);
+        truncateCircuits(openCopy, this);
     }
 }

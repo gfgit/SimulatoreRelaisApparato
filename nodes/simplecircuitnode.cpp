@@ -33,9 +33,6 @@ QVector<CableItem> SimpleCircuitNode::getActiveConnections(CableItem source, boo
         if(!isContactEnabled(i))
             continue;
 
-        if(!mContacts.at(i).cable)
-            continue;
-
         CableItem dest;
         dest.cable.cable = mContacts.at(i).cable;
         dest.cable.side = mContacts.at(i).cableSide;
@@ -65,19 +62,11 @@ void SimpleCircuitNode::setDisabledContact(int val)
         if(hasCircuit(mDisabledContact) > 0)
         {
             // Disable all circuits passing on disabled contact
-            const auto circuits = mClosedCircuits;
-            for(ElectricCircuit *circuit : circuits)
-            {
-                const auto items = circuit->getNode(this);
-                for(ElectricCircuit::NodeItem item : items)
-                {
-                    if(item.fromContact == mDisabledContact || item.toContact == mDisabledContact)
-                    {
-                        circuit->disableCircuit();
-                        delete circuit;
-                    }
-                }
-            }
+            const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+            disableCircuits(closedCopy, this, mDisabledContact);
+
+            const CircuitList openCopy = getCircuits(CircuitType::Open);
+            truncateCircuits(openCopy, this, mDisabledContact);
         }
 
         detachCable(mDisabledContact);

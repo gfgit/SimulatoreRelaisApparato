@@ -669,7 +669,7 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
 {
     removeAllItems();
 
-    setMode(Mode::Simulation);
+    setMode(Mode::LoadingFile);
 
     if(!obj.contains("cables") || !obj.contains("nodes"))
         return false;
@@ -706,12 +706,11 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
         }
     }
 
+    // Recalculate circuits
     calculateConnections();
 
-    for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
-    {
-        powerSource->node()->setEnabled(true);
-    }
+    // Turn on power sources and stuff
+    setMode(Mode::Simulation);
 
     return true;
 }

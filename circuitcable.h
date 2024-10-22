@@ -23,21 +23,13 @@ public:
         BifilarBoth
     };
 
-    enum class Power
-    {
-        None = 0,
-        FirstCable = 1,
-        SecondCable = 2,
-        BothOn = 3
-    };
-
     explicit CircuitCable(QObject *parent = nullptr);
     ~CircuitCable();
 
     Mode mode() const;
     void setMode(Mode newMode);
 
-    Power powered();
+    CablePower powered();
 
     void addCircuit(ElectricCircuit *circuit, CircuitPole pole);
     void removeCircuit(ElectricCircuit *circuit);
@@ -60,7 +52,7 @@ public:
 
 signals:
     void modeChanged(Mode m);
-    void powerChanged(Power p);
+    void powerChanged(CablePower p);
     void nodesChanged();
 
 private:
@@ -70,8 +62,36 @@ private:
 private:
     Mode mMode = Mode::Unifilar;
 
-    QVector<ElectricCircuit *> mFirstCableCirctuits;
-    QVector<ElectricCircuit *> mSecondCableCirctuits;
+    typedef QVector<ElectricCircuit *> CircuitList;
+
+    inline CircuitList& getCircuits(CircuitType type, CircuitPole pole)
+    {
+        if(pole == CircuitPole::First)
+            return type == CircuitType::Closed ?
+                        mFirstPoleCirctuitsClosed :
+                        mFirstPoleCirctuitsOpen;
+
+        return type == CircuitType::Closed ?
+                    mSecondPoleCirctuitsClosed :
+                    mSecondPoleCirctuitsOpen;
+    }
+
+    inline const CircuitList& getCircuits(CircuitType type, CircuitPole pole) const
+    {
+        if(pole == CircuitPole::First)
+            return type == CircuitType::Closed ?
+                        mFirstPoleCirctuitsClosed :
+                        mFirstPoleCirctuitsOpen;
+
+        return type == CircuitType::Closed ?
+                    mSecondPoleCirctuitsClosed :
+                    mSecondPoleCirctuitsOpen;
+    }
+
+    CircuitList mFirstPoleCirctuitsClosed;
+    CircuitList mSecondPoleCirctuitsClosed;
+    CircuitList mFirstPoleCirctuitsOpen;
+    CircuitList mSecondPoleCirctuitsOpen;
 
     CableEnd mNodeA;
     CableEnd mNodeB;
