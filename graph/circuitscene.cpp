@@ -301,58 +301,7 @@ void CircuitScene::calculateConnections()
     for(const auto& it : mItemMap)
     {
         AbstractNodeGraphItem *item = it.second;
-        TileLocation location = item->location();
-
-        AbstractCircuitNode *node1 = item->getAbstractNode();
-        if(!node1)
-            continue;
-
-        std::vector<Connector> connectors;
-        item->getConnectors(connectors);
-
-        for(const Connector& c1 : connectors)
-        {
-            TileLocation otherLocation = location + c1.direction;
-            AbstractNodeGraphItem *other = getItemAt(otherLocation);
-            AbstractCircuitNode *node2 = other ? other->getAbstractNode() : nullptr;
-
-            if(!node2)
-            {
-                // Detach our cable if any
-                auto cableA = node1->getContacts().at(c1.nodeContact).cable;
-                if(cableA && !verifiedCables.contains(cableA))
-                {
-                    node1->detachCable(c1.nodeContact);
-
-                    auto item = graphForCable(cableA);
-                    if(!item || item->cableZeroLength())
-                    {
-                        removeCable(cableA);
-                        cableA = nullptr;
-                    }
-                }
-            }
-
-            if(!other)
-                continue;
-
-            std::vector<Connector> otherConnectors;
-            other->getConnectors(otherConnectors);
-
-            for(const Connector& c2 : otherConnectors)
-            {
-                if(c2.direction != ~c1.direction)
-                    continue;
-
-                // We have a match
-
-                if(!node1 || !node2)
-                    break;
-
-                connectItems(node1, node2, c1, c2, verifiedCables);
-                break;
-            }
-        }
+        checkItem(item, verifiedCables);
     }
 
     // Delete unconnected zero length cables
@@ -565,6 +514,113 @@ bool CircuitScene::checkCable(CableGraphItem *item)
     }
 
     return sideConnectedA && sideConnectedB;
+}
+
+void CircuitScene::checkItem(AbstractNodeGraphItem *item, QVector<CircuitCable *> &verifiedCables)
+{
+    const TileLocation location = item->location();
+
+    AbstractCircuitNode *node1 = item->getAbstractNode();
+    if(!node1)
+        return;
+
+    std::vector<Connector> connectors;
+    item->getConnectors(connectors);
+
+    for(const Connector& c1 : connectors)
+    {
+        const TileLocation otherLocation = location + c1.direction;
+        AbstractNodeGraphItem *other = getItemAt(otherLocation);
+        AbstractCircuitNode *node2 = other ? other->getAbstractNode() : nullptr;
+
+        auto cableA = node1->getContacts().at(c1.nodeContact).cable;
+
+        if(!node2)
+        {
+            // Detach our cable if any
+            if(cableA && !verifiedCables.contains(cableA))
+            {
+                node1->detachCable(c1.nodeContact);
+
+                auto item = graphForCable(cableA);
+                if(!item || item->cableZeroLength())
+                {
+                    removeCable(cableA);
+                    cableA = nullptr;
+                }
+            }
+        }
+
+        if(!other)
+        {
+            if(cableA)
+                continue; // Already connected
+
+            // There is no other node adjacent to us
+            // And we are not connected to a cable
+            // Let's see if there is a cable in the next tile
+            CableGraphItem *cableGraph = nullptr;
+            TileCablePair pair = getCablesAt(otherLocation);
+            if(pair.first)
+            {
+                if(pair.first->sideA() == location)
+                {
+                    if(pair.first->directionA() == ~c1.direction)
+                    {
+                        cableGraph = pair.first;
+                    }
+                }
+                else if(pair.first->sideB() == location)
+                {
+                    if(pair.first->directionB() == ~c1.direction)
+                    {
+                        cableGraph = pair.first;
+                    }
+                }
+            }
+
+            if(!cableGraph && pair.second)
+            {
+                if(pair.second->sideA() == location)
+                {
+                    if(pair.second->directionA() == ~c1.direction)
+                    {
+                        cableGraph = pair.first;
+                    }
+                }
+                else if(pair.second->sideB() == location)
+                {
+                    if(pair.second->directionB() == ~c1.direction)
+                    {
+                        cableGraph = pair.first;
+                    }
+                }
+            }
+
+            // We found a suitable cable, check it
+            if(cableGraph)
+                checkCable(cableGraph);
+
+            continue;
+        }
+
+        std::vector<Connector> otherConnectors;
+        other->getConnectors(otherConnectors);
+
+        for(const Connector& c2 : otherConnectors)
+        {
+            if(c2.direction != ~c1.direction)
+                continue;
+
+            // We have a match
+
+            if(!node1 || !node2)
+                break;
+
+            connectItems(node1, node2, c1, c2, verifiedCables);
+            break;
+        }
+    }
 }
 
 void CircuitScene::addCableTiles(CableGraphItem *item)
@@ -1049,4 +1105,38 @@ void CircuitScene::mousePressEvent(QGraphicsSceneMouseEvent *e)
     }
 
     QGraphicsScene::mousePressEvent(e);
+}
+
+void CircuitScene::refreshItemConnections(AbstractNodeGraphItem *item, bool tryReconnect)
+{
+    // Detach all contacts, will be revaluated later
+    AbstractCircuitNode *node = item->getAbstractNode();
+    const auto& contacts = node->getContacts();
+
+    for(int i = 0; i < contacts.size(); i++)
+    {
+        CircuitCable *cable = contacts.at(i).cable;
+        node->detachCable(i);
+
+        if(cable)
+        {
+            // Delete zero length cables
+            // This way also opposite node becomes unconnected
+            // And can receive future connections
+            // Even before ending Editing mode
+            auto *cableGraph = graphForCable(cable);
+            if(cableGraph && cableGraph->cableZeroLength())
+            {
+                removeCable(cable);
+            }
+        }
+
+    }
+
+    if(!tryReconnect)
+        return;
+
+    // Try reconnect item
+    QVector<CircuitCable *> dummy;
+    checkItem(item, dummy);
 }

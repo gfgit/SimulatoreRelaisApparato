@@ -83,6 +83,10 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
         QPointF newPos = value.toPointF();
         newPos.rx() = std::round(newPos.x() / TileLocation::Size) * TileLocation::Size;
         newPos.ry() = std::round(newPos.y() / TileLocation::Size) * TileLocation::Size;
+        TileLocation newLocation2 = TileLocation::fromPoint(newPos);
+
+        QPointF oldPos = pos();
+        TileLocation oldLocation2 = TileLocation::fromPoint(oldPos);
 
         if(newPos != pos() && scene())
         {
@@ -293,11 +297,16 @@ void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, Til
 
 void AbstractNodeGraphItem::invalidateConnections()
 {
-    // Detach all contacts, will be revaluated later
-    for(int i = 0; i < getAbstractNode()->getContactCount(); i++)
+    bool tryReconnect = true;
+    if(location() != mLastValidLocation && mLastValidLocation.isValid())
     {
-        getAbstractNode()->detachCable(i);
+        // We are in an invalid position, do not reconnect
+        tryReconnect = false;
     }
+
+    CircuitScene *s = circuitScene();
+    if(s)
+        s->refreshItemConnections(this, tryReconnect);
 }
 
 TileRotate AbstractNodeGraphItem::rotate() const

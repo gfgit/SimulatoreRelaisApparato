@@ -91,6 +91,8 @@ protected:
 private:
     friend class AbstractNodeGraphItem;
 
+    void refreshItemConnections(AbstractNodeGraphItem *item, bool tryReconnect);
+
     void updateItemLocation(TileLocation oldLocation,
                             TileLocation newLocation,
                             AbstractNodeGraphItem *item);
@@ -102,6 +104,7 @@ private:
                       QVector<CircuitCable *>& verifiedCables);
 
     bool checkCable(CableGraphItem *item);
+    void checkItem(AbstractNodeGraphItem *item, QVector<CircuitCable *> &verifiedCables);
 
     inline AbstractNodeGraphItem *getItemAt(TileLocation l) const
     {
