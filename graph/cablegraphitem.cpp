@@ -68,12 +68,21 @@ QPainterPath CableGraphItem::shape() const
 
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    // Draw square if cable end is not connected
+    auto *s = circuitScene();
+
     bool isAconnected = mCable->getNode(CableSide::A).node;
     bool isBconnected = mCable->getNode(CableSide::B).node;
 
+    bool showUnconnected = !isAconnected && !isBconnected;
+    if(s && s->mode() == CircuitScene::Mode::Editing)
+    {
+        // In editing mode even if just one side is not connected
+        // still draw attention to this cable
+        showUnconnected = !isAconnected || !isBconnected;
+    }
+
     QColor oldColor = pen.color();
-    if(!isAconnected || !isBconnected)
+    if(showUnconnected)
     {
         // Draw line with cyan color
         pen.setColor(Qt::darkCyan);
