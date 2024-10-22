@@ -17,6 +17,11 @@ class AbstractCircuitNode : public QObject
 public:
     struct NodeContact
     {
+        NodeContact(const QString& name1_ = QString(),
+                    const QString& name2_ = QString())
+            : name1(name1_), name2(name2_)
+        {}
+
         QString name1;
         QString name2;
 

@@ -126,9 +126,9 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     if(node()->flipContact())
         centralConnectorRotate = TileRotate::Deg270;
 
-    drawMorsetti(painter, node()->hasCircuit(0),   "11", "12", rotate() + TileRotate::Deg0);
-    drawMorsetti(painter, node()->hasCircuit(1) && contact1On, "21", "22", rotate() + centralConnectorRotate);
-    drawMorsetti(painter, node()->hasCircuit(2) && contact2On, "32", "31", rotate() + TileRotate::Deg180);
+    drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
+    drawMorsetti(painter, 1, rotate() + centralConnectorRotate);
+    drawMorsetti(painter, 2, rotate() + TileRotate::Deg180);
 
     // Draw wires
     QPen pen;

@@ -9,7 +9,7 @@ RelaisPowerNode::RelaisPowerNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
     // 1 side
-    mContacts.append(NodeContact());
+    mContacts.append(NodeContact("41", "42"));
 }
 
 RelaisPowerNode::~RelaisPowerNode()

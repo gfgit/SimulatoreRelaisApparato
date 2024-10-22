@@ -6,8 +6,8 @@ OnOffSwitchNode::OnOffSwitchNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
     // 2 sides
-    mContacts.append(NodeContact());
-    mContacts.append(NodeContact());
+    mContacts.append(NodeContact("11", "12"));
+    mContacts.append(NodeContact("21", "22"));
 }
 
 QVector<CableItem> OnOffSwitchNode::getActiveConnections(CableItem source, bool invertDir)

@@ -106,8 +106,10 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
     return QGraphicsObject::itemChange(change, value);
 }
 
-void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, bool on, const QString& name1, const QString& name2, TileRotate r)
+void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, TileRotate r)
 {
+    Q_ASSERT(nodeContact >= 0 && nodeContact < getAbstractNode()->getContactCount());
+
     QLineF morsettoLine;
 
     QRectF morsettoEllipse;
@@ -192,17 +194,21 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, bool on, const QStri
         break;
     }
 
+    QColor color = Qt::black;
+    if(getAbstractNode()->hasCircuit(nodeContact,
+                                     CircuitType::Closed))
+        color = Qt::red;
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
     pen.setStyle(Qt::SolidLine);
     pen.setWidthF(5.0);
-    pen.setColor(on ? Qt::red : Qt::black);
+    pen.setColor(color);
 
     painter->setPen(pen);
     painter->drawLine(morsettoLine);
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(on ? Qt::red : Qt::black);
+    painter->setBrush(color);
     painter->drawEllipse(morsettoEllipse);
 
     QFont f;
@@ -210,10 +216,12 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, bool on, const QStri
     f.setItalic(true);
     painter->setFont(f);
 
-    painter->setPen(Qt::black);
-    painter->drawText(textRect1, name1, text1Align);
+    const auto& contact = getAbstractNode()->getContacts().at(nodeContact);
 
-    painter->drawText(textRect2, name2, text2Align);
+    painter->setPen(Qt::black);
+    painter->drawText(textRect1, contact.name1, text1Align);
+
+    painter->drawText(textRect2, contact.name2, text2Align);
 }
 
 void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, TileRotate r)

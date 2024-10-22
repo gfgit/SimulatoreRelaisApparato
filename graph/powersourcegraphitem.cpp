@@ -49,7 +49,7 @@ void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     if(triangle)
         painter->drawConvexPolygon(triangle, 3);
 
-    drawMorsetti(painter, node()->hasCircuits(),  "11", "12", rotate());
+    drawMorsetti(painter, 0, rotate());
 }
 
 void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)

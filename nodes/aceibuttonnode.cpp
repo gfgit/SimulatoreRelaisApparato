@@ -8,9 +8,9 @@ ACEIButtonNode::ACEIButtonNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
     // 3 sides
-    mContacts.append(NodeContact()); // Common
-    mContacts.append(NodeContact()); // Pressed
-    mContacts.append(NodeContact()); // Normal
+    mContacts.append(NodeContact("11", "12")); // Common
+    mContacts.append(NodeContact("21", "22")); // Pressed
+    mContacts.append(NodeContact("31", "32")); // Normal
 }
 
 ACEIButtonNode::~ACEIButtonNode()

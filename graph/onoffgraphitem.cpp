@@ -84,8 +84,8 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     painter->drawLine(contactLine);
     painter->drawLine(switchLine);
 
-    drawMorsetti(painter, node()->hasCircuits(),  "11", "12", rotate());
-    drawMorsetti(painter, node()->hasCircuits() , "22", "21", rotate() + TileRotate::Deg180);
+    drawMorsetti(painter, 0, rotate());
+    drawMorsetti(painter, 1, rotate() + TileRotate::Deg180);
 
     painter->setPen(node()->isOn() ? Qt::red : Qt::black);
     drawName(painter, node()->objectName(), rotate());

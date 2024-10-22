@@ -55,7 +55,7 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
-    void drawMorsetti(QPainter *painter, bool on, const QString &name1, const QString &name2, TileRotate r);
+    void drawMorsetti(QPainter *painter, int nodeContact, TileRotate r);
     void drawName(QPainter *painter, const QString &name, TileRotate r);
 
     void invalidateConnections();

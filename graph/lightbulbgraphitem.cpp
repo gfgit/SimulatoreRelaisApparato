@@ -60,8 +60,7 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
         break;
     }
 
-    drawMorsetti(painter, node()->hasCircuits(),
-                 "11", "12", rotate() + TileRotate::Deg0);
+    drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
 
     // Draw contact
     QPen pen;

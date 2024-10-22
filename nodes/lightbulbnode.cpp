@@ -4,7 +4,7 @@ LightBulbNode::LightBulbNode(QObject *parent)
     : AbstractCircuitNode{parent}
 {
     // 1 side
-    mContacts.append(NodeContact());
+    mContacts.append(NodeContact("1", "2"));
 }
 
 LightBulbNode::~LightBulbNode()
