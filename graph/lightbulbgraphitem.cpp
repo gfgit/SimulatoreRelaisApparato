@@ -22,7 +22,7 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
                                    center.x(), morsettiOffset);
 
     constexpr QLineF centerToSouth(center.x(), center.y() + centerOffset,
-                                   center.x(), TileLocation::Size + morsettiOffset);
+                                   center.x(), TileLocation::Size - morsettiOffset);
 
     constexpr QLineF centerToEast(center.x() + centerOffset, center.y(),
                                   TileLocation::Size - morsettiOffset, center.y());
