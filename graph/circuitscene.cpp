@@ -454,7 +454,7 @@ bool CircuitScene::checkCable(CableGraphItem *item)
         });
     }
 
-    if(!nodeA || connA == connectorsA.cend() || !nodeB || connB == connectorsB.cend())
+    if(!nodeA || connA == connectorsA.cend())
     {
         // Detach side A
         CableEnd end = cable->getNode(CableSide::A);
@@ -463,76 +463,87 @@ bool CircuitScene::checkCable(CableGraphItem *item)
             end.node->detachCable(end.nodeContact);
         }
 
-        // Detach side B
-        end = cable->getNode(CableSide::B);
-        if(end.node)
-        {
-            end.node->detachCable(end.nodeContact);
-        }
-
-        return false;
+        nodeA = nullptr;
     }
 
-    const auto& contactA = nodeA->getContacts().at(connA->nodeContact);
-
-    if(contactA.cable == item->cable() && contactA.cableSide == CableSide::B)
+    if(!nodeB || connB == connectorsB.cend())
     {
-        // We have a swapped cable, detach and let it rewire later
-        CableEnd end = cable->getNode(CableSide::A);
+        // Detach side B
+        CableEnd end = cable->getNode(CableSide::B);
         if(end.node)
         {
             end.node->detachCable(end.nodeContact);
         }
 
-        end = cable->getNode(CableSide::B);
-        if(end.node)
-        {
-            end.node->detachCable(end.nodeContact);
-        }
+        nodeB = nullptr;
     }
 
     bool sideConnectedA = false;
-    if(contactA.cable == item->cable())
+    if(nodeA)
     {
-        sideConnectedA = true;
+        const auto& contactA = nodeA->getContacts().at(connA->nodeContact);
+
+        if(contactA.cable == item->cable() && contactA.cableSide == CableSide::B)
+        {
+            // We have a swapped cable, detach and let it rewire later
+            CableEnd end = cable->getNode(CableSide::A);
+            if(end.node)
+            {
+                end.node->detachCable(end.nodeContact);
+            }
+
+            end = cable->getNode(CableSide::B);
+            if(end.node)
+            {
+                end.node->detachCable(end.nodeContact);
+            }
+        }
+
+        if(contactA.cable == item->cable())
+        {
+            sideConnectedA = true;
+        }
+        else if(!contactA.cable && !item->cable()->getNode(CableSide::A).node)
+        {
+            // Make the connection
+            CableItem cableItem;
+            cableItem.cable.cable = item->cable();
+            cableItem.cable.side = CableSide::A;
+            cableItem.nodeContact = connA->nodeContact;
+            cableItem.cable.pole = CircuitPole::First;
+            nodeA->attachCable(cableItem);
+
+            cableItem.cable.pole = CircuitPole::Second;
+            nodeA->attachCable(cableItem);
+
+            sideConnectedA = true;
+        }
     }
-    else if(!contactA.cable && !item->cable()->getNode(CableSide::A).node)
-    {
-        // Make the connection
-        CableItem cableItem;
-        cableItem.cable.cable = item->cable();
-        cableItem.cable.side = CableSide::A;
-        cableItem.nodeContact = connA->nodeContact;
-        cableItem.cable.pole = CircuitPole::First;
-        nodeA->attachCable(cableItem);
-
-        cableItem.cable.pole = CircuitPole::Second;
-        nodeA->attachCable(cableItem);
-
-        sideConnectedA = true;
-    }
-
-    const auto& contactB = nodeB->getContacts().at(connB->nodeContact);
 
     bool sideConnectedB = false;
-    if(contactB.cable == item->cable())
+    if(nodeB)
     {
-        sideConnectedB = true;
-    }
-    else if(!contactB.cable && !item->cable()->getNode(CableSide::B).node)
-    {
-        // Make the connection
-        CableItem cableItem;
-        cableItem.cable.cable = item->cable();
-        cableItem.cable.side = CableSide::B;
-        cableItem.nodeContact = connB->nodeContact;
-        cableItem.cable.pole = CircuitPole::First;
-        nodeB->attachCable(cableItem);
+        const auto& contactB = nodeB->getContacts().at(connB->nodeContact);
 
-        cableItem.cable.pole = CircuitPole::Second;
-        nodeB->attachCable(cableItem);
+        if(contactB.cable == item->cable())
+        {
+            sideConnectedB = true;
+        }
+        else if(!contactB.cable && !item->cable()->getNode(CableSide::B).node)
+        {
+            // Make the connection
+            CableItem cableItem;
+            cableItem.cable.cable = item->cable();
+            cableItem.cable.side = CableSide::B;
+            cableItem.nodeContact = connB->nodeContact;
+            cableItem.cable.pole = CircuitPole::First;
+            nodeB->attachCable(cableItem);
 
-        sideConnectedB = true;
+            cableItem.cable.pole = CircuitPole::Second;
+            nodeB->attachCable(cableItem);
+
+            sideConnectedB = true;
+        }
     }
 
     return sideConnectedA && sideConnectedB;
@@ -559,22 +570,18 @@ void CircuitScene::checkItem(AbstractNodeGraphItem *item, QVector<CircuitCable *
 
         if(!node2)
         {
-            // Detach our cable if any
+            // Detach our cable if zero length
             if(cableA && !verifiedCables.contains(cableA))
             {
-                node1->detachCable(c1.nodeContact);
-
                 auto item = graphForCable(cableA);
                 if(!item || item->cableZeroLength())
                 {
+                    node1->detachCable(c1.nodeContact);
                     removeCable(cableA);
                     cableA = nullptr;
                 }
             }
-        }
 
-        if(!other)
-        {
             if(cableA)
                 continue; // Already connected
 
@@ -962,28 +969,12 @@ void CircuitScene::endEditCable(bool apply)
     if(!isEditingCable())
         return;
 
-    if(apply)
-    {
-        if(!mEditNewCablePath->isComplete())
-            return; // TODO: error message
+    // Store edit state
+    CableGraphPath cablePath = *mEditNewCablePath;
+    CableGraphItem *item = mEditingCable;
+    bool isNew = mIsEditingNewCable;
 
-        if(mIsEditingNewCable)
-        {
-            // Create new cable
-            CircuitCable *cable = new CircuitCable(this);
-            mEditingCable = new CableGraphItem(cable);
-            mEditingCable->setPos(0, 0);
-        }
-
-        mEditingCable->setCablePath(*mEditNewCablePath);
-
-        if(mIsEditingNewCable)
-            addCable(mEditingCable);
-
-        // Try to connect it right away
-        checkCable(mEditingCable);
-    }
-
+    // Reset editing to prevent recursion
     mIsEditingNewCable = false;
     mEditingCable = nullptr;
 
@@ -995,6 +986,28 @@ void CircuitScene::endEditCable(bool apply)
 
     delete mEditNewCablePath;
     mEditNewCablePath = nullptr;
+
+    if(!apply)
+        return;
+
+    if(!cablePath.isComplete())
+        return; // TODO: error message
+
+    if(isNew)
+    {
+        // Create new cable
+        CircuitCable *cable = new CircuitCable(this);
+        item = new CableGraphItem(cable);
+        item->setPos(0, 0);
+    }
+
+    item->setCablePath(cablePath);
+
+    if(isNew)
+        addCable(item);
+
+    // Try to connect it right away
+    checkCable(item);
 }
 
 void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
