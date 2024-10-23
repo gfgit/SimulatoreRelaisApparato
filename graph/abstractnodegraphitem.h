@@ -56,7 +56,7 @@ protected:
     void drawMorsetti(QPainter *painter, int nodeContact, TileRotate r);
     void drawName(QPainter *painter, const QString &name, TileRotate r);
 
-    void invalidateConnections();
+    void invalidateConnections(bool tryReconnectImmediately = false);
 
 private:
     AbstractCircuitNode *mAbstractNode;

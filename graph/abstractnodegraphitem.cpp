@@ -55,8 +55,12 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
         }
         else if(ev->button() == Qt::RightButton)
         {
-            // Rotate clockwise 90
-            setRotate(rotate() + TileRotate::Deg90);
+            // Rotate counter/clockwise 90 (Shift)
+            TileRotate delta = TileRotate::Deg90;
+            if(ev->modifiers() & Qt::ShiftModifier)
+                delta = TileRotate::Deg270; // Opposite direction
+
+            setRotate(rotate() + delta);
         }
     }
 
@@ -309,13 +313,14 @@ void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, Til
     painter->drawText(textRect, name, textAlign);
 }
 
-void AbstractNodeGraphItem::invalidateConnections()
+void AbstractNodeGraphItem::invalidateConnections(bool tryReconnectImmediately)
 {
     // Disable all contacts. Will be re-evaluated when move ends
     // Or when Editing mode finishes
+    // Or immediately if requested
     CircuitScene *s = circuitScene();
     if(s)
-        s->refreshItemConnections(this, false);
+        s->refreshItemConnections(this, tryReconnectImmediately);
 }
 
 TileRotate AbstractNodeGraphItem::rotate() const
@@ -329,8 +334,8 @@ void AbstractNodeGraphItem::setRotate(TileRotate newRotate)
         return;
     mRotate = newRotate;
 
-    // Detach all contacts, will be revaluated later
-    invalidateConnections();
+    // Detach all contacts, try reconnect immediately
+    invalidateConnections(true);
 
     update();
 }
