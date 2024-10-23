@@ -12,46 +12,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
-set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(SimulatoreRelaisApparato
         MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
-        abstractrelais.h abstractrelais.cpp
-        abstractcircuitnode.h abstractcircuitnode.cpp
-        circuitcable.h circuitcable.cpp
-        electriccircuit.h electriccircuit.cpp
-        nodes/simplecircuitnode.h nodes/simplecircuitnode.cpp
-        nodes/relaispowernode.h nodes/relaispowernode.cpp
-        nodes/powersourcenode.h nodes/powersourcenode.cpp
-        nodes/onoffswitchnode.h nodes/onoffswitchnode.cpp
-        graph/cablegraphitem.h graph/cablegraphitem.cpp
-        graph/powersourcegraphitem.h graph/powersourcegraphitem.cpp
-        graph/onoffgraphitem.h graph/onoffgraphitem.cpp
-        graph/relaispowergraphitem.h graph/relaispowergraphitem.cpp
-        nodes/relaiscontactnode.h nodes/relaiscontactnode.cpp
-        graph/relaiscontactgraphitem.h graph/relaiscontactgraphitem.cpp
-        graph/abstractnodegraphitem.h graph/abstractnodegraphitem.cpp
-        tilerotate.h
-        tilerotate.cpp
-        graph/simplenodegraphitem.h graph/simplenodegraphitem.cpp
-        graph/circuitscene.h graph/circuitscene.cpp
-        relaismodel.h relaismodel.cpp
-        nodes/edit/nodeeditfactory.h nodes/edit/nodeeditfactory.cpp
-        nodes/edit/standardnodetypes.h nodes/edit/standardnodetypes.cpp
-        nodes/edit/relaylineedit.h nodes/edit/relaylineedit.cpp
-        nodes/aceibuttonnode.h nodes/aceibuttonnode.cpp
-        graph/aceibuttongraphitem.h graph/aceibuttongraphitem.cpp
-        nodes/lightbulbnode.h nodes/lightbulbnode.cpp
-        graph/lightbulbgraphitem.h graph/lightbulbgraphitem.cpp
-        enums/circuittypes.h
-        enums/cabletypes.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET SimulatoreRelaisApparato APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -62,14 +26,16 @@ else()
         add_library(SimulatoreRelaisApparato SHARED
             ${PROJECT_SOURCES}
         )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-    else()
-        add_executable(SimulatoreRelaisApparato
-            ${PROJECT_SOURCES}
-        )
-    endif()
+    # Define properties for Android with Qt 5 after find_package() calls as:
+    #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+else()
+    add_executable(SimulatoreRelaisApparato
+        ${PROJECT_SOURCES}
+    )
 endif()
+endif()
+
+add_subdirectory(src)
 
 target_link_libraries(SimulatoreRelaisApparato PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
@@ -77,7 +43,7 @@ target_link_libraries(SimulatoreRelaisApparato PRIVATE Qt${QT_VERSION_MAJOR}::Wi
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.SimulatoreRelaisApparato)
+    set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.SimulatoreRelaisApparato)
 endif()
 set_target_properties(SimulatoreRelaisApparato PROPERTIES
     ${BUNDLE_ID_OPTION}
