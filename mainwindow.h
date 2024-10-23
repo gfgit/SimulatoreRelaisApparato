@@ -47,7 +47,7 @@ private:
 
     enum
     {
-        MaxRecentFiles = 5
+        MaxRecentFiles = 10
     };
     QAction *recentFileActs[MaxRecentFiles];
     QString settingsFile;
