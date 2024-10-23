@@ -141,11 +141,11 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     drawName(painter, node()->objectName(), rotate());
 }
 
-void OnOffGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
+void OnOffGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
-    AbstractNodeGraphItem::mouseDoubleClickEvent(e);
+    AbstractNodeGraphItem::mouseDoubleClickEvent(ev);
 
-    auto *s = circuitScene();
+    CircuitScene *s = circuitScene();
     if(s && s->mode() == CircuitScene::Mode::Simulation)
     {
         // TODO: block the node instead

@@ -220,30 +220,30 @@ void ACEIButtonGraphItem::onShapeChanged()
     update();
 }
 
-void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *e)
+void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    auto *s = circuitScene();
+    CircuitScene *s = circuitScene();
     if(s && s->mode() == CircuitScene::Mode::Simulation)
     {
-        if(e->button() == Qt::LeftButton)
+        if(ev->button() == Qt::LeftButton)
             node()->setState(ACEIButtonNode::State::Pressed);
-        else if(e->button() == Qt::RightButton)
+        else if(ev->button() == Qt::RightButton)
             node()->setState(ACEIButtonNode::State::Extracted);
         return;
     }
 
-    AbstractNodeGraphItem::mousePressEvent(e);
+    AbstractNodeGraphItem::mousePressEvent(ev);
 }
 
-void ACEIButtonGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *e)
+void ACEIButtonGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    auto *s = circuitScene();
+    CircuitScene *s = circuitScene();
     if(s && s->mode() == CircuitScene::Mode::Simulation)
     {
-        if(e->button() == Qt::LeftButton || e->button() == Qt::RightButton)
+        if(ev->button() == Qt::LeftButton || ev->button() == Qt::RightButton)
             node()->setState(ACEIButtonNode::State::Normal);
         return;
     }
 
-    AbstractNodeGraphItem::mouseReleaseEvent(e);
+    AbstractNodeGraphItem::mouseReleaseEvent(ev);
 }

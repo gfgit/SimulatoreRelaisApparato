@@ -11,6 +11,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include <QGraphicsSceneMouseEvent>
+
 static QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen)
 {
     // We unfortunately need this hack as QPainterPathStroker will set a width of 1.0
@@ -96,16 +98,16 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     pen.setColor(oldColor);
 }
 
-void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
+void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
-    auto *s = circuitScene();
-    if(s && s->mode() == CircuitScene::Mode::Editing)
+    CircuitScene *s = circuitScene();
+    if(s && ev->button() == Qt::LeftButton)
     {
-        emit editRequested(this);
+        s->requestEditCable(this);
         return;
     }
 
-    QGraphicsObject::mouseDoubleClickEvent(e);
+    QGraphicsObject::mouseDoubleClickEvent(ev);
 }
 
 CircuitScene *CableGraphItem::circuitScene() const

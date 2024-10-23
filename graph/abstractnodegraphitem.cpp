@@ -42,37 +42,55 @@ void AbstractNodeGraphItem::updateName()
     setToolTip(mAbstractNode->objectName());
 }
 
+void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
+{
+    CircuitScene *s = circuitScene();
+    if(s && s->mode() == CircuitScene::Mode::Editing && !s->isEditingCable())
+    {
+        // Sometimes we receive clicks even if out of node tile
+        // In those cases do not start moving item!
+        if(ev->button() == Qt::LeftButton && boundingRect().contains(ev->pos()))
+        {
+            s->startMovingItem(this);
+        }
+        else if(ev->button() == Qt::RightButton)
+        {
+            // Rotate clockwise 90
+            setRotate(rotate() + TileRotate::Deg90);
+        }
+    }
+
+    QGraphicsObject::mousePressEvent(ev);
+}
+
 void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
     if(s && s->mode() == CircuitScene::Mode::Editing)
     {
-        if(ev->button() == Qt::RightButton)
-        {
-            // Rotate clockwise 90
-            setRotate(rotate() + TileRotate::Deg90);
-        }
-
         // After move has ended we go back to last valid location
-        if(location() != mLastValidLocation && mLastValidLocation.isValid())
-        {
-            setLocation(mLastValidLocation);
-        }
+        s->endMovingItem();
     }
 
     QGraphicsObject::mouseReleaseEvent(ev);
 }
 
-void AbstractNodeGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
+void AbstractNodeGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
-    auto *s = circuitScene();
-    if(s->mode() == CircuitScene::Mode::Editing && e->button() == Qt::LeftButton)
+    CircuitScene *s = circuitScene();
+    if(s && s->mode() == CircuitScene::Mode::Editing)
     {
-        emit editRequested(this);
-        return;
+        // Prevent accidental move while editing item
+        s->endMovingItem();
+
+        if(ev->button() == Qt::LeftButton)
+        {
+            s->requestEditNode(this);
+            return;
+        }
     }
 
-    QGraphicsObject::mouseDoubleClickEvent(e);
+    QGraphicsObject::mouseDoubleClickEvent(ev);
 }
 
 QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVariant &value)
@@ -83,20 +101,16 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
         QPointF newPos = value.toPointF();
         newPos.rx() = std::round(newPos.x() / TileLocation::Size) * TileLocation::Size;
         newPos.ry() = std::round(newPos.y() / TileLocation::Size) * TileLocation::Size;
-        TileLocation newLocation2 = TileLocation::fromPoint(newPos);
-
-        QPointF oldPos = pos();
-        TileLocation oldLocation2 = TileLocation::fromPoint(oldPos);
 
         if(newPos != pos() && scene())
         {
             CircuitScene *s = circuitScene();
             TileLocation newLocation = TileLocation::fromPoint(newPos);
-            if(s->isLocationFree(newLocation))
+            if(!s->updateItemLocation(newLocation, this))
             {
-                // New position is valid
-                s->updateItemLocation(mLastValidLocation, newLocation, this);
-                mLastValidLocation = newLocation;
+                // New position was not free
+                // Reset to old position
+                return pos();
             }
         }
         return newPos;
@@ -297,16 +311,11 @@ void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, Til
 
 void AbstractNodeGraphItem::invalidateConnections()
 {
-    bool tryReconnect = true;
-    if(location() != mLastValidLocation && mLastValidLocation.isValid())
-    {
-        // We are in an invalid position, do not reconnect
-        tryReconnect = false;
-    }
-
+    // Disable all contacts. Will be re-evaluated when move ends
+    // Or when Editing mode finishes
     CircuitScene *s = circuitScene();
     if(s)
-        s->refreshItemConnections(this, tryReconnect);
+        s->refreshItemConnections(this, false);
 }
 
 TileRotate AbstractNodeGraphItem::rotate() const

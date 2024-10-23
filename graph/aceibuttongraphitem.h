@@ -23,8 +23,8 @@ public slots:
     void onShapeChanged();
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *e) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
 };
 
 #endif // ACEIBUTTONGRAPHITEM_H

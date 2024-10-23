@@ -45,18 +45,9 @@ void CircuitScene::setMode(Mode newMode)
     mMode = newMode;
     emit modeChanged(mMode);
 
-    const bool itemMovable = mMode == Mode::Editing;
-    for(auto it = mItemMap.cbegin(); it != mItemMap.cend(); it++)
-    {
-        AbstractNodeGraphItem *node = it->second;
-        node->setFlag(QGraphicsItem::ItemIsMovable, itemMovable);
-    }
-
     if(oldMode == Mode::Editing)
     {
-        if(isEditingCable())
-            endEditCable(false);
-
+        stopUnfinishedOperations();
         calculateConnections();
     }
 
@@ -69,10 +60,7 @@ void CircuitScene::setMode(Mode newMode)
 
 void CircuitScene::addNode(AbstractNodeGraphItem *item)
 {
-    connect(item, &AbstractNodeGraphItem::editRequested,
-            this, &CircuitScene::nodeEditRequested);
-
-    addItem(item);
+    stopUnfinishedOperations();
 
     if(!isLocationFree(item->location()))
     {
@@ -81,9 +69,9 @@ void CircuitScene::addNode(AbstractNodeGraphItem *item)
     }
 
     mItemMap.insert({item->location(), item});
-    item->mLastValidLocation = item->location();
 
-    item->setFlag(QGraphicsItem::ItemIsMovable, mMode == Mode::Editing);
+    // Add item after having inserted it in the map
+    addItem(item);
 
     PowerSourceGraphItem *powerSource = qobject_cast<PowerSourceGraphItem *>(item);
     if(powerSource)
@@ -95,8 +83,11 @@ void CircuitScene::addNode(AbstractNodeGraphItem *item)
 
 void CircuitScene::removeNode(AbstractNodeGraphItem *item)
 {
-    disconnect(item, &AbstractNodeGraphItem::editRequested,
-            this, &CircuitScene::nodeEditRequested);
+    if(item == itemBeingMoved())
+        endMovingItem();
+
+    Q_ASSERT(getNodeAt(item->location()) == item);
+
     removeItem(item);
     mItemMap.erase(item->location());
 
@@ -114,13 +105,12 @@ void CircuitScene::removeNode(AbstractNodeGraphItem *item)
 
 void CircuitScene::addCable(CableGraphItem *item)
 {
+    stopUnfinishedOperations();
+
     Q_ASSERT(item->cable());
 
     if(!cablePathIsValid(item->cablePath(), nullptr))
         return; // TODO: error
-
-    connect(item, &CableGraphItem::editRequested,
-            this, &CircuitScene::cableEditRequested);
 
     addItem(item);
     mCables.insert({item->cable(), item});
@@ -270,10 +260,42 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
     return true;
 }
 
-void CircuitScene::updateItemLocation(TileLocation oldLocation, TileLocation newLocation, AbstractNodeGraphItem *item)
+bool CircuitScene::updateItemLocation(TileLocation newLocation, AbstractNodeGraphItem *item)
 {
+    // Only current moving item can pass (temporarily)
+    // on occupied locations to allow jump them
+    bool allowed = isLocationFree(newLocation);
+    if(!allowed)
+    {
+        if(mItemBeingMoved != item)
+            return false;
+
+        // Fake allowing invalid move for currently moving item.
+        // We do not update the map so it will be reverted
+        // to it's last valid position on move end.
+        return true;
+    }
+
+    // For untracked items, use last location
+    TileLocation oldLocation = item->location();
+
+    if(mItemBeingMoved == item)
+    {
+        // For moved items use last valid location
+        // to remove old map entry
+        oldLocation = mLastMovedItemValidLocation;
+
+        // Store location to revert future invalid moves
+        mLastMovedItemValidLocation = newLocation;
+    }
+
+    Q_ASSERT(getItemAt(oldLocation) == item);
+
+    // Update location in map
     mItemMap.erase(oldLocation);
     mItemMap.insert({newLocation, item});
+
+    return true;
 }
 
 void CircuitScene::calculateConnections()
@@ -691,6 +713,69 @@ void CircuitScene::editCableUpdatePen()
     mEditNewPath->setPen(pen);
 }
 
+AbstractNodeGraphItem *CircuitScene::itemBeingMoved() const
+{
+    return mItemBeingMoved;
+}
+
+void CircuitScene::startMovingItem(AbstractNodeGraphItem *item)
+{
+    stopUnfinishedOperations();
+    mItemBeingMoved = item;
+    Q_ASSERT(mItemBeingMoved);
+
+    mLastMovedItemValidLocation = mItemBeingMoved->location();
+
+    if(mMode == Mode::Editing)
+        mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, true);
+}
+
+void CircuitScene::endMovingItem()
+{
+    if(!mItemBeingMoved)
+        return;
+
+    Q_ASSERT(mLastMovedItemValidLocation.isValid());
+
+    // After move has ended we go back to last valid location
+    if(mItemBeingMoved->location() != mLastMovedItemValidLocation)
+    {
+        mItemBeingMoved->setLocation(mLastMovedItemValidLocation);
+    }
+    mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, false);
+
+    AbstractNodeGraphItem *item = mItemBeingMoved;
+    mItemBeingMoved = nullptr;
+
+    // Since this might add cables and adding cables
+    // calls stopOperations() which calls endMovingItem()
+    // we call this after resetting mItemBeingMoved
+    // This way we prevent recursion
+    refreshItemConnections(item, true);
+}
+
+void CircuitScene::stopUnfinishedOperations()
+{
+    endEditCable(false);
+    endMovingItem();
+}
+
+void CircuitScene::requestEditNode(AbstractNodeGraphItem *item)
+{
+    stopUnfinishedOperations();
+
+    if(mode() == Mode::Editing)
+        emit nodeEditRequested(item);
+}
+
+void CircuitScene::requestEditCable(CableGraphItem *item)
+{
+    stopUnfinishedOperations();
+
+    if(mode() == Mode::Editing)
+        emit cableEditRequested(item);
+}
+
 void CircuitScene::setRelaisModel(RelaisModel *newRelaisModel)
 {
     mRelaisModel = newRelaisModel;
@@ -698,7 +783,7 @@ void CircuitScene::setRelaisModel(RelaisModel *newRelaisModel)
 
 void CircuitScene::removeAllItems()
 {
-    endEditCable(false);
+    stopUnfinishedOperations();
 
     // Disable all circuits
     for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
@@ -712,6 +797,7 @@ void CircuitScene::removeAllItems()
         CableGraphItem *item = it.second;
         removeCable(item->cable());
     }
+    Q_ASSERT(mCables.size() == 0);
 
     const auto itemsCopy = mItemMap;
     for(const auto& it : itemsCopy)
@@ -719,6 +805,8 @@ void CircuitScene::removeAllItems()
         AbstractNodeGraphItem *item = it.second;
         removeNode(item);
     }
+    Q_ASSERT(mItemMap.size() == 0);
+    Q_ASSERT(mPowerSources.size() == 0);
 }
 
 bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory)
@@ -825,8 +913,7 @@ QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction dir
 
 void CircuitScene::startEditNewCable()
 {
-    if(isEditingCable())
-        endEditCable(false);
+    stopUnfinishedOperations();
 
     // Cable being edited
     mIsEditingNewCable = true;
@@ -849,8 +936,7 @@ void CircuitScene::startEditNewCable()
 
 void CircuitScene::startEditCable(CableGraphItem *item)
 {
-    if(isEditingCable())
-        endEditCable(false);
+    stopUnfinishedOperations();
 
     // Cable being edited
     mEditingCable = item;

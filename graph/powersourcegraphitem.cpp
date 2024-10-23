@@ -52,11 +52,11 @@ void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     drawMorsetti(painter, 0, rotate());
 }
 
-void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e)
+void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
-    AbstractNodeGraphItem::mouseDoubleClickEvent(e);
+    AbstractNodeGraphItem::mouseDoubleClickEvent(ev);
 
-    auto *s = circuitScene();
+    CircuitScene *s = circuitScene();
     if(s && s->mode() == CircuitScene::Mode::Simulation)
     {
         // TODO: block the node instead

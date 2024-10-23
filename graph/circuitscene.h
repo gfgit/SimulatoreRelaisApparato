@@ -93,8 +93,7 @@ private:
 
     void refreshItemConnections(AbstractNodeGraphItem *item, bool tryReconnect);
 
-    void updateItemLocation(TileLocation oldLocation,
-                            TileLocation newLocation,
+    bool updateItemLocation(TileLocation newLocation,
                             AbstractNodeGraphItem *item);
 
     void calculateConnections();
@@ -119,6 +118,15 @@ private:
     void removeCableTiles(CableGraphItem *item);
     void editCableUpdatePen();
 
+    AbstractNodeGraphItem *itemBeingMoved() const;
+    void startMovingItem(AbstractNodeGraphItem *item);
+    void endMovingItem();
+
+    void stopUnfinishedOperations();
+
+    void requestEditNode(AbstractNodeGraphItem *item);
+    void requestEditCable(CableGraphItem *item);
+
 private:
     Mode mMode = Mode::Editing;
 
@@ -135,6 +143,9 @@ private:
     QGraphicsPathItem *mEditOverlay = nullptr;
     QGraphicsPathItem *mEditNewPath = nullptr;
     CableGraphPath *mEditNewCablePath = nullptr;
+
+    AbstractNodeGraphItem *mItemBeingMoved = nullptr;
+    TileLocation mLastMovedItemValidLocation = TileLocation::invalid;
 
     RelaisModel *mRelaisModel = nullptr;
 };

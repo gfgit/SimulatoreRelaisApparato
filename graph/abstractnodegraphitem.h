@@ -43,16 +43,14 @@ public:
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
 
-signals:
-    void editRequested(AbstractNodeGraphItem *self);
-
 protected slots:
     void triggerUpdate();
     virtual void updateName();
 
 protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     void drawMorsetti(QPainter *painter, int nodeContact, TileRotate r);
@@ -63,9 +61,6 @@ protected:
 private:
     AbstractCircuitNode *mAbstractNode;
     TileRotate mRotate = TileRotate::Deg0;
-
-    friend class CircuitScene;
-    TileLocation mLastValidLocation = TileLocation::invalid;
 };
 
 #endif // ABSTRACTNODEGRAPHITEM_H

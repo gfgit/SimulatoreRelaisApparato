@@ -113,11 +113,8 @@ public:
     bool loadFromJSON(const QJsonObject& obj);
     void saveToJSON(QJsonObject& obj) const;
 
-signals:
-    void editRequested(CableGraphItem *self);
-
 protected:
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *e);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev);
 
 private slots:
     void updatePen();
