@@ -198,8 +198,21 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
             bool samePath = true;
             for(int i = 0; i <= nodeIdx; i++)
             {
-                if(mItems.at(i) == duplicate->mItems.at(i))
+                Item otherItem = duplicate->mItems.at(i);
+                if(mItems.at(i) == otherItem)
                     continue;
+
+                if(i == nodeIdx && otherItem.node.toContact == NodeItem::InvalidContact)
+                {
+                    // Last node differs because of toContact
+                    // Which should be -1 for duplicate circuit
+                    // But on our circuit could still be valid
+
+                    // Fake toContact and re-check. Real value will be adjusted later
+                    otherItem.node.toContact = mItems.at(i).node.toContact;
+                    if(mItems.at(i) == otherItem)
+                        continue;
+                }
 
                 samePath = false;
                 break;
@@ -458,6 +471,16 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
             continue;
         }
 
+        // At this point one of the following can happen:
+        // 1- Cable is connected both sides to same node (rather impossible)
+        // 2- Circuit already contain this node with same contact and polarity
+        //    So it's an invalid circuit with infinite loop and must be ignored
+        // 3- Circuit will pass node and go on
+        // In all cases above we consider circuit as not ending here
+        // So that original circuit can be freed
+        // This avoid keeping around duplicate Open Circuits
+        circuitEndsHere = false;
+
         if(cableEnd.node == node && cableEnd.nodeContact == nodeContact)
         {
             continue;
@@ -469,9 +492,6 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
         QVector<Item> newItems = items;
         newItems.append(nodeItem);
         newItems.append(nextCable);
-
-        // Circuit will pass go on
-        circuitEndsHere = false;
         passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, depth + 1);
     }
 
