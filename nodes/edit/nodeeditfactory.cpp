@@ -47,10 +47,6 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
     if(!factory)
         return;
 
-    QPointer<AbstractNodeGraphItem> itemGuard = item;
-    bool isMovable = itemGuard->flags().testFlag(QGraphicsItem::ItemIsMovable);
-    itemGuard->setFlag(QGraphicsItem::ItemIsMovable, false);
-
     AbstractCircuitNode *node = item->getAbstractNode();
 
     QPointer<QDialog> dlg = new QDialog(parent);
@@ -121,9 +117,6 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
 
     if(dlg)
         delete dlg;
-
-    if(itemGuard)
-        itemGuard->setFlag(QGraphicsItem::ItemIsMovable, isMovable);
 }
 
 void NodeEditFactory::editCable(QWidget *parent, CableGraphItem *item)
