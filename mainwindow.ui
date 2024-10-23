@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="circuitTab">
        <attribute name="title">
@@ -118,7 +118,7 @@
   </action>
   <action name="actionOpen_Recent">
    <property name="text">
-    <string>Open Recent</string>
+    <string>Open &amp;Recent</string>
    </property>
   </action>
  </widget>
