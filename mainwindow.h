@@ -25,18 +25,31 @@ public:
 
 private:
     void buildToolBar();
+    void updateRecentFileActions();
+
+    void loadFile(const QString &fileName);
+
+    void locateAppSettings();
 
 private slots:
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);
 
-    void loadFile();
-    void saveFile();
+    void onOpen();
+    void onOpenRecent();
+    void onSave();
 
 private:
     Ui::MainWindow *ui;
     CircuitScene *mScene;
     RelaisModel *mRelaisModel;
     NodeEditFactory *mEditFactory;
+
+    enum
+    {
+        MaxRecentFiles = 5
+    };
+    QAction *recentFileActs[MaxRecentFiles];
+    QString settingsFile;
 };
 #endif // MAINWINDOW_H

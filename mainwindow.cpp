@@ -18,6 +18,9 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
+#include <QStandardPaths>
+#include <QSettings>
+
 #include <QJsonDocument>
 #include <QJsonObject>
 
@@ -26,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    locateAppSettings();
 
     mRelaisModel = new RelaisModel(this);
     ui->relaisView->setModel(mRelaisModel);
@@ -80,9 +85,23 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::cableEditRequested);
 
     connect(ui->actionOpen, &QAction::triggered,
-            this, &MainWindow::loadFile);
+            this, &MainWindow::onOpen);
     connect(ui->actionSave, &QAction::triggered,
-            this, &MainWindow::saveFile);
+            this, &MainWindow::onSave);
+
+    QMenu *recentFilesMenu = new QMenu(this);
+    for (int i = 0; i < MaxRecentFiles; i++)
+    {
+        recentFileActs[i] = new QAction(this);
+        recentFileActs[i]->setVisible(false);
+        connect(recentFileActs[i], &QAction::triggered, this, &MainWindow::onOpenRecent);
+
+        recentFilesMenu->addAction(recentFileActs[i]);
+    }
+
+    updateRecentFileActions();
+
+    ui->actionOpen_Recent->setMenu(recentFilesMenu);
 
     buildToolBar();
 }
@@ -167,6 +186,47 @@ void MainWindow::buildToolBar()
     });
 }
 
+static QString strippedName(const QString &fullFileName, bool *ok)
+{
+    QFileInfo fi(fullFileName);
+    if (ok)
+        *ok = fi.exists();
+    return fi.fileName();
+}
+
+void MainWindow::updateRecentFileActions()
+{
+    QSettings settings(settingsFile);
+
+    QStringList files = settings.value("recent_files").toStringList();
+
+    int numRecentFiles = qMin(files.size(), int(MaxRecentFiles));
+
+    for (int i = 0; i < numRecentFiles; i++)
+    {
+        bool ok      = true;
+        QString name = strippedName(files[i], &ok);
+        if (name.isEmpty() || !ok)
+        {
+            files.removeAt(i);
+            i--;
+            numRecentFiles = qMin(files.size(), int(MaxRecentFiles));
+        }
+        else
+        {
+            QString text = tr("&%1 %2").arg(i + 1).arg(name);
+            recentFileActs[i]->setText(text);
+            recentFileActs[i]->setData(files[i]);
+            recentFileActs[i]->setToolTip(files[i]);
+            recentFileActs[i]->setVisible(true);
+        }
+    }
+    for (int j = numRecentFiles; j < MaxRecentFiles; ++j)
+        recentFileActs[j]->setVisible(false);
+
+    settings.setValue("recent_files", files);
+}
+
 void MainWindow::nodeEditRequested(AbstractNodeGraphItem *item)
 {
     // Allow delete or custom node options
@@ -179,16 +239,44 @@ void MainWindow::cableEditRequested(CableGraphItem *item)
     mEditFactory->editCable(this, item);
 }
 
-void MainWindow::loadFile()
+void MainWindow::onOpen()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Open Circuit"));
     if(fileName.isEmpty())
         return;
 
+    loadFile(fileName);
+}
+
+void MainWindow::onOpenRecent()
+{
+    QAction *act = qobject_cast<QAction *>(sender());
+    if (!act)
+        return;
+
+    loadFile(act->data().toString());
+}
+
+void MainWindow::loadFile(const QString& fileName)
+{
     QFile f(fileName);
     if(!f.open(QFile::ReadOnly))
         return;
+
+    setWindowFilePath(fileName);
+
+    // Store in recent files
+    QSettings settings(settingsFile);
+    QStringList files = settings.value("recent_files").toStringList();
+    files.removeAll(fileName);
+    files.prepend(fileName);
+    while (files.size() > MaxRecentFiles)
+        files.removeLast();
+
+    settings.setValue("recent_files", files);
+
+    updateRecentFileActions();
 
     QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
 
@@ -201,7 +289,14 @@ void MainWindow::loadFile()
     mScene->loadFromJSON(sceneObj, mEditFactory);
 }
 
-void MainWindow::saveFile()
+void MainWindow::locateAppSettings()
+{
+    QString p = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    p.append("/settings.ini");
+    settingsFile = QDir::cleanPath(p);
+}
+
+void MainWindow::onSave()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
                                                     tr("Save Circuit"));
