@@ -87,27 +87,35 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
 
+    // Now draw wires
+    painter->setBrush(Qt::NoBrush);
     QPen pen;
     pen.setWidthF(5.0);
-    pen.setColor(node()->hasCircuits() ? Qt::red : Qt::black);
     pen.setCapStyle(Qt::FlatCap);
 
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
+    const QColor colors[3] =
+    {
+        QColor(255, 140, 140), // Light red, Open Circuit
+        Qt::red, // Closed circuit
+        Qt::black // No circuit
+    };
 
+    // Draw common contact (0)
+    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    painter->setPen(pen);
     painter->drawLine(commonLine);
 
-    QColor color = Qt::black;
+    QColor color = colors[2];
     if(node()->relais())
     {
         switch (node()->relais()->state())
         {
         case AbstractRelais::State::Up:
-            color = Qt::red;
+            color = colors[0];
             break;
         case AbstractRelais::State::GoingUp:
         case AbstractRelais::State::GoingDown:
-            color.setRgb(255, 140, 140); // Light red
+            color = colors[1]; // Light red
             break;
         case AbstractRelais::State::Down:
         default:
