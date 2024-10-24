@@ -126,6 +126,15 @@ public:
         return mContacts.at(nodeContact).count(type) > 0;
     }
 
+    inline AnyCircuitType hasAnyCircuit(int nodeContact) const
+    {
+        if(hasCircuit(nodeContact, CircuitType::Closed))
+            return AnyCircuitType::Closed;
+        if(hasCircuit(nodeContact, CircuitType::Open))
+            return AnyCircuitType::Open;
+        return AnyCircuitType::None;
+    }
+
     void attachCable(const CableItem &item);
     void detachCable(const CableItem &item);
 

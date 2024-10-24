@@ -29,6 +29,13 @@ enum class CircuitType
     Closed = 1
 };
 
+enum class AnyCircuitType
+{
+    Open = 0,
+    Closed = 1,
+    None
+};
+
 enum class CircuitPole
 {
     First = 0,
