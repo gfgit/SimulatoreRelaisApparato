@@ -188,8 +188,9 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
         contact2Line
     };
 
-    // Fill edges
-    pen.setCapStyle(Qt::SquareCap);
+    // Fill edges with miter join
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setJoinStyle(Qt::MiterJoin);
 
     // Draw all circuits with polyline to fill the edges
     // Start from turned off contacts, then open and then closed circuits
