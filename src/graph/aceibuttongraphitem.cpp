@@ -151,30 +151,7 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     drawMorsetti(painter, 1, rotate() + centralConnectorRotate);
     drawMorsetti(painter, 2, rotate() + TileRotate::Deg180);
 
-    // Draw wires
-    QPen pen;
-    pen.setWidthF(5.0);
-    pen.setColor(Qt::black);
-    pen.setCapStyle(Qt::FlatCap);
-
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
-
-    painter->drawLine(commonLine);
-    painter->drawLine(contact1Line);
-    painter->drawLine(contact2Line);
-
-    // Draw middle diagonal line
-    QPointF corner;
-    corner.setX(contact1Line.x2());
-    corner.setY(contact1Line.y2());
-    if(qFuzzyCompare(contact1Line.x2(), center.x()))
-        corner.setX(contact2Line.x2());
-    if(qFuzzyCompare(contact1Line.y2(), center.y()))
-        corner.setY(contact2Line.y2());
-    painter->drawLine(center, corner);
-
-    // Now draw wires on top
+    // Draw switch arc and wires on top
     const QColor colors[3] =
     {
         QColor(255, 140, 140), // Light red, Open Circuit
@@ -189,9 +166,26 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
         contact2Line
     };
 
+    painter->setBrush(Qt::NoBrush);
+    QPen pen;
+    pen.setWidthF(5.0);
+
     // Fill edges with miter join
     pen.setCapStyle(Qt::FlatCap);
     pen.setJoinStyle(Qt::MiterJoin);
+
+    // Draw black middle diagonal line below everything
+    pen.setColor(colors[int(AnyCircuitType::None)]);
+    painter->setPen(pen);
+
+    QPointF corner;
+    corner.setX(contact1Line.x2());
+    corner.setY(contact1Line.y2());
+    if(qFuzzyCompare(contact1Line.x2(), center.x()))
+        corner.setX(contact2Line.x2());
+    if(qFuzzyCompare(contact1Line.y2(), center.y()))
+        corner.setY(contact2Line.y2());
+    painter->drawLine(center, corner);
 
     // Draw full switch arc below wires
     const QRectF arcRect(center.x() - arcRadius,
@@ -199,7 +193,6 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
                          arcRadius * 2, arcRadius * 2);
 
     // Default to black arc
-    pen.setColor(colors[int(AnyCircuitType::None)]);
     if((contact1On && contact2On))
     {
         // Both sides are turned on, draw color on switch arc
