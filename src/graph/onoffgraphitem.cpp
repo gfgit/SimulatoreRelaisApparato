@@ -114,8 +114,12 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         break;
     }
 
-    const QColor closedColor = Qt::red;
-    const QColor openColor(255, 140, 140); // Light red
+    const QColor colors[3] =
+    {
+        QColor(255, 140, 140), // Light red, Open Circuit
+        Qt::red, // Closed circuit
+        Qt::black // No circuit
+    };
 
     // Draw wires
     painter->setBrush(Qt::NoBrush);
@@ -124,35 +128,33 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     pen.setCapStyle(Qt::FlatCap);
 
     // Draw common contact (0)
-    if(node()->hasCircuit(0, CircuitType::Closed))
-        pen.setColor(closedColor);
-    else if(node()->hasCircuit(0, CircuitType::Open))
-        pen.setColor(openColor);
-    else
-        pen.setColor(Qt::black);
-
+    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
     // Draw first contact (1)
-    if(node()->hasCircuit(1, CircuitType::Closed))
-        pen.setColor(closedColor);
-    else if(node()->hasCircuit(1, CircuitType::Open))
-        pen.setColor(openColor);
-    else
-        pen.setColor(Qt::black);
-
+    pen.setColor(colors[int(node()->hasAnyCircuit(1))]);
     painter->setPen(pen);
     painter->drawLine(contact1Line);
 
     // Draw switch line
-    if(node()->hasCircuits(CircuitType::Closed))
-        pen.setColor(closedColor);
-    else if(node()->hasCircuit(0, CircuitType::Open) && node()->hasCircuit(1, CircuitType::Open))
-        pen.setColor(openColor);
+    if(node()->isOn())
+    {
+        // Turned on if both sides are on, and switch is on
+        if(node()->hasCircuits(CircuitType::Closed))
+            pen.setColor(colors[int(AnyCircuitType::Closed)]);
+        else if(node()->hasCircuit(0, CircuitType::Open) && node()->hasCircuit(1, CircuitType::Open))
+            pen.setColor(colors[int(AnyCircuitType::Open)]);
+    }
     else
-        pen.setColor(Qt::black);
+    {
+        // Switch is off or no circuit passes through
+        pen.setColor(colors[int(AnyCircuitType::None)]);
+    }
 
+    // Use square cap for switch line to cover
+    // contact line fully
+    pen.setCapStyle(Qt::SquareCap);
     painter->setPen(pen);
     painter->drawLine(switchLine);
 
