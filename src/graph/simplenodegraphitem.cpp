@@ -92,8 +92,8 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
         for(int contact = 0; contact < 4; contact++)
         {
-            if(node()->disabledContact() == contact)
-                continue;
+            if(contact != 0 && node()->disabledContact() == contact)
+                continue; // Common contact is never disabled
 
             const AnyCircuitType state = node()->hasAnyCircuit(contact);
 
