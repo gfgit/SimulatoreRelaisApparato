@@ -159,6 +159,8 @@ void ACEIButtonNode::setState(State newState)
     mState = newState;
     emit stateChanged();
 
+    bool hadCircuits = hasCircuits(CircuitType::Closed) || hasCircuits(CircuitType::Open);
+
     if(mState != State::Pressed)
     {
         // If pressed all circuits are enabled
@@ -181,5 +183,10 @@ void ACEIButtonNode::setState(State newState)
     {
         // Scan for new circuits
         ElectricCircuit::createCircuitsFromOtherNode(this);
+    }
+
+    if(hadCircuits)
+    {
+        ElectricCircuit::defaultReachNextOpenCircuit(this);
     }
 }

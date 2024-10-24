@@ -56,10 +56,20 @@ public:
     static void createCircuitsFromPowerNode(PowerSourceNode *source);
     static void createCircuitsFromOtherNode(AbstractCircuitNode *node);
 
+    static void tryReachNextOpenCircuit(AbstractCircuitNode *goalNode,
+                                        int nodeContact,
+                                        CircuitPole pole);
+
+    static void defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode);
+
 private:
     bool tryReachOpen(AbstractCircuitNode *goalNode);
 
     static bool passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item>& items, int depth);
+
+    static void searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth);
+
+    static void extendOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items);
 
 private:
     QVector<Item> mItems;

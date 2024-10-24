@@ -90,11 +90,18 @@ void OnOffSwitchNode::setOn(bool newOn)
     }
     else
     {
+        bool hadCircuits = hasCircuits(CircuitType::Closed) || hasCircuits(CircuitType::Open);
+
         // Disable circuits
         const CircuitList closedCopy = getCircuits(CircuitType::Closed);
         disableCircuits(closedCopy, this);
 
         const CircuitList openCopy = getCircuits(CircuitType::Open);
         truncateCircuits(openCopy, this);
+
+        if(hadCircuits)
+        {
+            ElectricCircuit::defaultReachNextOpenCircuit(this);
+        }
     }
 }

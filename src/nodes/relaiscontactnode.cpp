@@ -238,6 +238,8 @@ void RelaisContactNode::setState(State newState)
     mState = newState;
     emit stateChanged();
 
+    bool hadCircuits = hasCircuits(CircuitType::Closed) || hasCircuits(CircuitType::Open);
+
     // Disable circuits
     const CircuitList closedCopy = getCircuits(CircuitType::Closed);
     disableCircuits(closedCopy, this);
@@ -249,6 +251,11 @@ void RelaisContactNode::setState(State newState)
     {
         // Scan for new circuits
         ElectricCircuit::createCircuitsFromOtherNode(this);
+    }
+
+    if(hadCircuits)
+    {
+        ElectricCircuit::defaultReachNextOpenCircuit(this);
     }
 }
 
