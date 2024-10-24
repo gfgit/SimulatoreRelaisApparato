@@ -84,18 +84,30 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
 
-    // Draw contact
+    // Now draw wires
+    painter->setBrush(Qt::NoBrush);
     QPen pen;
     pen.setWidthF(5.0);
-    pen.setColor(node()->hasCircuits() ? Qt::red : Qt::black);
     pen.setCapStyle(Qt::FlatCap);
 
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
+    const QColor colors[3] =
+    {
+        QColor(255, 140, 140), // Light red, Open Circuit
+        Qt::red, // Closed circuit
+        Qt::black // No circuit
+    };
 
+    // Draw common contact (0)
+    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    painter->setPen(pen);
     painter->drawLine(commonLine);
 
     // Draw bulb circle
+
+    // If we have only open circuit (light bulb is still off)
+    // Draw in black instead of light red.
+    if(!node()->hasCircuits())
+        pen.setColor(colors[int(AnyCircuitType::None)]);
     pen.setWidthF(3.0);
     painter->setPen(pen);
 
