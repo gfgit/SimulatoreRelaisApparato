@@ -33,7 +33,7 @@ enum class AnyCircuitType
 {
     Open = 0,
     Closed = 1,
-    None
+    None = 2
 };
 
 enum class CircuitPole
