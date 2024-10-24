@@ -104,8 +104,11 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
             const QLineF circuit = lines[(startIdx + contact) % 4];
 
             bool passThrough = false;
-            for(int other = contact + 1; other < 4; other++)
+            for(int other = 0; other < 4; other++)
             {
+                if(other == contact)
+                    continue;
+
                 if(node()->disabledContact() == other)
                     continue;
 
