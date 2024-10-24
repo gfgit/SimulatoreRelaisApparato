@@ -141,6 +141,7 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
     startAngle += startIncrement;
     endAngle += endIncrement;
+    const int arcLength = endAngle - startAngle;
 
     TileRotate centralConnectorRotate = TileRotate::Deg90;
     if(node()->flipContact())
@@ -192,6 +193,28 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     pen.setCapStyle(Qt::FlatCap);
     pen.setJoinStyle(Qt::MiterJoin);
 
+    // Draw full switch arc below wires
+    const QRectF arcRect(center.x() - arcRadius,
+                         center.y() - arcRadius,
+                         arcRadius * 2, arcRadius * 2);
+
+    // Default to black arc
+    pen.setColor(colors[int(AnyCircuitType::None)]);
+    if((contact1On && contact2On))
+    {
+        // Both sides are turned on, draw color on switch arc
+        // Set correct pen if has also closed circuits
+        if(node()->hasCircuits(CircuitType::Closed))
+            pen.setColor(colors[int(AnyCircuitType::Closed)]);
+        else if(node()->hasCircuits(CircuitType::Open))
+            pen.setColor(colors[int(AnyCircuitType::Open)]);
+    }
+
+    painter->setPen(pen);
+    painter->drawArc(arcRect,
+                     startAngle * 16,
+                     arcLength * 16);
+
     // Draw all circuits with polyline to fill the edges
     // Start from turned off contacts, then open and then closed circuits
     AnyCircuitType targetType = AnyCircuitType::None;
@@ -201,8 +224,6 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
         // Set pen color based on circuit type
         pen.setColor(colors[int(targetType)]);
         painter->setPen(pen);
-
-        bool passThrough = false;
 
         for(int contact = 0; contact < 3; contact++)
         {
@@ -234,18 +255,25 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
             // Just draw line from after arc
             painter->drawLine(lines[contact]);
 
-            for(int other = contact + 1; other < 3; other++)
+            for(int other = 0; other < 3; other++)
             {
+                if(other == contact)
+                    continue;
+
                 // Draw full circuit, passing center
                 // Always draw full line if in None state
                 AnyCircuitType otherState = node()->hasAnyCircuit(other);
                 if(otherState != targetType && targetType != AnyCircuitType::None)
                     continue;
 
-                if(contact != 0 && (!contact1On || !contact2On))
-                    continue; // There is no circuit between 1 and 2 contacts
+                // If both sides have voltage, check if it's really a circuit
+                // (switch is on) or if the 2 voltages come from external sources
+                // (in this case switch is off)
+                if(!contact1On && (other == 1 || contact == 1))
+                    continue;
 
-                passThrough = true;
+                if(!contact2On && (other == 2 || contact == 2))
+                    continue;
 
                 QPointF points[3] =
                 {
@@ -255,37 +283,6 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
                 };
                 painter->drawPolyline(points, 3);
             }
-        }
-
-        if(targetType == AnyCircuitType::Open)
-        {
-            // Draw Arc over open circuits
-            // But below closed circuits
-
-            const QRectF arcRect(center.x() - arcRadius,
-                                 center.y() - arcRadius,
-                                 arcRadius * 2, arcRadius * 2);
-
-            if(node()->hasCircuits(CircuitType::Closed))
-                passThrough = true; // Closed circuits always pass through
-
-            if((contact1On || contact2On) && passThrough)
-            {
-                // Switch is on (at least one side)
-                // Set correct pen if has also closed circuits
-                if(node()->hasCircuits(CircuitType::Closed))
-                    pen.setColor(colors[int(AnyCircuitType::Closed)]);
-            }
-            else
-            {
-                // Switch is off
-                pen.setColor(colors[int(AnyCircuitType::None)]);
-            }
-
-            painter->setPen(pen);
-            painter->drawArc(arcRect,
-                             startAngle * 16,
-                             (endAngle - startAngle) * 16);
         }
 
         // Go to next state
@@ -302,6 +299,26 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
             finishedDrawingContacts = true;
             break;
         }
+    }
+
+    // If not turned on, redraw partial black arc over wire
+    pen.setColor(colors[int(AnyCircuitType::None)]);
+    painter->setPen(pen);
+
+    if(!contact1On)
+    {
+        // Draw lateral half of arc
+        painter->drawArc(arcRect,
+                         (endAngle - arcLength / 2) * 16,
+                         (arcLength / 2) * 16);
+    }
+
+    if(!contact2On)
+    {
+        // Draw top half of arc
+        painter->drawArc(arcRect,
+                         startAngle * 16,
+                         (arcLength / 2) * 16);
     }
 
     // Draw name
