@@ -43,28 +43,26 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
     constexpr double morsettiOffset = 22.0;
+    constexpr double arcRadius = 15.0;
 
-    constexpr QLineF centerToNorth(center,
-                               QPointF(center.x(), morsettiOffset));
+    constexpr QLineF centerToNorth(center.x(), center.y() - arcRadius,
+                                   center.x(), morsettiOffset);
 
-    constexpr QLineF centerToSouth(center,
-                               QPointF(center.x(),
-                                       TileLocation::Size - morsettiOffset));
+    constexpr QLineF centerToSouth(center.x(), center.y() + arcRadius,
+                                   center.x(), TileLocation::Size - morsettiOffset);
 
-    constexpr QLineF centerToEast(center,
-                              QPointF(TileLocation::Size - morsettiOffset,
-                                      center.y()));
+    constexpr QLineF centerToEast(center.x() + arcRadius, center.y(),
+                                  TileLocation::Size - morsettiOffset, center.y());
 
-    constexpr QLineF centerToWest(center,
-                              QPointF(morsettiOffset,
-                                      center.y()));
+    constexpr QLineF centerToWest(center.x() - arcRadius, center.y(),
+                                  morsettiOffset, center.y());
 
     QLineF commonLine;
     QLineF contact1Line;
     QLineF contact2Line;
 
-    bool contact1On = node()->state() == ACEIButtonNode::State::Pressed;
-    bool contact2On = node()->state() == ACEIButtonNode::State::Normal || node()->state() == ACEIButtonNode::State::Pressed;
+    const bool contact1On = node()->state() == ACEIButtonNode::State::Pressed;
+    const bool contact2On = node()->state() == ACEIButtonNode::State::Normal || node()->state() == ACEIButtonNode::State::Pressed;
 
     int startAngle = 0;
     int endAngle = 0;
@@ -175,25 +173,135 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
         corner.setY(contact2Line.y2());
     painter->drawLine(center, corner);
 
-    // Draw Arc
-    const QRectF arcRect(center.x() - 15,
-                         center.y() - 15,
-                         30, 30);
+    // Now draw wires on top
+    const QColor colors[3] =
+    {
+        QColor(255, 140, 140), // Light red, Open Circuit
+        Qt::red, // Closed circuit
+        Qt::black // No circuit
+    };
 
-    painter->drawArc(arcRect,
-                     startAngle * 16,
-                     (endAngle - startAngle) * 16);
+    QLineF lines[3] =
+    {
+        commonLine,
+        contact1Line,
+        contact2Line
+    };
 
-    // Now draw powered wires on top
-    pen.setColor(Qt::red);
-    painter->setPen(pen);
+    // Fill edges
+    pen.setCapStyle(Qt::SquareCap);
 
-    if(node()->hasCircuit(0))
-        painter->drawLine(commonLine);
-    if(node()->hasCircuit(1))
-        painter->drawLine(contact1Line);
-    if(node()->hasCircuit(2))
-        painter->drawLine(contact2Line);
+    // Draw all circuits with polyline to fill the edges
+    // Start from turned off contacts, then open and then closed circuits
+    AnyCircuitType targetType = AnyCircuitType::None;
+    bool finishedDrawingContacts = false;
+    while(!finishedDrawingContacts)
+    {
+        // Set pen color based on circuit type
+        pen.setColor(colors[int(targetType)]);
+        painter->setPen(pen);
+
+        bool passThrough = false;
+
+        for(int contact = 0; contact < 3; contact++)
+        {
+            const AnyCircuitType state = node()->hasAnyCircuit(contact);
+
+            if(contact == 0 && targetType == AnyCircuitType::Open
+                    && node()->hasAnyCircuit(0) != AnyCircuitType::None)
+            {
+                // Common always reaches opposite side arc.
+                // We already draw it for closed and none circuts.
+                // But for open circuit we draw it on both sides
+                // until before arc.
+                for(int other = contact + 1; other < 3; other++)
+                {
+                    QPointF points[3] =
+                    {
+                        lines[contact].p2(),
+                        center,
+                        lines[other].p1() // Before arc
+                    };
+                    painter->drawPolyline(points, 3);
+                }
+            }
+
+            // Always draw full line if in None state
+            if(state != targetType && targetType != AnyCircuitType::None)
+                continue;
+
+            // Just draw line from after arc
+            painter->drawLine(lines[contact]);
+
+            for(int other = contact + 1; other < 3; other++)
+            {
+                // Draw full circuit, passing center
+                // Always draw full line if in None state
+                AnyCircuitType otherState = node()->hasAnyCircuit(other);
+                if(otherState != targetType && targetType != AnyCircuitType::None)
+                    continue;
+
+                if(contact != 0 && (!contact1On || !contact2On))
+                    continue; // There is no circuit between 1 and 2 contacts
+
+                passThrough = true;
+
+                QPointF points[3] =
+                {
+                    lines[contact].p2(),
+                    center,
+                    lines[other].p2(),
+                };
+                painter->drawPolyline(points, 3);
+            }
+        }
+
+        if(targetType == AnyCircuitType::Open)
+        {
+            // Draw Arc over open circuits
+            // But below closed circuits
+
+            const QRectF arcRect(center.x() - arcRadius,
+                                 center.y() - arcRadius,
+                                 arcRadius * 2, arcRadius * 2);
+
+            if(node()->hasCircuits(CircuitType::Closed))
+                passThrough = true; // Closed circuits always pass through
+
+            if((contact1On || contact2On) && passThrough)
+            {
+                // Switch is on (at least one side)
+                // Set correct pen if has also closed circuits
+                if(node()->hasCircuits(CircuitType::Closed))
+                    pen.setColor(colors[int(AnyCircuitType::Closed)]);
+            }
+            else
+            {
+                // Switch is off
+                pen.setColor(colors[int(AnyCircuitType::None)]);
+            }
+
+            painter->setPen(pen);
+            painter->drawArc(arcRect,
+                             startAngle * 16,
+                             (endAngle - startAngle) * 16);
+        }
+
+        // Go to next state
+        switch (targetType)
+        {
+        case AnyCircuitType::None:
+            targetType = AnyCircuitType::Open;
+            break;
+        case AnyCircuitType::Open:
+            targetType = AnyCircuitType::Closed;
+            break;
+        case AnyCircuitType::Closed:
+        default:
+            finishedDrawingContacts = true;
+            break;
+        }
+    }
 
     // Draw name
     QColor color = Qt::black;
