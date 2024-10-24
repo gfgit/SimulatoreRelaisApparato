@@ -26,6 +26,7 @@
 #include "../nodes/powersourcenode.h"
 
 #include <QSet>
+#include <QVarLengthArray>
 
 ElectricCircuit::ElectricCircuit()
 {
@@ -537,7 +538,19 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
 
 void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 {
-    QVector<ElectricCircuit *> openCircuitsCopy = node->getCircuits(CircuitType::Open);
+    const QVector<ElectricCircuit *> openCircuitsCopy = node->getCircuits(CircuitType::Open);
+
+    // Search which nodes do not have any circuit.
+    // We look for new circuits on these nodes
+    // and ignore the others.
+    QVarLengthArray<int, 4> unpoweredContacts;
+    for(int contact = 0; contact < node->getContactCount(); contact++)
+    {
+        if(node->hasAnyCircuit(contact) == AnyCircuitType::None)
+        {
+            unpoweredContacts.append(contact);
+        }
+    }
 
     for(ElectricCircuit *origCircuit : openCircuitsCopy)
     {
@@ -545,15 +558,119 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
         Q_ASSERT(origCircuit->mItems.size() >= 3); // PowerSource + cable + Our Node
         Q_ASSERT(origCircuit->mItems.last().isNode);
 
-        int fromContact = origCircuit->mItems.last().node.fromContact;
-        QVector<Item> items = origCircuit->mItems;
-        items.removeLast(); // Remove node
+        // This node might not be the last of this circuit.
+        // So we take every passage of this circuit on this node
+        // and from each we try to look for new circuits in other
+        // directions than original circuit.
 
-        // Pass again on our node
-        // Depth 0 because if no connection is found to other nodes
-        // Do not add a new open circuit which would be equivalent
-        // To origCircuit being used here
-        if(passCircuitNode(node, fromContact, items, 0))
+        bool removeOriginalCircuit = false;
+
+        for(int i = 0; i < origCircuit->mItems.size(); i++)
+        {
+            const Item& otherItem = origCircuit->mItems.at(i);
+            if(!otherItem.isNode || otherItem.node.node != node)
+                continue;
+
+            if(i == 0)
+                break;
+
+            // Let's see if this circuit can diverge and go to request contact
+
+            CableContact lastCable = origCircuit->mItems.at(i - 1).cable;
+
+            // Go forward
+            CableItem nodeSourceCable;
+            nodeSourceCable.cable.cable = lastCable.cable;
+            nodeSourceCable.cable.side = ~lastCable.side;
+            nodeSourceCable.nodeContact = otherItem.node.fromContact;
+            const auto connections = node->getActiveConnections(nodeSourceCable);
+
+            bool circuitEndsHere = true;
+
+            for(const auto& conn : connections)
+            {
+                if(!unpoweredContacts.contains(conn.nodeContact))
+                    continue;
+
+                // Copy items until cable before node
+                QVector<Item> items(origCircuit->mItems.begin(),
+                                    origCircuit->mItems.begin() + i);
+
+                Item nodeItem = otherItem;
+                nodeItem.node.toContact = conn.nodeContact;
+                nodeItem.node.toPole = conn.cable.pole;
+
+                Item nextCable;
+                nextCable.cable = conn.cable;
+
+                if(!conn.cable.cable)
+                {
+                    // Register an open circuit which passes through node
+                    ElectricCircuit *circuit = new ElectricCircuit();
+                    circuit->mItems = items;
+                    circuit->mItems.append(nodeItem);
+                    circuit->mType = CircuitType::Open;
+                    circuit->enableCircuit();
+
+                    // Circuit will pass to opposite node connector
+                    circuitEndsHere = false;
+                    continue;
+                }
+
+                // Get opposite side
+                CableEnd cableEnd = conn.cable.cable->getNode(~conn.cable.side);
+
+                if(!cableEnd.node)
+                {
+                    // Register an open circuit which passes through node
+                    // And then go to next cable
+                    ElectricCircuit *circuit = new ElectricCircuit();
+                    circuit->mItems = items;
+                    circuit->mItems.append(nodeItem);
+                    circuit->mItems.append(nextCable);
+                    circuit->mType = CircuitType::Open;
+                    circuit->enableCircuit();
+
+                    // Circuit will pass to opposite node connector
+                    circuitEndsHere = false;
+                    continue;
+                }
+
+                // At this point one of the following can happen:
+                // 1- Cable is connected both sides to same node (rather impossible)
+                // 2- Circuit already contain this node with same contact and polarity
+                //    So it's an invalid circuit with infinite loop and must be ignored
+                // 3- Circuit will pass node and go on
+                // In all cases above we consider circuit as not ending here
+                // So that original circuit can be freed
+                // This avoid keeping around duplicate Open Circuits
+                circuitEndsHere = false;
+
+                if(cableEnd.node == node && cableEnd.nodeContact == nodeSourceCable.nodeContact)
+                {
+                    continue;
+                }
+
+                if(containsNode(items, node, nodeSourceCable.nodeContact, lastCable.pole))
+                    continue;
+
+                QVector<Item> newItems = items;
+                newItems.append(nodeItem);
+                newItems.append(nextCable);
+
+                passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, 1);
+            }
+
+            if(i == origCircuit->mItems.size() - 1 && !circuitEndsHere)
+            {
+                // We are last node of original circuit
+                // And circuits go on.
+                // So remove original circuit
+                removeOriginalCircuit = true;
+            }
+        }
+
+        if(removeOriginalCircuit)
         {
             // Circuit went ahead, delete old open circuit
             QVector<ElectricCircuit *> dummy;
