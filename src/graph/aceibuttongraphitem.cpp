@@ -245,8 +245,7 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
             if(state != targetType && targetType != AnyCircuitType::None)
                 continue;
 
-            // Just draw line from after arc
-            painter->drawLine(lines[contact]);
+            bool passThrough = false;
 
             for(int other = 0; other < 3; other++)
             {
@@ -255,18 +254,23 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
                 // Draw full circuit, passing center
                 // Always draw full line if in None state
-                AnyCircuitType otherState = node()->hasAnyCircuit(other);
-                if(otherState != targetType && targetType != AnyCircuitType::None)
-                    continue;
+                if(targetType != AnyCircuitType::None)
+                {
+                    AnyCircuitType otherState = node()->hasAnyCircuit(other);
+                    if(otherState != targetType)
+                        continue;
 
-                // If both sides have voltage, check if it's really a circuit
-                // (switch is on) or if the 2 voltages come from external sources
-                // (in this case switch is off)
-                if(!contact1On && (other == 1 || contact == 1))
-                    continue;
+                    // If both sides have voltage, check if it's really a circuit
+                    // (switch is on) or if the 2 voltages come from external sources
+                    // (in this case switch is off)
+                    if(!contact1On && (other == 1 || contact == 1))
+                        continue;
 
-                if(!contact2On && (other == 2 || contact == 2))
-                    continue;
+                    if(!contact2On && (other == 2 || contact == 2))
+                        continue;
+                }
+
+                passThrough = true;
 
                 QPointF points[3] =
                 {
@@ -275,6 +279,12 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
                     lines[other].p2(),
                 };
                 painter->drawPolyline(points, 3);
+            }
+
+            if(!passThrough)
+            {
+                // Just draw line from after arc
+                painter->drawLine(lines[contact]);
             }
         }
 
@@ -298,11 +308,16 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     pen.setColor(colors[int(AnyCircuitType::None)]);
     painter->setPen(pen);
 
+    int lateralArcStart = startAngle;
+    int topArcStart = (endAngle - arcLength / 2);
+    if(node()->flipContact())
+        std::swap(topArcStart, lateralArcStart);
+
     if(!contact1On)
     {
         // Draw lateral half of arc
         painter->drawArc(arcRect,
-                         (endAngle - arcLength / 2) * 16,
+                         lateralArcStart * 16,
                          (arcLength / 2) * 16);
     }
 
@@ -310,7 +325,7 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     {
         // Draw top half of arc
         painter->drawArc(arcRect,
-                         startAngle * 16,
+                         topArcStart * 16,
                          (arcLength / 2) * 16);
     }
 
