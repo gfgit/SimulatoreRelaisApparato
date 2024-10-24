@@ -645,6 +645,9 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
         nodeItem.node.fromContact = conn.nodeContact;
         nodeItem.node.fromPole = conn.cable.pole;
 
+        if(!conn.cable.cable)
+            continue;
+
         auto cableEnd = conn.cable.cable->getNode(~conn.cable.side);
 
         if(!cableEnd.node)
