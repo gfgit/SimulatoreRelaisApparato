@@ -438,6 +438,7 @@ bool MainWindow::saveInternal()
 
     f.write(doc.toJson());
 
+    setWindowFilePath(fileName);
     addFileToRecents(fileName);
 
     mScene->setHasUnsavedChanges(false);
