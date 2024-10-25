@@ -105,17 +105,17 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
-    QColor color = colors[2];
+    QColor color = colors[int(AnyCircuitType::None)]; // Black
     if(node()->relais())
     {
         switch (node()->relais()->state())
         {
         case AbstractRelais::State::Up:
-            color = colors[0];
+            color = colors[int(AnyCircuitType::Closed)]; // Red
             break;
         case AbstractRelais::State::GoingUp:
         case AbstractRelais::State::GoingDown:
-            color = colors[1]; // Light red
+            color = colors[int(AnyCircuitType::Open)]; // Light red
             break;
         case AbstractRelais::State::Down:
         default:
