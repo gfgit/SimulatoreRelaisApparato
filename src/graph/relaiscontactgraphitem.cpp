@@ -175,18 +175,8 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     pen.setCapStyle(Qt::FlatCap);
     pen.setJoinStyle(Qt::MiterJoin);
 
-    // Draw black middle diagonal line below everything
     pen.setColor(colors[int(AnyCircuitType::None)]);
     painter->setPen(pen);
-
-    QPointF corner;
-    corner.setX(contact1Line.x2());
-    corner.setY(contact1Line.y2());
-    if(qFuzzyCompare(contact1Line.x2(), center.x()))
-        corner.setX(contact2Line.x2());
-    if(qFuzzyCompare(contact1Line.y2(), center.y()))
-        corner.setY(contact2Line.y2());
-    painter->drawLine(center, corner);
 
     // Draw full switch arc below wires
     // On relay contact, the 2 contacts cannot be
