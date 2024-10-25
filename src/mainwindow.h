@@ -45,18 +45,28 @@ public:
 
     CircuitScene *scene() const;
 
+protected:
+    void closeEvent(QCloseEvent *e) override;
+
 private:
     void buildToolBar();
     void updateRecentFileActions();
+    void addFileToRecents(const QString& fileName);
 
     void loadFile(const QString &fileName);
 
     void locateAppSettings();
 
+    bool hasUnsavedChanges() const;
+    bool maybeSave();
+
+    bool saveInternal();
+
 private slots:
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);
 
+    void onNew();
     void onOpen();
     void onOpenRecent();
     void onSave();

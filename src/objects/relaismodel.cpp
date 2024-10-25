@@ -119,6 +119,8 @@ void RelaisModel::addRelay(AbstractRelais *r)
     mRelais.append(r);
 
     endInsertRows();
+
+    setHasUnsavedChanges(true);
 }
 
 void RelaisModel::removeRelay(AbstractRelais *r)
@@ -135,6 +137,8 @@ void RelaisModel::removeRelay(AbstractRelais *r)
     mRelais.removeAt(row);
 
     endRemoveRows();
+
+    setHasUnsavedChanges(true);
 }
 
 AbstractRelais *RelaisModel::relayAt(int row) const
@@ -184,6 +188,8 @@ bool RelaisModel::loadFromJSON(const QJsonObject &obj)
     }
 
     endResetModel();
+
+    setHasUnsavedChanges(false);
     
     return true;
 }
@@ -209,6 +215,8 @@ void RelaisModel::onRelayChanged(AbstractRelais *r)
 
     QModelIndex idx = index(row, 0);
     emit dataChanged(idx, idx);
+
+    setHasUnsavedChanges(true);
 }
 
 void RelaisModel::onRelayDestroyed(QObject *obj)
@@ -220,4 +228,20 @@ void RelaisModel::onRelayDestroyed(QObject *obj)
     beginRemoveRows(QModelIndex(), row, row);
     mRelais.removeAt(row);
     endRemoveRows();
+
+    setHasUnsavedChanges(true);
+}
+
+bool RelaisModel::hasUnsavedChanges() const
+{
+    return m_hasUnsavedChanges;
+}
+
+void RelaisModel::setHasUnsavedChanges(bool newHasUnsavedChanges)
+{
+    if(m_hasUnsavedChanges == newHasUnsavedChanges)
+        return;
+
+    m_hasUnsavedChanges = newHasUnsavedChanges;
+    emit modelEdited(m_hasUnsavedChanges);
 }

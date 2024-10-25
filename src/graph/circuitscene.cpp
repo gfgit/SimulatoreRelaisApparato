@@ -101,6 +101,8 @@ void CircuitScene::addNode(AbstractNodeGraphItem *item)
         powerSource->node()->setEnabled(mMode == Mode::Simulation);
         mPowerSources.append(powerSource);
     }
+
+    setHasUnsavedChanges(true);
 }
 
 void CircuitScene::removeNode(AbstractNodeGraphItem *item)
@@ -123,6 +125,8 @@ void CircuitScene::removeNode(AbstractNodeGraphItem *item)
     auto *node = item->getAbstractNode();
     delete item;
     delete node;
+
+    setHasUnsavedChanges(true);
 }
 
 void CircuitScene::addCable(CableGraphItem *item)
@@ -139,6 +143,8 @@ void CircuitScene::addCable(CableGraphItem *item)
 
     // Add cable tiles
     addCableTiles(item);
+
+    setHasUnsavedChanges(true);
 }
 
 void CircuitScene::removeCable(CircuitCable *cable)
@@ -159,6 +165,8 @@ void CircuitScene::removeCable(CircuitCable *cable)
     }
 
     delete cable;
+
+    setHasUnsavedChanges(true);
 }
 
 CableGraphItem *CircuitScene::graphForCable(CircuitCable *cable) const
@@ -316,6 +324,8 @@ bool CircuitScene::updateItemLocation(TileLocation newLocation, AbstractNodeGrap
     // Update location in map
     mItemMap.erase(oldLocation);
     mItemMap.insert({newLocation, item});
+
+    setHasUnsavedChanges(true);
 
     return true;
 }
@@ -805,6 +815,20 @@ void CircuitScene::requestEditCable(CableGraphItem *item)
         emit cableEditRequested(item);
 }
 
+bool CircuitScene::hasUnsavedChanges() const
+{
+    return m_hasUnsavedChanges;
+}
+
+void CircuitScene::setHasUnsavedChanges(bool newHasUnsavedChanged)
+{
+    if(m_hasUnsavedChanges == newHasUnsavedChanged)
+        return;
+
+    m_hasUnsavedChanges = newHasUnsavedChanged;
+    emit sceneEdited(m_hasUnsavedChanges);
+}
+
 void CircuitScene::setRelaisModel(RelaisModel *newRelaisModel)
 {
     mRelaisModel = newRelaisModel;
@@ -884,6 +908,8 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
 
     // Turn on power sources and stuff
     setMode(Mode::Simulation);
+
+    setHasUnsavedChanges(false);
 
     return true;
 }
@@ -1011,6 +1037,8 @@ void CircuitScene::endEditCable(bool apply)
 
     if(!apply)
         return;
+
+    setHasUnsavedChanges(true);
 
     if(!cablePath.isComplete())
         return; // TODO: error message

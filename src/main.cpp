@@ -26,6 +26,10 @@
 
 int main(int argc, char *argv[])
 {
+    QApplication::setApplicationName("SimulatoreACEI");
+    QApplication::setApplicationDisplayName("Simulatore ACEI");
+    QApplication::setApplicationVersion("0.2");
+
     QApplication a(argc, argv);
 
     MainWindow w;

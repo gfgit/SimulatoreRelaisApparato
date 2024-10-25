@@ -45,6 +45,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <QCloseEvent>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -105,6 +107,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mScene, &CircuitScene::cableEditRequested,
             this, &MainWindow::cableEditRequested);
 
+    connect(ui->actionNew, &QAction::triggered,
+            this, &MainWindow::onNew);
     connect(ui->actionOpen, &QAction::triggered,
             this, &MainWindow::onOpen);
     connect(ui->actionSave, &QAction::triggered,
@@ -135,6 +139,14 @@ MainWindow::~MainWindow()
 CircuitScene *MainWindow::scene() const
 {
     return mScene;
+}
+
+void MainWindow::closeEvent(QCloseEvent *e)
+{
+    if(maybeSave())
+        e->accept();
+    else
+        e->ignore();
 }
 
 void MainWindow::buildToolBar()
@@ -192,7 +204,7 @@ void MainWindow::buildToolBar()
 
     QAction *newCableAct = newItemMenu->addAction(tr("New Cable"));
     connect(newCableAct, &QAction::triggered, mScene,
-                     [this]()
+            [this]()
     {
         ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
 
@@ -217,7 +229,7 @@ static QString strippedName(const QString &fullFileName, bool *ok)
 
 void MainWindow::updateRecentFileActions()
 {
-    QSettings settings(settingsFile);
+    QSettings settings(settingsFile, QSettings::IniFormat);
 
     QStringList files = settings.value("recent_files").toStringList();
 
@@ -248,6 +260,21 @@ void MainWindow::updateRecentFileActions()
     settings.setValue("recent_files", files);
 }
 
+void MainWindow::addFileToRecents(const QString &fileName)
+{
+    // Store in recent files
+    QSettings settings(settingsFile, QSettings::IniFormat);
+    QStringList files = settings.value("recent_files").toStringList();
+    files.removeAll(fileName);
+    files.prepend(fileName);
+    while (files.size() > MaxRecentFiles)
+        files.removeLast();
+
+    settings.setValue("recent_files", files);
+
+    updateRecentFileActions();
+}
+
 void MainWindow::nodeEditRequested(AbstractNodeGraphItem *item)
 {
     // Allow delete or custom node options
@@ -260,8 +287,25 @@ void MainWindow::cableEditRequested(CableGraphItem *item)
     mEditFactory->editCable(this, item);
 }
 
+void MainWindow::onNew()
+{
+    if(!maybeSave())
+        return;
+
+    // Reset scene and relais
+    setWindowFilePath(QString());
+    mScene->removeAllItems();
+    mScene->setHasUnsavedChanges(false);
+
+    mRelaisModel->clear();
+    mRelaisModel->setHasUnsavedChanges(false);
+}
+
 void MainWindow::onOpen()
 {
+    if(!maybeSave())
+        return;
+
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Open Circuit"));
     if(fileName.isEmpty())
@@ -276,6 +320,9 @@ void MainWindow::onOpenRecent()
     if (!act)
         return;
 
+    if(!maybeSave())
+        return;
+
     loadFile(act->data().toString());
 }
 
@@ -287,17 +334,7 @@ void MainWindow::loadFile(const QString& fileName)
 
     setWindowFilePath(fileName);
 
-    // Store in recent files
-    QSettings settings(settingsFile);
-    QStringList files = settings.value("recent_files").toStringList();
-    files.removeAll(fileName);
-    files.prepend(fileName);
-    while (files.size() > MaxRecentFiles)
-        files.removeLast();
-
-    settings.setValue("recent_files", files);
-
-    updateRecentFileActions();
+    addFileToRecents(fileName);
 
     QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
 
@@ -317,12 +354,50 @@ void MainWindow::locateAppSettings()
     settingsFile = QDir::cleanPath(p);
 }
 
-void MainWindow::onSave()
+bool MainWindow::hasUnsavedChanges() const
+{
+    if(mScene->hasUnsavedChanges())
+        return true;
+
+    if(mRelaisModel->hasUnsavedChanges())
+        return true;
+
+    return false;
+}
+
+bool MainWindow::maybeSave()
+{
+    if(!hasUnsavedChanges())
+        return true; // No need to save
+
+    QMessageBox::StandardButton ret =
+            QMessageBox::question(this,
+                                  tr("Save Changes?"),
+                                  tr("Current file has unsaved changes.\n"
+                                     "Do you want to save them now?"),
+                                  QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+                                  QMessageBox::Save);
+
+    if(ret == QMessageBox::Cancel)
+        return false; // Keep current file open
+
+    if(ret == QMessageBox::Save)
+    {
+        // Check if really save
+        if(!saveInternal())
+            return false; // Saving was canceled
+    }
+
+    return true;
+}
+
+bool MainWindow::saveInternal()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Save Circuit"));
+                                                    tr("Save Circuit"),
+                                                    windowFilePath());
     if(fileName.isEmpty())
-        return;
+        return false;
 
     QJsonObject relais;
     mRelaisModel->saveToJSON(relais);
@@ -338,8 +413,20 @@ void MainWindow::onSave()
 
     QFile f(fileName);
     if(!f.open(QFile::WriteOnly))
-        return;
+        return false;
 
     f.write(doc.toJson());
+
+    addFileToRecents(fileName);
+
+    mScene->setHasUnsavedChanges(false);
+    mRelaisModel->setHasUnsavedChanges(false);
+
+    return true;
+}
+
+void MainWindow::onSave()
+{
+    saveInternal();
 }
 

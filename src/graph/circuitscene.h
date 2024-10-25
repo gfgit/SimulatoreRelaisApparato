@@ -101,10 +101,15 @@ public:
     bool loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory);
     void saveToJSON(QJsonObject &obj) const;
 
+    bool hasUnsavedChanges() const;
+    void setHasUnsavedChanges(bool newHasUnsavedChanged);
+
 signals:
     void modeChanged(Mode mode);
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);
+
+    void sceneEdited(bool val);
 
 protected:
     void keyReleaseEvent(QKeyEvent *e) override;
@@ -170,6 +175,8 @@ private:
     TileLocation mLastMovedItemValidLocation = TileLocation::invalid;
 
     RelaisModel *mRelaisModel = nullptr;
+
+    bool m_hasUnsavedChanges = false;
 };
 
 #endif // CIRCUITSCENE_H

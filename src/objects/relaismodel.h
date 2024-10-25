@@ -59,12 +59,20 @@ public:
     bool loadFromJSON(const QJsonObject& obj);
     void saveToJSON(QJsonObject& obj) const;
 
+    bool hasUnsavedChanges() const;
+    void setHasUnsavedChanges(bool newHasUnsavedChanges);
+
+signals:
+    void modelEdited(bool val);
+
 private slots:
     void onRelayChanged(AbstractRelais *r);
     void onRelayDestroyed(QObject *obj);
 
 private:
     QVector<AbstractRelais *> mRelais;
+
+    bool m_hasUnsavedChanges = false;
 };
 
 #endif // RELAISMODEL_H

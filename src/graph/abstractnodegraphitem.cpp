@@ -359,6 +359,10 @@ void AbstractNodeGraphItem::setRotate(TileRotate newRotate)
     // Detach all contacts, try reconnect immediately
     invalidateConnections(true);
 
+    CircuitScene *s = circuitScene();
+    if(s)
+        s->setHasUnsavedChanges(true);
+
     update();
 }
 
