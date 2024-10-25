@@ -68,6 +68,7 @@ public:
 protected slots:
     void triggerUpdate();
     virtual void updateName();
+    void onShapeChanged();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
@@ -78,7 +79,7 @@ protected:
     void drawMorsetti(QPainter *painter, int nodeContact, TileRotate r);
     void drawName(QPainter *painter, const QString &name, TileRotate r);
 
-    void invalidateConnections(bool tryReconnectImmediately = false);
+    void invalidateConnections(bool tryReconnectImmediately = true);
 
 private:
     AbstractCircuitNode *mAbstractNode;

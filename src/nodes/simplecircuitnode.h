@@ -53,9 +53,6 @@ public:
         return nodeContact != mDisabledContact;
     }
 
-signals:
-    void disabledContactChanged();
-
 private:
     int mDisabledContact = 0; // All enabled
 };

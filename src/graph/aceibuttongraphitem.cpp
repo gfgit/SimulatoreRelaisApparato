@@ -34,8 +34,6 @@ ACEIButtonGraphItem::ACEIButtonGraphItem(ACEIButtonNode *node_)
 {
     connect(node(), &ACEIButtonNode::stateChanged,
             this, &ACEIButtonGraphItem::triggerUpdate);
-    connect(node(), &ACEIButtonNode::shapeChanged,
-            this, &ACEIButtonGraphItem::onShapeChanged);
 }
 
 void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -367,13 +365,6 @@ void ACEIButtonGraphItem::getConnectors(std::vector<Connector> &connectors) cons
 ACEIButtonNode *ACEIButtonGraphItem::node() const
 {
     return static_cast<ACEIButtonNode *>(getAbstractNode());
-}
-
-void ACEIButtonGraphItem::onShapeChanged()
-{
-    // Detach all contacts, will be revaluated later
-    invalidateConnections();
-    update();
 }
 
 void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)

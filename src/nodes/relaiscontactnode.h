@@ -72,7 +72,6 @@ public:
 signals:
     void stateChanged();
     void relayChanged(AbstractRelais *r);
-    void shapeChanged();
 
 private slots:
     void onRelaisStateChanged();

@@ -29,8 +29,7 @@
 SimpleNodeGraphItem::SimpleNodeGraphItem(SimpleCircuitNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-    connect(node(), &SimpleCircuitNode::disabledContactChanged,
-            this, &SimpleNodeGraphItem::onShapeChanged);
+
 }
 
 void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -191,11 +190,4 @@ void SimpleNodeGraphItem::getConnectors(std::vector<Connector> &connectors) cons
 SimpleCircuitNode *SimpleNodeGraphItem::node() const
 {
     return static_cast<SimpleCircuitNode *>(getAbstractNode());
-}
-
-void SimpleNodeGraphItem::onShapeChanged()
-{
-    // Detach all contacts, will be revaluated later
-    invalidateConnections();
-    update();
 }

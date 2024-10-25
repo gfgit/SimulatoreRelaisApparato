@@ -129,7 +129,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                 contactSpin->setValue(node->disabledContact());
             };
 
-            QObject::connect(node, &SimpleCircuitNode::disabledContactChanged,
+            QObject::connect(node, &SimpleCircuitNode::shapeChanged,
                              w, updLambda);
             updLambda();
 

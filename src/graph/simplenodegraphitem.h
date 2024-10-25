@@ -40,9 +40,6 @@ public:
     void getConnectors(std::vector<Connector>& connectors) const final;
 
     SimpleCircuitNode *node() const;
-
-private slots:
-    void onShapeChanged();
 };
 
 #endif // SIMPLENODEGRAPHITEM_H

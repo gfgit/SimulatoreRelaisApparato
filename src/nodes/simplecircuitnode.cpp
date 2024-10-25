@@ -73,7 +73,7 @@ void SimpleCircuitNode::setDisabledContact(int val)
     if(mDisabledContact == val)
         return;
     mDisabledContact = val;
-    emit disabledContactChanged();
+    emit shapeChanged();
 
     // Commmon cannot be disabled
     if(mDisabledContact > 0)

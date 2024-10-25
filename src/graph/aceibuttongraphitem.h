@@ -41,9 +41,6 @@ public:
 
     ACEIButtonNode *node() const;
 
-public slots:
-    void onShapeChanged();
-
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;

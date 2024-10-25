@@ -43,6 +43,8 @@ AbstractNodeGraphItem::AbstractNodeGraphItem(AbstractCircuitNode *node_)
             this, &AbstractNodeGraphItem::updateName);
     connect(mAbstractNode, &AbstractCircuitNode::circuitsChanged,
             this, &AbstractNodeGraphItem::triggerUpdate);
+    connect(mAbstractNode, &AbstractCircuitNode::shapeChanged,
+            this, &AbstractNodeGraphItem::onShapeChanged);
 
     updateName();
 
@@ -144,7 +146,7 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
     else if(change == GraphicsItemChange::ItemPositionHasChanged)
     {
         // Detach all contacts, will be revaluated later
-        invalidateConnections();
+        invalidateConnections(false);
     }
 
     return QGraphicsObject::itemChange(change, value);
@@ -357,7 +359,7 @@ void AbstractNodeGraphItem::setRotate(TileRotate newRotate)
     mRotate = newRotate;
 
     // Detach all contacts, try reconnect immediately
-    invalidateConnections(true);
+    invalidateConnections();
 
     CircuitScene *s = circuitScene();
     if(s)
@@ -395,4 +397,11 @@ void AbstractNodeGraphItem::saveToJSON(QJsonObject &obj) const
     obj["rotation"] = int(mRotate);
 
     getAbstractNode()->saveToJSON(obj);
+}
+
+void AbstractNodeGraphItem::onShapeChanged()
+{
+    // Detach all contacts, will be revaluated immediately
+    invalidateConnections();
+    update();
 }

@@ -55,7 +55,6 @@ public:
 
 signals:
     void stateChanged();
-    void shapeChanged();
 
 private:
     State mState = State::Normal;

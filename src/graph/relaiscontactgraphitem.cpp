@@ -32,8 +32,6 @@ RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
 {
     connect(node(), &RelaisContactNode::stateChanged,
             this, &RelaisContactGraphItem::triggerUpdate);
-    connect(node(), &RelaisContactNode::shapeChanged,
-            this, &RelaisContactGraphItem::onShapeChanged);
 }
 
 void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -353,11 +351,4 @@ void RelaisContactGraphItem::getConnectors(std::vector<Connector> &connectors) c
 RelaisContactNode *RelaisContactGraphItem::node() const
 {
     return static_cast<RelaisContactNode *>(getAbstractNode());
-}
-
-void RelaisContactGraphItem::onShapeChanged()
-{
-    // Detach all contacts, will be revaluated later
-    invalidateConnections();
-    update();
 }

@@ -41,9 +41,6 @@ public:
     void getConnectors(std::vector<Connector>& connectors) const final;
 
     RelaisContactNode *node() const;
-
-public slots:
-    void onShapeChanged();
 };
 
 #endif // RELAISCONTACTGRAPHITEM_H
