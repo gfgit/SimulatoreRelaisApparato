@@ -172,6 +172,9 @@ void MainWindow::buildToolBar()
     QMenu *newItemMenu = new QMenu;
     newItem->setMenu(newItemMenu);
     ui->toolBar->addAction(newItem);
+    ui->toolBar->addSeparator();
+
+    QVector<QAction *> addItemActions;
 
     for(const QString& nodeType : mEditFactory->getRegisteredTypes())
     {
@@ -204,6 +207,8 @@ void MainWindow::buildToolBar()
 
             ui->graphicsView->ensureVisible(item);
         });
+
+        addItemActions.append(act);
     }
 
     QAction *newCableAct = newItemMenu->addAction(tr("New Cable"));
@@ -215,12 +220,24 @@ void MainWindow::buildToolBar()
         mScene->startEditNewCable();
     });
 
+    addItemActions.append(newCableAct);
+
     connect(mScene, &CircuitScene::modeChanged,
-            this, [this, toggleEditMode, newItem](CircuitScene::Mode mode)
+            this, [this, toggleEditMode, newItem, addItemActions](CircuitScene::Mode mode)
     {
         toggleEditMode->setChecked(mode == CircuitScene::Mode::Editing);
         newItem->setEnabled(mode == CircuitScene::Mode::Editing);
+
+        for(QAction *act : std::as_const(addItemActions))
+        {
+            act->setVisible(mode == CircuitScene::Mode::Editing);
+        }
     });
+
+    for(QAction *act : std::as_const(addItemActions))
+    {
+        ui->toolBar->addAction(act);
+    }
 }
 
 static QString strippedName(const QString &fullFileName, bool *ok)
