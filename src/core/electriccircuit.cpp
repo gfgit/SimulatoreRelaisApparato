@@ -28,6 +28,8 @@
 #include <QSet>
 #include <QVarLengthArray>
 
+#include <QDebug>
+
 ElectricCircuit::ElectricCircuit()
 {
 
@@ -36,6 +38,35 @@ ElectricCircuit::ElectricCircuit()
 void ElectricCircuit::enableCircuit()
 {
     Q_ASSERT(!enabled);
+    Q_ASSERT(!mItems.isEmpty());
+    Q_ASSERT(getSource());
+
+    // Check for duplicate circuits
+    // TODO: this should not happen
+    PowerSourceNode *source = getSource();
+    for(ElectricCircuit *other : source->getCircuits(type()))
+    {
+        if(other->mItems == mItems)
+        {
+            // We are a duplicate
+            qDebug() << "DUPLICATE CIRCUIT OF TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
+            delete this;
+            return;
+        }
+    }
+
+    // Duplicate of different type. This really should not happen!
+    CircuitType otherType = type() == CircuitType::Closed ? CircuitType::Open : CircuitType::Closed;
+    for(ElectricCircuit *other : source->getCircuits(otherType))
+    {
+        if(other->mItems == mItems)
+        {
+            // We are a duplicate
+            qDebug() << "DUPLICATE CIRCUIT OF OPPOSITE TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
+            delete this;
+            return;
+        }
+    }
 
     for(int i = 0; i < mItems.size(); i++)
     {
