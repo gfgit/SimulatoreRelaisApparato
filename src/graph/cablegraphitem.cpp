@@ -239,6 +239,13 @@ void CableGraphItem::updatePen()
     pen.setColor(color);
     pen.setStyle(style);
 
+    if(powerPole == CablePowerPole::None)
+        setZValue(0);
+    else if(powerType == CircuitType::Open)
+        setZValue(1);
+    else
+        setZValue(2); // Closed circuits on top
+
     update();
 }
 
