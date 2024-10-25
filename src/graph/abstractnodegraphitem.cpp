@@ -67,11 +67,11 @@ void AbstractNodeGraphItem::updateName()
 void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == CircuitScene::Mode::Editing && !s->isEditingCable())
+    if(s && s->mode() == CircuitScene::Mode::Editing && !s->isEditingCable() && boundingRect().contains(ev->pos()))
     {
         // Sometimes we receive clicks even if out of node tile
-        // In those cases do not start moving item!
-        if(ev->button() == Qt::LeftButton && boundingRect().contains(ev->pos()))
+        // In those cases do not start moving item or rotate it!
+        if(ev->button() == Qt::LeftButton)
         {
             s->startMovingItem(this);
         }
