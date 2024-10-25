@@ -27,6 +27,8 @@
 #include <QString>
 #include <QVector>
 
+#include "../../utils/tilerotate.h"
+
 class CableGraphItem;
 class AbstractNodeGraphItem;
 class AbstractCircuitNode;
@@ -43,23 +45,33 @@ public:
     typedef AbstractNodeGraphItem *(*CreateFunc)(CircuitScene *parent);
     typedef QWidget*(*EditFunc)(AbstractNodeGraphItem *item);
 
+    enum class NeedsName
+    {
+        Never = 0,
+        Always = 1,
+        OnlyOnEditing = 2
+    };
+
     struct FactoryItem
     {
         QString nodeType;
         QString prettyName;
         CreateFunc create = nullptr;
         EditFunc edit = nullptr;
-        bool needsName = false;
+
+        NeedsName needsName = NeedsName::OnlyOnEditing;
     };
 
     QStringList getRegisteredTypes() const;
 
-    AbstractNodeGraphItem *createItem(const QString& nodeType, CircuitScene *scene);
+    AbstractNodeGraphItem *createItem(const QString& nodeType,
+                                      CircuitScene *scene,
+                                      TileLocation hint = TileLocation::invalid);
     void editItem(QWidget *parent, AbstractNodeGraphItem *item);
     void editCable(QWidget *parent, CableGraphItem *item);
 
     QString prettyName(const QString& nodeType) const;
-    bool needsName(const QString &nodeType) const;
+    NeedsName needsName(const QString &nodeType) const;
 
     void registerFactory(const FactoryItem& factory);
 

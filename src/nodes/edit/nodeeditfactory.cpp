@@ -52,13 +52,17 @@ QStringList NodeEditFactory::getRegisteredTypes() const
     return result;
 }
 
-AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType, CircuitScene *scene)
+AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType,
+                                                   CircuitScene *scene,
+                                                   TileLocation hint)
 {
     const FactoryItem *factory = getItemForType(nodeType);
     if(!factory)
         return nullptr;
 
     AbstractNodeGraphItem *item = factory->create(scene);
+    if(hint.isValid())
+        item->setLocation(hint);
     scene->addNode(item);
     return item;
 }
@@ -76,7 +80,7 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
 
     dlg->setWindowTitle(tr("Edit %1").arg(node->objectName()));
 
-    if(factory->needsName)
+    if(factory->needsName != NeedsName::Never)
     {
         // Name
         QLineEdit *nameEdit = new QLineEdit(dlg);
@@ -204,11 +208,11 @@ QString NodeEditFactory::prettyName(const QString &nodeType) const
     return factory->prettyName;
 }
 
-bool NodeEditFactory::needsName(const QString &nodeType) const
+NodeEditFactory::NeedsName NodeEditFactory::needsName(const QString &nodeType) const
 {
     const FactoryItem *factory = getItemForType(nodeType);
     if(!factory)
-        return false;
+        return NeedsName::Never;
 
     return factory->needsName;
 }

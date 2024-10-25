@@ -183,9 +183,9 @@ void MainWindow::buildToolBar()
         {
             ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
 
-            const bool needsName = mEditFactory->needsName(nodeType);
+            const auto needsName = mEditFactory->needsName(nodeType);
             QString name;
-            if(needsName)
+            if(needsName == NodeEditFactory::NeedsName::Always)
             {
                 name = QInputDialog::getText(ui->graphicsView,
                                              MainWindow::tr("Choose Item Name"),
@@ -194,11 +194,15 @@ void MainWindow::buildToolBar()
                     return;
             }
 
-            auto item = mEditFactory->createItem(nodeType, mScene);
-            if(needsName)
+            QPoint vpCenter = ui->graphicsView->viewport()->rect().center();
+            QPointF sceneCenter = ui->graphicsView->mapToScene(vpCenter);
+            TileLocation hint = TileLocation::fromPoint(sceneCenter);
+
+            auto item = mEditFactory->createItem(nodeType, mScene, hint);
+            if(needsName == NodeEditFactory::NeedsName::Always)
                 item->getAbstractNode()->setObjectName(name);
 
-            ui->graphicsView->centerOn(item->boundingRect().center());
+            ui->graphicsView->ensureVisible(item);
         });
     }
 

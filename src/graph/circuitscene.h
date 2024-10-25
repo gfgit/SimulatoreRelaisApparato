@@ -74,7 +74,7 @@ public:
     void removeCable(CircuitCable *cable);
     CableGraphItem *graphForCable(CircuitCable *cable) const;
 
-    TileLocation getNewFreeLocation();
+    TileLocation getNewFreeLocation(TileLocation hint = TileLocation::invalid);
 
     static QPointF getConnectorPoint(TileLocation l, Connector::Direction direction);
 

@@ -87,7 +87,7 @@ void CircuitScene::addNode(AbstractNodeGraphItem *item)
     if(!isLocationFree(item->location()))
     {
         // Assign a new location to node
-        item->setLocation(getNewFreeLocation());
+        item->setLocation(getNewFreeLocation(item->location()));
     }
 
     mItemMap.insert({item->location(), item});
@@ -177,12 +177,29 @@ CableGraphItem *CircuitScene::graphForCable(CircuitCable *cable) const
     return it->second;
 }
 
-TileLocation CircuitScene::getNewFreeLocation()
+TileLocation CircuitScene::getNewFreeLocation(TileLocation hint)
 {
-    TileLocation location{0, 0};
-    while(!isLocationFree(location))
-        location.x++;
-    return location;
+    if(!hint.isValid())
+        hint = {0, 0};
+
+    while(true)
+    {
+        TileLocation location = hint;
+        for(location.x = hint.x; location.x < hint.x + 15; location.x++)
+        {
+            if(isLocationFree(location))
+                return location;
+        }
+        for(location.x = hint.x; location.x > hint.x - 15; location.x--)
+        {
+            if(isLocationFree(location))
+                return location;
+        }
+        hint.y++;
+    }
+
+    Q_UNREACHABLE();
+    return TileLocation::invalid;
 }
 
 bool CircuitScene::isLocationFree(TileLocation l) const

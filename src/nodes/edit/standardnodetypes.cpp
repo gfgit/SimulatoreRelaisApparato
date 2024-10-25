@@ -80,8 +80,8 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // On/Off
         NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Always;
         factory.nodeType = OnOffGraphItem::Node::NodeType;
-        factory.needsName = true;
         factory.prettyName = tr("On/Off switch");
         factory.create = &addNewNodeToScene<OnOffGraphItem>;
         factory.edit = nullptr;
@@ -142,6 +142,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // Relais Power
         NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = RelaisPowerGraphItem::Node::NodeType;
         factory.prettyName = tr("Relay Power");
         factory.create = &addNewNodeToScene<RelaisPowerGraphItem>;
@@ -170,6 +171,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // Relais Contact
         NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = RelaisContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Relay Contact");
         factory.create = &addNewNodeToScene<RelaisContactGraphItem>;
@@ -236,7 +238,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // ACEI Button Contact
         NodeEditFactory::FactoryItem factory;
-        factory.needsName = true;
+        factory.needsName = NodeEditFactory::NeedsName::Always;
         factory.nodeType = ACEIButtonGraphItem::Node::NodeType;
         factory.prettyName = tr("ACEI Button");
         factory.create = &addNewNodeToScene<ACEIButtonGraphItem>;
@@ -274,7 +276,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // Light Bulb node
         NodeEditFactory::FactoryItem factory;
-        factory.needsName = true;
+        factory.needsName = NodeEditFactory::NeedsName::Always;
         factory.nodeType = LightBulbGraphItem::Node::NodeType;
         factory.prettyName = tr("Light Bulb");
         factory.create = &addNewNodeToScene<LightBulbGraphItem>;
