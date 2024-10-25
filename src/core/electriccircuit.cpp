@@ -546,7 +546,7 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
     QVarLengthArray<int, 4> unpoweredContacts;
     for(int contact = 0; contact < node->getContactCount(); contact++)
     {
-        if(node->hasAnyCircuit(contact) == AnyCircuitType::None)
+        if(node->hasAnyExitCircuit(contact) == AnyCircuitType::None)
         {
             unpoweredContacts.append(contact);
         }
@@ -580,7 +580,7 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
             // Go forward
             CableItem nodeSourceCable;
-            nodeSourceCable.cable.cable = lastCable.cable;
+            nodeSourceCable.cable = lastCable;
             nodeSourceCable.cable.side = ~lastCable.side;
             nodeSourceCable.nodeContact = otherItem.node.fromContact;
             const auto connections = node->getActiveConnections(nodeSourceCable);
@@ -591,6 +591,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
             {
                 if(!unpoweredContacts.contains(conn.nodeContact))
                     continue;
+
+                if(conn.nodeContact == otherItem.node.toContact)
+                    continue; // We should follow a different path
 
                 // Copy items until cable before node
                 QVector<Item> items(origCircuit->mItems.begin(),

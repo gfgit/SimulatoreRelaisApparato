@@ -65,7 +65,7 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
 
         if(item.fromContact != NodeItem::InvalidContact)
         {
-            int &fromCount = mContacts[item.fromContact].count(circuit->type());
+            int &fromCount = mContacts[item.fromContact].entranceCount(circuit->type());
             fromCount++;
             if(fromCount == 1)
                 updateNeeded = true;
@@ -73,7 +73,7 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
 
         if(item.toContact != NodeItem::InvalidContact)
         {
-            int &toCount = mContacts[item.toContact].count(circuit->type());
+            int &toCount = mContacts[item.toContact].exitCount(circuit->type());
             toCount++;
             if(toCount == 1)
                 updateNeeded = true;
@@ -106,7 +106,7 @@ void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const N
 
         if(item.fromContact != NodeItem::InvalidContact)
         {
-            int &fromCount = mContacts[item.fromContact].count(circuit->type());
+            int &fromCount = mContacts[item.fromContact].entranceCount(circuit->type());
             Q_ASSERT(fromCount > 0);
 
             fromCount--;
@@ -116,7 +116,7 @@ void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const N
 
         if(item.toContact != NodeItem::InvalidContact)
         {
-            int &toCount = mContacts[item.toContact].count(circuit->type());
+            int &toCount = mContacts[item.toContact].exitCount(circuit->type());
             Q_ASSERT(toCount > 0);
 
             toCount--;
@@ -275,7 +275,7 @@ void AbstractCircuitNode::unregisterOpenCircuitExit(ElectricCircuit *circuit)
     {
         // We enabled exit contact only for circuit passing through
         // Open circuits which end here (last node) do not enable toCount
-        int &toCount = mContacts[item.toContact].count(circuit->type());
+        int &toCount = mContacts[item.toContact].exitCount(circuit->type());
         Q_ASSERT(toCount > 0);
 
         toCount--;

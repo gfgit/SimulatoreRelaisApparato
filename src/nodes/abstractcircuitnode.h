@@ -51,21 +51,37 @@ public:
         CableSide cableSide = CableSide::A;
         ContactType type1 = ContactType::NotConnected;
         ContactType type2 = ContactType::NotConnected;
-        int closedCircuitCount = 0;
-        int openCircuitCount = 0;
+        int closedCircuitEntranceCount = 0;
+        int openCircuitEntranceCount = 0;
+        int closedCircuitExitCount = 0;
+        int openCircuitExitCount = 0;
 
-        inline int& count(CircuitType type)
+        inline int& entranceCount(CircuitType type)
         {
             return type == CircuitType::Closed ?
-                        closedCircuitCount :
-                        openCircuitCount;
+                        closedCircuitEntranceCount :
+                        openCircuitEntranceCount;
         }
 
-        inline int count(CircuitType type) const
+        inline int entranceCount(CircuitType type) const
         {
             return type == CircuitType::Closed ?
-                        closedCircuitCount :
-                        openCircuitCount;
+                        closedCircuitEntranceCount :
+                        openCircuitEntranceCount;
+        }
+
+        inline int& exitCount(CircuitType type)
+        {
+            return type == CircuitType::Closed ?
+                        closedCircuitExitCount :
+                        openCircuitExitCount;
+        }
+
+        inline int exitCount(CircuitType type) const
+        {
+            return type == CircuitType::Closed ?
+                        closedCircuitExitCount :
+                        openCircuitExitCount;
         }
 
         inline ContactType getType(CircuitPole pole) const
@@ -116,14 +132,25 @@ public:
         return getCircuits(type).size() > 0;
     }
 
+    inline bool hasEntranceCircuit(int nodeContact,
+                           CircuitType type = CircuitType::Closed) const
+    {
+        Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
+        return mContacts.at(nodeContact).entranceCount(type) > 0;
+    }
+
+    inline bool hasExitCircuit(int nodeContact,
+                           CircuitType type = CircuitType::Closed) const
+    {
+        Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
+        return mContacts.at(nodeContact).exitCount(type) > 0;
+    }
+
     inline bool hasCircuit(int nodeContact,
                            CircuitType type = CircuitType::Closed) const
     {
-        if(!hasCircuits(type))
-            return false;
-
-        Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
-        return mContacts.at(nodeContact).count(type) > 0;
+        return hasEntranceCircuit(nodeContact, type) ||
+                hasExitCircuit(nodeContact, type);
     }
 
     inline AnyCircuitType hasAnyCircuit(int nodeContact) const
@@ -131,6 +158,24 @@ public:
         if(hasCircuit(nodeContact, CircuitType::Closed))
             return AnyCircuitType::Closed;
         if(hasCircuit(nodeContact, CircuitType::Open))
+            return AnyCircuitType::Open;
+        return AnyCircuitType::None;
+    }
+
+    inline AnyCircuitType hasAnyEntranceCircuit(int nodeContact) const
+    {
+        if(hasExitCircuit(nodeContact, CircuitType::Closed))
+            return AnyCircuitType::Closed;
+        if(hasExitCircuit(nodeContact, CircuitType::Open))
+            return AnyCircuitType::Open;
+        return AnyCircuitType::None;
+    }
+
+    inline AnyCircuitType hasAnyExitCircuit(int nodeContact) const
+    {
+        if(hasExitCircuit(nodeContact, CircuitType::Closed))
+            return AnyCircuitType::Closed;
+        if(hasExitCircuit(nodeContact, CircuitType::Open))
             return AnyCircuitType::Open;
         return AnyCircuitType::None;
     }
