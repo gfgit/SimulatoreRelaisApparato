@@ -109,6 +109,8 @@ public:
 
     virtual void addCircuit(ElectricCircuit *circuit);
     virtual void removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items);
+    virtual void partialAddCircuit(ElectricCircuit *circuit,
+                                   const NodeOccurences &items);
     virtual void partialRemoveCircuit(ElectricCircuit *circuit,
                                       const NodeOccurences &items);
 
@@ -198,17 +200,17 @@ protected:
     QVector<NodeContact> mContacts;
 
     typedef QVector<ElectricCircuit *> CircuitList;
-    void disableCircuits(const CircuitList& listCopy,
+    void disableCircuits(CircuitList &list,
                          AbstractCircuitNode *node);
 
-    void disableCircuits(const CircuitList& listCopy,
+    void disableCircuits(const CircuitList& list,
                          AbstractCircuitNode *node,
                          const int contact);
 
-    void truncateCircuits(const CircuitList& listCopy,
+    void truncateCircuits(const CircuitList& list,
                           AbstractCircuitNode *node);
 
-    void truncateCircuits(const CircuitList &listCopy,
+    void truncateCircuits(const CircuitList &list,
                           AbstractCircuitNode *node,
                           const int contact);
 

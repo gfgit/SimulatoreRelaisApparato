@@ -165,17 +165,15 @@ void ACEIButtonNode::setState(State newState)
     {
         // If pressed all circuits are enabled
         // Else delete old circuits
-        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
         if(mState == State::Extracted)
-            disableCircuits(closedCopy, this); // Disable all
+            disableCircuits(getCircuits(CircuitType::Closed), this); // Disable all
         else
-            disableCircuits(closedCopy, this, 1); // Only pressed circuits
+            disableCircuits(getCircuits(CircuitType::Closed), this, 1); // Only pressed circuits
 
-        const CircuitList openCopy = getCircuits(CircuitType::Open);
         if(mState == State::Extracted)
-            truncateCircuits(openCopy, this); // Disable all
+            truncateCircuits(getCircuits(CircuitType::Open), this); // Disable all
         else
-            truncateCircuits(openCopy, this, 1); // Only pressed circuits
+            truncateCircuits(getCircuits(CircuitType::Open), this, 1); // Only pressed circuits
 
     }
 

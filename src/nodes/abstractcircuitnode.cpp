@@ -56,9 +56,25 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
 
     circuitList.append(circuit);
 
+    partialAddCircuit(circuit, circuit->getNode(this));
+}
+
+void AbstractCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences& items)
+{
+    CircuitList& circuitList = getCircuits(circuit->type());
+    Q_ASSERT(circuitList.contains(circuit));
+
+    partialRemoveCircuit(circuit, items);
+
+    circuitList.removeOne(circuit);
+}
+
+void AbstractCircuitNode::partialAddCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
+{
+    Q_ASSERT(getCircuits(circuit->type()).contains(circuit));
+
     bool updateNeeded = false;
 
-    const auto items = circuit->getNode(this);
     for(int i = 0; i < items.size(); i++)
     {
         const NodeItem& item = items.at(i);
@@ -80,18 +96,8 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
         }
     }
 
-    if(circuitList.size() == 1 || updateNeeded)
+    if(updateNeeded)
         emit circuitsChanged();
-}
-
-void AbstractCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences& items)
-{
-    CircuitList& circuitList = getCircuits(circuit->type());
-    Q_ASSERT(circuitList.contains(circuit));
-
-    partialRemoveCircuit(circuit, items);
-
-    circuitList.removeOne(circuit);
 }
 
 void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
@@ -207,21 +213,26 @@ void AbstractCircuitNode::detachCable(int contactIdx)
     }
 }
 
-void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
+void AbstractCircuitNode::disableCircuits(CircuitList &list,
                                           AbstractCircuitNode *node)
 {
-    for(ElectricCircuit *circuit : listCopy)
+    while(!list.isEmpty())
     {
+        ElectricCircuit *circuit = list.first();
         circuit->disableOrTerminate(node);
     }
 }
 
-void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
+void AbstractCircuitNode::disableCircuits(const CircuitList &list,
                                           AbstractCircuitNode *node,
                                           const int contact)
 {
-    for(ElectricCircuit *circuit : listCopy)
+    for(int i = 0; i < list.size();)
     {
+        ElectricCircuit *circuit = list.at(i);
+
+        bool disabled = false;
+
         const auto items = circuit->getNode(this);
         for(const NodeItem& item : items)
         {
@@ -231,29 +242,55 @@ void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
             if(item.fromContact == contact || item.toContact == contact)
             {
                 circuit->disableOrTerminate(node);
+                disabled = true;
                 break;
             }
         }
+
+        if(disabled)
+        {
+            // Next item was shifted back
+            // Do not increase index
+            continue;
+        }
+
+        // Go to next item
+        i++;
     }
 }
 
-void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
+void AbstractCircuitNode::truncateCircuits(const CircuitList &list,
                                            AbstractCircuitNode *node)
 {
     CircuitList duplicateList;
-    for(ElectricCircuit *circuit : listCopy)
+    for(int i = 0; i < list.size();)
     {
-        circuit->terminateHere(node, duplicateList);
+        Q_ASSERT(i < list.size());
+        ElectricCircuit *circuit = list.at(i);
+
+        if(circuit->terminateHere(node, duplicateList))
+        {
+            // Next item was shifted back
+            // Do not increase index
+            continue;
+        }
+
+        // Go to next item
+        i++;
     }
 }
 
-void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
-                                          AbstractCircuitNode *node,
-                                          const int contact)
+void AbstractCircuitNode::truncateCircuits(const CircuitList &list,
+                                           AbstractCircuitNode *node,
+                                           const int contact)
 {
     CircuitList duplicateList;
-    for(ElectricCircuit *circuit : listCopy)
+    for(int i = 0; i < list.size();)
     {
+        ElectricCircuit *circuit = list.at(i);
+
+        bool disabled = false;
+
         const auto items = circuit->getNode(this);
         for(const NodeItem& item : items)
         {
@@ -263,9 +300,20 @@ void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
             if(item.fromContact == contact || item.toContact == contact)
             {
                 circuit->terminateHere(node, duplicateList);
+                disabled = true;
                 break;
             }
         }
+
+        if(disabled)
+        {
+            // Next item was shifted back
+            // Do not increase index
+            continue;
+        }
+
+        // Go to next item
+        i++;
     }
 }
 

@@ -40,10 +40,11 @@ public:
     };
 
     explicit ElectricCircuit();
+    ~ElectricCircuit();
 
     void enableCircuit();
     void disableOrTerminate(AbstractCircuitNode *node);
-    void terminateHere(AbstractCircuitNode *goalNode, QVector<ElectricCircuit *>& deduplacteList);
+    bool terminateHere(AbstractCircuitNode *goalNode, QVector<ElectricCircuit *>& deduplacteList);
 
     inline CircuitType type() const { return mType; }
 
@@ -62,20 +63,45 @@ public:
 
     static void defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode);
 
+    ElectricCircuit *parent() const;
+    void setParent(ElectricCircuit *newParent);
+
+    void promoteToType(CircuitType newType);
+
+    inline const QVector<ElectricCircuit *> &getChildren() const
+    {
+        return mChildren;
+    }
+
 private:
+    static bool containsNode(const QVector<ElectricCircuit::Item> &items, AbstractCircuitNode *node, int nodeContact, CircuitPole pole);
+    static bool containsNode(ElectricCircuit *circuit, AbstractCircuitNode *node, int nodeContact, CircuitPole pole);
+
     bool tryReachOpen(AbstractCircuitNode *goalNode);
 
-    static bool passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item>& items, int depth);
+    static void passCircuitNode(ElectricCircuit *parent,
+                                AbstractCircuitNode *node,
+                                int nodeContact,
+                                const QVector<Item>& items,
+                                int depth, bool extendParent = false);
 
     static void searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth);
 
     static void extendOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items);
 
+    void disableInternal();
+    void disableChildren();
+
+    void extendCircuit(const QVector<Item>& items);
+
 private:
+    ElectricCircuit *mParent = nullptr;
+    QVector<ElectricCircuit *> mChildren;
     QVector<Item> mItems;
+    CircuitType mType = CircuitType::Open;
+    int mClosedChildCount = 0;
     bool enabled = false;
     bool isDisabling = false;
-    CircuitType mType = CircuitType::Open;
 };
 
 constexpr bool operator ==(const ElectricCircuit::Item& lhs, const ElectricCircuit::Item& rhs)

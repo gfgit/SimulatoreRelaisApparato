@@ -35,6 +35,15 @@ ElectricCircuit::ElectricCircuit()
 
 }
 
+ElectricCircuit::~ElectricCircuit()
+{
+    // Unregister from parent circuit
+    setParent(nullptr);
+
+    // Delete all children
+    disableChildren();
+}
+
 void ElectricCircuit::enableCircuit()
 {
     Q_ASSERT(!enabled);
@@ -43,30 +52,51 @@ void ElectricCircuit::enableCircuit()
 
     // Check for duplicate circuits
     // TODO: this should not happen
-    PowerSourceNode *source = getSource();
-    for(ElectricCircuit *other : source->getCircuits(type()))
+    if(!parent())
     {
-        if(other->mItems == mItems)
+        // Toplevel circuit
+        PowerSourceNode *source = getSource();
+        for(ElectricCircuit *other : source->getCircuits(type()))
         {
-            // We are a duplicate
-            qDebug() << "DUPLICATE CIRCUIT OF TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
-            delete this;
-            return;
+            if(other->mItems == mItems)
+            {
+                // We are a duplicate
+                qDebug() << "DUPLICATE CIRCUIT OF TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
+                delete this;
+                return;
+            }
+        }
+
+        // Duplicate of different type. This really should not happen!
+        CircuitType otherType = type() == CircuitType::Closed ? CircuitType::Open : CircuitType::Closed;
+        for(ElectricCircuit *other : source->getCircuits(otherType))
+        {
+            if(other->mItems == mItems)
+            {
+                // We are a duplicate
+                qDebug() << "DUPLICATE CIRCUIT OF OPPOSITE TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
+                delete this;
+                return;
+            }
+        }
+    }
+    else
+    {
+        for(ElectricCircuit *other : parent()->getChildren())
+        {
+            if(other == this)
+                continue; // Don't compare against ourself
+
+            if(other->mItems == mItems)
+            {
+                // We are a duplicate
+                qDebug() << "DUPLICATE CIRCUIT child:" << (type() == CircuitType::Closed ? "closed" : "open");
+                delete this;
+                return;
+            }
         }
     }
 
-    // Duplicate of different type. This really should not happen!
-    CircuitType otherType = type() == CircuitType::Closed ? CircuitType::Open : CircuitType::Closed;
-    for(ElectricCircuit *other : source->getCircuits(otherType))
-    {
-        if(other->mItems == mItems)
-        {
-            // We are a duplicate
-            qDebug() << "DUPLICATE CIRCUIT OF OPPOSITE TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
-            delete this;
-            return;
-        }
-    }
 
     for(int i = 0; i < mItems.size(); i++)
     {
@@ -156,7 +186,6 @@ bool ElectricCircuit::tryReachOpen(AbstractCircuitNode *goalNode)
 void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
 {
     Q_ASSERT(type() == CircuitType::Closed);
-    Q_ASSERT(enabled);
 
     // Guard against recursive disabling of circuit
     if(isDisabling)
@@ -164,45 +193,34 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
 
     isDisabling = true;
 
-    // Remove only once per item
-    // This way we can assert inside removeCircuit()
-    QSet<AbstractCircuitNode *> nodes;
-    QSet<CircuitCable *> cables;
+    disableChildren();
+    disableInternal();
 
-    for(const Item& item : std::as_const(mItems))
+    if(type() == CircuitType::Closed && parent() && !parent()->isDisabling)
     {
-        if(item.isNode)
+        // Demote parent from Closed to Open circuit
+        if(parent())
         {
-            if(!nodes.contains(item.node.node))
-            {
-                NodeOccurences items = getNode(item.node.node);
-                item.node.node->removeCircuit(this, items);
-                nodes.insert(item.node.node);
-            }
-        }
-        else
-        {
-            if(!cables.contains(item.cable.cable))
-            {
-                item.cable.cable->removeCircuit(this);
-                cables.insert(item.cable.cable);
-            }
+            Q_ASSERT(parent()->mClosedChildCount > 0);
+            parent()->mClosedChildCount--;
+
+            parent()->promoteToType(CircuitType::Open);
         }
     }
 
     isDisabling = false;
 
-    enabled = false;
-
     if(!tryReachOpen(node))
         delete this;
 }
 
-void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
+bool ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
                                     QVector<ElectricCircuit *> &deduplacteList)
 {
     Q_ASSERT(type() == CircuitType::Open);
     Q_ASSERT(enabled);
+
+    disableChildren();
 
     // Remove only once per item
     // This way we can assert inside removeCircuit()
@@ -325,6 +343,7 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
     {
         // We are an empty circuit
         delete this;
+        return true;
     }
     else
     {
@@ -335,6 +354,8 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
 
         deduplacteList.append(this);
     }
+
+    return false;
 }
 
 QVector<NodeItem> ElectricCircuit::getNode(AbstractCircuitNode *node) const
@@ -362,10 +383,15 @@ bool ElectricCircuit::isLastNode(AbstractCircuitNode *node) const
 
 PowerSourceNode *ElectricCircuit::getSource() const
 {
-    if(mItems.isEmpty())
+    const ElectricCircuit *circuit = this;
+
+    while(circuit->parent())
+        circuit = circuit->parent();
+
+    if(circuit->mItems.isEmpty())
         return nullptr;
 
-    const Item& item = mItems.first();
+    const Item& item = circuit->mItems.first();
     if(!item.isNode)
         return nullptr;
 
@@ -409,7 +435,8 @@ void ElectricCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
         }
 
         // Depth 1 because we already passed PowerSource node
-        passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 1);
+        // No parent
+        passCircuitNode(nullptr, cableEnd.node, cableEnd.nodeContact, items, 1);
     }
     else
     {
@@ -421,7 +448,7 @@ void ElectricCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
     }
 }
 
-bool containsNode(const QVector<ElectricCircuit::Item> &items, AbstractCircuitNode *node, int nodeContact, CircuitPole pole)
+bool ElectricCircuit::containsNode(const QVector<ElectricCircuit::Item> &items, AbstractCircuitNode *node, int nodeContact, CircuitPole pole)
 {
     for(auto item : items)
     {
@@ -441,11 +468,41 @@ bool containsNode(const QVector<ElectricCircuit::Item> &items, AbstractCircuitNo
     return false;
 }
 
-bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
+bool ElectricCircuit::containsNode(ElectricCircuit *circuit, AbstractCircuitNode *node, int nodeContact, CircuitPole pole)
+{
+    bool lastCircuit = true;
+    while(circuit)
+    {
+        if(containsNode(circuit->mItems, node, nodeContact, pole))
+        {
+            // Last item is duplicated, avoid matching it
+            if(lastCircuit && circuit->mItems.size())
+            {
+                Item otherItem = circuit->mItems.last();
+                if(otherItem.isNode &&
+                        otherItem.node.node == node &&
+                        otherItem.node.toContact == NodeItem::InvalidContact)
+                    return false; // Let new circuit passa on this node
+            }
+
+            // Duplicate node, circuit would be infinite loop
+            return true;
+        }
+        circuit = circuit->parent();
+        lastCircuit = false;
+    }
+
+    return false;
+}
+
+void ElectricCircuit::passCircuitNode(ElectricCircuit *parent, AbstractCircuitNode *node,
+                                      int nodeContact,
+                                      const QVector<Item> &items,
+                                      int depth, bool extendParent)
 {
     // Returns true if circuit goes to next node
     if(depth > 1000)
-        return false; // TODO
+        return; // TODO
 
     CableContact lastCable = items.constLast().cable;
 
@@ -456,24 +513,52 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
     nodeItem.node.fromPole = lastCable.pole;
     nodeItem.node.toContact = NodeItem::InvalidContact;
 
-    if(node == items.first().node.node)
+    if(PowerSourceNode *pwNode = qobject_cast<PowerSourceNode *>(node))
     {
+        AbstractCircuitNode *source = nullptr;
+        if(parent)
+            source = parent->getSource();
+        else
+            source = items.first().node.node;
+
+        if(pwNode != source)
+        {
+            // Error, different power source connected
+            return;
+        }
+
         if(nodeItem.node.fromPole == CircuitPole::Second)
         {
-            // We closed the circuit
-            ElectricCircuit *circuit = new ElectricCircuit();
-            circuit->mItems = items;
-            circuit->mItems.append(nodeItem);
-            circuit->mType = CircuitType::Closed;
-            circuit->enableCircuit();
-        }
-        return false;
-    }
+            //TODO: extend parent
+            // if(extendParent && parent->type() == CircuitType::Open)
+            // {
+            //     // Extend original circuit
+            //     parent->extendCircuit({nodeItem});
+            // }
 
-    if(qobject_cast<PowerSourceNode *>(node))
-    {
-        // Error, different power source connected
-        return false;
+            // We closed the circuit
+            if(parent)
+                parent->promoteToType(CircuitType::Closed);
+
+            QVector<Item> newItems = items;
+            newItems.append(nodeItem);
+
+            if(extendParent)
+            {
+                // Extend original circuit
+                parent->extendCircuit(newItems);
+            }
+            else
+            {
+                ElectricCircuit *circuit = new ElectricCircuit();
+                circuit->mItems = items;
+                circuit->mItems.append(nodeItem);
+                circuit->mType = CircuitType::Closed;
+                circuit->setParent(parent);
+                circuit->enableCircuit();
+            }
+        }
+        return;
     }
 
     CableItem nodeSourceCable;
@@ -482,27 +567,14 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
     nodeSourceCable.nodeContact = nodeContact;
     const auto connections = node->getActiveConnections(nodeSourceCable);
 
-    bool circuitEndsHere = true;
-
+    // Calculate num children
+    int numChildren = 0;
     for(const auto& conn : connections)
     {
-        nodeItem.node.toContact = conn.nodeContact;
-        nodeItem.node.toPole = conn.cable.pole;
-
-        Item nextCable;
-        nextCable.cable = conn.cable;
-
         if(!conn.cable.cable)
         {
-            // Register an open circuit which passes through node
-            ElectricCircuit *circuit = new ElectricCircuit();
-            circuit->mItems = items;
-            circuit->mItems.append(nodeItem);
-            circuit->mType = CircuitType::Open;
-            circuit->enableCircuit();
-
             // Circuit will pass to opposite node connector
-            circuitEndsHere = false;
+            numChildren++;
             continue;
         }
 
@@ -511,17 +583,9 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
 
         if(!cableEnd.node)
         {
-            // Register an open circuit which passes through node
-            // And then go to next cable
-            ElectricCircuit *circuit = new ElectricCircuit();
-            circuit->mItems = items;
-            circuit->mItems.append(nodeItem);
-            circuit->mItems.append(nextCable);
-            circuit->mType = CircuitType::Open;
-            circuit->enableCircuit();
-
             // Circuit will pass to opposite node connector
-            circuitEndsHere = false;
+            // And then go to next cable
+            numChildren++;
             continue;
         }
 
@@ -533,43 +597,137 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
         // In all cases above we consider circuit as not ending here
         // So that original circuit can be freed
         // This avoid keeping around duplicate Open Circuits
-        circuitEndsHere = false;
 
         if(cableEnd.node == node && cableEnd.nodeContact == nodeContact)
         {
             continue;
         }
 
+        if(containsNode(parent, node, nodeContact, lastCable.pole))
+            continue;
         if(containsNode(items, node, nodeContact, lastCable.pole))
             continue;
 
-        QVector<Item> newItems = items;
-        newItems.append(nodeItem);
-        newItems.append(nextCable);
-        passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, depth + 1);
+        numChildren++;
     }
 
-    if(circuitEndsHere)
+    bool usePrevItems = true;
+    if(numChildren > 1 || numChildren == 0)
     {
-        if(depth > 0)
+        QVector<Item> newItems = items;
+        newItems.append(nodeItem); // No toContact
+
+        if(extendParent && parent->type() == CircuitType::Open)
         {
-            // Register an open circuit which passes HALF node
+            // Extend original circuit
+            parent->extendCircuit(newItems);
+        }
+        else
+        {
+            // Make circuit end here
             ElectricCircuit *circuit = new ElectricCircuit();
-            circuit->mItems = items;
-            circuit->mItems.append(nodeItem);
+            circuit->mItems = newItems;
             circuit->mType = CircuitType::Open;
+            circuit->setParent(parent);
             circuit->enableCircuit();
+
+            // We are new parent for following circuits
+            parent = circuit;
         }
 
-        return false;
+        if(numChildren == 0)
+            return; // No continuation
+
+        // We cannot extend for multilple children
+        // Each one will be a new circuit
+        usePrevItems = false;
+        extendParent = false;
     }
 
-    return true;
+    for(const auto& conn : connections)
+    {
+        nodeItem.node.toContact = conn.nodeContact;
+        nodeItem.node.toPole = conn.cable.pole;
+
+        Item nextCable;
+        nextCable.cable = conn.cable;
+
+        if(!conn.cable.cable)
+        {
+            QVector<Item> newItems;
+            if(usePrevItems)
+                newItems = items;
+            newItems.append(nodeItem); // With toContact
+
+            if(extendParent && parent->type() == CircuitType::Open)
+            {
+                // Extend original circuit
+                parent->extendCircuit(newItems);
+                break;
+            }
+            else
+            {
+                // Register an open circuit which passes through node
+                ElectricCircuit *circuit = new ElectricCircuit();
+                circuit->mItems = newItems;
+                circuit->mType = CircuitType::Open;
+                circuit->setParent(parent);
+                circuit->enableCircuit();
+                continue;
+            }
+        }
+
+        QVector<Item> newItems;
+        if(usePrevItems)
+            newItems = items;
+        newItems.append(nodeItem);
+        newItems.append(nextCable);
+
+        // Get opposite side
+        CableEnd cableEnd = conn.cable.cable->getNode(~conn.cable.side);
+
+        if(!cableEnd.node)
+        {
+            if(extendParent && parent->type() == CircuitType::Open)
+            {
+                // Extend original circuit
+                parent->extendCircuit(newItems);
+            }
+            else
+            {
+                // Register an open circuit which passes through node
+                // And then go to next cable
+                ElectricCircuit *circuit = new ElectricCircuit();
+                circuit->mItems = newItems;
+                circuit->mType = CircuitType::Open;
+                circuit->setParent(parent);
+                circuit->enableCircuit();
+                continue;
+            }
+        }
+
+        if(cableEnd.node == node && cableEnd.nodeContact == nodeContact)
+        {
+            continue;
+        }
+
+        if(containsNode(parent, node, nodeContact, lastCable.pole))
+            continue;
+        if(containsNode(items, node, nodeContact, lastCable.pole))
+            continue;
+
+        passCircuitNode(parent,
+                        cableEnd.node, cableEnd.nodeContact,
+                        newItems, depth + 1, extendParent);
+    }
+
+    return;
 }
 
 void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 {
-    const QVector<ElectricCircuit *> openCircuitsCopy = node->getCircuits(CircuitType::Open);
+    QVector<ElectricCircuit *> existingCircuits = node->getCircuits(CircuitType::Closed);
+    existingCircuits.append(node->getCircuits(CircuitType::Open));
 
     // Search which nodes do not have any circuit.
     // We look for new circuits on these nodes
@@ -583,22 +741,22 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
         }
     }
 
-    for(ElectricCircuit *origCircuit : openCircuitsCopy)
+    for(int circuitIdx = 0; circuitIdx < existingCircuits.size(); circuitIdx++)
     {
+        ElectricCircuit *origCircuit = existingCircuits.at(circuitIdx);
+
         // Try to continue circuit
-        Q_ASSERT(origCircuit->mItems.size() >= 3); // PowerSource + cable + Our Node
-        Q_ASSERT(origCircuit->mItems.last().isNode);
+        if(origCircuit->mItems.size() < 3)
+            continue; // Previous Node + cable + Our Node
 
         // This node might not be the last of this circuit.
         // So we take every passage of this circuit on this node
         // and from each we try to look for new circuits in other
         // directions than original circuit.
 
-        bool removeOriginalCircuit = false;
-
         for(int i = 0; i < origCircuit->mItems.size(); i++)
         {
-            const Item& otherItem = origCircuit->mItems.at(i);
+            const Item otherItem = origCircuit->mItems.at(i);
             if(!otherItem.isNode || otherItem.node.node != node)
                 continue;
 
@@ -616,38 +774,14 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
             nodeSourceCable.nodeContact = otherItem.node.fromContact;
             const auto connections = node->getActiveConnections(nodeSourceCable);
 
-            bool circuitEndsHere = true;
-
+            // Calculate num children
+            int numChildren = 0;
             for(const auto& conn : connections)
             {
-                if(!unpoweredContacts.contains(conn.nodeContact))
-                    continue;
-
-                if(conn.nodeContact == otherItem.node.toContact)
-                    continue; // We should follow a different path
-
-                // Copy items until cable before node
-                QVector<Item> items(origCircuit->mItems.begin(),
-                                    origCircuit->mItems.begin() + i);
-
-                Item nodeItem = otherItem;
-                nodeItem.node.toContact = conn.nodeContact;
-                nodeItem.node.toPole = conn.cable.pole;
-
-                Item nextCable;
-                nextCable.cable = conn.cable;
-
                 if(!conn.cable.cable)
                 {
-                    // Register an open circuit which passes through node
-                    ElectricCircuit *circuit = new ElectricCircuit();
-                    circuit->mItems = items;
-                    circuit->mItems.append(nodeItem);
-                    circuit->mType = CircuitType::Open;
-                    circuit->enableCircuit();
-
                     // Circuit will pass to opposite node connector
-                    circuitEndsHere = false;
+                    numChildren++;
                     continue;
                 }
 
@@ -656,17 +790,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 if(!cableEnd.node)
                 {
-                    // Register an open circuit which passes through node
-                    // And then go to next cable
-                    ElectricCircuit *circuit = new ElectricCircuit();
-                    circuit->mItems = items;
-                    circuit->mItems.append(nodeItem);
-                    circuit->mItems.append(nextCable);
-                    circuit->mType = CircuitType::Open;
-                    circuit->enableCircuit();
-
                     // Circuit will pass to opposite node connector
-                    circuitEndsHere = false;
+                    // And then go to next cable
+                    numChildren++;
                     continue;
                 }
 
@@ -678,37 +804,161 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
                 // In all cases above we consider circuit as not ending here
                 // So that original circuit can be freed
                 // This avoid keeping around duplicate Open Circuits
-                circuitEndsHere = false;
 
                 if(cableEnd.node == node && cableEnd.nodeContact == nodeSourceCable.nodeContact)
                 {
                     continue;
                 }
 
-                if(containsNode(items, node, nodeSourceCable.nodeContact, lastCable.pole))
+                if(containsNode(origCircuit, node, nodeSourceCable.nodeContact, lastCable.pole))
                     continue;
 
-                QVector<Item> newItems = items;
+                numChildren++;
+            }
+
+            // Ensure slip happens only once
+            bool wasSplit = false;
+            bool canExtend = (numChildren == 1);
+
+            for(const auto& conn : connections)
+            {
+                if(!unpoweredContacts.contains(conn.nodeContact))
+                    continue;
+
+                if(conn.nodeContact == otherItem.node.toContact)
+                    continue; // We should follow a different path
+
+                // We can start from this circuit
+
+                if(!wasSplit && i != origCircuit->mItems.size() - 1)
+                {
+                    // We are not last node
+                    // Split it into 2 parts
+                    wasSplit = true;
+                    canExtend = false;
+
+                    // Copy items from node and after
+                    QVector<Item> otherItems(origCircuit->mItems.begin() + i,
+                                             origCircuit->mItems.end());
+
+                    ElectricCircuit *continuationCircuit = new ElectricCircuit();
+                    continuationCircuit->mItems = otherItems;
+                    continuationCircuit->mType = origCircuit->type();
+                    continuationCircuit->setParent(origCircuit);
+
+                    const auto oldChildrenCopy = origCircuit->mChildren;
+                    for(ElectricCircuit *child : oldChildrenCopy)
+                    {
+                        if(child == continuationCircuit)
+                            continue;
+
+                        child->setParent(continuationCircuit);
+                    }
+
+                    continuationCircuit->enableCircuit();
+
+                    // Later we re-scan this circuit
+                    existingCircuits.append(continuationCircuit);
+
+                    // Now we disable original circuit, modify it and re-enable it
+                    origCircuit->disableInternal();
+
+                    // Remove items following node and node itself
+                    origCircuit->mItems.remove(i, origCircuit->mItems.size() - i);
+
+                    // Re-add node but without toContact
+                    Item nodeItem = otherItem;
+                    nodeItem.node.toContact = NodeItem::InvalidContact;
+                    origCircuit->mItems.append(nodeItem);
+
+                    // Re-enable it
+                    origCircuit->enableCircuit();
+                }
+
+                Item nodeItem = otherItem;
+                nodeItem.node.toContact = conn.nodeContact;
+                nodeItem.node.toPole = conn.cable.pole;
+
+                Item nextCable;
+                nextCable.cable = conn.cable;
+
+                if(!conn.cable.cable)
+                {
+                    if(canExtend && origCircuit->type() == CircuitType::Open)
+                    {
+                        // Extend original circuit
+                        origCircuit->extendCircuit({nodeItem});
+                        break;
+                    }
+                    else
+                    {
+                        // Register an open circuit which passes through node
+                        ElectricCircuit *circuit = new ElectricCircuit();
+                        circuit->mItems.append(nodeItem);
+                        circuit->mType = CircuitType::Open;
+                        circuit->setParent(origCircuit);
+                        circuit->enableCircuit();
+
+                        // Circuit will pass to opposite node connector
+                        continue;
+                    }
+                }
+
+                // Get opposite side
+                CableEnd cableEnd = conn.cable.cable->getNode(~conn.cable.side);
+
+                if(!cableEnd.node)
+                {
+                    if(canExtend && origCircuit->type() == CircuitType::Open)
+                    {
+                        // Extend original circuit
+                        origCircuit->extendCircuit({nodeItem, nextCable});
+                        break;
+                    }
+                    else
+                    {
+                        // Register an open circuit which passes through node
+                        // And then go to next cable
+                        ElectricCircuit *circuit = new ElectricCircuit();
+                        circuit->setParent(origCircuit);
+                        circuit->mItems.append(nodeItem);
+                        circuit->mItems.append(nextCable);
+                        circuit->mType = CircuitType::Open;
+                        circuit->enableCircuit();
+
+                        // Circuit will pass to opposite node connector
+                        continue;
+                    }
+                }
+
+                // At this point one of the following can happen:
+                // 1- Cable is connected both sides to same node (rather impossible)
+                // 2- Circuit already contain this node with same contact and polarity
+                //    So it's an invalid circuit with infinite loop and must be ignored
+                // 3- Circuit will pass node and go on
+                // In all cases above we consider circuit as not ending here
+                // So that original circuit can be freed
+                // This avoid keeping around duplicate Open Circuits
+
+                if(cableEnd.node == node && cableEnd.nodeContact == nodeSourceCable.nodeContact)
+                {
+                    continue;
+                }
+
+                if(containsNode(origCircuit, node, nodeSourceCable.nodeContact, lastCable.pole))
+                    continue;
+
+                QVector<Item> newItems;
                 newItems.append(nodeItem);
                 newItems.append(nextCable);
 
-                passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, 1);
-            }
+                passCircuitNode(origCircuit,
+                                cableEnd.node, cableEnd.nodeContact,
+                                newItems, 1, canExtend);
 
-            if(i == origCircuit->mItems.size() - 1 && !circuitEndsHere)
-            {
-                // We are last node of original circuit
-                // And circuits go on.
-                // So remove original circuit
-                removeOriginalCircuit = true;
+                if(wasSplit)
+                    break;
             }
-        }
-
-        if(removeOriginalCircuit)
-        {
-            // Circuit went ahead, delete old open circuit
-            QVector<ElectricCircuit *> dummy;
-            origCircuit->terminateHere(origCircuit->getSource(), dummy);
         }
     }
 }
@@ -887,5 +1137,178 @@ void ElectricCircuit::extendOpenCircuits(AbstractCircuitNode *node, int nodeCont
                 circuit->enableCircuit();
             }
         }
+    }
+}
+
+void ElectricCircuit::disableInternal()
+{
+    Q_ASSERT(enabled);
+
+    // Remove only once per item
+    // This way we can assert inside removeCircuit()
+    QSet<AbstractCircuitNode *> nodes;
+    QSet<CircuitCable *> cables;
+
+    for(const Item& item : std::as_const(mItems))
+    {
+        if(item.isNode)
+        {
+            if(!nodes.contains(item.node.node))
+            {
+                NodeOccurences items = getNode(item.node.node);
+                item.node.node->removeCircuit(this, items);
+                nodes.insert(item.node.node);
+            }
+        }
+        else
+        {
+            if(!cables.contains(item.cable.cable))
+            {
+                item.cable.cable->removeCircuit(this);
+                cables.insert(item.cable.cable);
+            }
+        }
+    }
+
+    enabled = false;
+}
+
+void ElectricCircuit::disableChildren()
+{
+    // Disable all children
+    for(ElectricCircuit *child : mChildren)
+    {
+        // Parent demote was already done if needed
+        child->disableChildren();
+        child->disableInternal();
+
+        // We manually remove them from children list
+        child->mParent = nullptr;
+        delete child;
+    }
+    mChildren.clear();
+    mClosedChildCount = 0;
+}
+
+void ElectricCircuit::extendCircuit(const QVector<Item> &items)
+{
+    Q_ASSERT(!mItems.isEmpty());
+    Q_ASSERT(!items.isEmpty());
+    Q_ASSERT(mItems.last().isNode);
+
+    int firstToAdd = 0;
+    QSet<AbstractCircuitNode *> existingNodes;
+
+    const Item nodeItem = items.first();
+    if(nodeItem.isNode && nodeItem.node.node == mItems.last().node.node)
+    {
+        if(enabled)
+        {
+            nodeItem.node.node->partialRemoveCircuit(this, {mItems.last().node});
+            nodeItem.node.node->partialAddCircuit(this, {nodeItem.node});
+        }
+
+        mItems.last() = nodeItem;
+        firstToAdd = 1;
+
+        for(int i = 0; i < mItems.size(); i++)
+        {
+            const Item& item = mItems.at(i);
+            if(item.isNode)
+            {
+                existingNodes.insert(item.node.node);
+            }
+        }
+    }
+
+    mItems.append(items.begin() + firstToAdd, items.end());
+
+    if(enabled)
+    {
+        // Register on new items
+        for(int i = firstToAdd; i < items.size(); i++)
+        {
+            const Item& item = items[i];
+            if(item.isNode)
+            {
+                if(existingNodes.contains(item.node.node))
+                    item.node.node->partialAddCircuit(this, {item.node});
+                else
+                    item.node.node->addCircuit(this);
+            }
+            else
+            {
+                item.cable.cable->addCircuit(this, item.cable.pole);
+            }
+        }
+    }
+}
+
+ElectricCircuit *ElectricCircuit::parent() const
+{
+    return mParent;
+}
+
+void ElectricCircuit::setParent(ElectricCircuit *newParent)
+{
+    if(mParent == newParent)
+        return;
+
+    Q_ASSERT(newParent != this);
+
+    if(mParent)
+    {
+        if(type() == CircuitType::Closed)
+        {
+            // TODO: Already done in disableInternal() ???
+            Q_ASSERT(mParent->mClosedChildCount > 0);
+            mParent->mClosedChildCount--;
+        }
+        mParent->mChildren.removeOne(this);
+    }
+
+    mParent = newParent;
+
+    if(mParent)
+    {
+        // Open circuits can only have open circuit children
+        Q_ASSERT(mParent->type() == CircuitType::Closed || type() == mParent->type());
+        mParent->mChildren.append(this);
+        if(type() == CircuitType::Closed)
+        {
+            mParent->mClosedChildCount++;
+        }
+    }
+}
+
+void ElectricCircuit::promoteToType(CircuitType newType)
+{
+    ElectricCircuit *circuit = this;
+    while(circuit)
+    {
+        if(circuit->type() == newType)
+            break;
+
+        // Cannot demote to Open circuit if we have Closed children
+        if(newType == CircuitType::Open && circuit->mClosedChildCount > 0)
+            break;
+
+        circuit->disableInternal();
+        circuit->mType = newType;
+        circuit->enableCircuit();
+
+        ElectricCircuit *p = circuit->parent();
+        if(p)
+        {
+            if(newType == CircuitType::Closed)
+                p->mClosedChildCount++;
+            else
+            {
+                Q_ASSERT(p->mClosedChildCount > 0);
+                p->mClosedChildCount--;
+            }
+        }
+
+        circuit = p;
     }
 }

@@ -215,11 +215,8 @@ void RelaisContactNode::setHasCentralConnector(bool newHasCentralConnector)
         if(hasCircuit(1) > 0)
         {
             // Disable all circuits passing on disabled contact
-            const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-            disableCircuits(closedCopy, this, 1);
-
-            const CircuitList openCopy = getCircuits(CircuitType::Open);
-            truncateCircuits(openCopy, this, 1);
+            disableCircuits(getCircuits(CircuitType::Closed), this, 1);
+            truncateCircuits(getCircuits(CircuitType::Open), this, 1);
         }
 
         detachCable(1);
@@ -241,11 +238,8 @@ void RelaisContactNode::setState(State newState)
     bool hadCircuits = hasCircuits(CircuitType::Closed) || hasCircuits(CircuitType::Open);
 
     // Disable circuits
-    const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-    disableCircuits(closedCopy, this);
-
-    const CircuitList openCopy = getCircuits(CircuitType::Open);
-    truncateCircuits(openCopy, this);
+    disableCircuits(getCircuits(CircuitType::Closed), this);
+    truncateCircuits(getCircuits(CircuitType::Open), this);
 
     if(mState != State::Middle)
     {
