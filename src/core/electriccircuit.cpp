@@ -577,6 +577,9 @@ void ElectricCircuit::passCircuitNode(ElectricCircuit *parent, AbstractCircuitNo
     {
         if(!conn.cable.cable)
         {
+            if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                continue; // Already has voltage
+
             // Circuit will pass to opposite node connector
             numChildren++;
             continue;
@@ -587,6 +590,9 @@ void ElectricCircuit::passCircuitNode(ElectricCircuit *parent, AbstractCircuitNo
 
         if(!cableEnd.node)
         {
+            if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                continue; // Already has voltage
+
             // Circuit will pass to opposite node connector
             // And then go to next cable
             numChildren++;
@@ -611,6 +617,9 @@ void ElectricCircuit::passCircuitNode(ElectricCircuit *parent, AbstractCircuitNo
             continue;
         if(containsNode(items, node, nodeContact, lastCable.pole))
             continue;
+
+        //if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+        //    continue; // Already has voltage or current
 
         numChildren++;
     }
@@ -658,6 +667,9 @@ void ElectricCircuit::passCircuitNode(ElectricCircuit *parent, AbstractCircuitNo
 
         if(!conn.cable.cable)
         {
+            if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                continue; // Already has voltage
+
             QVector<Item> newItems;
             if(usePrevItems)
                 newItems = items;
@@ -692,6 +704,9 @@ void ElectricCircuit::passCircuitNode(ElectricCircuit *parent, AbstractCircuitNo
 
         if(!cableEnd.node)
         {
+            if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                continue; // Already has voltage
+
             if(extendParent && parent->type() == CircuitType::Open)
             {
                 // Extend original circuit
@@ -719,6 +734,9 @@ void ElectricCircuit::passCircuitNode(ElectricCircuit *parent, AbstractCircuitNo
             continue;
         if(containsNode(items, node, nodeContact, lastCable.pole))
             continue;
+
+        //if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+        //    continue; // Already has voltage or current
 
         passCircuitNode(parent,
                         cableEnd.node, cableEnd.nodeContact,
@@ -784,6 +802,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
             {
                 if(!conn.cable.cable)
                 {
+                    if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                        continue; // Already has voltage
+
                     // Circuit will pass to opposite node connector
                     numChildren++;
                     continue;
@@ -794,6 +815,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 if(!cableEnd.node)
                 {
+                    if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                        continue; // Already has voltage
+
                     // Circuit will pass to opposite node connector
                     // And then go to next cable
                     numChildren++;
@@ -888,6 +912,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 if(!conn.cable.cable)
                 {
+                    if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                        continue; // Already has voltage
+
                     if(canExtend && origCircuit->type() == CircuitType::Open)
                     {
                         // Extend original circuit
@@ -913,6 +940,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 if(!cableEnd.node)
                 {
+                    if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                        continue; // Already has voltage
+
                     if(canExtend && origCircuit->type() == CircuitType::Open)
                     {
                         // Extend original circuit
