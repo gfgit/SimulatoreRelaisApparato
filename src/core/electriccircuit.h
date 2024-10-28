@@ -40,6 +40,7 @@ public:
     };
 
     explicit ElectricCircuit();
+    ~ElectricCircuit();
 
     void enableCircuit();
     void disableOrTerminate(AbstractCircuitNode *node);
