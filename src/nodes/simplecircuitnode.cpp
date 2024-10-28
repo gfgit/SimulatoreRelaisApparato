@@ -78,18 +78,9 @@ void SimpleCircuitNode::setDisabledContact(int val)
     // Commmon cannot be disabled
     if(mDisabledContact > 0)
     {
-        // Remove circuits and detach cable
-        // No need to add circuits to previous disabled contact
-        // Since it will not have cable attached
-        if(hasCircuit(mDisabledContact) > 0)
-        {
-            // Disable all circuits passing on disabled contact
-            const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-            disableCircuits(closedCopy, this, mDisabledContact);
-
-            const CircuitList openCopy = getCircuits(CircuitType::Open);
-            truncateCircuits(openCopy, this, mDisabledContact);
-        }
+        // Circuits must be disabled before editing contacts
+        Q_ASSERT(getCircuits(CircuitType::Closed).isEmpty());
+        Q_ASSERT(getCircuits(CircuitType::Open).isEmpty());
 
         detachCable(mDisabledContact);
     }
