@@ -30,9 +30,11 @@
 
 #include <QDebug>
 
+static int allCircuitsCount = 0;
+
 ElectricCircuit::ElectricCircuit()
 {
-
+    allCircuitsCount++;
 }
 
 ElectricCircuit::~ElectricCircuit()
@@ -42,6 +44,8 @@ ElectricCircuit::~ElectricCircuit()
 
     // Delete all children
     disableChildren();
+
+    allCircuitsCount--;
 }
 
 void ElectricCircuit::enableCircuit()
