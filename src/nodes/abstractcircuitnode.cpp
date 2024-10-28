@@ -225,6 +225,9 @@ void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
         const auto items = circuit->getNode(this);
         for(const NodeItem& item : items)
         {
+            if(item.fromContact == contact && item.toContact == NodeItem::InvalidContact)
+                continue; // This circuit comes from outside
+
             if(item.fromContact == contact || item.toContact == contact)
             {
                 circuit->disableOrTerminate(node);
@@ -254,6 +257,9 @@ void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
         const auto items = circuit->getNode(this);
         for(const NodeItem& item : items)
         {
+            if(item.fromContact == contact && item.toContact == NodeItem::InvalidContact)
+                continue; // This circuit comes from outside
+
             if(item.fromContact == contact || item.toContact == contact)
             {
                 circuit->terminateHere(node, duplicateList);
