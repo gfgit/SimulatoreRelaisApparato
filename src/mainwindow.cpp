@@ -47,6 +47,8 @@
 
 #include <QCloseEvent>
 
+#include <QSortFilterProxyModel>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -56,7 +58,12 @@ MainWindow::MainWindow(QWidget *parent)
     locateAppSettings();
 
     mRelaisModel = new RelaisModel(this);
-    ui->relaisView->setModel(mRelaisModel);
+
+    QSortFilterProxyModel *relaysProxy = new QSortFilterProxyModel(this);
+    relaysProxy->setSourceModel(mRelaisModel);
+    relaysProxy->setSortRole(Qt::DisplayRole);
+    relaysProxy->sort(0);
+    ui->relaisView->setModel(relaysProxy);
 
     connect(ui->addRelayBut, &QPushButton::clicked,
             mRelaisModel, [this]()
