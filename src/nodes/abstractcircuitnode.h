@@ -100,7 +100,7 @@ public:
         }
     };
 
-    explicit AbstractCircuitNode(QObject *parent = nullptr);
+    explicit AbstractCircuitNode(bool isLoad = false, QObject *parent = nullptr);
     ~AbstractCircuitNode();
 
     inline int getContactCount() const { return mContacts.size(); }
@@ -228,6 +228,7 @@ protected:
 private:
     CircuitList mClosedCircuits;
     CircuitList mOpenCircuits;
+    const bool isElectricLoad;
 };
 
 #endif // ABSTRACTCIRCUITNODE_H

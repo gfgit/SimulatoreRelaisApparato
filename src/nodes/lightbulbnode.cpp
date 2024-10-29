@@ -23,7 +23,7 @@
 #include "lightbulbnode.h"
 
 LightBulbNode::LightBulbNode(QObject *parent)
-    : AbstractCircuitNode{parent}
+    : AbstractCircuitNode{true, parent}
 {
     // 1 side
     mContacts.append(NodeContact("1", "2"));

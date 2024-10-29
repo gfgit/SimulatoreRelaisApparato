@@ -30,7 +30,7 @@
 #include <QJsonObject>
 
 RelaisContactNode::RelaisContactNode(QObject *parent)
-    : AbstractCircuitNode{parent}
+    : AbstractCircuitNode{false, parent}
 {
     // 3 sides
     mContacts.append(NodeContact("11", "12")); // Common

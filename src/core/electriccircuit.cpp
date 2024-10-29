@@ -448,11 +448,13 @@ bool containsNode(const QVector<ElectricCircuit::Item> &items, AbstractCircuitNo
     return false;
 }
 
-bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth)
+ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact,
+                                                                 const QVector<Item> &items, int depth,
+                                                                 PassMode mode)
 {
     // Returns true if circuit goes to next node
     if(depth > 1000)
-        return false; // TODO
+        return {}; // TODO
 
     CableContact lastCable = items.constLast().cable;
 
@@ -473,14 +475,15 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
             circuit->mItems.append(nodeItem);
             circuit->mType = CircuitType::Closed;
             circuit->enableCircuit();
+            return {0, 1};
         }
-        return false;
+        return {};
     }
 
     if(qobject_cast<PowerSourceNode *>(node))
     {
         // Error, different power source connected
-        return false;
+        return {};
     }
 
     CableItem nodeSourceCable;
@@ -490,6 +493,8 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
     const auto connections = node->getActiveConnections(nodeSourceCable);
 
     bool circuitEndsHere = true;
+
+    PassNodeResult result;
 
     for(const auto& conn : connections)
     {
@@ -504,6 +509,9 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
             if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
                 continue; // Already has voltage
 
+            if(mode.testFlag(PassModes::SkipLoads))
+                continue;
+
             // Register an open circuit which passes through node
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = items;
@@ -513,6 +521,7 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
 
             // Circuit will pass to opposite node connector
             circuitEndsHere = false;
+            result.openCircuits++;
             continue;
         }
 
@@ -523,6 +532,9 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
         {
             if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
                 continue; // Already has voltage
+
+            if(mode.testFlag(PassModes::SkipLoads))
+                continue;
 
             // Register an open circuit which passes through node
             // And then go to next cable
@@ -535,6 +547,7 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
 
             // Circuit will pass to opposite node connector
             circuitEndsHere = false;
+            result.openCircuits++;
             continue;
         }
 
@@ -559,12 +572,46 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
         QVector<Item> newItems = items;
         newItems.append(nodeItem);
         newItems.append(nextCable);
-        passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, depth + 1);
+
+        PassMode newMode = mode;
+
+        if(cableEnd.node->isElectricLoad)
+        {
+            if(mode.testFlag(PassModes::SkipLoads))
+                continue; // Skip loads
+
+            newMode.setFlag(PassModes::LoadPassed, true);
+        }
+
+        PassNodeResult nextResult;
+
+        if(newMode.testFlag(PassModes::LoadPassed))
+        {
+            // Try first to skip other loads and go directly to source
+            PassMode skipLoads = newMode;
+            skipLoads.setFlag(PassModes::SkipLoads, true);
+
+            nextResult = passCircuitNode(cableEnd.node, cableEnd.nodeContact,
+                                         newItems, depth + 1,
+                                         skipLoads);
+        }
+
+        if(nextResult.closedCircuits == 0 && !newMode.testFlag(PassModes::SkipLoads))
+        {
+            // Try again allowing other loads on circuit
+            newMode.setFlag(PassModes::SkipLoads, false);
+
+            nextResult += passCircuitNode(cableEnd.node, cableEnd.nodeContact,
+                                          newItems, depth + 1,
+                                          newMode);
+        }
+
+        result += nextResult;
     }
 
     if(circuitEndsHere)
     {
-        if(depth > 0)
+        if(depth > 0 && !mode.testFlag(PassModes::SkipLoads))
         {
             // Register an open circuit which passes HALF node
             ElectricCircuit *circuit = new ElectricCircuit();
@@ -574,10 +621,12 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
             circuit->enableCircuit();
         }
 
-        return false;
+        // Do not count this as result
+        // It will replace parent circuit
+        return {};
     }
 
-    return true;
+    return result;
 }
 
 void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
@@ -609,10 +658,18 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
         bool removeOriginalCircuit = false;
 
+        bool loadPassed = false;
+
         for(int i = 0; i < origCircuit->mItems.size(); i++)
         {
             const Item& otherItem = origCircuit->mItems.at(i);
-            if(!otherItem.isNode || otherItem.node.node != node)
+            if(!otherItem.isNode)
+                continue;
+
+            if(otherItem.node.node->isElectricLoad)
+                loadPassed = true;
+
+            if(otherItem.node.node != node)
                 continue;
 
             if(i == 0)
@@ -711,7 +768,13 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
                 newItems.append(nodeItem);
                 newItems.append(nextCable);
 
-                passCircuitNode(cableEnd.node, cableEnd.nodeContact, newItems, 1);
+                PassMode mode = PassModes::None;
+                if(loadPassed || cableEnd.node->isElectricLoad)
+                    mode.setFlag(PassModes::LoadPassed, true);
+
+                passCircuitNode(cableEnd.node, cableEnd.nodeContact,
+                                newItems, 1,
+                                mode);
             }
 
             if(i == origCircuit->mItems.size() - 1 && !circuitEndsHere)

@@ -25,7 +25,7 @@
 #include "../core/electriccircuit.h"
 
 OnOffSwitchNode::OnOffSwitchNode(QObject *parent)
-    : AbstractCircuitNode{parent}
+    : AbstractCircuitNode{false, parent}
 {
     // 2 sides
     mContacts.append(NodeContact("11", "12"));

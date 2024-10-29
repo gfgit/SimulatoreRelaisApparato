@@ -25,7 +25,7 @@
 #include "../core/electriccircuit.h"
 
 PowerSourceNode::PowerSourceNode(QObject *parent)
-    : AbstractCircuitNode{parent}
+    : AbstractCircuitNode{false, parent}
 {
     // 1 side
     mContacts.append(NodeContact("1", "2"));

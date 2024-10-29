@@ -27,8 +27,9 @@
 
 #include <QJsonObject>
 
-AbstractCircuitNode::AbstractCircuitNode(QObject *parent)
+AbstractCircuitNode::AbstractCircuitNode(bool isLoad, QObject *parent)
     : QObject{parent}
+    , isElectricLoad(isLoad)
 {
 
 }

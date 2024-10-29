@@ -26,6 +26,8 @@
 #include "../enums/cabletypes.h"
 #include "../enums/circuittypes.h"
 
+#include <QFlags>
+
 class AbstractCircuitNode;
 class PowerSourceNode;
 
@@ -38,6 +40,33 @@ public:
         NodeItem node;
         bool isNode = false;
     };
+
+    enum class PassModes
+    {
+        None = 0,
+        LoadPassed = 1 << 0,
+        SkipLoads = 1 << 1
+    };
+
+    struct PassNodeResult
+    {
+        int openCircuits = 0;
+        int closedCircuits = 0;
+
+        inline PassNodeResult& operator +=(const PassNodeResult& other)
+        {
+            openCircuits += other.openCircuits;
+            closedCircuits += other.closedCircuits;
+            return *this;
+        }
+
+        inline bool isEmpty() const
+        {
+            return !openCircuits && !closedCircuits;
+        }
+    };
+
+    Q_DECLARE_FLAGS(PassMode, PassModes)
 
     explicit ElectricCircuit();
     ~ElectricCircuit();
@@ -66,7 +95,9 @@ public:
 private:
     bool tryReachOpen(AbstractCircuitNode *goalNode);
 
-    static bool passCircuitNode(AbstractCircuitNode *node, int nodeContact, const QVector<Item>& items, int depth);
+    static PassNodeResult passCircuitNode(AbstractCircuitNode *node, int nodeContact,
+                                          const QVector<Item>& items, int depth,
+                                          PassMode mode = PassModes::None);
 
     static void searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth);
 

@@ -27,7 +27,7 @@
 #include <QJsonObject>
 
 SimpleCircuitNode::SimpleCircuitNode(QObject *parent)
-    : AbstractCircuitNode{parent}
+    : AbstractCircuitNode{false, parent}
 {
     // 4 sides
     mContacts.append(NodeContact());
