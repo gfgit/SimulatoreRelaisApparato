@@ -133,7 +133,7 @@ void RelaisModel::removeRelay(AbstractRelais *r)
 
     disconnect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
     disconnect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
-    disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayChanged);
+    disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
     mRelais.removeAt(row);
 
     endRemoveRows();
@@ -210,13 +210,14 @@ void RelaisModel::saveToJSON(QJsonObject &obj) const
 
 void RelaisModel::onRelayChanged(AbstractRelais *r)
 {
-    int row = mRelais.indexOf(r);
-    Q_ASSERT(row >= 0);
-
-    QModelIndex idx = index(row, 0);
-    emit dataChanged(idx, idx);
-
+    updateRelayRow(r);
     setHasUnsavedChanges(true);
+}
+
+void RelaisModel::onRelayStateChanged(AbstractRelais *r)
+{
+    // No changes to save in this case
+    updateRelayRow(r);
 }
 
 void RelaisModel::onRelayDestroyed(QObject *obj)
@@ -230,6 +231,15 @@ void RelaisModel::onRelayDestroyed(QObject *obj)
     endRemoveRows();
 
     setHasUnsavedChanges(true);
+}
+
+void RelaisModel::updateRelayRow(AbstractRelais *r)
+{
+    int row = mRelais.indexOf(r);
+    Q_ASSERT(row >= 0);
+
+    QModelIndex idx = index(row, 0);
+    emit dataChanged(idx, idx);
 }
 
 bool RelaisModel::hasUnsavedChanges() const

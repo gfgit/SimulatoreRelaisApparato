@@ -67,7 +67,11 @@ signals:
 
 private slots:
     void onRelayChanged(AbstractRelais *r);
+    void onRelayStateChanged(AbstractRelais *r);
     void onRelayDestroyed(QObject *obj);
+
+private:
+    void updateRelayRow(AbstractRelais *r);
 
 private:
     QVector<AbstractRelais *> mRelais;
