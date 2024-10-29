@@ -501,6 +501,9 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
 
         if(!conn.cable.cable)
         {
+            if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                continue; // Already has voltage
+
             // Register an open circuit which passes through node
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = items;
@@ -518,6 +521,9 @@ bool ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact
 
         if(!cableEnd.node)
         {
+            if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                continue; // Already has voltage
+
             // Register an open circuit which passes through node
             // And then go to next cable
             ElectricCircuit *circuit = new ElectricCircuit();
@@ -646,6 +652,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 if(!conn.cable.cable)
                 {
+                    if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                        continue; // Already has voltage
+
                     // Register an open circuit which passes through node
                     ElectricCircuit *circuit = new ElectricCircuit();
                     circuit->mItems = items;
@@ -663,6 +672,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 if(!cableEnd.node)
                 {
+                    if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                        continue; // Already has voltage
+
                     // Register an open circuit which passes through node
                     // And then go to next cable
                     ElectricCircuit *circuit = new ElectricCircuit();
