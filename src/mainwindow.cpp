@@ -151,6 +151,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    // These classes emit signals in destructors which
+    // would happen after MainWindow destructor, in super class.
+    // Delete them now.
+    delete mRelaisModel;
+    delete mScene;
+
     delete ui;
 }
 
