@@ -115,7 +115,7 @@ void RelaisModel::addRelay(AbstractRelais *r)
 
     connect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
     connect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
-    connect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayChanged);
+    connect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
     mRelais.append(r);
 
     endInsertRows();
@@ -164,7 +164,8 @@ void RelaisModel::clear()
     {
         disconnect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
         disconnect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
-        disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayChanged);
+        disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
+        delete r;
     }
     mRelais.clear();
 
@@ -183,7 +184,7 @@ bool RelaisModel::loadFromJSON(const QJsonObject &obj)
 
         connect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
         connect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
-        connect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayChanged);
+        connect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
         mRelais.append(r);
     }
 
