@@ -40,6 +40,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include <QPainter>
+
 #include "../nodes/edit/nodeeditfactory.h"
 
 CircuitScene::CircuitScene(QObject *parent)
@@ -78,6 +80,9 @@ void CircuitScene::setMode(Mode newMode)
     {
         powerSource->node()->setEnabled(powerSourceEnabled);
     }
+
+    // Background changes between modes
+    invalidate(QRectF(), BackgroundLayer);
 }
 
 void CircuitScene::addNode(AbstractNodeGraphItem *item)
@@ -1305,4 +1310,96 @@ void CircuitScene::refreshItemConnections(AbstractNodeGraphItem *item, bool tryR
     // Try reconnect item
     QVector<CircuitCable *> dummy;
     checkItem(item, dummy);
+}
+
+void CircuitScene::drawBackground(QPainter *painter, const QRectF &rect)
+{
+    const QRectF sr = sceneRect();
+
+    // Actual scene background
+    QRectF bgRect = rect.intersected(sr);
+
+    if(!sr.contains(rect))
+    {
+        // Dark gray backgound outside of scene rect
+        painter->fillRect(rect, Qt::darkGray);
+    }
+
+    // Scene white background
+    painter->fillRect(bgRect, Qt::white);
+
+    if(mMode == Mode::Editing)
+    {
+        // Draw grid lines in gray
+        QPen gridPen(Qt::gray, 2.0);
+        painter->setPen(gridPen);
+
+        const int ARR_SIZE = 100;
+        QLineF arr[ARR_SIZE];
+
+        const qreal x1 = bgRect.left();
+        const qreal x2 = bgRect.right();
+        const qreal t  = bgRect.top();
+        const qreal b  = bgRect.bottom();
+
+        const int minH = qCeil(sr.top() / TileLocation::Size);
+        const int maxH  = qFloor(sr.bottom() / TileLocation::Size);
+        const int minV = qCeil(sr.left() / TileLocation::Size);
+        const int maxV  = qFloor(sr.right() / TileLocation::Size);
+
+        if(minH > maxH || minV > maxV)
+            return; // Nothing to draw
+
+        int firstH = qCeil(t / TileLocation::Size) - 1;
+        int lastH  = qFloor(b / TileLocation::Size) + 1;
+        int firstV = qCeil(x1 / TileLocation::Size) - 1;
+        int lastV  = qFloor(x2 / TileLocation::Size) + 1;
+
+        firstH = qBound(minH, firstH, maxH);
+        lastH = qBound(minH, lastH, maxH);
+        firstV = qBound(minV, firstV, maxV);
+        lastV = qBound(minV, lastV, maxV);
+
+        const int horizN = lastH - firstH;
+        if (horizN > 0)
+        {
+            qreal y = firstH * TileLocation::Size;
+            int count = 0;
+            while(count < horizN)
+            {
+                int i = 0;
+                for (; i < ARR_SIZE; i++)
+                {
+                    arr[i] = QLineF(x1, y, x2, y);
+                    y += TileLocation::Size;
+
+                    if(count >= horizN)
+                        break;
+                    count++;
+                }
+                painter->drawLines(arr, i + 1);
+            }
+        }
+
+        const int vertN = lastV - firstV;
+        if (vertN > 0)
+        {
+            qreal x = firstV * TileLocation::Size;
+            int count = 0;
+            while(count < vertN)
+            {
+                int i = 0;
+                for (; i < ARR_SIZE; i++)
+                {
+                    arr[i] = QLineF(x, t, x, b);
+                    x += TileLocation::Size;
+
+                    if(count >= vertN)
+                        break;
+                    count++;
+                }
+                painter->drawLines(arr, i + 1);
+            }
+        }
+    }
 }
