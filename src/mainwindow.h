@@ -35,6 +35,8 @@ class CableGraphItem;
 class RelaisModel;
 class NodeEditFactory;
 
+class ZoomGraphView;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -83,5 +85,7 @@ private:
     };
     QAction *recentFileActs[MaxRecentFiles];
     QString settingsFile;
+
+    ZoomGraphView *mCircuitView;
 };
 #endif // MAINWINDOW_H

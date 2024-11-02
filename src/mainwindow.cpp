@@ -49,6 +49,8 @@
 
 #include <QSortFilterProxyModel>
 
+#include "graph/zoomgraphview.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -107,7 +109,11 @@ MainWindow::MainWindow(QWidget *parent)
     mScene = new CircuitScene(this);
     mScene->setRelaisModel(mRelaisModel);
 
-    ui->graphicsView->setScene(mScene);
+    mCircuitView = new ZoomGraphView;
+    mCircuitView->setScene(mScene);
+
+    QVBoxLayout *circuitLay = new QVBoxLayout(ui->circuitTab);
+    circuitLay->addWidget(mCircuitView);
 
     connect(mScene, &CircuitScene::nodeEditRequested,
             this, &MainWindow::nodeEditRequested);
@@ -197,22 +203,22 @@ void MainWindow::buildToolBar()
             QString name;
             if(needsName == NodeEditFactory::NeedsName::Always)
             {
-                name = QInputDialog::getText(ui->graphicsView,
+                name = QInputDialog::getText(mCircuitView,
                                              MainWindow::tr("Choose Item Name"),
                                              MainWindow::tr("Name:"));
                 if(name.isEmpty())
                     return;
             }
 
-            QPoint vpCenter = ui->graphicsView->viewport()->rect().center();
-            QPointF sceneCenter = ui->graphicsView->mapToScene(vpCenter);
+            QPoint vpCenter = mCircuitView->viewport()->rect().center();
+            QPointF sceneCenter = mCircuitView->mapToScene(vpCenter);
             TileLocation hint = TileLocation::fromPoint(sceneCenter);
 
             auto item = mEditFactory->createItem(nodeType, mScene, hint);
             if(needsName == NodeEditFactory::NeedsName::Always)
                 item->getAbstractNode()->setObjectName(name);
 
-            ui->graphicsView->ensureVisible(item);
+            mCircuitView->ensureVisible(item);
         });
 
         addItemActions.append(act);

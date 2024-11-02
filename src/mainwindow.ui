@@ -24,11 +24,6 @@
        <attribute name="title">
         <string>Circuit</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QGraphicsView" name="graphicsView"/>
-        </item>
-       </layout>
       </widget>
       <widget class="QWidget" name="relaisTab">
        <attribute name="title">
