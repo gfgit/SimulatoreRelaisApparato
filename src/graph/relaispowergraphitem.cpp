@@ -40,8 +40,8 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
     constexpr double morsettiOffset = 22.0;
-    constexpr double centerOffset = 22.0;
-    constexpr double relaySize = 38.0;
+    constexpr double relaySize = 32.0;
+    constexpr double centerOffset = relaySize / 2.0;
 
     constexpr QLineF centerToNorth(center.x(), center.y() - centerOffset,
                                    center.x(), morsettiOffset);
@@ -64,22 +64,18 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     {
     case Connector::Direction::North:
         commonLine = centerToNorth;
-        relayRect.moveTop(commonLine.y1());
         break;
 
     case Connector::Direction::South:
         commonLine = centerToSouth;
-        relayRect.moveBottom(commonLine.y1());
         break;
 
     case Connector::Direction::East:
         commonLine = centerToEast;
-        relayRect.moveRight(commonLine.x1());
         break;
 
     case Connector::Direction::West:
         commonLine = centerToWest;
-        relayRect.moveLeft(commonLine.x1());
         break;
     default:
         break;
@@ -130,6 +126,16 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     // Draw circle
     painter->drawEllipse(relayRect);
+
+    // Draw delayed up/down
+    if(node()->delayUpSeconds() > 0)
+    {
+        painter->drawLine(relayRect.topLeft(), relayRect.topRight());
+    }
+    if(node()->delayDownSeconds() > 0)
+    {
+        painter->drawLine(relayRect.bottomLeft(), relayRect.bottomRight());
+    }
 
     TileRotate textRotate = TileRotate::Deg90;
     if(rotate() == TileRotate::Deg0)

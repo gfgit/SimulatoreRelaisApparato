@@ -37,8 +37,8 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
     constexpr double morsettiOffset = 22.0;
-    constexpr double centerOffset = 22.0;
-    constexpr double bulbSize = 38.0;
+    constexpr double bulbSize = 32.0;
+    constexpr double centerOffset = bulbSize / 2.0;
 
     constexpr QLineF centerToNorth(center.x(), center.y() - centerOffset,
                                    center.x(), morsettiOffset);
@@ -61,22 +61,18 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     {
     case Connector::Direction::North:
         commonLine = centerToNorth;
-        bulbRect.moveTop(commonLine.y1());
         break;
 
     case Connector::Direction::South:
         commonLine = centerToSouth;
-        bulbRect.moveBottom(commonLine.y1());
         break;
 
     case Connector::Direction::East:
         commonLine = centerToEast;
-        bulbRect.moveRight(commonLine.x1());
         break;
 
     case Connector::Direction::West:
         commonLine = centerToWest;
-        bulbRect.moveLeft(commonLine.x1());
         break;
     default:
         break;
