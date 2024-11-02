@@ -62,7 +62,7 @@ private:
     bool hasUnsavedChanges() const;
     bool maybeSave();
 
-    bool saveInternal();
+    bool saveFile(const QString &fileName);
 
 private slots:
     void nodeEditRequested(AbstractNodeGraphItem *item);
@@ -72,6 +72,9 @@ private slots:
     void onOpen();
     void onOpenRecent();
     void onSave();
+    void onSaveAs();
+
+    void updateWindowModified();
 
 private:
     Ui::MainWindow *ui;
@@ -87,5 +90,8 @@ private:
     QString settingsFile;
 
     ZoomGraphView *mCircuitView;
+
+    // Prevent showing modified file while loading
+    bool mIsLoading = false;
 };
 #endif // MAINWINDOW_H

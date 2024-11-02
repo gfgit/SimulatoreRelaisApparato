@@ -87,6 +87,7 @@
     <addaction name="actionOpen"/>
     <addaction name="actionOpen_Recent"/>
     <addaction name="actionSave"/>
+    <addaction name="actionSave_As"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -111,6 +112,9 @@
    <property name="text">
     <string>&amp;Save</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionOpen_Recent">
    <property name="text">
@@ -119,7 +123,15 @@
   </action>
   <action name="actionNew">
    <property name="text">
-    <string>New</string>
+    <string>&amp;New</string>
+   </property>
+  </action>
+  <action name="actionSave_As">
+   <property name="text">
+    <string>Sa&amp;ve As</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
  </widget>

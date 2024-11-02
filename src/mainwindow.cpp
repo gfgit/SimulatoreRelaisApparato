@@ -126,6 +126,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onOpen);
     connect(ui->actionSave, &QAction::triggered,
             this, &MainWindow::onSave);
+    connect(ui->actionSave_As, &QAction::triggered,
+            this, &MainWindow::onSaveAs);
 
     QMenu *recentFilesMenu = new QMenu(this);
     for (int i = 0; i < MaxRecentFiles; i++)
@@ -140,6 +142,9 @@ MainWindow::MainWindow(QWidget *parent)
     updateRecentFileActions();
 
     ui->actionOpen_Recent->setMenu(recentFilesMenu);
+
+    connect(mRelaisModel, &RelaisModel::modelEdited, this, &MainWindow::updateWindowModified);
+    connect(mScene, &CircuitScene::sceneEdited, this, &MainWindow::updateWindowModified);
 
     buildToolBar();
 }
@@ -327,12 +332,18 @@ void MainWindow::onNew()
         return;
 
     // Reset scene and relais
+    setWindowModified(false);
     setWindowFilePath(QString());
+
+    mIsLoading = true;
+
     mScene->removeAllItems();
     mScene->setHasUnsavedChanges(false);
 
     mRelaisModel->clear();
     mRelaisModel->setHasUnsavedChanges(false);
+
+    mIsLoading = false;
 }
 
 void MainWindow::onOpen()
@@ -366,7 +377,10 @@ void MainWindow::loadFile(const QString& fileName)
     if(!f.open(QFile::ReadOnly))
         return;
 
+    mIsLoading = true;
+
     setWindowFilePath(fileName);
+    updateWindowModified();
 
     addFileToRecents(fileName);
 
@@ -379,6 +393,9 @@ void MainWindow::loadFile(const QString& fileName)
 
     const QJsonObject sceneObj = rootObj.value("scene").toObject();
     mScene->loadFromJSON(sceneObj, mEditFactory);
+
+    mIsLoading = false;
+    updateWindowModified();
 }
 
 void MainWindow::locateAppSettings()
@@ -390,6 +407,9 @@ void MainWindow::locateAppSettings()
 
 bool MainWindow::hasUnsavedChanges() const
 {
+    if(mIsLoading)
+        return false;
+
     if(mScene->hasUnsavedChanges())
         return true;
 
@@ -418,21 +438,15 @@ bool MainWindow::maybeSave()
     if(ret == QMessageBox::Save)
     {
         // Check if really save
-        if(!saveInternal())
+        if(!saveFile(windowFilePath()))
             return false; // Saving was canceled
     }
 
     return true;
 }
 
-bool MainWindow::saveInternal()
+bool MainWindow::saveFile(const QString& fileName)
 {
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Save Circuit"),
-                                                    windowFilePath());
-    if(fileName.isEmpty())
-        return false;
-
     QJsonObject relais;
     mRelaisModel->saveToJSON(relais);
 
@@ -451,7 +465,6 @@ bool MainWindow::saveInternal()
 
     f.write(doc.toJson());
 
-    setWindowFilePath(fileName);
     addFileToRecents(fileName);
 
     mScene->setHasUnsavedChanges(false);
@@ -462,6 +475,37 @@ bool MainWindow::saveInternal()
 
 void MainWindow::onSave()
 {
-    saveInternal();
+    if(windowFilePath().isEmpty())
+    {
+        // Show file dialog for new files
+        onSaveAs();
+        return;
+    }
+
+    // Save on same file
+    saveFile(windowFilePath());
+}
+
+void MainWindow::onSaveAs()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Save Circuit"),
+                                                    windowFilePath());
+    if(fileName.isEmpty())
+        return;
+
+    saveFile(fileName);
+
+    // Set current file to new file path
+    setWindowFilePath(fileName);
+}
+
+void MainWindow::updateWindowModified()
+{
+    // Do not set modified state for new files
+    if(windowFilePath().isEmpty())
+        setWindowModified(false);
+    else
+        setWindowModified(hasUnsavedChanges());
 }
 
