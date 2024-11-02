@@ -131,10 +131,22 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
     }
 
     if(mRelais)
+    {
+        if(mIsUp)
+            mRelais->powerNodeDeactivated(this);
         mRelais->removePowerNode(this);
+    }
+
+    mIsUp = false;
     mRelais = newRelais;
+
     if(mRelais)
+    {
         mRelais->addPowerNode(this);
+
+        if(hasCircuits(CircuitType::Closed))
+            activateRelay();
+    }
 
     emit relayChanged(mRelais);
 }
