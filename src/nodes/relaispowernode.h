@@ -52,12 +52,34 @@ public:
     RelaisModel *relaisModel() const;
     void setRelaisModel(RelaisModel *newRelaisModel);
 
+    int delayUpSeconds() const;
+    void setDelayUpSeconds(int newDelayUpSeconds);
+
+    int delayDownSeconds() const;
+    void setDelayDownSeconds(int newDelayDownSeconds);
+
 signals:
     void relayChanged(AbstractRelais *r);
+    void delaysChanged();
+
+protected:
+    void timerEvent(QTimerEvent *e);
+
+private:
+    void activateRelay();
+    void deactivateRelay();
+    void stopTimer();
 
 private:
     AbstractRelais *mRelais = nullptr;
     RelaisModel *mRelaisModel = nullptr;
+
+    int mDelayUpSeconds = 0;
+    int mDelayDownSeconds = 0;
+
+    int mTimerId = 0;
+    bool wasGoingUp = true;
+    bool mIsUp = false;
 };
 
 #endif // RELAISPOWERNODE_H

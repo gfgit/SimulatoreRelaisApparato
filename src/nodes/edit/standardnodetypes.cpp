@@ -162,6 +162,41 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             relayEdit->setRelais(node->relais());
             lay->addRow(tr("Relay:"), relayEdit);
 
+            // Delayed up/down
+            QSpinBox *delayUpSeconds = new QSpinBox;
+            delayUpSeconds->setRange(0, 5 * 60);
+            delayUpSeconds->setSpecialValueText(tr("None"));
+            delayUpSeconds->setSuffix(tr(" sec")); // Seconds
+            lay->addRow(tr("Delay up:"), delayUpSeconds);
+
+            QObject::connect(delayUpSeconds, &QSpinBox::valueChanged,
+                             node, [node](int val)
+            {
+                node->setDelayUpSeconds(val);
+            });
+
+            QSpinBox *delayDownSeconds = new QSpinBox;
+            delayDownSeconds->setRange(0, 5 * 60);
+            delayDownSeconds->setSpecialValueText(tr("None"));
+            delayDownSeconds->setSuffix(tr(" sec")); // Seconds
+            lay->addRow(tr("Delay down:"), delayDownSeconds);
+
+            QObject::connect(delayDownSeconds, &QSpinBox::valueChanged,
+                             node, [node](int val)
+            {
+                node->setDelayDownSeconds(val);
+            });
+
+            auto updDelayLambda = [delayUpSeconds, delayDownSeconds, node]()
+            {
+                delayUpSeconds->setValue(node->delayUpSeconds());
+                delayDownSeconds->setValue(node->delayDownSeconds());
+            };
+
+            QObject::connect(node, &RelaisPowerNode::delaysChanged,
+                             w, updDelayLambda);
+            updDelayLambda();
+
             return w;
         };
 

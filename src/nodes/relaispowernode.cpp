@@ -25,6 +25,8 @@
 #include "../objects/abstractrelais.h"
 #include "../objects/relaismodel.h"
 
+#include <QTimerEvent>
+
 #include <QJsonObject>
 
 RelaisPowerNode::RelaisPowerNode(QObject *parent)
@@ -61,9 +63,9 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
 
     AbstractCircuitNode::addCircuit(circuit);
 
-    if(mRelais && wasEmpty && !closedCircuits.isEmpty())
+    if(wasEmpty && !closedCircuits.isEmpty())
     {
-        mRelais->powerNodeActivated(this);
+        activateRelay();
     }
 }
 
@@ -74,9 +76,9 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
 
     AbstractCircuitNode::removeCircuit(circuit, items);
 
-    if(mRelais && hadCircuit && closedCircuits.isEmpty())
+    if(hadCircuit && closedCircuits.isEmpty())
     {
-        mRelais->powerNodeDeactivated(this);
+        deactivateRelay();
     }
 }
 
@@ -89,6 +91,9 @@ bool RelaisPowerNode::loadFromJSON(const QJsonObject &obj)
 
     setRelais(relaisModel()->getRelay(relaisName));
 
+    mDelayUpSeconds = obj["delay_up_sec"].toInt();
+    mDelayDownSeconds = obj["delay_down_sec"].toInt();
+
     return true;
 }
 
@@ -97,6 +102,9 @@ void RelaisPowerNode::saveToJSON(QJsonObject &obj) const
     AbstractCircuitNode::saveToJSON(obj);
 
     obj["relais"] = mRelais ? mRelais->name() : QString();
+
+    obj["delay_up_sec"] = mDelayUpSeconds;
+    obj["delay_down_sec"] = mDelayDownSeconds;
 }
 
 QString RelaisPowerNode::nodeType() const
@@ -113,6 +121,14 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
 {
     if(mRelais == newRelais)
         return;
+
+    stopTimer();
+
+    if(mIsUp && mRelais)
+    {
+        mRelais->powerNodeDeactivated(this);
+        mIsUp = false;
+    }
 
     if(mRelais)
         mRelais->removePowerNode(this);
@@ -131,4 +147,109 @@ RelaisModel *RelaisPowerNode::relaisModel() const
 void RelaisPowerNode::setRelaisModel(RelaisModel *newRelaisModel)
 {
     mRelaisModel = newRelaisModel;
+}
+
+int RelaisPowerNode::delayUpSeconds() const
+{
+    return mDelayUpSeconds;
+}
+
+void RelaisPowerNode::setDelayUpSeconds(int newDelayUpSeconds)
+{
+    if(mDelayUpSeconds == newDelayUpSeconds)
+        return;
+
+    mDelayUpSeconds = newDelayUpSeconds;
+    emit delaysChanged();
+}
+
+int RelaisPowerNode::delayDownSeconds() const
+{
+    return mDelayDownSeconds;
+}
+
+void RelaisPowerNode::setDelayDownSeconds(int newDelayDownSeconds)
+{
+    if(mDelayDownSeconds == newDelayDownSeconds)
+        return;
+
+    mDelayDownSeconds = newDelayDownSeconds;
+    emit delaysChanged();
+}
+
+void RelaisPowerNode::timerEvent(QTimerEvent *e)
+{
+    if(e->timerId() == mTimerId)
+    {
+        Q_ASSERT(mRelais);
+
+        // Do delayed action
+        mIsUp = wasGoingUp;
+        if(wasGoingUp)
+            mRelais->powerNodeActivated(this);
+        else
+            mRelais->powerNodeDeactivated(this);
+
+        stopTimer();
+        return;
+    }
+
+    AbstractCircuitNode::timerEvent(e);
+}
+
+void RelaisPowerNode::activateRelay()
+{
+    if(mTimerId && wasGoingUp)
+        return; // Already scheduled
+
+    stopTimer();
+
+    if(mIsUp || !mRelais)
+        return; // Already in position
+
+    if(mDelayUpSeconds == 0)
+    {
+        // Do it now
+        mIsUp = true;
+        mRelais->powerNodeActivated(this);
+    }
+    else
+    {
+        wasGoingUp = true;
+        mTimerId = startTimer(mDelayUpSeconds * 1000,
+                              Qt::PreciseTimer);
+    }
+}
+
+void RelaisPowerNode::deactivateRelay()
+{
+    if(mTimerId && !wasGoingUp)
+        return; // Already scheduled
+
+    stopTimer();
+
+    if(!mIsUp || !mRelais)
+        return; // Already in position
+
+    if(mDelayDownSeconds == 0)
+    {
+        // Do it now
+        mIsUp = false;
+        mRelais->powerNodeDeactivated(this);
+    }
+    else
+    {
+        wasGoingUp = false;
+        mTimerId = startTimer(mDelayDownSeconds * 1000,
+                              Qt::PreciseTimer);
+    }
+}
+
+void RelaisPowerNode::stopTimer()
+{
+    if(!mTimerId)
+        return;
+
+    killTimer(mTimerId);
+    mTimerId = 0;
 }
