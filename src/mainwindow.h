@@ -36,6 +36,8 @@ class RelaisModel;
 class NodeEditFactory;
 
 class ZoomGraphView;
+class QDoubleSpinBox;
+class DoubleClickSlider;
 
 class MainWindow : public QMainWindow
 {
@@ -76,6 +78,11 @@ private slots:
 
     void updateWindowModified();
 
+    void onZoomChanged(double val);
+    void onZoomSliderChanged(int val);
+    void onZoomSpinChanged(double val);
+    void resetZoom();
+
 private:
     Ui::MainWindow *ui;
     CircuitScene *mScene;
@@ -90,6 +97,8 @@ private:
     QString settingsFile;
 
     ZoomGraphView *mCircuitView;
+    DoubleClickSlider *mZoomSlider;
+    QDoubleSpinBox *mZoomSpin;
 
     // Prevent showing modified file while loading
     bool mIsLoading = false;

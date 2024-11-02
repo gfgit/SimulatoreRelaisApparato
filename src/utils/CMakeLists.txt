@@ -6,5 +6,8 @@ set(PROJECT_SOURCES
     utils/tilerotate.cpp
     utils/tilerotate.h
 
+    utils/doubleclickslider.cpp
+    utils/doubleclickslider.h
+
     PARENT_SCOPE
 )

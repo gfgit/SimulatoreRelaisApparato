@@ -1,8 +1,9 @@
 /**
- * src/graph/zoomgraphview.h
+ * src/utils/doubleclickslider.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
+ * Copyright (C) 2020,2022 Reinder Feenstra
  * Copyright (C) 2024 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
@@ -20,41 +21,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ZOOMGRAPHVIEW_H
-#define ZOOMGRAPHVIEW_H
+#include "doubleclickslider.h"
 
-#include <QGraphicsView>
+#include <QMouseEvent>
+#include <QStyle>
+#include <QStyleOptionSlider>
 
-class ZoomGraphView : public QGraphicsView
+DoubleClickSlider::DoubleClickSlider(Qt::Orientation orient, QWidget *parent)
+    : QSlider{orient, parent}
 {
-    Q_OBJECT
-public:
-    static constexpr double MinZoom = 0.1;
-    static constexpr double MaxZoom = 2.0;
 
-    explicit ZoomGraphView(QWidget *parent = nullptr);
+}
 
-    double zoomFactor() const;
+void DoubleClickSlider::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    QStyleOptionSlider opt;
+    initStyleOption(&opt);
+    QRect sr = style()->subControlRect(QStyle::CC_Slider, &opt,
+                                       QStyle::SC_SliderHandle, this);
 
-signals:
-    void zoomChanged(double val);
+    if (sr.contains(e->position().toPoint()))
+    {
+        emit sliderHandleDoubleClicked();
+    }
 
-public slots:
-    void setZoom(double val);
-
-protected:
-    bool viewportEvent(QEvent *e) override;
-
-private:
-    void zoomBy(double factor);
-
-private:
-    static constexpr Qt::KeyboardModifier ZoomModifiers = Qt::ControlModifier;
-    static constexpr double ZoomFactorBase = 1.0015;
-
-    double mZoomFactor = 1.0;
-
-    QPointF targetScenePos, targetViewportPos;
-};
-
-#endif // ZOOMGRAPHVIEW_H
+    QSlider::mouseDoubleClickEvent(e);
+}

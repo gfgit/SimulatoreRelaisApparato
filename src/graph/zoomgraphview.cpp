@@ -33,8 +33,23 @@ ZoomGraphView::ZoomGraphView(QWidget *parent)
 
 void ZoomGraphView::setZoom(double val)
 {
-    const double factor = val / mZoomFactor;
-    doZoomBy(factor);
+    val = qBound(MinZoom, val, MaxZoom);
+
+    if(qFuzzyCompare(val, mZoomFactor))
+        return;
+
+    mZoomFactor = val;
+
+    setTransform(QTransform::fromScale(mZoomFactor, mZoomFactor));
+    centerOn(targetScenePos);
+
+    QPointF deltaViewportPos = targetViewportPos - QPointF(viewport()->width() / 2.0,
+                                                           viewport()->height() / 2.0);
+
+    QPointF vpCenter = mapFromScene(targetScenePos) - deltaViewportPos;
+    centerOn(mapToScene(vpCenter.toPoint()));
+
+    emit zoomChanged(mZoomFactor);
 }
 
 bool ZoomGraphView::viewportEvent(QEvent *e)
@@ -57,7 +72,7 @@ bool ZoomGraphView::viewportEvent(QEvent *e)
         {
             double angle = wheelEv->angleDelta().y();
             double factor = qPow(ZoomFactorBase, angle);
-            doZoomBy(factor);
+            zoomBy(factor);
 
             // Eat the event
             return true;
@@ -67,18 +82,12 @@ bool ZoomGraphView::viewportEvent(QEvent *e)
     return QGraphicsView::viewportEvent(e);
 }
 
-void ZoomGraphView::doZoomBy(double factor)
+void ZoomGraphView::zoomBy(double factor)
 {
-    mZoomFactor *= factor; // Accumulate
+    setZoom(mZoomFactor * factor); // Accumulate
+}
 
-    scale(factor, factor);
-    centerOn(targetScenePos);
-
-    QPointF deltaViewportPos = targetViewportPos - QPointF(viewport()->width() / 2.0,
-                                                           viewport()->height() / 2.0);
-
-    QPointF vpCenter = mapFromScene(targetScenePos) - deltaViewportPos;
-    centerOn(mapToScene(vpCenter.toPoint()));
-
-    emit zoomChanged(mZoomFactor);
+double ZoomGraphView::zoomFactor() const
+{
+    return mZoomFactor;
 }

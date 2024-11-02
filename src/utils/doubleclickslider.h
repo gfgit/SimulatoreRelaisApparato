@@ -1,8 +1,9 @@
 /**
- * src/graph/zoomgraphview.h
+ * src/utils/doubleclickslider.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
+ * Copyright (C) 2020,2022 Reinder Feenstra
  * Copyright (C) 2024 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
@@ -20,41 +21,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ZOOMGRAPHVIEW_H
-#define ZOOMGRAPHVIEW_H
+#ifndef DOUBLECLICKSLIDER_H
+#define DOUBLECLICKSLIDER_H
 
-#include <QGraphicsView>
+#include <QSlider>
 
-class ZoomGraphView : public QGraphicsView
+class DoubleClickSlider : public QSlider
 {
     Q_OBJECT
 public:
-    static constexpr double MinZoom = 0.1;
-    static constexpr double MaxZoom = 2.0;
-
-    explicit ZoomGraphView(QWidget *parent = nullptr);
-
-    double zoomFactor() const;
+    explicit DoubleClickSlider(Qt::Orientation orient, QWidget *parent = nullptr);
 
 signals:
-    void zoomChanged(double val);
-
-public slots:
-    void setZoom(double val);
+    void sliderHandleDoubleClicked();
 
 protected:
-    bool viewportEvent(QEvent *e) override;
-
-private:
-    void zoomBy(double factor);
-
-private:
-    static constexpr Qt::KeyboardModifier ZoomModifiers = Qt::ControlModifier;
-    static constexpr double ZoomFactorBase = 1.0015;
-
-    double mZoomFactor = 1.0;
-
-    QPointF targetScenePos, targetViewportPos;
+    void mouseDoubleClickEvent(QMouseEvent *e) override;
 };
 
-#endif // ZOOMGRAPHVIEW_H
+#endif // DOUBLECLICKSLIDER_H

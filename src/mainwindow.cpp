@@ -39,6 +39,9 @@
 #include <QMessageBox>
 #include <QFileDialog>
 
+#include "utils/doubleclickslider.h"
+#include <QDoubleSpinBox>
+
 #include <QStandardPaths>
 #include <QSettings>
 
@@ -112,6 +115,17 @@ MainWindow::MainWindow(QWidget *parent)
     mCircuitView = new ZoomGraphView;
     mCircuitView->setScene(mScene);
 
+    mZoomSlider = new DoubleClickSlider(Qt::Horizontal);
+    mZoomSlider->setRange(0, ZoomGraphView::MaxZoom * 100);
+    mZoomSlider->setTickInterval(25);
+    mZoomSlider->setTickPosition(QSlider::TicksBothSides);
+    statusBar()->addPermanentWidget(mZoomSlider);
+
+    mZoomSpin = new QDoubleSpinBox;
+    mZoomSpin->setRange(ZoomGraphView::MinZoom * 100,
+                        ZoomGraphView::MaxZoom * 100);
+    statusBar()->addPermanentWidget(mZoomSpin);
+
     QVBoxLayout *circuitLay = new QVBoxLayout(ui->circuitTab);
     circuitLay->addWidget(mCircuitView);
 
@@ -145,6 +159,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(mRelaisModel, &RelaisModel::modelEdited, this, &MainWindow::updateWindowModified);
     connect(mScene, &CircuitScene::sceneEdited, this, &MainWindow::updateWindowModified);
+
+    connect(mCircuitView, &ZoomGraphView::zoomChanged,
+            this, &MainWindow::onZoomChanged);
+    connect(mZoomSlider, &QSlider::valueChanged,
+            this, &MainWindow::onZoomSliderChanged);
+    connect(mZoomSlider, &DoubleClickSlider::sliderHandleDoubleClicked,
+            this, &MainWindow::resetZoom);
+    connect(mZoomSpin, &QDoubleSpinBox::valueChanged,
+            this, &MainWindow::onZoomSpinChanged);
+
+    onZoomChanged(mCircuitView->zoomFactor());
 
     buildToolBar();
 }
@@ -513,5 +538,29 @@ void MainWindow::updateWindowModified()
         setWindowModified(false);
     else
         setWindowModified(hasUnsavedChanges());
+}
+
+void MainWindow::onZoomChanged(double val)
+{
+    QSignalBlocker blk(mZoomSpin);
+    mZoomSpin->setValue(val * 100.0);
+
+    QSignalBlocker blk2(mZoomSlider);
+    mZoomSlider->setValue(qRound(mZoomSpin->value()));
+}
+
+void MainWindow::onZoomSliderChanged(int val)
+{
+    mCircuitView->setZoom(double(val) / 100.0);
+}
+
+void MainWindow::onZoomSpinChanged(double val)
+{
+    mCircuitView->setZoom(val / 100.0);
+}
+
+void MainWindow::resetZoom()
+{
+    mCircuitView->setZoom(1.0);
 }
 
