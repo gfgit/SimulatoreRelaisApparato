@@ -9,5 +9,8 @@ set(PROJECT_SOURCES
     utils/doubleclickslider.cpp
     utils/doubleclickslider.h
 
+    utils/zoomgraphview.h
+    utils/zoomgraphview.cpp
+
     PARENT_SCOPE
 )

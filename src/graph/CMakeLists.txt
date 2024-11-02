@@ -23,8 +23,6 @@ set(PROJECT_SOURCES
     graph/relaispowergraphitem.h
     graph/simplenodegraphitem.cpp
     graph/simplenodegraphitem.h
-    graph/zoomgraphview.h
-    graph/zoomgraphview.cpp
 
     PARENT_SCOPE
 )

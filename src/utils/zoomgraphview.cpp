@@ -1,5 +1,5 @@
 /**
- * src/graph/zoomgraphview.cpp
+ * src/utils/zoomgraphview.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

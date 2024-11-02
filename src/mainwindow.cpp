@@ -52,7 +52,7 @@
 
 #include <QSortFilterProxyModel>
 
-#include "graph/zoomgraphview.h"
+#include "utils/zoomgraphview.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
