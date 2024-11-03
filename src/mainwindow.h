@@ -23,11 +23,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
+#include <kddockwidgets-qt6/kddockwidgets/MainWindow.h>
 
 class CircuitScene;
 class AbstractNodeGraphItem;
@@ -39,12 +35,14 @@ class ZoomGraphView;
 class QDoubleSpinBox;
 class DoubleClickSlider;
 
-class MainWindow : public QMainWindow
+class QListView;
+
+class MainWindow : public KDDockWidgets::QtWidgets::MainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(const QString &uniqueName_, QWidget *parent = nullptr);
     ~MainWindow();
 
     CircuitScene *scene() const;
@@ -84,8 +82,18 @@ private slots:
     void resetZoom();
 
 private:
-    Ui::MainWindow *ui;
+    // Actions
+    QAction *actionOpen;
+    QAction *actionSave;
+    QAction *actionOpen_Recent;
+    QAction *actionNew;
+    QAction *actionSave_As;
+
+    // Circuits
     CircuitScene *mScene;
+
+    // Relays
+    QListView *mRelaisView;
     RelaisModel *mRelaisModel;
     NodeEditFactory *mEditFactory;
 

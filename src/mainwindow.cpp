@@ -21,7 +21,6 @@
  */
 
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
 
 #include "graph/circuitscene.h"
 
@@ -50,16 +49,21 @@
 
 #include <QCloseEvent>
 
+#include <QListView>
 #include <QSortFilterProxyModel>
+
 
 #include "utils/zoomgraphview.h"
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-{
-    ui->setupUi(this);
+#include <QMenuBar>
+#include <QToolBar>
+#include <QStatusBar>
 
+#include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
+
+MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
+    : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
+{
     locateAppSettings();
 
     mRelaisModel = new RelaisModel(this);
@@ -68,43 +72,50 @@ MainWindow::MainWindow(QWidget *parent)
     relaysProxy->setSourceModel(mRelaisModel);
     relaysProxy->setSortRole(Qt::DisplayRole);
     relaysProxy->sort(0);
-    ui->relaisView->setModel(relaysProxy);
 
-    connect(ui->addRelayBut, &QPushButton::clicked,
-            mRelaisModel, [this]()
-    {
-        QString name = QInputDialog::getText(this,
-                                             tr("New Relay"),
-                                             tr("Choose Name"));
-        if(name.isEmpty())
-            return;
+    mRelaisView = new QListView;
+    mRelaisView->setModel(relaysProxy);
 
-        AbstractRelais *relay = new AbstractRelais(mRelaisModel);
-        relay->setName(name);
+    auto relaisDock = new KDDockWidgets::QtWidgets::DockWidget(QLatin1String("relais1"));
+    relaisDock->setWidget(mRelaisView);
+    relaisDock->asDockWidgetController()
+    addDockWidget(relaisDock, KDDockWidgets::Location_OnRight);
 
-        mRelaisModel->addRelay(relay);
-    });
+    // connect(ui->addRelayBut, &QPushButton::clicked,
+    //         mRelaisModel, [this]()
+    // {
+    //     QString name = QInputDialog::getText(this,
+    //                                          tr("New Relay"),
+    //                                          tr("Choose Name"));
+    //     if(name.isEmpty())
+    //         return;
 
-    connect(ui->removeRelayBut, &QPushButton::clicked,
-            ui->relaisView, [this]()
-    {
-        QModelIndex idx = ui->relaisView->currentIndex();
-        if(!idx.isValid())
-            return;
+    //     AbstractRelais *relay = new AbstractRelais(mRelaisModel);
+    //     relay->setName(name);
 
-        AbstractRelais *relay = mRelaisModel->relayAt(idx.row());
-        if(!relay)
-            return;
+    //     mRelaisModel->addRelay(relay);
+    // });
 
-        QString name = relay->name();
-        int ret = QMessageBox::question(this,
-                                        tr("Delete Relais %1").arg(name),
-                                        tr("Are you sure to delete <b>%1</b>?").arg(name));
-        if(ret == QMessageBox::Yes)
-        {
-            mRelaisModel->removeRelay(relay);
-        }
-    });
+    // connect(ui->removeRelayBut, &QPushButton::clicked,
+    //         ui->relaisView, [this]()
+    // {
+    //     QModelIndex idx = ui->relaisView->currentIndex();
+    //     if(!idx.isValid())
+    //         return;
+
+    //     AbstractRelais *relay = mRelaisModel->relayAt(idx.row());
+    //     if(!relay)
+    //         return;
+
+    //     QString name = relay->name();
+    //     int ret = QMessageBox::question(this,
+    //                                     tr("Delete Relais %1").arg(name),
+    //                                     tr("Are you sure to delete <b>%1</b>?").arg(name));
+    //     if(ret == QMessageBox::Yes)
+    //     {
+    //         mRelaisModel->removeRelay(relay);
+    //     }
+    // });
 
     mEditFactory = new NodeEditFactory(this);
     StandardNodeTypes::registerTypes(mEditFactory);
@@ -126,36 +137,15 @@ MainWindow::MainWindow(QWidget *parent)
                         ZoomGraphView::MaxZoom * 100);
     statusBar()->addPermanentWidget(mZoomSpin);
 
-    QVBoxLayout *circuitLay = new QVBoxLayout(ui->circuitTab);
-    circuitLay->addWidget(mCircuitView);
+
+    auto circuitDock = new KDDockWidgets::QtWidgets::DockWidget(QLatin1String("circuit1"));
+    circuitDock->setWidget(mCircuitView);
+    addDockWidget(circuitDock, KDDockWidgets::Location_OnLeft);
 
     connect(mScene, &CircuitScene::nodeEditRequested,
             this, &MainWindow::nodeEditRequested);
     connect(mScene, &CircuitScene::cableEditRequested,
             this, &MainWindow::cableEditRequested);
-
-    connect(ui->actionNew, &QAction::triggered,
-            this, &MainWindow::onNew);
-    connect(ui->actionOpen, &QAction::triggered,
-            this, &MainWindow::onOpen);
-    connect(ui->actionSave, &QAction::triggered,
-            this, &MainWindow::onSave);
-    connect(ui->actionSave_As, &QAction::triggered,
-            this, &MainWindow::onSaveAs);
-
-    QMenu *recentFilesMenu = new QMenu(this);
-    for (int i = 0; i < MaxRecentFiles; i++)
-    {
-        recentFileActs[i] = new QAction(this);
-        recentFileActs[i]->setVisible(false);
-        connect(recentFileActs[i], &QAction::triggered, this, &MainWindow::onOpenRecent);
-
-        recentFilesMenu->addAction(recentFileActs[i]);
-    }
-
-    updateRecentFileActions();
-
-    ui->actionOpen_Recent->setMenu(recentFilesMenu);
 
     connect(mRelaisModel, &RelaisModel::modelEdited, this, &MainWindow::updateWindowModified);
     connect(mScene, &CircuitScene::sceneEdited, this, &MainWindow::updateWindowModified);
@@ -181,8 +171,6 @@ MainWindow::~MainWindow()
     // Delete them now.
     delete mRelaisModel;
     delete mScene;
-
-    delete ui;
 }
 
 CircuitScene *MainWindow::scene() const
@@ -200,10 +188,50 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::buildToolBar()
 {
+    // Menu File
+    QMenu *menuFile = menuBar()->addMenu(tr("File"));
+
+    actionNew = menuFile->addAction(tr("&New"));
+    actionOpen = menuFile->addAction(tr("&Open"));
+    actionOpen_Recent = menuFile->addAction(tr("Open &Recent"));
+
+    actionSave = menuFile->addAction(tr("&Save"));
+    actionSave->setShortcut(tr("Ctrl+S"));
+
+    actionSave_As = menuFile->addAction(tr("Sa&ve As"));
+    actionSave_As->setShortcut(tr("Ctrl+Shift+S"));
+
+    connect(actionNew, &QAction::triggered,
+            this, &MainWindow::onNew);
+    connect(actionOpen, &QAction::triggered,
+            this, &MainWindow::onOpen);
+    connect(actionSave, &QAction::triggered,
+            this, &MainWindow::onSave);
+    connect(actionSave_As, &QAction::triggered,
+            this, &MainWindow::onSaveAs);
+
+    // Recent files
+    QMenu *recentFilesMenu = new QMenu(this);
+    for (int i = 0; i < MaxRecentFiles; i++)
+    {
+        recentFileActs[i] = new QAction(this);
+        recentFileActs[i]->setVisible(false);
+        connect(recentFileActs[i], &QAction::triggered, this, &MainWindow::onOpenRecent);
+
+        recentFilesMenu->addAction(recentFileActs[i]);
+    }
+    actionOpen_Recent->setMenu(recentFilesMenu);
+
+    updateRecentFileActions();
+
+    // Toolbar
+    QToolBar *toolBar = new QToolBar(tr("Edit Tools"));
+    addToolBar(Qt::TopToolBarArea, toolBar);
+
     QAction *toggleEditMode = new QAction(tr("Edit"));
     toggleEditMode->setCheckable(true);
     toggleEditMode->setChecked(mScene->mode() == CircuitScene::Mode::Editing);
-    ui->toolBar->addAction(toggleEditMode);
+    toolBar->addAction(toggleEditMode);
 
     connect(toggleEditMode, &QAction::toggled,
             this, [this](bool val)
@@ -220,8 +248,8 @@ void MainWindow::buildToolBar()
     QAction *newItem = new QAction(tr("New Item"));
     QMenu *newItemMenu = new QMenu;
     newItem->setMenu(newItemMenu);
-    ui->toolBar->addAction(newItem);
-    ui->toolBar->addSeparator();
+    toolBar->addAction(newItem);
+    toolBar->addSeparator();
 
     QVector<QAction *> addItemActions;
 
@@ -233,7 +261,7 @@ void MainWindow::buildToolBar()
         connect(act, &QAction::triggered, mScene,
                 [nodeType, this]()
         {
-            ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
+            //ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
 
             const auto needsName = mEditFactory->needsName(nodeType);
             QString name;
@@ -264,7 +292,7 @@ void MainWindow::buildToolBar()
     connect(newCableAct, &QAction::triggered, mScene,
             [this]()
     {
-        ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
+        //ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
 
         mScene->startEditNewCable();
     });
@@ -285,7 +313,7 @@ void MainWindow::buildToolBar()
 
     for(QAction *act : std::as_const(addItemActions))
     {
-        ui->toolBar->addAction(act);
+        toolBar->addAction(act);
     }
 }
 

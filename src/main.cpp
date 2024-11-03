@@ -24,6 +24,8 @@
 
 #include <QApplication>
 
+#include <kddockwidgets-qt6/kddockwidgets/MainWindow.h>
+
 int main(int argc, char *argv[])
 {
     QApplication::setApplicationName("SimulatoreACEI");
@@ -32,7 +34,9 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
-    MainWindow w;
+    KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
+
+    MainWindow w(QLatin1String("mainwindow1"));
     w.show();
     return a.exec();
 }
