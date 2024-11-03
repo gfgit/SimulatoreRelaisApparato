@@ -29,6 +29,8 @@
 
 #include "../utils/tilerotate.h"
 
+#include "../enums/filemodes.h"
+
 class AbstractCircuitNode;
 class AbstractNodeGraphItem;
 class PowerSourceGraphItem;
@@ -39,33 +41,27 @@ class CableGraphPath;
 
 class QGraphicsPathItem;
 
-class RelaisModel;
-
 class QJsonObject;
 class NodeEditFactory;
+
+class CircuitListModel;
+
+class RelaisModel;
 
 class CircuitScene : public QGraphicsScene
 {
     Q_OBJECT
 public:
-    enum class Mode
-    {
-        Static = 0,
-        Simulation,
-        Editing,
-        LoadingFile
-    };
-
     // On a tile there can be 2 cables if they go in squared directions
     // See CableGraphPath::addTile()
     typedef std::pair<CableGraphItem *, CableGraphItem*> TileCablePair;
 
 
-    explicit CircuitScene(QObject *parent = nullptr);
+    explicit CircuitScene(CircuitListModel *parent);
     ~CircuitScene();
 
-    Mode mode() const;
-    void setMode(Mode newMode);
+    FileMode mode() const;
+    void setMode(FileMode newMode, FileMode oldMode);
 
     void addNode(AbstractNodeGraphItem *item);
     void removeNode(AbstractNodeGraphItem *item);
@@ -95,8 +91,6 @@ public:
 
     RelaisModel *relaisModel() const;
 
-    void setRelaisModel(RelaisModel *newRelaisModel);
-
     void removeAllItems();
     bool loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory);
     void saveToJSON(QJsonObject &obj) const;
@@ -104,10 +98,15 @@ public:
     bool hasUnsavedChanges() const;
     void setHasUnsavedChanges(bool newHasUnsavedChanged);
 
+    QString circuitSheetName() const;
+    bool setCircuitSheetName(const QString &newCircuitSheetName);
+
+    QString circuitSheetLongName() const;
+    void setCircuitSheetLongName(const QString &newLongName);
+
 signals:
-    void modeChanged(Mode mode);
-    void nodeEditRequested(AbstractNodeGraphItem *item);
-    void cableEditRequested(CableGraphItem *item);
+    void nameChanged(const QString& newName, CircuitScene *self);
+    void longNameChanged(const QString& newName, CircuitScene *self);
 
     void sceneEdited(bool val);
 
@@ -119,6 +118,8 @@ protected:
 
 private:
     friend class AbstractNodeGraphItem;
+
+    CircuitListModel *circuitsModel() const;
 
     void refreshItemConnections(AbstractNodeGraphItem *item, bool tryReconnect);
 
@@ -157,7 +158,8 @@ private:
     void requestEditCable(CableGraphItem *item);
 
 private:
-    Mode mMode = Mode::Editing;
+    QString mCircuitSheetName;
+    QString mCircuitSheetLongName;
 
     std::unordered_map<TileLocation, AbstractNodeGraphItem *, TileLocationHash> mItemMap;
 
@@ -175,8 +177,6 @@ private:
 
     AbstractNodeGraphItem *mItemBeingMoved = nullptr;
     TileLocation mLastMovedItemValidLocation = TileLocation::invalid;
-
-    RelaisModel *mRelaisModel = nullptr;
 
     bool m_hasUnsavedChanges = false;
 };

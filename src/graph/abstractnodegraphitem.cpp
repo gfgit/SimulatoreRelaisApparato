@@ -69,7 +69,7 @@ void AbstractNodeGraphItem::updateName()
 void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == CircuitScene::Mode::Editing && !s->isEditingCable() && boundingRect().contains(ev->pos()))
+    if(s && s->mode() == FileMode::Editing && !s->isEditingCable() && boundingRect().contains(ev->pos()))
     {
         // Sometimes we receive clicks even if out of node tile
         // In those cases do not start moving item or rotate it!
@@ -94,7 +94,7 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == CircuitScene::Mode::Editing)
+    if(s && s->mode() == FileMode::Editing)
     {
         // After move has ended we go back to last valid location
         s->endMovingItem();
@@ -106,7 +106,7 @@ void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 void AbstractNodeGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == CircuitScene::Mode::Editing)
+    if(s && s->mode() == FileMode::Editing)
     {
         // Prevent accidental move while editing item
         s->endMovingItem();

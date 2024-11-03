@@ -28,6 +28,9 @@
 #include <QVector>
 
 class AbstractRelais;
+
+class ModeManager;
+
 class QJsonObject;
 
 class RelaisModel : public QAbstractListModel
@@ -35,7 +38,7 @@ class RelaisModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit RelaisModel(QObject *parent = nullptr);
+    explicit RelaisModel(ModeManager *mgr, QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -59,8 +62,12 @@ public:
     bool loadFromJSON(const QJsonObject& obj);
     void saveToJSON(QJsonObject& obj) const;
 
-    bool hasUnsavedChanges() const;
-    void setHasUnsavedChanges(bool newHasUnsavedChanges);
+    inline bool hasUnsavedChanges() const
+    {
+        return m_hasUnsavedChanges;
+    }
+
+    void setHasUnsavedChanges(bool val);
 
 signals:
     void modelEdited(bool val);
@@ -75,6 +82,8 @@ private:
 
 private:
     QVector<AbstractRelais *> mRelais;
+
+    ModeManager *mModeMgr;
 
     bool m_hasUnsavedChanges = false;
 };

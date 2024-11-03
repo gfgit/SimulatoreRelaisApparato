@@ -22,6 +22,9 @@
 
 #include "circuitscene.h"
 
+#include "../views/circuitlistmodel.h"
+#include "../views/modemanager.h"
+
 #include "abstractnodegraphitem.h"
 
 #include "powersourcegraphitem.h"
@@ -44,7 +47,7 @@
 
 #include "../nodes/edit/nodeeditfactory.h"
 
-CircuitScene::CircuitScene(QObject *parent)
+CircuitScene::CircuitScene(CircuitListModel *parent)
     : QGraphicsScene{parent}
 {
 
@@ -55,27 +58,21 @@ CircuitScene::~CircuitScene()
     removeAllItems();
 }
 
-CircuitScene::Mode CircuitScene::mode() const
+FileMode CircuitScene::mode() const
 {
-    return mMode;
+    // TODO: remove
+    return circuitsModel()->modeMgr()->mode();
 }
 
-void CircuitScene::setMode(Mode newMode)
+void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 {
-    if (mMode == newMode)
-        return;
-
-    Mode oldMode = mMode;
-    mMode = newMode;
-    emit modeChanged(mMode);
-
-    if(oldMode == Mode::Editing)
+    if(oldMode == FileMode::Editing)
     {
         stopUnfinishedOperations();
         calculateConnections();
     }
 
-    const bool powerSourceEnabled = mMode == Mode::Simulation;
+    const bool powerSourceEnabled = newMode == FileMode::Simulation;
     for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
     {
         powerSource->node()->setEnabled(powerSourceEnabled);
@@ -103,7 +100,7 @@ void CircuitScene::addNode(AbstractNodeGraphItem *item)
     PowerSourceGraphItem *powerSource = qobject_cast<PowerSourceGraphItem *>(item);
     if(powerSource)
     {
-        powerSource->node()->setEnabled(mMode == Mode::Simulation);
+        powerSource->node()->setEnabled(false);
         mPowerSources.append(powerSource);
     }
 
@@ -787,7 +784,7 @@ void CircuitScene::startMovingItem(AbstractNodeGraphItem *item)
 
     mLastMovedItemValidLocation = mItemBeingMoved->location();
 
-    if(mMode == Mode::Editing)
+    if(circuitsModel()->modeMgr()->mode() == FileMode::Editing)
         mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, true);
 }
 
@@ -825,16 +822,61 @@ void CircuitScene::requestEditNode(AbstractNodeGraphItem *item)
 {
     stopUnfinishedOperations();
 
-    if(mode() == Mode::Editing)
-        emit nodeEditRequested(item);
+    if(mode() == FileMode::Editing)
+        emit circuitsModel()->nodeEditRequested(item);
 }
 
 void CircuitScene::requestEditCable(CableGraphItem *item)
 {
     stopUnfinishedOperations();
 
-    if(mode() == Mode::Editing)
-        emit cableEditRequested(item);
+    if(mode() == FileMode::Editing)
+        emit circuitsModel()->cableEditRequested(item);
+}
+
+QString CircuitScene::circuitSheetLongName() const
+{
+    return mCircuitSheetLongName;
+}
+
+void CircuitScene::setCircuitSheetLongName(const QString &newLongName)
+{
+    const QString trimmedName = newLongName.trimmed();
+
+    if(mCircuitSheetLongName == trimmedName)
+        return;
+
+    mCircuitSheetLongName = trimmedName;
+    emit longNameChanged(mCircuitSheetName, this);
+
+    setHasUnsavedChanges(true);
+}
+
+QString CircuitScene::circuitSheetName() const
+{
+    return mCircuitSheetName;
+}
+
+bool CircuitScene::setCircuitSheetName(const QString &newName)
+{
+    const QString trimmedName = newName.trimmed();
+
+    if(mCircuitSheetName == trimmedName)
+        return true;
+
+    bool isValid = circuitsModel()->isNameAvailable(trimmedName);
+
+    if(isValid)
+    {
+        // Do change name
+        mCircuitSheetName = trimmedName;
+
+        setHasUnsavedChanges(true);
+    }
+
+    emit nameChanged(mCircuitSheetName, this);
+
+    return isValid;
 }
 
 bool CircuitScene::hasUnsavedChanges() const
@@ -848,12 +890,11 @@ void CircuitScene::setHasUnsavedChanges(bool newHasUnsavedChanged)
         return;
 
     m_hasUnsavedChanges = newHasUnsavedChanged;
-    emit sceneEdited(m_hasUnsavedChanges);
-}
 
-void CircuitScene::setRelaisModel(RelaisModel *newRelaisModel)
-{
-    mRelaisModel = newRelaisModel;
+    if(m_hasUnsavedChanges)
+        circuitsModel()->onSceneEdited();
+
+    emit sceneEdited(m_hasUnsavedChanges);
 }
 
 void CircuitScene::removeAllItems()
@@ -888,10 +929,13 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
 {
     removeAllItems();
 
-    setMode(Mode::LoadingFile);
-
     if(!obj.contains("cables") || !obj.contains("nodes"))
         return false;
+
+    if(!setCircuitSheetName(obj.value("name").toString()))
+        return false;
+
+    setCircuitSheetLongName(obj.value("long_name").toString());
 
     const QJsonArray cables = obj.value("cables").toArray();
 
@@ -928,9 +972,6 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
     // Recalculate circuits
     calculateConnections();
 
-    // Turn on power sources and stuff
-    setMode(Mode::Simulation);
-
     setHasUnsavedChanges(false);
 
     return true;
@@ -938,6 +979,9 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
 
 void CircuitScene::saveToJSON(QJsonObject &obj) const
 {
+    obj["name"] = circuitSheetName();
+    obj["long_name"] = circuitSheetLongName();
+
     QJsonArray cables;
     for(const auto& it : mCables)
     {
@@ -964,7 +1008,8 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
 
 RelaisModel *CircuitScene::relaisModel() const
 {
-    return mRelaisModel;
+    // TODO: remove and use directly
+    return circuitsModel()->modeMgr()->relaisModel();
 }
 
 QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction direction)
@@ -1328,7 +1373,7 @@ void CircuitScene::drawBackground(QPainter *painter, const QRectF &rect)
     // Scene white background
     painter->fillRect(bgRect, Qt::white);
 
-    if(mMode == Mode::Editing)
+    if(circuitsModel()->modeMgr()->mode() == FileMode::Editing)
     {
         // Draw grid lines in gray
         QPen gridPen(Qt::gray, 2.0);
@@ -1402,4 +1447,9 @@ void CircuitScene::drawBackground(QPainter *painter, const QRectF &rect)
             }
         }
     }
+}
+
+CircuitListModel *CircuitScene::circuitsModel() const
+{
+    return static_cast<CircuitListModel *>(parent());
 }

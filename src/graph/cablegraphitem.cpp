@@ -98,7 +98,7 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     bool isBconnected = mCable->getNode(CableSide::B).node;
 
     bool showUnconnected = !isAconnected && !isBconnected;
-    if(s && s->mode() == CircuitScene::Mode::Editing)
+    if(s && s->mode() == FileMode::Editing)
     {
         // In editing mode even if just one side is not connected
         // still draw attention to this cable

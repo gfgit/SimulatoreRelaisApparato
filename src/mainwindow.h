@@ -28,12 +28,10 @@
 class CircuitScene;
 class AbstractNodeGraphItem;
 class CableGraphItem;
-class RelaisModel;
 class NodeEditFactory;
 
-class ZoomGraphView;
-class QDoubleSpinBox;
-class DoubleClickSlider;
+class ModeManager;
+class ViewManager;
 
 class QListView;
 
@@ -45,13 +43,13 @@ public:
     MainWindow(const QString &uniqueName_, QWidget *parent = nullptr);
     ~MainWindow();
 
-    CircuitScene *scene() const;
+    ModeManager *modeMgr() const;
 
 protected:
     void closeEvent(QCloseEvent *e) override;
 
 private:
-    void buildToolBar();
+    void buildMenuBarAndToolBar();
     void updateRecentFileActions();
     void addFileToRecents(const QString& fileName);
 
@@ -59,15 +57,11 @@ private:
 
     void locateAppSettings();
 
-    bool hasUnsavedChanges() const;
     bool maybeSave();
 
     bool saveFile(const QString &fileName);
 
 private slots:
-    void nodeEditRequested(AbstractNodeGraphItem *item);
-    void cableEditRequested(CableGraphItem *item);
-
     void onNew();
     void onOpen();
     void onOpenRecent();
@@ -75,11 +69,6 @@ private slots:
     void onSaveAs();
 
     void updateWindowModified();
-
-    void onZoomChanged(double val);
-    void onZoomSliderChanged(int val);
-    void onZoomSpinChanged(double val);
-    void resetZoom();
 
 private:
     // Actions
@@ -89,26 +78,20 @@ private:
     QAction *actionNew;
     QAction *actionSave_As;
 
-    // Circuits
-    CircuitScene *mScene;
+    // Models
+    ModeManager *mModeMgr = nullptr;
+
+    // Views
+    ViewManager *mViewMgr = nullptr;
 
     // Relays
-    QListView *mRelaisView;
-    RelaisModel *mRelaisModel;
-    NodeEditFactory *mEditFactory;
+    QListView *mRelaisView = nullptr;
 
     enum
     {
         MaxRecentFiles = 10
     };
-    QAction *recentFileActs[MaxRecentFiles];
+    QAction *recentFileActs[MaxRecentFiles] = {};
     QString settingsFile;
-
-    ZoomGraphView *mCircuitView;
-    DoubleClickSlider *mZoomSlider;
-    QDoubleSpinBox *mZoomSpin;
-
-    // Prevent showing modified file while loading
-    bool mIsLoading = false;
 };
 #endif // MAINWINDOW_H

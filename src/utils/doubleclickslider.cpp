@@ -43,6 +43,9 @@ void DoubleClickSlider::mouseDoubleClickEvent(QMouseEvent *e)
     if (sr.contains(e->position().toPoint()))
     {
         emit sliderHandleDoubleClicked();
+
+        // Eat mouse to prevent clicking other zoom value
+        return;
     }
 
     QSlider::mouseDoubleClickEvent(e);

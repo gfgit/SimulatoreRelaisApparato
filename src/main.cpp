@@ -24,6 +24,7 @@
 
 #include <QApplication>
 
+#include <kddockwidgets-qt6/kddockwidgets/Config.h>
 #include <kddockwidgets-qt6/kddockwidgets/MainWindow.h>
 
 int main(int argc, char *argv[])
@@ -35,6 +36,12 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
+
+    auto& config = KDDockWidgets::Config::self();
+
+    auto flags = config.flags();
+    flags.setFlag(KDDockWidgets::Config::Flag_AllowReorderTabs);
+    config.setFlags(flags);
 
     MainWindow w(QLatin1String("mainwindow1"));
     w.show();

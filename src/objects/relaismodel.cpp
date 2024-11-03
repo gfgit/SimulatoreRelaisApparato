@@ -24,13 +24,16 @@
 
 #include "abstractrelais.h"
 
+#include "../views/modemanager.h"
+
 #include <QColor>
 
 #include <QJsonObject>
 #include <QJsonArray>
 
-RelaisModel::RelaisModel(QObject *parent)
+RelaisModel::RelaisModel(ModeManager *mgr, QObject *parent)
     : QAbstractListModel(parent)
+    , mModeMgr(mgr)
 {
 }
 
@@ -88,6 +91,9 @@ QVariant RelaisModel::data(const QModelIndex &idx, int role) const
 
 bool RelaisModel::setData(const QModelIndex &idx, const QVariant &value, int role)
 {
+    if(mModeMgr->mode() != FileMode::Editing)
+        return false;
+
     if (!idx.isValid() || idx.row() >= mRelais.size() || role != Qt::EditRole)
         return false;
 
@@ -102,14 +108,25 @@ bool RelaisModel::setData(const QModelIndex &idx, const QVariant &value, int rol
 
 Qt::ItemFlags RelaisModel::flags(const QModelIndex &idx) const
 {
-    if (!idx.isValid() || idx.row() >= mRelais.size())
-        return Qt::ItemFlags();
+    Qt::ItemFlags f;
 
-    return Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
+    if (!idx.isValid() || idx.row() >= mRelais.size())
+        return f;
+
+    f.setFlag(Qt::ItemIsSelectable);
+    f.setFlag(Qt::ItemIsEnabled);
+
+    if(mModeMgr->mode() == FileMode::Editing)
+        f.setFlag(Qt::ItemIsEditable);
+
+    return f;
 }
 
 void RelaisModel::addRelay(AbstractRelais *r)
 {
+    if(mModeMgr->mode() != FileMode::Editing)
+        return;
+
     int row = mRelais.size();
     beginInsertRows(QModelIndex(), row, row);
 
@@ -125,6 +142,9 @@ void RelaisModel::addRelay(AbstractRelais *r)
 
 void RelaisModel::removeRelay(AbstractRelais *r)
 {
+    if(mModeMgr->mode() != FileMode::Editing)
+        return;
+
     int row = mRelais.indexOf(r);
     if(row < 0)
         return;
@@ -243,16 +263,15 @@ void RelaisModel::updateRelayRow(AbstractRelais *r)
     emit dataChanged(idx, idx);
 }
 
-bool RelaisModel::hasUnsavedChanges() const
+void RelaisModel::setHasUnsavedChanges(bool val)
 {
-    return m_hasUnsavedChanges;
-}
-
-void RelaisModel::setHasUnsavedChanges(bool newHasUnsavedChanges)
-{
-    if(m_hasUnsavedChanges == newHasUnsavedChanges)
+    if(m_hasUnsavedChanges == val)
         return;
 
-    m_hasUnsavedChanges = newHasUnsavedChanges;
+    m_hasUnsavedChanges = val;
+
+    if(val)
+        mModeMgr->setFileEdited();
+
     emit modelEdited(m_hasUnsavedChanges);
 }

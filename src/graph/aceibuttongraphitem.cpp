@@ -370,7 +370,7 @@ ACEIButtonNode *ACEIButtonGraphItem::node() const
 void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == CircuitScene::Mode::Simulation)
+    if(s && s->mode() == FileMode::Simulation)
     {
         if(ev->button() == Qt::LeftButton)
             node()->setState(ACEIButtonNode::State::Pressed);
@@ -385,7 +385,7 @@ void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 void ACEIButtonGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == CircuitScene::Mode::Simulation)
+    if(s && s->mode() == FileMode::Simulation)
     {
         if(ev->button() == Qt::LeftButton || ev->button() == Qt::RightButton)
             node()->setState(ACEIButtonNode::State::Normal);

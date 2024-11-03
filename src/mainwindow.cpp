@@ -30,16 +30,12 @@
 #include "objects/abstractrelais.h"
 #include "objects/relaismodel.h"
 
-#include "nodes/edit/nodeeditfactory.h"
 #include "nodes/edit/standardnodetypes.h"
 
 #include <QAction>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QFileDialog>
-
-#include "utils/doubleclickslider.h"
-#include <QDoubleSpinBox>
 
 #include <QStandardPaths>
 #include <QSettings>
@@ -53,20 +49,23 @@
 #include <QSortFilterProxyModel>
 
 
-#include "utils/zoomgraphview.h"
-
 #include <QMenuBar>
 #include <QToolBar>
-#include <QStatusBar>
 
 #include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
+
+#include "views/viewmanager.h"
+#include "views/modemanager.h"
 
 MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
 {
     locateAppSettings();
 
-    mRelaisModel = new RelaisModel(this);
+    mModeMgr = new ModeManager(this);
+    mViewMgr = new ViewManager(this);
+
+    auto mRelaisModel = mModeMgr->relaisModel();
 
     QSortFilterProxyModel *relaysProxy = new QSortFilterProxyModel(this);
     relaysProxy->setSourceModel(mRelaisModel);
@@ -78,9 +77,9 @@ MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
 
     auto relaisDock = new KDDockWidgets::QtWidgets::DockWidget(QLatin1String("relais1"));
     relaisDock->setWidget(mRelaisView);
-    relaisDock->asDockWidgetController()
     addDockWidget(relaisDock, KDDockWidgets::Location_OnRight);
 
+    // TODO
     // connect(ui->addRelayBut, &QPushButton::clicked,
     //         mRelaisModel, [this]()
     // {
@@ -117,51 +116,12 @@ MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
     //     }
     // });
 
-    mEditFactory = new NodeEditFactory(this);
-    StandardNodeTypes::registerTypes(mEditFactory);
+    StandardNodeTypes::registerTypes(mModeMgr->circuitFactory());
 
-    mScene = new CircuitScene(this);
-    mScene->setRelaisModel(mRelaisModel);
+    connect(mModeMgr, &ModeManager::fileEdited,
+            this, &MainWindow::updateWindowModified);
 
-    mCircuitView = new ZoomGraphView;
-    mCircuitView->setScene(mScene);
-
-    mZoomSlider = new DoubleClickSlider(Qt::Horizontal);
-    mZoomSlider->setRange(0, ZoomGraphView::MaxZoom * 100);
-    mZoomSlider->setTickInterval(25);
-    mZoomSlider->setTickPosition(QSlider::TicksBothSides);
-    statusBar()->addPermanentWidget(mZoomSlider);
-
-    mZoomSpin = new QDoubleSpinBox;
-    mZoomSpin->setRange(ZoomGraphView::MinZoom * 100,
-                        ZoomGraphView::MaxZoom * 100);
-    statusBar()->addPermanentWidget(mZoomSpin);
-
-
-    auto circuitDock = new KDDockWidgets::QtWidgets::DockWidget(QLatin1String("circuit1"));
-    circuitDock->setWidget(mCircuitView);
-    addDockWidget(circuitDock, KDDockWidgets::Location_OnLeft);
-
-    connect(mScene, &CircuitScene::nodeEditRequested,
-            this, &MainWindow::nodeEditRequested);
-    connect(mScene, &CircuitScene::cableEditRequested,
-            this, &MainWindow::cableEditRequested);
-
-    connect(mRelaisModel, &RelaisModel::modelEdited, this, &MainWindow::updateWindowModified);
-    connect(mScene, &CircuitScene::sceneEdited, this, &MainWindow::updateWindowModified);
-
-    connect(mCircuitView, &ZoomGraphView::zoomChanged,
-            this, &MainWindow::onZoomChanged);
-    connect(mZoomSlider, &QSlider::valueChanged,
-            this, &MainWindow::onZoomSliderChanged);
-    connect(mZoomSlider, &DoubleClickSlider::sliderHandleDoubleClicked,
-            this, &MainWindow::resetZoom);
-    connect(mZoomSpin, &QDoubleSpinBox::valueChanged,
-            this, &MainWindow::onZoomSpinChanged);
-
-    onZoomChanged(mCircuitView->zoomFactor());
-
-    buildToolBar();
+    buildMenuBarAndToolBar();
 }
 
 MainWindow::~MainWindow()
@@ -169,13 +129,11 @@ MainWindow::~MainWindow()
     // These classes emit signals in destructors which
     // would happen after MainWindow destructor, in super class.
     // Delete them now.
-    delete mRelaisModel;
-    delete mScene;
-}
+    delete mViewMgr;
+    mViewMgr = nullptr;
 
-CircuitScene *MainWindow::scene() const
-{
-    return mScene;
+    delete mModeMgr;
+    mModeMgr = nullptr;
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
@@ -186,7 +144,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
         e->ignore();
 }
 
-void MainWindow::buildToolBar()
+void MainWindow::buildMenuBarAndToolBar()
 {
     // Menu File
     QMenu *menuFile = menuBar()->addMenu(tr("File"));
@@ -224,13 +182,21 @@ void MainWindow::buildToolBar()
 
     updateRecentFileActions();
 
+    // Menu File
+    QMenu *menuView = menuBar()->addMenu(tr("View"));
+
+    QAction *showCircuitList = menuView->addAction(tr("Circuit list"));
+
+    connect(showCircuitList, &QAction::triggered,
+            mViewMgr, &ViewManager::showCircuitListView);
+
     // Toolbar
     QToolBar *toolBar = new QToolBar(tr("Edit Tools"));
     addToolBar(Qt::TopToolBarArea, toolBar);
 
     QAction *toggleEditMode = new QAction(tr("Edit"));
     toggleEditMode->setCheckable(true);
-    toggleEditMode->setChecked(mScene->mode() == CircuitScene::Mode::Editing);
+    toggleEditMode->setChecked(mModeMgr->mode() == FileMode::Editing);
     toolBar->addAction(toggleEditMode);
 
     connect(toggleEditMode, &QAction::toggled,
@@ -238,11 +204,11 @@ void MainWindow::buildToolBar()
     {
         // If was Editing set to Simulation when unchecked
         // Otherwise leave current mode on
-        const bool isEditing = mScene->mode() == CircuitScene::Mode::Editing;
+        const bool isEditing = mModeMgr->mode() == FileMode::Editing;
         if(val && !isEditing)
-            mScene->setMode(CircuitScene::Mode::Editing);
+            mModeMgr->setMode(FileMode::Editing);
         else if(!val && isEditing)
-            mScene->setMode(CircuitScene::Mode::Simulation);
+            mModeMgr->setMode(FileMode::Simulation);
     });
 
     QAction *newItem = new QAction(tr("New Item"));
@@ -253,61 +219,36 @@ void MainWindow::buildToolBar()
 
     QVector<QAction *> addItemActions;
 
-    for(const QString& nodeType : mEditFactory->getRegisteredTypes())
+    auto editFactory = mModeMgr->circuitFactory();
+    for(const QString& nodeType : editFactory->getRegisteredTypes())
     {
-        QString title = tr("New %1").arg(mEditFactory->prettyName(nodeType));
+        QString title = tr("New %1").arg(editFactory->prettyName(nodeType));
 
         QAction *act = newItemMenu->addAction(title);
-        connect(act, &QAction::triggered, mScene,
+        connect(act, &QAction::triggered, mViewMgr,
                 [nodeType, this]()
         {
-            //ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
-
-            const auto needsName = mEditFactory->needsName(nodeType);
-            QString name;
-            if(needsName == NodeEditFactory::NeedsName::Always)
-            {
-                name = QInputDialog::getText(mCircuitView,
-                                             MainWindow::tr("Choose Item Name"),
-                                             MainWindow::tr("Name:"));
-                if(name.isEmpty())
-                    return;
-            }
-
-            QPoint vpCenter = mCircuitView->viewport()->rect().center();
-            QPointF sceneCenter = mCircuitView->mapToScene(vpCenter);
-            TileLocation hint = TileLocation::fromPoint(sceneCenter);
-
-            auto item = mEditFactory->createItem(nodeType, mScene, hint);
-            if(needsName == NodeEditFactory::NeedsName::Always)
-                item->getAbstractNode()->setObjectName(name);
-
-            mCircuitView->ensureVisible(item);
+            mViewMgr->addNodeToActiveView(nodeType);
         });
 
         addItemActions.append(act);
     }
 
     QAction *newCableAct = newItemMenu->addAction(tr("New Cable"));
-    connect(newCableAct, &QAction::triggered, mScene,
-            [this]()
-    {
-        //ui->tabWidget->setCurrentIndex(ui->tabWidget->indexOf(ui->circuitTab));
-
-        mScene->startEditNewCable();
-    });
+    connect(newCableAct, &QAction::triggered,
+            mViewMgr, &ViewManager::startEditNEwCableOnActiveView);
 
     addItemActions.append(newCableAct);
 
-    connect(mScene, &CircuitScene::modeChanged,
-            this, [this, toggleEditMode, newItem, addItemActions](CircuitScene::Mode mode)
+    connect(mModeMgr, &ModeManager::modeChanged,
+            this, [this, toggleEditMode, newItem, addItemActions](FileMode mode)
     {
-        toggleEditMode->setChecked(mode == CircuitScene::Mode::Editing);
-        newItem->setEnabled(mode == CircuitScene::Mode::Editing);
+        toggleEditMode->setChecked(mode == FileMode::Editing);
+        newItem->setEnabled(mode == FileMode::Editing);
 
         for(QAction *act : std::as_const(addItemActions))
         {
-            act->setVisible(mode == CircuitScene::Mode::Editing);
+            act->setVisible(mode == FileMode::Editing);
         }
     });
 
@@ -373,36 +314,16 @@ void MainWindow::addFileToRecents(const QString &fileName)
     updateRecentFileActions();
 }
 
-void MainWindow::nodeEditRequested(AbstractNodeGraphItem *item)
-{
-    // Allow delete or custom node options
-    mEditFactory->editItem(this, item);
-}
-
-void MainWindow::cableEditRequested(CableGraphItem *item)
-{
-    // Allow delete or modify path
-    mEditFactory->editCable(this, item);
-}
-
 void MainWindow::onNew()
 {
     if(!maybeSave())
         return;
 
-    // Reset scene and relais
     setWindowModified(false);
     setWindowFilePath(QString());
 
-    mIsLoading = true;
-
-    mScene->removeAllItems();
-    mScene->setHasUnsavedChanges(false);
-
-    mRelaisModel->clear();
-    mRelaisModel->setHasUnsavedChanges(false);
-
-    mIsLoading = false;
+    // Reset scenes and objects
+    mModeMgr->clearAll();
 }
 
 void MainWindow::onOpen()
@@ -436,8 +357,6 @@ void MainWindow::loadFile(const QString& fileName)
     if(!f.open(QFile::ReadOnly))
         return;
 
-    mIsLoading = true;
-
     setWindowFilePath(fileName);
     updateWindowModified();
 
@@ -447,13 +366,8 @@ void MainWindow::loadFile(const QString& fileName)
 
     const QJsonObject rootObj = doc.object();
 
-    const QJsonObject relais = rootObj.value("relais_model").toObject();
-    mRelaisModel->loadFromJSON(relais);
+    mModeMgr->loadFromJSON(rootObj);
 
-    const QJsonObject sceneObj = rootObj.value("scene").toObject();
-    mScene->loadFromJSON(sceneObj, mEditFactory);
-
-    mIsLoading = false;
     updateWindowModified();
 }
 
@@ -464,23 +378,9 @@ void MainWindow::locateAppSettings()
     settingsFile = QDir::cleanPath(p);
 }
 
-bool MainWindow::hasUnsavedChanges() const
-{
-    if(mIsLoading)
-        return false;
-
-    if(mScene->hasUnsavedChanges())
-        return true;
-
-    if(mRelaisModel->hasUnsavedChanges())
-        return true;
-
-    return false;
-}
-
 bool MainWindow::maybeSave()
 {
-    if(!hasUnsavedChanges())
+    if(!mModeMgr->fileNeedsSaving())
         return true; // No need to save
 
     QMessageBox::StandardButton ret =
@@ -506,15 +406,8 @@ bool MainWindow::maybeSave()
 
 bool MainWindow::saveFile(const QString& fileName)
 {
-    QJsonObject relais;
-    mRelaisModel->saveToJSON(relais);
-
-    QJsonObject sceneObj;
-    mScene->saveToJSON(sceneObj);
-
     QJsonObject rootObj;
-    rootObj["relais_model"] = relais;
-    rootObj["scene"] = sceneObj;
+    mModeMgr->saveToJSON(rootObj);
 
     QJsonDocument doc(rootObj);
 
@@ -526,8 +419,7 @@ bool MainWindow::saveFile(const QString& fileName)
 
     addFileToRecents(fileName);
 
-    mScene->setHasUnsavedChanges(false);
-    mRelaisModel->setHasUnsavedChanges(false);
+    mModeMgr->resetFileEdited();
 
     return true;
 }
@@ -565,30 +457,11 @@ void MainWindow::updateWindowModified()
     if(windowFilePath().isEmpty())
         setWindowModified(false);
     else
-        setWindowModified(hasUnsavedChanges());
+        setWindowModified(mModeMgr->fileNeedsSaving());
 }
 
-void MainWindow::onZoomChanged(double val)
+ModeManager *MainWindow::modeMgr() const
 {
-    QSignalBlocker blk(mZoomSpin);
-    mZoomSpin->setValue(val * 100.0);
-
-    QSignalBlocker blk2(mZoomSlider);
-    mZoomSlider->setValue(qRound(mZoomSpin->value()));
-}
-
-void MainWindow::onZoomSliderChanged(int val)
-{
-    mCircuitView->setZoom(double(val) / 100.0);
-}
-
-void MainWindow::onZoomSpinChanged(double val)
-{
-    mCircuitView->setZoom(val / 100.0);
-}
-
-void MainWindow::resetZoom()
-{
-    mCircuitView->setZoom(1.0);
+    return mModeMgr;
 }
 
