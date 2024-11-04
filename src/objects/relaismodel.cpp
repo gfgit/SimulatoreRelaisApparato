@@ -72,7 +72,7 @@ QVariant RelaisModel::data(const QModelIndex &idx, int role) const
             break;
         case AbstractRelais::State::GoingUp:
         case AbstractRelais::State::GoingDown:
-            color.setRgb(255, 140, 140); // Light red
+            color.setRgb(120, 210, 255); // Light blue
             break;
         case AbstractRelais::State::Down:
         default:

@@ -116,7 +116,7 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 
     const QColor colors[3] =
     {
-        QColor(255, 140, 140), // Light red, Open Circuit
+        QColor(120, 210, 255), // Light blue, Open Circuit
         Qt::red, // Closed circuit
         Qt::black // No circuit
     };

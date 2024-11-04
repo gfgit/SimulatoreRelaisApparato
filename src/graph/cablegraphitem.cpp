@@ -227,7 +227,7 @@ void CableGraphItem::updatePen()
         if(powerType == CircuitType::Closed)
             color = Qt::red;
         else
-            color.setRgb(255, 140, 140); // Light red
+            color.setRgb(120, 210, 255); // Light blue
     }
 
     Qt::PenStyle style = Qt::SolidLine;

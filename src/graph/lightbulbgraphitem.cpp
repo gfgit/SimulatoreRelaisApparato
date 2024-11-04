@@ -88,7 +88,7 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     const QColor colors[3] =
     {
-        QColor(255, 140, 140), // Light red, Open Circuit
+        QColor(120, 210, 255), // Light blue, Open Circuit
         Qt::red, // Closed circuit
         Qt::black // No circuit
     };
@@ -101,7 +101,7 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     // Draw bulb circle
 
     // If we have only open circuit (light bulb is still off)
-    // Draw in black instead of light red.
+    // Draw in black instead of Light blue.
     if(!node()->hasCircuits())
         pen.setColor(colors[int(AnyCircuitType::None)]);
     pen.setWidthF(3.0);

@@ -153,7 +153,7 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     // Draw switch arc and wires on top
     const QColor colors[3] =
     {
-        QColor(255, 140, 140), // Light red, Open Circuit
+        QColor(120, 210, 255), // Light blue, Open Circuit
         Qt::red, // Closed circuit
         Qt::black // No circuit
     };
@@ -320,7 +320,7 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
             break;
         case AbstractRelais::State::GoingUp:
         case AbstractRelais::State::GoingDown:
-            color.setRgb(255, 140, 140); // Light red
+            color.setRgb(120, 210, 255); // Light blue
             break;
         case AbstractRelais::State::Down:
         default:

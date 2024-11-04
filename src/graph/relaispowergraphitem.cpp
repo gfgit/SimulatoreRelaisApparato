@@ -91,7 +91,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     const QColor colors[3] =
     {
-        QColor(255, 140, 140), // Light red, Open Circuit
+        QColor(120, 210, 255), // Light blue, Open Circuit
         Qt::red, // Closed circuit
         Qt::black // No circuit
     };
@@ -111,7 +111,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
             break;
         case AbstractRelais::State::GoingUp:
         case AbstractRelais::State::GoingDown:
-            color = colors[int(AnyCircuitType::Open)]; // Light red
+            color = colors[int(AnyCircuitType::Open)]; // Light blue
             break;
         case AbstractRelais::State::Down:
         default:
