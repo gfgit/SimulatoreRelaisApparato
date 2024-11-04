@@ -1,5 +1,5 @@
 /**
- * src/objects/abstractrelais.cpp
+ * src/objects/relais/model/abstractrelais.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -22,8 +22,8 @@
 
 #include "abstractrelais.h"
 
-#include "../../../nodes/relaiscontactnode.h"
-#include "../../../nodes/relaispowernode.h"
+#include "../../../circuits/nodes/relaiscontactnode.h"
+#include "../../../circuits/nodes/relaispowernode.h"
 
 #include <QTimerEvent>
 

@@ -40,7 +40,7 @@
 #include "views/viewmanager.h"
 #include "views/modemanager.h"
 
-#include "nodes/edit/nodeeditfactory.h"
+#include "circuits/edit/nodeeditfactory.h"
 
 MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
