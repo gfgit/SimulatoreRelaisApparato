@@ -59,6 +59,9 @@ MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
     buildMenuBar();
 
     resize(800, 600);
+
+    // Start with a new file
+    onNew();
 }
 
 MainWindow::~MainWindow()
@@ -288,6 +291,9 @@ void MainWindow::onNew()
     // Reset scenes and objects
     mViewMgr->closeAllFileSpecificDocks();
     mModeMgr->clearAll();
+
+    // Show circuit list view for new files
+    mViewMgr->showCircuitListView();
 }
 
 void MainWindow::onOpen()
@@ -335,6 +341,9 @@ void MainWindow::loadFile(const QString& fileName)
     mModeMgr->loadFromJSON(rootObj);
 
     updateWindowModified();
+
+    // Show circuit list view for opened files
+    mViewMgr->showCircuitListView();
 }
 
 void MainWindow::locateAppSettings()

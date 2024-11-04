@@ -170,7 +170,7 @@ void ViewManager::showCircuitSceneEdit(CircuitScene *scene)
 
     auto updateDock = [dock, scene]()
     {
-        QString name = tr("Edit %1").arg(scene->circuitSheetName());
+        QString name = tr("Edit Circuit %1").arg(scene->circuitSheetName());
         dock->setTitle(name);
         dock->dockWidget()->setUniqueName(name);
     };
@@ -232,6 +232,7 @@ void ViewManager::showCircuitListView()
     mCircuitListViewDock = new DockWidget(QLatin1String("circuit_list"),
                                           KDDockWidgets::DockWidgetOption_DeleteOnClose);
     mCircuitListViewDock->setWidget(circuitListView);
+    mCircuitListViewDock->setTitle(tr("Circuit Sheets"));
 
     mainWin()->addDockWidget(mCircuitListViewDock, KDDockWidgets::Location_OnLeft);
 }
@@ -251,6 +252,7 @@ void ViewManager::showRelayListView()
     mRelaisListViewDock = new DockWidget(QLatin1String("relais_list"),
                                           KDDockWidgets::DockWidgetOption_DeleteOnClose);
     mRelaisListViewDock->setWidget(relaisListView);
+    mRelaisListViewDock->setTitle(tr("Relais List"));
 
     mainWin()->addDockWidget(mRelaisListViewDock, KDDockWidgets::Location_OnLeft);
 }
