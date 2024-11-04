@@ -90,7 +90,7 @@ private:
 
     ModeManager *mModeMgr;
 
-    bool mHasUnsavedChanges = true;
+    bool mHasUnsavedChanges = false;
 };
 
 #endif // CIRCUITLISTMODEL_H

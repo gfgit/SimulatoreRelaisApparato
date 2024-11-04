@@ -215,7 +215,7 @@ void CircuitSceneOptionsWidget::onNameTextEdited()
 
 void CircuitSceneOptionsWidget::setSceneLongName()
 {
-    QString newLongName = mNameEdit->text().trimmed();
+    QString newLongName = mLongNameEdit->text().trimmed();
     mScene->setCircuitSheetLongName(newLongName);
 }
 
