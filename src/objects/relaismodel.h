@@ -59,15 +59,23 @@ public:
     AbstractRelais *getRelay(const QString& name);
 
     void clear();
+
+    inline ModeManager *modeMgr() const
+    {
+        return mModeMgr;
+    }
+
     bool loadFromJSON(const QJsonObject& obj);
     void saveToJSON(QJsonObject& obj) const;
 
+    bool isNameAvailable(const QString& name) const;
+
     inline bool hasUnsavedChanges() const
     {
-        return m_hasUnsavedChanges;
+        return mHasUnsavedChanges;
     }
 
-    void setHasUnsavedChanges(bool val);
+    void resetHasUnsavedChanges();
 
 signals:
     void modelEdited(bool val);
@@ -79,13 +87,14 @@ private slots:
 
 private:
     void updateRelayRow(AbstractRelais *r);
+    void onRelayEdited();
 
 private:
     QVector<AbstractRelais *> mRelais;
 
     ModeManager *mModeMgr;
 
-    bool m_hasUnsavedChanges = false;
+    bool mHasUnsavedChanges = false;
 };
 
 #endif // RELAISMODEL_H

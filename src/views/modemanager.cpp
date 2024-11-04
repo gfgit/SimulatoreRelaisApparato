@@ -6,6 +6,8 @@
 
 #include "../objects/relaismodel.h"
 
+#include "../nodes/edit/standardnodetypes.h"
+
 #include <QJsonObject>
 
 ModeManager::ModeManager(QObject *parent)
@@ -14,6 +16,8 @@ ModeManager::ModeManager(QObject *parent)
     mRelaisModel = new RelaisModel(this, this);
 
     mCircuitFactory = new NodeEditFactory(this);
+    StandardNodeTypes::registerTypes(mCircuitFactory);
+
     mCircuitList = new CircuitListModel(this, this);
 }
 
@@ -49,7 +53,7 @@ void ModeManager::resetFileEdited()
     mFileWasEdited = false;
 
     mCircuitList->resetHasUnsavedChanges();
-    mRelaisModel->setHasUnsavedChanges(false);
+    mRelaisModel->resetHasUnsavedChanges();
 
     emit fileEdited(false);
 }

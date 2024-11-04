@@ -1,18 +1,25 @@
 #include "circuitlistwidget.h"
 
 #include "circuitlistmodel.h"
+#include "../graph/circuitscene.h"
 
 #include "viewmanager.h"
 #include "modemanager.h"
 
 #include <QVBoxLayout>
+#include <QFormLayout>
+
 #include <QTableView>
 #include <QPushButton>
+#include <QLineEdit>
 
 #include <QInputDialog>
 #include <QMessageBox>
 
 #include <QGuiApplication>
+
+#include <QMenu>
+#include <QAction>
 
 CircuitListWidget::CircuitListWidget(ViewManager *mgr, CircuitListModel *model, QWidget *parent)
     : QWidget{parent}
@@ -34,9 +41,10 @@ CircuitListWidget::CircuitListWidget(ViewManager *mgr, CircuitListModel *model, 
     lay->addWidget(mView);
 
     mView->setModel(mModel);
+    mView->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    // Use double click for opening view
-    mView->setEditTriggers(QTableView::SelectedClicked);
+    // Edit through dedicate options widget
+    mView->setEditTriggers(QTableView::NoEditTriggers);
 
     connect(mView, &QTableView::doubleClicked,
             this, &CircuitListWidget::onSceneDoubleClicked);
@@ -48,6 +56,9 @@ CircuitListWidget::CircuitListWidget(ViewManager *mgr, CircuitListModel *model, 
             this, &CircuitListWidget::addScene);
     connect(remBut, &QPushButton::clicked,
             this, &CircuitListWidget::removeCurrentScene);
+
+    connect(mView, &QTableView::customContextMenuRequested,
+            this, &CircuitListWidget::showViewContextMenu);
 
     onFileModeChanged(mModel->modeMgr()->mode());
 }
@@ -132,4 +143,96 @@ void CircuitListWidget::onSceneDoubleClicked(const QModelIndex &idx)
         return;
 
     mViewMgr->addCircuitView(scene, forceNew);
+}
+
+void CircuitListWidget::showViewContextMenu(const QPoint &pos)
+{
+    if(mModel->modeMgr()->mode() != FileMode::Editing)
+        return;
+
+    QPointer<QMenu> menu = new QMenu(this);
+
+    QModelIndex idx = mView->indexAt(pos);
+    CircuitScene *scene = mModel->sceneAtRow(idx.row());
+    if(!scene)
+        return;
+
+    QAction *actionEdit = menu->addAction(tr("Edit"));
+    QAction *ret = menu->exec(mView->viewport()->mapToGlobal(pos));
+    if(ret == actionEdit)
+        mViewMgr->showCircuitSceneEdit(scene);
+}
+
+CircuitSceneOptionsWidget::CircuitSceneOptionsWidget(CircuitScene *scene, QWidget *parent)
+    : QWidget{parent}
+    , mScene(scene)
+{
+    QFormLayout *lay = new QFormLayout(this);
+
+    mNameEdit = new QLineEdit;
+    mNameEdit->setPlaceholderText(tr("Name"));
+    lay->addRow(tr("Name:"), mNameEdit);
+
+    normalEditPalette = mNameEdit->palette();
+
+    mLongNameEdit = new QLineEdit;
+    mLongNameEdit->setPlaceholderText(tr("Long Name"));
+    lay->addRow(tr("Long Name:"), mLongNameEdit);
+
+    mNameEdit->setText(mScene->circuitSheetName());
+    mLongNameEdit->setText(mScene->circuitSheetLongName());
+
+    connect(mNameEdit, &QLineEdit::editingFinished,
+            this, &CircuitSceneOptionsWidget::setSceneName);
+    connect(mNameEdit, &QLineEdit::textEdited,
+            this, &CircuitSceneOptionsWidget::onNameTextEdited);
+
+    connect(mLongNameEdit, &QLineEdit::editingFinished,
+            this, &CircuitSceneOptionsWidget::setSceneLongName);
+}
+
+void CircuitSceneOptionsWidget::setSceneName()
+{
+    QString newName = mNameEdit->text().trimmed();
+    if(!newName.isEmpty() && mScene->setCircuitSheetName(newName))
+        return;
+
+    // Name is not valid, go back to old name
+    mNameEdit->setText(mScene->circuitSheetName());
+    setNameValid(true);
+}
+
+void CircuitSceneOptionsWidget::onNameTextEdited()
+{
+    QString newName = mNameEdit->text().trimmed();
+
+    bool valid = true;
+    if(newName != mScene->circuitSheetName())
+        valid = mScene->circuitsModel()->isNameAvailable(newName);
+
+    setNameValid(valid);
+}
+
+void CircuitSceneOptionsWidget::setSceneLongName()
+{
+    QString newLongName = mNameEdit->text().trimmed();
+    mScene->setCircuitSheetLongName(newLongName);
+}
+
+void CircuitSceneOptionsWidget::setNameValid(bool valid)
+{
+    if(valid)
+    {
+        mNameEdit->setPalette(normalEditPalette);
+        mNameEdit->setToolTip(QString());
+    }
+    else
+    {
+        // Red text
+        QPalette p = mNameEdit->palette();
+        p.setColor(QPalette::Text, Qt::red);
+        mNameEdit->setPalette(p);
+
+        mNameEdit->setToolTip(tr("Name already exists"));
+    }
 }

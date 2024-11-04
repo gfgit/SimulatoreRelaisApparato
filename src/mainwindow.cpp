@@ -22,18 +22,7 @@
 
 #include "mainwindow.h"
 
-#include "graph/circuitscene.h"
-
-#include "nodes/abstractcircuitnode.h"
-#include "graph/abstractnodegraphitem.h"
-
-#include "objects/abstractrelais.h"
-#include "objects/relaismodel.h"
-
-#include "nodes/edit/standardnodetypes.h"
-
 #include <QAction>
-#include <QInputDialog>
 #include <QMessageBox>
 #include <QFileDialog>
 
@@ -45,17 +34,13 @@
 
 #include <QCloseEvent>
 
-#include <QListView>
-#include <QSortFilterProxyModel>
-
-
 #include <QMenuBar>
 #include <QToolBar>
 
-#include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
-
 #include "views/viewmanager.h"
 #include "views/modemanager.h"
+
+#include "nodes/edit/nodeeditfactory.h"
 
 MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
@@ -63,65 +48,17 @@ MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
     locateAppSettings();
 
     mModeMgr = new ModeManager(this);
+
     mViewMgr = new ViewManager(this);
 
-    auto mRelaisModel = mModeMgr->relaisModel();
-
-    QSortFilterProxyModel *relaysProxy = new QSortFilterProxyModel(this);
-    relaysProxy->setSourceModel(mRelaisModel);
-    relaysProxy->setSortRole(Qt::DisplayRole);
-    relaysProxy->sort(0);
-
-    mRelaisView = new QListView;
-    mRelaisView->setModel(relaysProxy);
-
-    auto relaisDock = new KDDockWidgets::QtWidgets::DockWidget(QLatin1String("relais1"));
-    relaisDock->setWidget(mRelaisView);
-    addDockWidget(relaisDock, KDDockWidgets::Location_OnRight);
-
-    // TODO
-    // connect(ui->addRelayBut, &QPushButton::clicked,
-    //         mRelaisModel, [this]()
-    // {
-    //     QString name = QInputDialog::getText(this,
-    //                                          tr("New Relay"),
-    //                                          tr("Choose Name"));
-    //     if(name.isEmpty())
-    //         return;
-
-    //     AbstractRelais *relay = new AbstractRelais(mRelaisModel);
-    //     relay->setName(name);
-
-    //     mRelaisModel->addRelay(relay);
-    // });
-
-    // connect(ui->removeRelayBut, &QPushButton::clicked,
-    //         ui->relaisView, [this]()
-    // {
-    //     QModelIndex idx = ui->relaisView->currentIndex();
-    //     if(!idx.isValid())
-    //         return;
-
-    //     AbstractRelais *relay = mRelaisModel->relayAt(idx.row());
-    //     if(!relay)
-    //         return;
-
-    //     QString name = relay->name();
-    //     int ret = QMessageBox::question(this,
-    //                                     tr("Delete Relais %1").arg(name),
-    //                                     tr("Are you sure to delete <b>%1</b>?").arg(name));
-    //     if(ret == QMessageBox::Yes)
-    //     {
-    //         mRelaisModel->removeRelay(relay);
-    //     }
-    // });
-
-    StandardNodeTypes::registerTypes(mModeMgr->circuitFactory());
-
+    connect(mModeMgr, &ModeManager::modeChanged,
+            this, &MainWindow::onFileModeChanged);
     connect(mModeMgr, &ModeManager::fileEdited,
             this, &MainWindow::updateWindowModified);
 
-    buildMenuBarAndToolBar();
+    buildMenuBar();
+
+    resize(800, 600);
 }
 
 MainWindow::~MainWindow()
@@ -144,7 +81,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
         e->ignore();
 }
 
-void MainWindow::buildMenuBarAndToolBar()
+void MainWindow::buildMenuBar()
 {
     // Menu File
     QMenu *menuFile = menuBar()->addMenu(tr("File"));
@@ -182,7 +119,8 @@ void MainWindow::buildMenuBarAndToolBar()
 
     updateRecentFileActions();
 
-    // Menu File
+
+    // Menu View
     QMenu *menuView = menuBar()->addMenu(tr("View"));
 
     QAction *showCircuitList = menuView->addAction(tr("Circuit list"));
@@ -190,17 +128,16 @@ void MainWindow::buildMenuBarAndToolBar()
     connect(showCircuitList, &QAction::triggered,
             mViewMgr, &ViewManager::showCircuitListView);
 
-    // Toolbar
-    QToolBar *toolBar = new QToolBar(tr("Edit Tools"));
-    addToolBar(Qt::TopToolBarArea, toolBar);
+    QAction *showRelayList = menuView->addAction(tr("Relay list"));
 
-    QAction *toggleEditMode = new QAction(tr("Edit"));
-    toggleEditMode->setCheckable(true);
-    toggleEditMode->setChecked(mModeMgr->mode() == FileMode::Editing);
-    toolBar->addAction(toggleEditMode);
+    connect(showRelayList, &QAction::triggered,
+            mViewMgr, &ViewManager::showRelayListView);
 
-    connect(toggleEditMode, &QAction::toggled,
-            this, [this](bool val)
+    actionEditMode = menuView->addAction(tr("Edit mode"));
+    actionEditMode->setCheckable(true);
+
+    connect(actionEditMode, &QAction::toggled,
+            mModeMgr, [this](bool val)
     {
         // If was Editing set to Simulation when unchecked
         // Otherwise leave current mode on
@@ -211,11 +148,29 @@ void MainWindow::buildMenuBarAndToolBar()
             mModeMgr->setMode(FileMode::Simulation);
     });
 
+    if(mModeMgr->mode() == FileMode::Editing)
+    {
+        actionEditMode->setChecked(true);
+        buildEditToolBar();
+    }
+}
+
+void MainWindow::buildEditToolBar()
+{
+    Q_ASSERT(!editToolbar1 && !editToolbar2);
+
+    // Use 2 Toolbars to show actions in 2 rows
+    editToolbar1 = new QToolBar(tr("Edit Tools 1"));
+    editToolbar2 = new QToolBar(tr("Edit Tools 2"));
+    addToolBar(Qt::TopToolBarArea, editToolbar1);
+    insertToolBar(editToolbar1, editToolbar2);
+    insertToolBarBreak(editToolbar1);
+
     QAction *newItem = new QAction(tr("New Item"));
     QMenu *newItemMenu = new QMenu;
     newItem->setMenu(newItemMenu);
-    toolBar->addAction(newItem);
-    toolBar->addSeparator();
+    editToolbar1->addAction(newItem);
+    editToolbar1->addSeparator();
 
     QVector<QAction *> addItemActions;
 
@@ -240,22 +195,30 @@ void MainWindow::buildMenuBarAndToolBar()
 
     addItemActions.append(newCableAct);
 
-    connect(mModeMgr, &ModeManager::modeChanged,
-            this, [this, toggleEditMode, newItem, addItemActions](FileMode mode)
-    {
-        toggleEditMode->setChecked(mode == FileMode::Editing);
-        newItem->setEnabled(mode == FileMode::Editing);
-
-        for(QAction *act : std::as_const(addItemActions))
-        {
-            act->setVisible(mode == FileMode::Editing);
-        }
-    });
-
+    int i = 0;
     for(QAction *act : std::as_const(addItemActions))
     {
-        toolBar->addAction(act);
+        if(i < 4)
+            editToolbar1->addAction(act);
+        else
+            editToolbar2->addAction(act);
+        i++;
     }
+}
+
+void MainWindow::removeEditToolBar()
+{
+    Q_ASSERT(editToolbar1 && editToolbar2);
+
+    removeToolBarBreak(editToolbar1);
+
+    removeToolBar(editToolbar1);
+    delete editToolbar1;
+    editToolbar1 = nullptr;
+
+    removeToolBar(editToolbar2);
+    delete editToolbar2;
+    editToolbar2 = nullptr;
 }
 
 static QString strippedName(const QString &fullFileName, bool *ok)
@@ -323,6 +286,7 @@ void MainWindow::onNew()
     setWindowFilePath(QString());
 
     // Reset scenes and objects
+    mViewMgr->closeAllFileSpecificDocks();
     mModeMgr->clearAll();
 }
 
@@ -356,6 +320,8 @@ void MainWindow::loadFile(const QString& fileName)
     QFile f(fileName);
     if(!f.open(QFile::ReadOnly))
         return;
+
+    mViewMgr->closeAllFileSpecificDocks();
 
     setWindowFilePath(fileName);
     updateWindowModified();
@@ -465,3 +431,12 @@ ModeManager *MainWindow::modeMgr() const
     return mModeMgr;
 }
 
+void MainWindow::onFileModeChanged(FileMode mode, FileMode oldMode)
+{
+    actionEditMode->setChecked(mode == FileMode::Editing);
+
+    if(mode == FileMode::Editing)
+        buildEditToolBar();
+    else if(oldMode == FileMode::Editing)
+        removeEditToolBar();
+}

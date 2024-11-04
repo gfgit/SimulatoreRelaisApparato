@@ -6,6 +6,9 @@
 #include "../enums/filemodes.h"
 
 class CircuitListModel;
+class CircuitScene;
+
+class QLineEdit;
 class QPushButton;
 class QTableView;
 
@@ -15,7 +18,7 @@ class CircuitListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit CircuitListWidget(ViewManager *mgr, CircuitListModel *model, QWidget *parent = nullptr);
+    CircuitListWidget(ViewManager *mgr, CircuitListModel *model, QWidget *parent = nullptr);
 
     CircuitListModel *model() const;
 
@@ -27,6 +30,8 @@ private slots:
 
     void onSceneDoubleClicked(const QModelIndex& idx);
 
+    void showViewContextMenu(const QPoint& pos);
+
 private:
     QTableView *mView;
 
@@ -35,6 +40,29 @@ private:
 
     ViewManager *mViewMgr;
     CircuitListModel *mModel;
+};
+
+class CircuitSceneOptionsWidget : public QWidget
+{
+    Q_OBJECT
+public:
+    CircuitSceneOptionsWidget(CircuitScene *scene, QWidget *parent = nullptr);
+
+private slots:
+    void setSceneName();
+    void onNameTextEdited();
+    void setSceneLongName();
+
+private:
+    void setNameValid(bool valid);
+
+private:
+    CircuitScene *mScene = nullptr;
+
+    QLineEdit *mNameEdit;
+    QLineEdit *mLongNameEdit;
+
+    QPalette normalEditPalette;
 };
 
 #endif // CIRCUITLISTWIDGET_H

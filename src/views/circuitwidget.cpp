@@ -101,7 +101,7 @@ void CircuitWidget::setScene(CircuitScene *newScene, bool updateName)
                 this, &CircuitWidget::onSceneDestroyed);
     }
 
-    setUniqueNum(mViewMgr->getUniqueNum(mScene));
+    setUniqueNum(mViewMgr->getUniqueNum(mScene, this));
 
     if(updateName)
         onSceneNameChanged();
@@ -150,14 +150,8 @@ bool CircuitWidget::eventFilter(QObject *watched, QEvent *e)
                 watched == mZoomSpin ||
                 watched == statusBar)
         {
-            qDebug() << "Handler: Focus in" << watched;
-
             // Set this view as active
             mViewMgr->setActiveCircuit(this);
-        }
-        else
-        {
-            qDebug() << "NOT Handler: Focus in" << watched;
         }
     }
 

@@ -25,15 +25,10 @@
 
 #include <kddockwidgets-qt6/kddockwidgets/MainWindow.h>
 
-class CircuitScene;
-class AbstractNodeGraphItem;
-class CableGraphItem;
-class NodeEditFactory;
+#include "enums/filemodes.h"
 
 class ModeManager;
 class ViewManager;
-
-class QListView;
 
 class MainWindow : public KDDockWidgets::QtWidgets::MainWindow
 {
@@ -49,7 +44,7 @@ protected:
     void closeEvent(QCloseEvent *e) override;
 
 private:
-    void buildMenuBarAndToolBar();
+    void buildMenuBar();
     void updateRecentFileActions();
     void addFileToRecents(const QString& fileName);
 
@@ -61,6 +56,9 @@ private:
 
     bool saveFile(const QString &fileName);
 
+    void buildEditToolBar();
+    void removeEditToolBar();
+
 private slots:
     void onNew();
     void onOpen();
@@ -70,6 +68,8 @@ private slots:
 
     void updateWindowModified();
 
+    void onFileModeChanged(FileMode mode, FileMode oldMode);
+
 private:
     // Actions
     QAction *actionOpen;
@@ -78,14 +78,17 @@ private:
     QAction *actionNew;
     QAction *actionSave_As;
 
+    QAction *actionEditMode;
+
+    // Edit toolbar
+    QToolBar *editToolbar1 = nullptr;
+    QToolBar *editToolbar2 = nullptr;
+
     // Models
     ModeManager *mModeMgr = nullptr;
 
     // Views
     ViewManager *mViewMgr = nullptr;
-
-    // Relays
-    QListView *mRelaisView = nullptr;
 
     enum
     {

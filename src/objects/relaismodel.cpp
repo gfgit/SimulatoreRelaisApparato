@@ -101,7 +101,12 @@ bool RelaisModel::setData(const QModelIndex &idx, const QVariant &value, int rol
     if(name.isEmpty())
         return false;
 
+    if(!isNameAvailable(name))
+        return false;
+
+    // Set name
     mRelais.at(idx.row())->setName(name);
+
     emit dataChanged(idx, idx);
     return true;
 }
@@ -137,7 +142,7 @@ void RelaisModel::addRelay(AbstractRelais *r)
 
     endInsertRows();
 
-    setHasUnsavedChanges(true);
+    onRelayEdited();
 }
 
 void RelaisModel::removeRelay(AbstractRelais *r)
@@ -158,7 +163,7 @@ void RelaisModel::removeRelay(AbstractRelais *r)
 
     endRemoveRows();
 
-    setHasUnsavedChanges(true);
+    onRelayEdited();
 }
 
 AbstractRelais *RelaisModel::relayAt(int row) const
@@ -209,8 +214,6 @@ bool RelaisModel::loadFromJSON(const QJsonObject &obj)
     }
 
     endResetModel();
-
-    setHasUnsavedChanges(false);
     
     return true;
 }
@@ -229,10 +232,20 @@ void RelaisModel::saveToJSON(QJsonObject &obj) const
     obj["relais"] = arr;
 }
 
+bool RelaisModel::isNameAvailable(const QString &name) const
+{
+    return std::none_of(mRelais.cbegin(),
+                        mRelais.cend(),
+                        [name](AbstractRelais *r) -> bool
+    {
+        return r->name() == name;
+    });
+}
+
 void RelaisModel::onRelayChanged(AbstractRelais *r)
 {
     updateRelayRow(r);
-    setHasUnsavedChanges(true);
+    onRelayEdited();
 }
 
 void RelaisModel::onRelayStateChanged(AbstractRelais *r)
@@ -251,7 +264,7 @@ void RelaisModel::onRelayDestroyed(QObject *obj)
     mRelais.removeAt(row);
     endRemoveRows();
 
-    setHasUnsavedChanges(true);
+    onRelayEdited();
 }
 
 void RelaisModel::updateRelayRow(AbstractRelais *r)
@@ -263,15 +276,21 @@ void RelaisModel::updateRelayRow(AbstractRelais *r)
     emit dataChanged(idx, idx);
 }
 
-void RelaisModel::setHasUnsavedChanges(bool val)
+void RelaisModel::onRelayEdited()
 {
-    if(m_hasUnsavedChanges == val)
+    if(mHasUnsavedChanges)
         return;
 
-    m_hasUnsavedChanges = val;
+    mHasUnsavedChanges = true;
+    modeMgr()->setFileEdited();
+    emit modelEdited(true);
+}
 
-    if(val)
-        mModeMgr->setFileEdited();
+void RelaisModel::resetHasUnsavedChanges()
+{
+    if(!mHasUnsavedChanges)
+        return;
 
-    emit modelEdited(m_hasUnsavedChanges);
+    mHasUnsavedChanges = false;
+    emit modelEdited(false);
 }

@@ -104,6 +104,8 @@ public:
     QString circuitSheetLongName() const;
     void setCircuitSheetLongName(const QString &newLongName);
 
+    CircuitListModel *circuitsModel() const;
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);
@@ -118,8 +120,6 @@ protected:
 
 private:
     friend class AbstractNodeGraphItem;
-
-    CircuitListModel *circuitsModel() const;
 
     void refreshItemConnections(AbstractNodeGraphItem *item, bool tryReconnect);
 

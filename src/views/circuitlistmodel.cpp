@@ -158,6 +158,10 @@ CircuitScene *CircuitListModel::addCircuitScene(const QString &name)
 
     connect(scene, &CircuitScene::nameChanged,
             this, &CircuitListModel::onSceneNameChanged);
+    connect(scene, &CircuitScene::longNameChanged,
+            this, &CircuitListModel::onSceneNameChanged);
+
+    onSceneEdited();
 
     return scene;
 }
@@ -175,6 +179,8 @@ bool CircuitListModel::removeSceneAtRow(int row)
     delete scene;
 
     endRemoveRows();
+
+    onSceneEdited();
 
     return true;
 }
@@ -239,8 +245,9 @@ void CircuitListModel::onSceneNameChanged(const QString &, CircuitScene *scene)
     int row = mCircuitScenes.indexOf(scene);
     Q_ASSERT(row >= 0);
 
-    QModelIndex idx = index(row, 0);
-    emit dataChanged(idx, idx);
+    QModelIndex first = index(row, NameCol);
+    QModelIndex last = index(row, LongNameCol);
+    emit dataChanged(first, last);
 }
 
 void CircuitListModel::setMode(FileMode newMode, FileMode oldMode)

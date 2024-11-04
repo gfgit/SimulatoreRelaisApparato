@@ -1,13 +1,16 @@
 #include "viewmanager.h"
 
-#include "circuitwidget.h"
-#include "circuitlistmodel.h"
-#include "circuitlistwidget.h"
-#include "../graph/circuitscene.h"
-
 #include "../mainwindow.h"
 #include "modemanager.h"
 #include "../nodes/edit/nodeeditfactory.h"
+
+#include "circuitwidget.h"
+#include "circuitlistmodel.h"
+#include "../graph/circuitscene.h"
+
+#include "circuitlistwidget.h"
+
+#include "relaislistwidget.h"
 
 #include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
 #include <kddockwidgets-qt6/kddockwidgets/core/DockWidget.h>
@@ -17,11 +20,21 @@
 ViewManager::ViewManager(MainWindow *parent)
     : QObject{parent}
 {
-    CircuitListModel *circuitList = mainWin()->modeMgr()->circuitList();
+    ModeManager *modeMgr = mainWin()->modeMgr();
+
+    connect(modeMgr, &ModeManager::modeChanged,
+            this, &ViewManager::onFileModeChanged);
+
+    CircuitListModel *circuitList = modeMgr->circuitList();
     connect(circuitList, &CircuitListModel::nodeEditRequested,
             this, &ViewManager::nodeEditRequested);
     connect(circuitList, &CircuitListModel::cableEditRequested,
             this, &ViewManager::cableEditRequested);
+}
+
+ViewManager::~ViewManager()
+{
+    closeAll();
 }
 
 void ViewManager::setActiveCircuit(CircuitWidget *w)
@@ -34,15 +47,19 @@ void ViewManager::setActiveCircuit(CircuitWidget *w)
         mActiveCircuitView = mCircuitViews.begin().key();
 }
 
-static QString getCircuitUniqueName(CircuitWidget *w)
+static std::pair<QString, QString> getCircuitUniqueName(CircuitWidget *w)
 {
     QString name = QLatin1String("null");
+    QString title = ViewManager::tr("Empty");
 
     auto scene = w->scene();
     if(scene)
-        name = scene->circuitSheetName();
+        title = scene->circuitSheetName();
 
-    return QLatin1String("%1_(%2)").arg(name).arg(w->uniqueNum());
+    name = QLatin1String("%1_(%2)").arg(title).arg(w->uniqueNum());
+    title = QLatin1String("%1 (%2)").arg(title).arg(w->uniqueNum());
+
+    return {name, title};
 }
 
 void ViewManager::updateDockName(CircuitWidget *w)
@@ -51,7 +68,9 @@ void ViewManager::updateDockName(CircuitWidget *w)
     if(!dock)
         return;
 
-    dock->dockWidget()->setUniqueName(getCircuitUniqueName(w));
+    auto namePair = getCircuitUniqueName(w);
+    dock->dockWidget()->setUniqueName(namePair.first);
+    dock->setTitle(namePair.second);
 }
 
 MainWindow *ViewManager::mainWin()
@@ -59,7 +78,7 @@ MainWindow *ViewManager::mainWin()
     return static_cast<MainWindow *>(parent());
 }
 
-int ViewManager::getUniqueNum(CircuitScene *scene) const
+int ViewManager::getUniqueNum(CircuitScene *scene, CircuitWidget *self) const
 {
     int result = 1;
 
@@ -70,6 +89,9 @@ int ViewManager::getUniqueNum(CircuitScene *scene) const
         for(auto it : mCircuitViews.asKeyValueRange())
         {
             CircuitWidget *w = it.first;
+            if(w == self)
+                continue;
+
             if(w->scene() != scene)
                 continue;
 
@@ -108,10 +130,13 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
     CircuitWidget *w = new CircuitWidget(this);
     w->setScene(scene, false);
 
-    DockWidget *dock = new DockWidget(getCircuitUniqueName(w),
+    auto namePair = getCircuitUniqueName(w);
+
+    DockWidget *dock = new DockWidget(namePair.first,
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
-    dock->setAttribute(Qt::WA_DeleteOnClose);
+    dock->setTitle(namePair.second);
+
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
 
     connect(w, &CircuitWidget::destroyed,
@@ -123,6 +148,73 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
         mActiveCircuitView = w;
 
     return w;
+}
+
+void ViewManager::showCircuitSceneEdit(CircuitScene *scene)
+{
+    // Raise existing edit window if present
+    for(auto it : mCircuitEdits.asKeyValueRange())
+    {
+        if(it.first == scene)
+        {
+            it.second->raise();
+            return;
+        }
+    }
+
+    // Create new edit window
+    CircuitSceneOptionsWidget *w = new CircuitSceneOptionsWidget(scene);
+    DockWidget *dock = new DockWidget(scene->circuitSheetName(),
+                                      KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    dock->setWidget(w);
+
+    auto updateDock = [dock, scene]()
+    {
+        QString name = tr("Edit %1").arg(scene->circuitSheetName());
+        dock->setTitle(name);
+        dock->dockWidget()->setUniqueName(name);
+    };
+
+    connect(scene, &CircuitScene::nameChanged,
+            dock, updateDock);
+    connect(scene, &CircuitScene::destroyed,
+            dock, &QWidget::close);
+    connect(dock, &QObject::destroyed,
+            this, [this, scene]()
+    {
+        mCircuitEdits.remove(scene);
+    });
+
+    updateDock();
+
+    // By default open as floating window
+    dock->open();
+
+    mCircuitEdits.insert(scene, dock);
+}
+
+void ViewManager::closeAllEditDocks()
+{
+    auto circuitEditsCopy = mCircuitEdits;
+    qDeleteAll(circuitEditsCopy);
+    mCircuitEdits.clear();
+}
+
+void ViewManager::closeAllFileSpecificDocks()
+{
+    closeAllEditDocks();
+
+    auto circuitViewsCopy = mCircuitViews;
+    qDeleteAll(circuitViewsCopy);
+    mCircuitViews.clear();
+}
+
+void ViewManager::closeAll()
+{
+    closeAllFileSpecificDocks();
+
+    delete mCircuitListViewDock;
+    delete mRelaisListViewDock;
 }
 
 void ViewManager::showCircuitListView()
@@ -142,6 +234,25 @@ void ViewManager::showCircuitListView()
     mCircuitListViewDock->setWidget(circuitListView);
 
     mainWin()->addDockWidget(mCircuitListViewDock, KDDockWidgets::Location_OnLeft);
+}
+
+void ViewManager::showRelayListView()
+{
+    if(mRelaisListViewDock)
+    {
+        mRelaisListViewDock->raise();
+        mRelaisListViewDock->activateWindow();
+        return;
+    }
+
+    RelaisModel *relaisList = mainWin()->modeMgr()->relaisModel();
+    RelaisListWidget *relaisListView = new RelaisListWidget(this, relaisList);
+
+    mRelaisListViewDock = new DockWidget(QLatin1String("relais_list"),
+                                          KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    mRelaisListViewDock->setWidget(relaisListView);
+
+    mainWin()->addDockWidget(mRelaisListViewDock, KDDockWidgets::Location_OnLeft);
 }
 
 void ViewManager::startEditNEwCableOnActiveView()
@@ -196,6 +307,13 @@ void ViewManager::cableEditRequested(CableGraphItem *item)
     // Allow delete or modify path
     auto editFactory = mainWin()->modeMgr()->circuitFactory();
     editFactory->editCable(mActiveCircuitView, item);
+}
+
+void ViewManager::onFileModeChanged(FileMode mode, FileMode oldMode)
+{
+    Q_UNUSED(mode);
+    if(oldMode == FileMode::Editing)
+        closeAllEditDocks();
 }
 
 CircuitWidget *ViewManager::activeCircuitView() const

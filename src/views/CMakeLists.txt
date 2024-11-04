@@ -15,6 +15,9 @@ set(PROJECT_SOURCES
     views/modemanager.cpp
     views/modemanager.h
 
+    views/relaislistwidget.cpp
+    views/relaislistwidget.h
+
     views/viewmanager.cpp
     views/viewmanager.h
 
