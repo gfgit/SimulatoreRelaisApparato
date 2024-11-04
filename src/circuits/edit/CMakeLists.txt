@@ -1,6 +1,4 @@
-# src/objects
-
-add_subdirectory(relais)
+# src/circuits/edit
 
 set(PROJECT_SOURCES
     ${PROJECT_SOURCES}

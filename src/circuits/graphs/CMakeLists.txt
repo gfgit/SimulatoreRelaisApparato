@@ -1,6 +1,4 @@
-# src/objects
-
-add_subdirectory(relais)
+# src/circuits/graphs
 
 set(PROJECT_SOURCES
     ${PROJECT_SOURCES}

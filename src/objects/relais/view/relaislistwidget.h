@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-#include "../enums/filemodes.h"
+#include "../../../enums/filemodes.h"
 
 class RelaisModel;
 class QSortFilterProxyModel;

@@ -24,8 +24,9 @@
 
 #include <QCompleter>
 
-#include "../../objects/relaismodel.h"
-#include "../../objects/abstractrelais.h"
+
+#include "../../objects/relais/model/abstractrelais.h"
+#include "../../objects/relais/model/relaismodel.h"
 
 RelayLineEdit::RelayLineEdit(RelaisModel *m, QWidget *parent)
     : QLineEdit(parent)

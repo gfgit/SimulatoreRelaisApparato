@@ -23,7 +23,7 @@
 #include "relaiscontactgraphitem.h"
 
 #include "../nodes/relaiscontactnode.h"
-#include "../objects/abstractrelais.h"
+#include "../objects/relais/model/abstractrelais.h"
 
 #include <QPainter>
 

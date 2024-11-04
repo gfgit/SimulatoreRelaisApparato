@@ -1,5 +1,6 @@
 # src
 
+add_subdirectory(circuits)
 add_subdirectory(core)
 add_subdirectory(enums)
 add_subdirectory(graph)

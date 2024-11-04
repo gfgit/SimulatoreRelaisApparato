@@ -1,10 +1,10 @@
 #include "relaislistwidget.h"
 
-#include "../objects/relaismodel.h"
-#include "../objects/abstractrelais.h"
+#include "../model/relaismodel.h"
+#include "../model/abstractrelais.h"
 
-#include "viewmanager.h"
-#include "modemanager.h"
+#include "../../../views/viewmanager.h"
+#include "../../../views/modemanager.h"
 
 #include <QVBoxLayout>
 #include <QTableView>

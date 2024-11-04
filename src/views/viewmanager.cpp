@@ -10,7 +10,7 @@
 
 #include "circuitlistwidget.h"
 
-#include "relaislistwidget.h"
+#include "../objects/relais/view/relaislistwidget.h"
 
 #include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
 #include <kddockwidgets-qt6/kddockwidgets/core/DockWidget.h>

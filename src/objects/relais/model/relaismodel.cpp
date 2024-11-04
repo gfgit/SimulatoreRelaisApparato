@@ -24,7 +24,7 @@
 
 #include "abstractrelais.h"
 
-#include "../views/modemanager.h"
+#include "../../../views/modemanager.h"
 
 #include <QColor>
 

@@ -22,8 +22,8 @@
 
 #include "abstractrelais.h"
 
-#include "../nodes/relaiscontactnode.h"
-#include "../nodes/relaispowernode.h"
+#include "../../../nodes/relaiscontactnode.h"
+#include "../../../nodes/relaispowernode.h"
 
 #include <QTimerEvent>
 

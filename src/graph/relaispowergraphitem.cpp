@@ -23,7 +23,7 @@
 #include "relaispowergraphitem.h"
 
 #include "../nodes/relaispowernode.h"
-#include "../objects/abstractrelais.h"
+#include "../objects/relais/model/abstractrelais.h"
 
 #include <QPainter>
 

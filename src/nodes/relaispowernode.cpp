@@ -22,10 +22,10 @@
 
 #include "relaispowernode.h"
 
-#include "../objects/abstractrelais.h"
+#include "../objects/relais/model/abstractrelais.h"
+#include "../objects/relais/model/relaismodel.h"
 
 #include "../views/modemanager.h"
-#include "../objects/relaismodel.h"
 
 #include <QTimerEvent>
 

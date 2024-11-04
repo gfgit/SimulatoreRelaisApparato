@@ -4,7 +4,7 @@
 
 #include "circuitlistmodel.h"
 
-#include "../objects/relaismodel.h"
+#include "../objects/relais/model/relaismodel.h"
 
 #include "../nodes/edit/standardnodetypes.h"
 

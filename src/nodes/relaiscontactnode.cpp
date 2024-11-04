@@ -23,10 +23,11 @@
 #include "relaiscontactnode.h"
 
 #include "../core/electriccircuit.h"
-#include "../objects/abstractrelais.h"
+
+#include "../objects/relais/model/abstractrelais.h"
+#include "../objects/relais/model/relaismodel.h"
 
 #include "../views/modemanager.h"
-#include "../objects/relaismodel.h"
 
 #include <QJsonObject>
 

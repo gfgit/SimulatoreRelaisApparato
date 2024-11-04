@@ -45,7 +45,7 @@
 #include "../../graph/lightbulbgraphitem.h"
 #include "../../nodes/lightbulbnode.h"
 
-#include "../../objects/abstractrelais.h"
+#include "../../objects/relais/model/abstractrelais.h"
 
 #include "../../views/modemanager.h"
 
