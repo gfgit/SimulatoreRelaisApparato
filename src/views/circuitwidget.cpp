@@ -14,7 +14,7 @@
 
 #include <QVBoxLayout>
 
-#include <QEvent>
+#include <QKeyEvent>
 
 #include <QInputDialog>
 
@@ -143,29 +143,49 @@ void CircuitWidget::onSceneDestroyed()
 
 bool CircuitWidget::eventFilter(QObject *watched, QEvent *e)
 {
-    if(e->type() == QEvent::FocusIn)
+    if(watched == mCircuitView ||
+            watched == mZoomSlider ||
+            watched == mZoomSpin ||
+            watched == statusBar)
     {
-        if(watched == mCircuitView ||
-                watched == mZoomSlider ||
-                watched == mZoomSpin ||
-                watched == statusBar)
+        if(e->type() == QEvent::FocusIn)
         {
             // Set this view as active
             mViewMgr->setActiveCircuit(this);
         }
+        else if(e->type() == QEvent::KeyPress)
+        {
+            QKeyEvent *ev = static_cast<QKeyEvent *>(e);
+            if(ev->modifiers() == Qt::ShiftModifier
+                    && ev->key() == Qt::Key_Z)
+            {
+                toggleStatusBar();
+                return true;
+            }
+        }
     }
 
-    return QObject::eventFilter(watched, e);
+    return QWidget::eventFilter(watched, e);
 }
 
-void CircuitWidget::focusInEvent(QFocusEvent *e)
+void CircuitWidget::focusInEvent(QFocusEvent *ev)
 {
-    qDebug() << "CW: Focus in";
-
     // Set this view as active
     mViewMgr->setActiveCircuit(this);
 
-    QWidget::focusInEvent(e);
+    QWidget::focusInEvent(ev);
+}
+
+void CircuitWidget::keyPressEvent(QKeyEvent *ev)
+{
+    if(ev->modifiers() == Qt::ShiftModifier
+            && ev->key() == Qt::Key_Z)
+    {
+        toggleStatusBar();
+        return;
+    }
+
+    QWidget::keyPressEvent(ev);
 }
 
 void CircuitWidget::addNodeToCenter(NodeEditFactory *editFactory,
@@ -195,6 +215,11 @@ void CircuitWidget::addNodeToCenter(NodeEditFactory *editFactory,
         item->getAbstractNode()->setObjectName(name);
 
     mCircuitView->ensureVisible(item);
+}
+
+void CircuitWidget::toggleStatusBar()
+{
+    statusBar->setVisible(!statusBar->isVisible());
 }
 
 int CircuitWidget::uniqueNum() const

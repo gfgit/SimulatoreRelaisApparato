@@ -39,13 +39,16 @@ private slots:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *e) override;
-    void focusInEvent(QFocusEvent *e) override;
+    void focusInEvent(QFocusEvent *ev) override;
+    void keyPressEvent(QKeyEvent *ev) override;
 
 private:
     friend class ViewManager;
 
     void addNodeToCenter(NodeEditFactory *editFactory,
                          const QString& nodeType);
+
+    void toggleStatusBar();
 
 private:
     CircuitScene *mScene = nullptr;
