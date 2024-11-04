@@ -14,8 +14,6 @@
 
 #include <QInputDialog>
 
-#include <QDebug>
-
 ViewManager::ViewManager(MainWindow *parent)
     : QObject{parent}
 {
@@ -30,11 +28,6 @@ void ViewManager::setActiveCircuit(CircuitWidget *w)
 {
     if(w && w == mActiveCircuitView)
         return;
-
-    if(w)
-        qDebug() << "Set ACTIVE:" << mCircuitViews.value(w)->dockWidget()->uniqueName();
-    else
-        qDebug() << "Set ACTIVE: NULL";
 
     mActiveCircuitView = w;
     if(!mActiveCircuitView && !mCircuitViews.isEmpty())
@@ -115,7 +108,8 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
     CircuitWidget *w = new CircuitWidget(this);
     w->setScene(scene, false);
 
-    DockWidget *dock = new DockWidget(getCircuitUniqueName(w));
+    DockWidget *dock = new DockWidget(getCircuitUniqueName(w),
+                                      KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
     dock->setAttribute(Qt::WA_DeleteOnClose);
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
@@ -143,9 +137,9 @@ void ViewManager::showCircuitListView()
     CircuitListModel *circuitList = mainWin()->modeMgr()->circuitList();
     CircuitListWidget *circuitListView = new CircuitListWidget(this, circuitList);
 
-    mCircuitListViewDock = new DockWidget(QLatin1String("circuit_list"));
+    mCircuitListViewDock = new DockWidget(QLatin1String("circuit_list"),
+                                          KDDockWidgets::DockWidgetOption_DeleteOnClose);
     mCircuitListViewDock->setWidget(circuitListView);
-    mCircuitListViewDock->setAttribute(Qt::WA_DeleteOnClose);
 
     mainWin()->addDockWidget(mCircuitListViewDock, KDDockWidgets::Location_OnLeft);
 }
@@ -189,8 +183,6 @@ void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
     Q_ASSERT(mActiveCircuitView);
 
     DockWidget *dock = mCircuitViews.value(mActiveCircuitView);
-    QString name = dock->dockWidget()->uniqueName();
-    qDebug() << "NODE EDIT: view" << name;
 
     // Allow delete or custom node options
     auto editFactory = mainWin()->modeMgr()->circuitFactory();
