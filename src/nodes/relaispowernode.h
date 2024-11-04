@@ -26,13 +26,12 @@
 #include "abstractcircuitnode.h"
 
 class AbstractRelais;
-class RelaisModel;
 
 class RelaisPowerNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
-    explicit RelaisPowerNode(QObject *parent = nullptr);
+    explicit RelaisPowerNode(ModeManager *mgr, QObject *parent = nullptr);
     ~RelaisPowerNode();
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
@@ -48,9 +47,6 @@ public:
 
     AbstractRelais *relais() const;
     void setRelais(AbstractRelais *newRelais);
-
-    RelaisModel *relaisModel() const;
-    void setRelaisModel(RelaisModel *newRelaisModel);
 
     int delayUpSeconds() const;
     void setDelayUpSeconds(int newDelayUpSeconds);
@@ -72,7 +68,6 @@ private:
 
 private:
     AbstractRelais *mRelais = nullptr;
-    RelaisModel *mRelaisModel = nullptr;
 
     int mDelayUpSeconds = 0;
     int mDelayDownSeconds = 0;

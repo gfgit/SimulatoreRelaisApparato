@@ -31,6 +31,7 @@
 
 class ElectricCircuit;
 
+class ModeManager;
 class QJsonObject;
 
 class AbstractCircuitNode : public QObject
@@ -100,7 +101,7 @@ public:
         }
     };
 
-    explicit AbstractCircuitNode(bool isLoad = false, QObject *parent = nullptr);
+    explicit AbstractCircuitNode(ModeManager *mgr, bool isLoad = false, QObject *parent = nullptr);
     ~AbstractCircuitNode();
 
     inline int getContactCount() const { return mContacts.size(); }
@@ -185,6 +186,11 @@ public:
 
     virtual QString nodeType() const = 0;
 
+    inline ModeManager *modeMgr() const
+    {
+        return mModeMgr;
+    }
+
 protected:
     friend class CircuitScene;
     friend class AbstractNodeGraphItem;
@@ -226,6 +232,8 @@ protected:
     void unregisterOpenCircuitExit(ElectricCircuit *circuit);
 
 private:
+    ModeManager *mModeMgr;
+
     CircuitList mClosedCircuits;
     CircuitList mOpenCircuits;
     const bool isElectricLoad;

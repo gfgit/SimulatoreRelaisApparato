@@ -26,7 +26,6 @@
 #include "abstractcircuitnode.h"
 
 class AbstractRelais;
-class RelaisModel;
 
 class RelaisContactNode : public AbstractCircuitNode
 {
@@ -39,7 +38,7 @@ public:
         Middle
     };
 
-    explicit RelaisContactNode(QObject *parent = nullptr);
+    explicit RelaisContactNode(ModeManager *mgr, QObject *parent = nullptr);
     ~RelaisContactNode();
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
@@ -65,10 +64,6 @@ public:
     bool hasCentralConnector() const;
     void setHasCentralConnector(bool newHasCentralConnector);
 
-    RelaisModel *relaisModel() const;
-    void setRelaisModel(RelaisModel *newRelaisModel);
-
-
 signals:
     void stateChanged();
     void relayChanged(AbstractRelais *r);
@@ -77,7 +72,6 @@ private slots:
     void onRelaisStateChanged();
 
 private:
-    RelaisModel *mRelaisModel = nullptr;
     AbstractRelais *mRelais = nullptr;
     State mState = State::Middle;
     bool mFlipContact = false;

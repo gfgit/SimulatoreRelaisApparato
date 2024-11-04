@@ -26,8 +26,8 @@
 
 #include <QJsonObject>
 
-ACEIButtonNode::ACEIButtonNode(QObject *parent)
-    : AbstractCircuitNode{false, parent}
+ACEIButtonNode::ACEIButtonNode(ModeManager *mgr, QObject *parent)
+    : AbstractCircuitNode{mgr, false, parent}
 {
     // 3 sides
     mContacts.append(NodeContact("11", "12")); // Common

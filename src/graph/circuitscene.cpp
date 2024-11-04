@@ -60,7 +60,6 @@ CircuitScene::~CircuitScene()
 
 FileMode CircuitScene::mode() const
 {
-    // TODO: remove
     return circuitsModel()->modeMgr()->mode();
 }
 
@@ -1004,12 +1003,6 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
     }
 
     obj["nodes"] = nodes;
-}
-
-RelaisModel *CircuitScene::relaisModel() const
-{
-    // TODO: remove and use directly
-    return circuitsModel()->modeMgr()->relaisModel();
 }
 
 QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction direction)

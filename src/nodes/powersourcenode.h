@@ -29,7 +29,7 @@ class PowerSourceNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
-    explicit PowerSourceNode(QObject *parent = nullptr);
+    explicit PowerSourceNode(ModeManager *mgr, QObject *parent = nullptr);
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 

@@ -46,8 +46,6 @@ class NodeEditFactory;
 
 class CircuitListModel;
 
-class RelaisModel;
-
 class CircuitScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -88,8 +86,6 @@ public:
     TileCablePair getCablesAt(TileLocation l) const;
 
     bool cablePathIsValid(const CableGraphPath& cablePath, CableGraphItem *item) const;
-
-    RelaisModel *relaisModel() const;
 
     void removeAllItems();
     bool loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory);

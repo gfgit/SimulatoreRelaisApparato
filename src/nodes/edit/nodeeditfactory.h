@@ -34,6 +34,8 @@ class AbstractNodeGraphItem;
 class AbstractCircuitNode;
 class CircuitScene;
 
+class ModeManager;
+
 class QWidget;
 
 class NodeEditFactory : public QObject
@@ -42,8 +44,8 @@ class NodeEditFactory : public QObject
 public:
     NodeEditFactory(QObject *parent);
 
-    typedef AbstractNodeGraphItem *(*CreateFunc)(CircuitScene *parent);
-    typedef QWidget*(*EditFunc)(AbstractNodeGraphItem *item);
+    typedef AbstractNodeGraphItem *(*CreateFunc)(CircuitScene *parent, ModeManager *mgr);
+    typedef QWidget*(*EditFunc)(AbstractNodeGraphItem *item, ModeManager *mgr);
 
     enum class NeedsName
     {

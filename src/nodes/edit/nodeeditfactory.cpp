@@ -27,6 +27,8 @@
 #include "../../graph/abstractnodegraphitem.h"
 #include "../../graph/cablegraphitem.h"
 
+#include "../../views/circuitlistmodel.h"
+
 #include <QDialog>
 #include <QPointer>
 
@@ -60,7 +62,8 @@ AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType,
     if(!factory)
         return nullptr;
 
-    AbstractNodeGraphItem *item = factory->create(scene);
+    AbstractNodeGraphItem *item = factory->create(scene,
+                                                  scene->circuitsModel()->modeMgr());
     if(hint.isValid())
         item->setLocation(hint);
     scene->addNode(item);
@@ -107,7 +110,8 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
 
     if(factory->edit)
     {
-        QWidget *customWidget = factory->edit(item);
+        QWidget *customWidget = factory->edit(item,
+                                              item->circuitScene()->circuitsModel()->modeMgr());
         if(customWidget)
             lay->addWidget(customWidget);
     }

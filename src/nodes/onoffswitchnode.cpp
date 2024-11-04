@@ -24,8 +24,10 @@
 
 #include "../core/electriccircuit.h"
 
-OnOffSwitchNode::OnOffSwitchNode(QObject *parent)
-    : AbstractCircuitNode{false, parent}
+#include "../views/modemanager.h"
+
+OnOffSwitchNode::OnOffSwitchNode(ModeManager *mgr, QObject *parent)
+    : AbstractCircuitNode{mgr, false, parent}
 {
     // 2 sides
     mContacts.append(NodeContact("11", "12"));
@@ -74,11 +76,16 @@ QString OnOffSwitchNode::nodeType() const
 
 bool OnOffSwitchNode::isOn() const
 {
+    if(m_isOn && modeMgr()->mode() == FileMode::Editing)
+        return false; // Act as Off during Editing
     return m_isOn;
 }
 
 void OnOffSwitchNode::setOn(bool newOn)
 {
+    if(modeMgr()->mode() != FileMode::Editing)
+        return; // Prevent turning on during editing
+
     if (m_isOn == newOn)
         return;
     m_isOn = newOn;

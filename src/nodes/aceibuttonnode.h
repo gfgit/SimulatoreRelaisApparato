@@ -36,7 +36,7 @@ public:
         Extracted
     };
 
-    explicit ACEIButtonNode(QObject *parent = nullptr);
+    explicit ACEIButtonNode(ModeManager *mgr, QObject *parent = nullptr);
     ~ACEIButtonNode();
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;

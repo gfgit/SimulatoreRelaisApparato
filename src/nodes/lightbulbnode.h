@@ -29,7 +29,7 @@ class LightBulbNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
-    explicit LightBulbNode(QObject *parent = nullptr);
+    explicit LightBulbNode(ModeManager *mgr, QObject *parent = nullptr);
     ~LightBulbNode();
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;

@@ -29,7 +29,7 @@ class SimpleCircuitNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
-    explicit SimpleCircuitNode(QObject *parent = nullptr);
+    explicit SimpleCircuitNode(ModeManager *mgr, QObject *parent = nullptr);
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 

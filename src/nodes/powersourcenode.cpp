@@ -24,8 +24,10 @@
 
 #include "../core/electriccircuit.h"
 
-PowerSourceNode::PowerSourceNode(QObject *parent)
-    : AbstractCircuitNode{false, parent}
+#include "../views/modemanager.h"
+
+PowerSourceNode::PowerSourceNode(ModeManager *mgr, QObject *parent)
+    : AbstractCircuitNode{mgr, false, parent}
 {
     // 1 side
     mContacts.append(NodeContact("1", "2"));
@@ -44,11 +46,16 @@ QString PowerSourceNode::nodeType() const
 
 bool PowerSourceNode::getEnabled() const
 {
+    if(enabled && modeMgr()->mode() == FileMode::Editing)
+        return false; // Act as Off during Editing
     return enabled;
 }
 
 void PowerSourceNode::setEnabled(bool newEnabled)
 {
+    if(modeMgr()->mode() != FileMode::Editing && newEnabled)
+        return; // Prevent enabling during editing
+
     if (enabled == newEnabled)
         return;
     enabled = newEnabled;

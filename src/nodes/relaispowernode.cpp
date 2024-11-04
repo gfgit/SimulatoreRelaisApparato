@@ -23,14 +23,16 @@
 #include "relaispowernode.h"
 
 #include "../objects/abstractrelais.h"
+
+#include "../views/modemanager.h"
 #include "../objects/relaismodel.h"
 
 #include <QTimerEvent>
 
 #include <QJsonObject>
 
-RelaisPowerNode::RelaisPowerNode(QObject *parent)
-    : AbstractCircuitNode{true, parent}
+RelaisPowerNode::RelaisPowerNode(ModeManager *mgr, QObject *parent)
+    : AbstractCircuitNode{mgr, true, parent}
 {
     // 1 side
     mContacts.append(NodeContact("41", "42"));
@@ -89,7 +91,7 @@ bool RelaisPowerNode::loadFromJSON(const QJsonObject &obj)
 
     QString relaisName = obj.value("relais").toString();
 
-    setRelais(relaisModel()->getRelay(relaisName));
+    setRelais(modeMgr()->relaisModel()->getRelay(relaisName));
 
     mDelayUpSeconds = obj["delay_up_sec"].toInt();
     mDelayDownSeconds = obj["delay_down_sec"].toInt();
@@ -149,16 +151,6 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
     }
 
     emit relayChanged(mRelais);
-}
-
-RelaisModel *RelaisPowerNode::relaisModel() const
-{
-    return mRelaisModel;
-}
-
-void RelaisPowerNode::setRelaisModel(RelaisModel *newRelaisModel)
-{
-    mRelaisModel = newRelaisModel;
 }
 
 int RelaisPowerNode::delayUpSeconds() const

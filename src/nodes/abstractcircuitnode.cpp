@@ -27,8 +27,9 @@
 
 #include <QJsonObject>
 
-AbstractCircuitNode::AbstractCircuitNode(bool isLoad, QObject *parent)
+AbstractCircuitNode::AbstractCircuitNode(ModeManager *mgr, bool isLoad, QObject *parent)
     : QObject{parent}
+    , mModeMgr(mgr)
     , isElectricLoad(isLoad)
 {
 

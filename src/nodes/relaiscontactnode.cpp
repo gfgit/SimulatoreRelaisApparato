@@ -25,12 +25,13 @@
 #include "../core/electriccircuit.h"
 #include "../objects/abstractrelais.h"
 
+#include "../views/modemanager.h"
 #include "../objects/relaismodel.h"
 
 #include <QJsonObject>
 
-RelaisContactNode::RelaisContactNode(QObject *parent)
-    : AbstractCircuitNode{false, parent}
+RelaisContactNode::RelaisContactNode(ModeManager *mgr, QObject *parent)
+    : AbstractCircuitNode{mgr, false, parent}
 {
     // 3 sides
     mContacts.append(NodeContact("11", "12")); // Common
@@ -102,8 +103,7 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
         return false;
 
     QString relaisName = obj.value("relais").toString();
-
-    setRelais(relaisModel()->getRelay(relaisName));
+    setRelais(modeMgr()->relaisModel()->getRelay(relaisName));
 
     setFlipContact(obj.value("flip").toBool());
     setSwapContactState(obj.value("swap_state").toBool());
@@ -157,16 +157,6 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais)
 
     emit relayChanged(mRelais);
     onRelaisStateChanged();
-}
-
-RelaisModel *RelaisContactNode::relaisModel() const
-{
-    return mRelaisModel;
-}
-
-void RelaisContactNode::setRelaisModel(RelaisModel *newRelaisModel)
-{
-    mRelaisModel = newRelaisModel;
 }
 
 bool RelaisContactNode::swapContactState() const

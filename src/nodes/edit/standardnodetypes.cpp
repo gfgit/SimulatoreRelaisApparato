@@ -58,18 +58,9 @@
 #include "relaylineedit.h"
 
 template <typename Graph>
-AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s)
+AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
 {
-    typename Graph::Node *node = new typename Graph::Node(s);
-
-    if constexpr(std::is_same<typename Graph::Node, RelaisContactNode>())
-    {
-        node->setRelaisModel(s->relaisModel());
-    }
-    if constexpr(std::is_same<typename Graph::Node, RelaisPowerNode>())
-    {
-        node->setRelaisModel(s->relaisModel());
-    }
+    typename Graph::Node *node = new typename Graph::Node(mgr, s);
 
     Graph *graph = new Graph(node);
     return graph;
@@ -106,7 +97,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = SimpleNodeGraphItem::Node::NodeType;
         factory.prettyName = tr("Simple Node");
         factory.create = &addNewNodeToScene<SimpleNodeGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
         {
             SimpleCircuitNode *node = static_cast<SimpleCircuitNode *>(item->getAbstractNode());
 
@@ -146,7 +137,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = RelaisPowerGraphItem::Node::NodeType;
         factory.prettyName = tr("Relay Power");
         factory.create = &addNewNodeToScene<RelaisPowerGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
         {
             RelaisPowerNode *node = static_cast<RelaisPowerNode *>(item->getAbstractNode());
 
@@ -154,7 +145,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            RelayLineEdit *relayEdit = new RelayLineEdit(item->circuitScene()->relaisModel());
+            RelayLineEdit *relayEdit = new RelayLineEdit(mgr->relaisModel());
             QObject::connect(node, &RelaisPowerNode::relayChanged,
                              relayEdit, &RelayLineEdit::setRelais);
             QObject::connect(relayEdit, &RelayLineEdit::relayChanged,
@@ -210,7 +201,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = RelaisContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Relay Contact");
         factory.create = &addNewNodeToScene<RelaisContactGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
         {
             RelaisContactNode *node = static_cast<RelaisContactNode *>(item->getAbstractNode());
 
@@ -218,7 +209,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            RelayLineEdit *relayEdit = new RelayLineEdit(item->circuitScene()->relaisModel());
+            RelayLineEdit *relayEdit = new RelayLineEdit(mgr->relaisModel());
             QObject::connect(node, &RelaisContactNode::relayChanged,
                              relayEdit, &RelayLineEdit::setRelais);
             QObject::connect(relayEdit, &RelayLineEdit::relayChanged,
@@ -277,7 +268,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ACEIButtonGraphItem::Node::NodeType;
         factory.prettyName = tr("ACEI Button");
         factory.create = &addNewNodeToScene<ACEIButtonGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
         {
             ACEIButtonNode *node = static_cast<ACEIButtonNode *>(item->getAbstractNode());
 

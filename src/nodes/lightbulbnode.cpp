@@ -22,8 +22,8 @@
 
 #include "lightbulbnode.h"
 
-LightBulbNode::LightBulbNode(QObject *parent)
-    : AbstractCircuitNode{true, parent}
+LightBulbNode::LightBulbNode(ModeManager *mgr, QObject *parent)
+    : AbstractCircuitNode{mgr, true, parent}
 {
     // 1 side
     mContacts.append(NodeContact("1", "2"));

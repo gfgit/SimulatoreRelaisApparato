@@ -29,7 +29,7 @@ class OnOffSwitchNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
-    explicit OnOffSwitchNode(QObject *parent = nullptr);
+    explicit OnOffSwitchNode(ModeManager *mgr, QObject *parent = nullptr);
 
     virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
