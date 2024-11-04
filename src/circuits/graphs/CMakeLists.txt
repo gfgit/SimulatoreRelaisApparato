@@ -22,5 +22,8 @@ set(PROJECT_SOURCES
     circuits/graphs/simplenodegraphitem.cpp
     circuits/graphs/simplenodegraphitem.h
 
+    circuits/graphs/special/aceilevergraphitem.cpp
+    circuits/graphs/special/aceilevergraphitem.h
+
     PARENT_SCOPE
 )

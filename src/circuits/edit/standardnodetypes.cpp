@@ -45,6 +45,8 @@
 #include "../graphs/lightbulbgraphitem.h"
 #include "../nodes/lightbulbnode.h"
 
+// TODO: special
+#include "../graphs/special/aceilevergraphitem.h"
 
 #include <QWidget>
 #include <QFormLayout>
@@ -308,6 +310,17 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = LightBulbGraphItem::Node::NodeType;
         factory.prettyName = tr("Light Bulb");
         factory.create = &addNewNodeToScene<LightBulbGraphItem>;
+        factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // ACEI Lever
+        NodeEditFactory::FactoryItem factory;
+        factory.nodeType = ACEILeverGraphItem::CustomNodeType;
+        factory.prettyName = tr("ACEI Lever");
+        factory.create = &addNewNodeToScene<ACEILeverGraphItem>;
         factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
