@@ -38,11 +38,12 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev);
-
     void getConnectors(std::vector<Connector>& connectors) const final;
 
     OnOffSwitchNode *node() const;
+
+protected:
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev) override;
 };
 
 #endif // ONOFFGRAPHITEM_H
