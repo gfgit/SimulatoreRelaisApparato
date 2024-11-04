@@ -83,7 +83,7 @@ bool OnOffSwitchNode::isOn() const
 
 void OnOffSwitchNode::setOn(bool newOn)
 {
-    if(modeMgr()->mode() != FileMode::Editing)
+    if(modeMgr()->mode() == FileMode::Editing)
         return; // Prevent turning on during editing
 
     if (m_isOn == newOn)

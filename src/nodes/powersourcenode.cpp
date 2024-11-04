@@ -53,7 +53,7 @@ bool PowerSourceNode::getEnabled() const
 
 void PowerSourceNode::setEnabled(bool newEnabled)
 {
-    if(modeMgr()->mode() != FileMode::Editing && newEnabled)
+    if(modeMgr()->mode() == FileMode::Editing && newEnabled)
         return; // Prevent enabling during editing
 
     if (enabled == newEnabled)

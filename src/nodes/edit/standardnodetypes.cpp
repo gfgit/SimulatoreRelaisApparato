@@ -47,6 +47,8 @@
 
 #include "../../objects/abstractrelais.h"
 
+#include "../../views/modemanager.h"
+
 #include <QWidget>
 #include <QFormLayout>
 #include <QLineEdit>
