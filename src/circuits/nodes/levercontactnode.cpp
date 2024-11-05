@@ -76,11 +76,11 @@ QVector<CableItem> LeverContactNode::getActiveConnections(CableItem source, bool
         // Pass to other contact straight
         otherContactIdx = source.nodeContact == 0 ? 2 : 0;
     }
-    else
+    else if(mState != State::Middle)
     {
-        bool isDown = m_isOn;
+        bool isDown = mState == State::Down;
         if(swapContactState())
-            isDown = !isDown;
+            isDown = mState == State::Up;
 
         switch (source.nodeContact)
         {
@@ -183,50 +183,20 @@ void LeverContactNode::setLever(ACEILeverObject *newLever)
     onLeverPositionChanged();
 }
 
-bool LeverContactNode::isOn() const
-{
-    return m_isOn;
-}
-
-void LeverContactNode::setIsOn(bool newIsOn)
-{
-    if(modeMgr()->mode() == FileMode::Editing)
-        return; // Prevent turning on during editing
-
-    if (m_isOn == newIsOn)
-        return;
-    m_isOn = newIsOn;
-    emit isOnChanged(m_isOn);
-
-    if(m_isOn)
-    {
-        ElectricCircuit::createCircuitsFromOtherNode(this);
-    }
-    else
-    {
-        bool hadCircuits = hasCircuits(CircuitType::Closed) || hasCircuits(CircuitType::Open);
-
-        // Disable circuits
-        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-        disableCircuits(closedCopy, this);
-
-        const CircuitList openCopy = getCircuits(CircuitType::Open);
-        truncateCircuits(openCopy, this);
-
-        if(hadCircuits)
-        {
-            ElectricCircuit::defaultReachNextOpenCircuit(this);
-        }
-    }
-}
-
 void LeverContactNode::onLeverPositionChanged()
 {
-    bool newIsOn = false;
-    if(mLever)
-        newIsOn = isPositionOn(int(mLever->position()));
+    State s = State::Middle;
 
-    setIsOn(newIsOn);
+    if(mLever)
+    {
+        s = State::Down;
+
+        // TODO: there is no middle transitions
+        if(isPositionOn(int(mLever->position())))
+            s = State::Up;
+    }
+
+    setState(s);
 }
 
 bool LeverContactNode::isPositionOn(int pos) const
@@ -246,6 +216,39 @@ bool LeverContactNode::isPositionOn(int pos) const
     }
 
     return false;
+}
+
+LeverContactNode::State LeverContactNode::state() const
+{
+    return mState;
+}
+
+void LeverContactNode::setState(State newState)
+{
+    if (mState == newState)
+        return;
+    mState = newState;
+    emit stateChanged();
+
+    bool hadCircuits = hasCircuits(CircuitType::Closed) || hasCircuits(CircuitType::Open);
+
+    // Disable circuits
+    const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+    disableCircuits(closedCopy, this);
+
+    const CircuitList openCopy = getCircuits(CircuitType::Open);
+    truncateCircuits(openCopy, this);
+
+    if(mState != State::Middle)
+    {
+        // Scan for new circuits
+        ElectricCircuit::createCircuitsFromOtherNode(this);
+    }
+
+    if(hadCircuits)
+    {
+        ElectricCircuit::defaultReachNextOpenCircuit(this);
+    }
 }
 
 LeverPositionConditionSet LeverContactNode::conditionSet() const

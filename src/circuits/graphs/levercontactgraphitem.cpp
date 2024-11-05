@@ -30,7 +30,7 @@
 LeverContactGraphItem::LeverContactGraphItem(LeverContactNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-    connect(node(), &LeverContactNode::isOnChanged,
+    connect(node(), &LeverContactNode::stateChanged,
             this, &LeverContactGraphItem::triggerUpdate);
 }
 
@@ -59,8 +59,8 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
     QLineF contact1Line;
     QLineF contact2Line;
 
-    bool contact1On = node()->isOn();
-    bool contact2On = !node()->isOn();
+    bool contact1On = node()->state() == LeverContactNode::State::Up;
+    bool contact2On = node()->state() == LeverContactNode::State::Down;
     if(node()->swapContactState())
         std::swap(contact1On, contact2On);
 
@@ -325,8 +325,14 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
 
 void LeverContactGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
-    connectors.emplace_back(location(), rotate(), 0);
-    connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 1);
+    TileRotate centralConnectorRotate = TileRotate::Deg90;
+    if(node()->flipContact())
+        centralConnectorRotate = TileRotate::Deg270;
+
+    connectors.emplace_back(location(), rotate(), 0); // Common
+    connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 2); // Down
+    if(node()->hasCentralConnector())
+        connectors.emplace_back(location(), rotate() + centralConnectorRotate, 1);  // Up
 }
 
 LeverContactNode *LeverContactGraphItem::node() const

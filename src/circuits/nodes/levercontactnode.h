@@ -35,6 +35,13 @@ class LeverContactNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
+    enum State
+    {
+        Down = 0,
+        Up = 1,
+        Middle
+    };
+
     explicit LeverContactNode(ModeManager *mgr, QObject *parent = nullptr);
     ~LeverContactNode();
 
@@ -49,8 +56,8 @@ public:
     ACEILeverObject *lever() const;
     void setLever(ACEILeverObject *newLever);
 
-    bool isOn() const;
-    void setIsOn(bool newIsOn);
+    State state() const;
+    void setState(State newState);
 
     bool swapContactState() const;
     void setSwapContactState(bool newSwapContactState);
@@ -65,7 +72,7 @@ public:
     void setConditionSet(const LeverPositionConditionSet &newConditionSet);
 
 signals:
-    void isOnChanged(bool on);
+    void stateChanged();
     void leverChanged(ACEILeverObject *l);
 
 private slots:
@@ -79,7 +86,7 @@ private:
 
     LeverPositionConditionSet mConditionSet;
 
-    bool m_isOn = false;
+    State mState = State::Middle;
     bool mFlipContact = false;
     bool mSwapContactState = false;
     bool mHasCentralConnector = true;
