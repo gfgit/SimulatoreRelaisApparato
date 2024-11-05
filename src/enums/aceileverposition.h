@@ -33,14 +33,4 @@ enum class ACEILeverPosition
     NPositions
 };
 
-constexpr bool operator <(const ACEILeverPosition &lhs, const ACEILeverPosition &rhs)
-{
-    return static_cast<int>(lhs) < static_cast<int>(rhs);
-}
-
-constexpr bool operator <=(const ACEILeverPosition &lhs, const ACEILeverPosition &rhs)
-{
-    return static_cast<int>(lhs) <= static_cast<int>(rhs);
-}
-
 #endif // ACEILEVERPOSITION_H
