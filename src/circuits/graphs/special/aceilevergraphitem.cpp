@@ -96,6 +96,27 @@ void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
         mLastMousePos = ev->pos();
         return;
     }
+    else if(ev->button() == Qt::RightButton)
+    {
+        // Customize lever
+        if(ev->modifiers() == Qt::ShiftModifier)
+        {
+            // Toggle spring
+            mLever->setHasSpringReturn(!mLever->hasSpringReturn());
+        }
+        else if(ev->modifiers() == Qt::AltModifier)
+        {
+            // Toggle absolute min
+            ACEILeverPosition minPos = mLever->absoluteMin();
+            if(minPos == ACEILeverPosition::Left)
+                minPos = ACEILeverPosition::Normal;
+            else
+                minPos = ACEILeverPosition::Left;
+
+            mLever->setAbsoluteRange(minPos,
+                                     mLever->absoluteMax());
+        }
+    }
 
     AbstractNodeGraphItem::mousePressEvent(ev);
 }
