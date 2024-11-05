@@ -307,12 +307,17 @@ void ViewManager::addNodeToActiveView(const QString &nodeType)
 void ViewManager::onCircuitViewDestroyed(QObject *obj)
 {
     CircuitWidget *w = static_cast<CircuitWidget *>(obj);
-    if(w == mActiveCircuitView)
-        setActiveCircuit(nullptr);
 
     // Widget is destroyed by dock being closed
     // So dock deletes itself already
     mCircuitViews.remove(w);
+
+    // Unset from active if it was us
+    // Do it AFTER removing from mCircuitViews
+    // Because setActiveCircuit() will try to use first
+    // available view as replacment
+    if(w == mActiveCircuitView)
+        setActiveCircuit(nullptr);
 }
 
 void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
