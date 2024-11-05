@@ -59,11 +59,12 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     circle.moveCenter(center);
 
     // Zero is vertical up, so cos/sin are swapped
-    const double angleRadiants = qDegreesToRadians(mLever->angle());
+    // Also returned angle must be inverted to be clockwise
+    const double angleRadiants = -qDegreesToRadians(mLever->angle());
 
     QPointF endPt(qSin(angleRadiants),
                   qCos(angleRadiants));
-    endPt *= leverLength;
+    endPt *= -leverLength; // Negative to go upwards
     endPt += center;
 
     QColor color = Qt::darkCyan;
@@ -90,8 +91,10 @@ void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     if(ev->button() == Qt::LeftButton)
     {
+        ev->accept();
         mLever->setPressed(true);
         mLastMousePos = ev->pos();
+        return;
     }
 
     AbstractNodeGraphItem::mousePressEvent(ev);
@@ -102,21 +105,30 @@ void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
 
-    if(ev->button() & Qt::LeftButton)
+    if(ev->buttons() & Qt::LeftButton)
     {
         QPointF delta = ev->pos() - mLastMousePos;
         if(delta.manhattanLength() > 2)
         {
             // Calculate angle
-            delta = ev->pos() - center;
+            delta = center - ev->pos();
 
             // Zero is vertical up, so x/y are swapped
-            const double angleRadiants = qAtan2(delta.x(), delta.y());
+            // Also returned angle must be inverted to be clockwise
+            const double angleRadiants = -qAtan2(delta.x(), delta.y());
 
             int newAngle = qRound(qRadiansToDegrees(angleRadiants));
-            mLever->setAngle(newAngle);
+
+            // Disable snap with shift
+            if(ev->modifiers() == Qt::ShiftModifier)
+                mLever->setAngle(newAngle);
+            else
+                mLever->setAngleTrySnap(newAngle);
 
             mLastMousePos = ev->pos();
+
+            ev->accept();
+            return;
         }
     }
 
@@ -125,10 +137,9 @@ void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 
 void ACEILeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(ev->buttons() & Qt::LeftButton)
-    {
-        mLever->setPressed(false);
-    }
+    // We don't care about button
+    // Also sometimes there are already no buttons
+    mLever->setPressed(false);
 
     AbstractNodeGraphItem::mouseReleaseEvent(ev);
 }
