@@ -48,6 +48,13 @@
 // TODO: special
 #include "../graphs/special/aceilevergraphitem.h"
 
+#include "../graphs/levercontactgraphitem.h"
+#include "../nodes/levercontactnode.h"
+
+// TODO: remove
+#include <QPointer>
+#include "../../objects/acei_lever/model/aceileverobject.h"
+
 #include <QWidget>
 #include <QFormLayout>
 #include <QLineEdit>
@@ -69,6 +76,9 @@ AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
     Graph *graph = new Graph(node);
     return graph;
 }
+
+// TODO: remove
+static QPointer<ACEILeverObject> superHack;
 
 void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 {
@@ -318,9 +328,42 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // ACEI Lever
         NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Always;
         factory.nodeType = ACEILeverGraphItem::CustomNodeType;
         factory.prettyName = tr("ACEI Lever");
-        factory.create = &addNewNodeToScene<ACEILeverGraphItem>;
+
+        auto addNewNodeToSceneHack = [](CircuitScene *s, ModeManager *mgr) -> AbstractNodeGraphItem *
+        {
+            auto item = addNewNodeToScene<ACEILeverGraphItem>(s, mgr);
+
+            superHack = static_cast<ACEILeverGraphItem *>(item)->lever();
+
+            return item;
+        };
+
+        factory.create = addNewNodeToSceneHack;
+
+        factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Lever Contact
+        NodeEditFactory::FactoryItem factory;
+        factory.nodeType = LeverContactGraphItem::Node::NodeType;
+        factory.prettyName = tr("Lever Contact");
+
+        auto addNewNodeToSceneHack = [](CircuitScene *s, ModeManager *mgr) -> AbstractNodeGraphItem *
+        {
+            auto item = addNewNodeToScene<LeverContactGraphItem>(s, mgr);
+
+            static_cast<LeverContactGraphItem *>(item)->node()->setLever(superHack);
+
+            return item;
+        };
+
+        factory.create = addNewNodeToSceneHack;
         factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);

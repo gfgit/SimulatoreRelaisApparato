@@ -9,6 +9,8 @@ set(PROJECT_SOURCES
     circuits/graphs/aceibuttongraphitem.h
     circuits/graphs/cablegraphitem.cpp
     circuits/graphs/cablegraphitem.h
+    circuits/graphs/levercontactgraphitem.cpp
+    circuits/graphs/levercontactgraphitem.h
     circuits/graphs/lightbulbgraphitem.cpp
     circuits/graphs/lightbulbgraphitem.h
     circuits/graphs/onoffgraphitem.cpp

@@ -66,6 +66,17 @@ public:
         return angleForPosition(pos) == MiddleAngle;
     }
 
+    static inline int middlePositionAngle(ACEILeverPosition pos)
+    {
+        Q_ASSERT(isPositionMiddle(pos));
+
+        const int prevPosAngle = PositionAngles[int(pos) - 1];
+        const int nextPosAngle = PositionAngles[int(pos) + 1];
+
+        // Average
+        return (prevPosAngle + nextPosAngle) / 2;
+    }
+
     static inline ACEILeverPosition closestPosition(int angle, bool allowMiddle)
     {
         for(int i = 0; i < int(ACEILeverPosition::NPositions); i++)

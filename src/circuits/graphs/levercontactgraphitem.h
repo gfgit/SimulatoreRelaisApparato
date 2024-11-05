@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/special/aceilevergraphitem.h
+ * src/circuits/graphs/levercontactgraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,39 +20,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEILEVERGRAPHITEM_H
-#define ACEILEVERGRAPHITEM_H
+#ifndef LEVERCONTACTGRAPHITEM_H
+#define LEVERCONTACTGRAPHITEM_H
 
-#include "../abstractnodegraphitem.h"
+#include "abstractnodegraphitem.h"
 
-class ACEILeverObject;
+class LeverContactNode;
 
-// TODO: this is a fake node
-class OnOffSwitchNode;
-
-class ACEILeverGraphItem : public AbstractNodeGraphItem
+class LeverContactGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    typedef OnOffSwitchNode Node;
-    static constexpr QLatin1String CustomNodeType = QLatin1String("acei_lever");
+    typedef LeverContactNode Node;
 
-    explicit ACEILeverGraphItem(OnOffSwitchNode *node_);
+    LeverContactGraphItem(LeverContactNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    ACEILeverObject *lever() const;
-    void setLever(ACEILeverObject *newLever);
+    void getConnectors(std::vector<Connector>& connectors) const final;
 
-protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *ev) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
-
-private:
-    ACEILeverObject *mLever = nullptr;
-
-    QPointF mLastMousePos;
+    LeverContactNode *node() const;
 };
 
-#endif // ACEILEVERGRAPHITEM_H
+#endif // LEVERCONTACTGRAPHITEM_H

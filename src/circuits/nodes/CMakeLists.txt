@@ -9,6 +9,8 @@ set(PROJECT_SOURCES
     circuits/nodes/aceibuttonnode.h
     circuits/nodes/circuitcable.cpp
     circuits/nodes/circuitcable.h
+    circuits/nodes/levercontactnode.cpp
+    circuits/nodes/levercontactnode.h
     circuits/nodes/lightbulbnode.cpp
     circuits/nodes/lightbulbnode.h
     circuits/nodes/onoffswitchnode.cpp

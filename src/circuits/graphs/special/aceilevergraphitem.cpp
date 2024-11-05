@@ -164,3 +164,13 @@ void ACEILeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 
     AbstractNodeGraphItem::mouseReleaseEvent(ev);
 }
+
+ACEILeverObject *ACEILeverGraphItem::lever() const
+{
+    return mLever;
+}
+
+void ACEILeverGraphItem::setLever(ACEILeverObject *newLever)
+{
+    mLever = newLever;
+}
