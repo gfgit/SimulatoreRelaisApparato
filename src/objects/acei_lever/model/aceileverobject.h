@@ -109,6 +109,11 @@ public:
         return ACEILeverPosition::NPositions;
     }
 
+    ACEILeverPosition absoluteMin() const;
+    void setAbsoluteRange(ACEILeverPosition newMin, ACEILeverPosition newMax);
+
+    ACEILeverPosition absoluteMax() const;
+
 signals:
     void nameChanged(ACEILeverObject *self, const QString& newName);
     void angleChanged(ACEILeverObject *self, int newAngle);
@@ -142,6 +147,9 @@ private:
 
     bool mHasSpringReturn = false;
     bool mIsPressed = false;
+
+    ACEILeverPosition mAbsoluteMin = ACEILeverPosition(0);
+    ACEILeverPosition mAbsoluteMax = ACEILeverPosition(int(ACEILeverPosition::NPositions) - 1);
 };
 
 #endif // ACEILEVEROBJECT_H

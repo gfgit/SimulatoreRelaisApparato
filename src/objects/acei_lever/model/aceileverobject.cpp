@@ -51,10 +51,10 @@ int ACEILeverObject::angle() const
 
 void ACEILeverObject::setAngle(int newAngle)
 {
-    constexpr int MinAngle = angleForPosition(static_cast<ACEILeverPosition>(0));
-    constexpr int MaxAngle = angleForPosition(static_cast<ACEILeverPosition>(int(ACEILeverPosition::NPositions) - 1));
+    const int MinAngleAbs= angleForPosition(mAbsoluteMin);
+    const int MaxAngleAbs = angleForPosition(mAbsoluteMax);
 
-    newAngle = qBound(MinAngle, newAngle, MaxAngle);
+    newAngle = qBound(MinAngleAbs, newAngle, MaxAngleAbs);
 
     if(mAngle == newAngle)
         return;
@@ -117,6 +117,9 @@ void ACEILeverObject::setHasSpringReturn(bool newHasSpringReturn)
 
     mHasSpringReturn = newHasSpringReturn;
     emit changed(this);
+
+    if(mHasSpringReturn && !mIsPressed)
+        startSpringTimer();
 }
 
 bool ACEILeverObject::isPressed() const
@@ -185,4 +188,30 @@ void ACEILeverObject::startSpringTimer()
 
     // Update every 100ms for a semi-smooth animation
     springTimerId = startTimer(100);
+}
+
+ACEILeverPosition ACEILeverObject::absoluteMax() const
+{
+    return mAbsoluteMax;
+}
+
+ACEILeverPosition ACEILeverObject::absoluteMin() const
+{
+    return mAbsoluteMin;
+}
+
+void ACEILeverObject::setAbsoluteRange(ACEILeverPosition newMin, ACEILeverPosition newMax)
+{
+    if(newMax < newMin)
+        newMax = newMin;
+
+    const bool rangeChanged = (mAbsoluteMin != newMin) || (mAbsoluteMax != newMax);
+    mAbsoluteMin = newMin;
+    mAbsoluteMax = newMax;
+
+    if(rangeChanged)
+        emit changed(this);
+
+    // Recalculate angle
+    setAngle(mAngle);
 }
