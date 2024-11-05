@@ -94,10 +94,12 @@ void ACEILeverObject::setPosition(ACEILeverPosition newPosition)
 
     // Always ensure all positions are passed
     const int increment = (newPosition > mPosition) ? +1 : -1;
-    for(int p = int(mPosition) + increment;
-        p <= int(newPosition);
-        p += increment)
+
+    int p = int(mPosition);
+    while(p != int(newPosition))
     {
+        p += increment;
+
         mPosition = ACEILeverPosition(p);
         emit positionChanged(this, mPosition);
     }
@@ -148,7 +150,7 @@ void ACEILeverObject::timerEvent(QTimerEvent *e)
     {
         constexpr int targetAngle = angleForPosition(ACEILeverPosition::Normal);
 
-        if(qAbs(targetAngle - mAngle) < SpringTimerAngleDelta)
+        if(qAbs(targetAngle - mAngle) <= SpringTimerAngleDelta)
         {
             // We reached target position
             stopSpringTimer();
@@ -160,7 +162,7 @@ void ACEILeverObject::timerEvent(QTimerEvent *e)
         if(targetAngle < mAngle)
             angleDelta = -angleDelta; // Go opposite direction
 
-        const int newAngle = targetAngle + angleDelta;
+        const int newAngle = mAngle + angleDelta;
         setAngle(newAngle);
         return;
     }
@@ -181,6 +183,6 @@ void ACEILeverObject::startSpringTimer()
 {
     stopSpringTimer();
 
-    // Update every 100ms for a smooth animation
+    // Update every 100ms for a semi-smooth animation
     springTimerId = startTimer(100);
 }

@@ -35,8 +35,8 @@ public:
     // Starting from previous position to next position
     static constexpr int MiddleAngle = 361;
 
-    static constexpr int MaxSnapAngleDelta = 10;
-    static constexpr int SpringTimerAngleDelta = 10;
+    static constexpr int MaxSnapAngleDelta = 20;
+    static constexpr int SpringTimerAngleDelta = 15;
 
     explicit ACEILeverObject(QObject *parent = nullptr);
 
@@ -75,7 +75,7 @@ public:
                 const int prevPosAngle = PositionAngles[i - 1];
                 const int nextPosAngle = PositionAngles[i + 1];
 
-                if(angle < prevPosAngle || angle > nextPosAngle)
+                if(angle <= prevPosAngle || angle >= nextPosAngle)
                     continue;
 
                 if(allowMiddle)
@@ -123,7 +123,7 @@ private:
     void startSpringTimer();
 
 private:
-    // Angle in degrees from Normal (vertical up)
+    // Angle in degrees clockwise from Normal (vertical up)
     static constexpr int PositionAngles[int(ACEILeverPosition::NPositions)]
     {
         -90, // Left
@@ -139,6 +139,7 @@ private:
     ACEILeverPosition mPosition = ACEILeverPosition::Normal;
 
     int springTimerId = 0;
+
     bool mHasSpringReturn = false;
     bool mIsPressed = false;
 };
