@@ -22,12 +22,51 @@
 
 #include "aceileverobject.h"
 
+#include "../../../circuits/nodes/levercontactnode.h"
+
 #include <QTimerEvent>
+
+#include <QJsonObject>
 
 ACEILeverObject::ACEILeverObject(QObject *parent)
     : QObject{parent}
 {
 
+}
+
+ACEILeverObject::~ACEILeverObject()
+{
+    auto contactNodes = mContactNodes;
+    for(LeverContactNode *c : contactNodes)
+    {
+        c->setLever(nullptr);
+    }
+
+    stopSpringTimer();
+}
+
+bool ACEILeverObject::loadFromJSON(const QJsonObject &obj)
+{
+    setName(obj.value("name").toString());
+    setHasSpringReturn(obj.value("spring_return").toBool());
+
+    // Renge
+    int pos_min = obj.value("pos_min").toInt();
+    int pos_max = obj.value("pos_max").toInt();
+    setAbsoluteRange(ACEILeverPosition(pos_min),
+                     ACEILeverPosition(pos_max));
+
+    return true;
+}
+
+void ACEILeverObject::saveToJSON(QJsonObject &obj) const
+{
+    obj["name"] = mName;
+    obj["spring_return"] = hasSpringReturn();
+
+    // Range
+    obj["pos_min"] = int(mAbsoluteMin);
+    obj["pos_max"] = int(mAbsoluteMax);
 }
 
 QString ACEILeverObject::name() const
@@ -40,8 +79,12 @@ void ACEILeverObject::setName(const QString &newName)
     if (mName == newName)
         return;
     mName = newName;
-
     emit nameChanged(this, mName);
+
+    for(LeverContactNode *c : mContactNodes)
+    {
+        c->setObjectName(mName);
+    }
 }
 
 int ACEILeverObject::angle() const
@@ -214,4 +257,20 @@ void ACEILeverObject::setAbsoluteRange(ACEILeverPosition newMin, ACEILeverPositi
 
     // Recalculate angle
     setAngle(mAngle);
+}
+
+void ACEILeverObject::addContactNode(LeverContactNode *c)
+{
+    Q_ASSERT(!mContactNodes.contains(c));
+
+    mContactNodes.append(c);
+    c->setObjectName(mName);
+}
+
+void ACEILeverObject::removeContactNode(LeverContactNode *c)
+{
+    Q_ASSERT(mContactNodes.contains(c));
+    Q_ASSERT(c->relais() == this);
+
+    mContactNodes.removeOne(c);
 }

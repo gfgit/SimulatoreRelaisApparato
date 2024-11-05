@@ -27,6 +27,10 @@
 
 #include "../../../enums/aceileverposition.h"
 
+class LeverContactNode;
+
+class QJsonObject;
+
 class ACEILeverObject : public QObject
 {
     Q_OBJECT
@@ -38,7 +42,12 @@ public:
     static constexpr int MaxSnapAngleDelta = 20;
     static constexpr int SpringTimerAngleDelta = 15;
 
+public:
     explicit ACEILeverObject(QObject *parent = nullptr);
+    ~ACEILeverObject();
+
+    virtual bool loadFromJSON(const QJsonObject& obj);
+    virtual void saveToJSON(QJsonObject& obj) const;
 
     QString name() const;
     void setName(const QString &newName);
@@ -138,6 +147,10 @@ private:
     void stopSpringTimer();
     void startSpringTimer();
 
+    friend class LeverContactNode;
+    void addContactNode(LeverContactNode *c);
+    void removeContactNode(LeverContactNode *c);
+
 private:
     // Angle in degrees clockwise from Normal (vertical up)
     static constexpr int PositionAngles[int(ACEILeverPosition::NPositions)]
@@ -161,6 +174,8 @@ private:
 
     ACEILeverPosition mAbsoluteMin = ACEILeverPosition(0);
     ACEILeverPosition mAbsoluteMax = ACEILeverPosition(int(ACEILeverPosition::NPositions) - 1);
+
+    QVector<LeverContactNode *> mContactNodes;
 };
 
 #endif // ACEILEVEROBJECT_H

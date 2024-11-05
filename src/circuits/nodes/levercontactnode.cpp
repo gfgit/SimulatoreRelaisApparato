@@ -166,7 +166,7 @@ void LeverContactNode::setLever(ACEILeverObject *newLever)
         disconnect(mLever, &ACEILeverObject::positionChanged,
                    this, &LeverContactNode::onLeverPositionChanged);
 
-        //mLever->removeContactNode(this);
+        mLever->removeContactNode(this);
     }
 
     mLever = newLever;
@@ -176,7 +176,7 @@ void LeverContactNode::setLever(ACEILeverObject *newLever)
         connect(mLever, &ACEILeverObject::positionChanged,
                 this, &LeverContactNode::onLeverPositionChanged);
 
-        //mLever->addContactNode(this);
+        mLever->addContactNode(this);
     }
 
     emit leverChanged(mLever);
