@@ -32,9 +32,6 @@
 class MainWindow;
 
 class CircuitWidget;
-class CircuitListWidget;
-
-class RelaisListWidget;
 
 class CircuitScene;
 class AbstractNodeGraphItem;
@@ -70,6 +67,7 @@ public slots:
     void addNodeToActiveView(const QString& nodeType);
     void showCircuitListView();
     void showRelayListView();
+    void showLeverListView();
 
 private slots:
     void onCircuitViewDestroyed(QObject *obj);
@@ -101,6 +99,7 @@ private:
     // General views
     QPointer<DockWidget> mCircuitListViewDock;
     QPointer<DockWidget> mRelaisListViewDock;
+    QPointer<DockWidget> mLeverListViewDock;
 };
 
 #endif // VIEWMANAGER_H

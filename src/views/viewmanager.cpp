@@ -35,6 +35,7 @@
 
 
 #include "../objects/relais/view/relaislistwidget.h"
+#include "../objects/acei_lever/view/aceileverlistwidget.h"
 
 #include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
 #include <kddockwidgets-qt6/kddockwidgets/core/DockWidget.h>
@@ -279,6 +280,26 @@ void ViewManager::showRelayListView()
     mRelaisListViewDock->setTitle(tr("Relais List"));
 
     mainWin()->addDockWidget(mRelaisListViewDock, KDDockWidgets::Location_OnLeft);
+}
+
+void ViewManager::showLeverListView()
+{
+    if(mLeverListViewDock)
+    {
+        mLeverListViewDock->raise();
+        mLeverListViewDock->activateWindow();
+        return;
+    }
+
+    ACEILeverModel *leversList = mainWin()->modeMgr()->leversModel();
+    ACEILeverListWidget *leversListView = new ACEILeverListWidget(this, leversList);
+
+    mLeverListViewDock = new DockWidget(QLatin1String("levers_list"),
+                                          KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    mLeverListViewDock->setWidget(leversListView);
+    mLeverListViewDock->setTitle(tr("Levers List"));
+
+    mainWin()->addDockWidget(mLeverListViewDock, KDDockWidgets::Location_OnLeft);
 }
 
 void ViewManager::startEditNEwCableOnActiveView()

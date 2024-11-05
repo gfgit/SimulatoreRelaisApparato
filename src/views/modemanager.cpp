@@ -28,6 +28,7 @@
 #include "../circuits/view/circuitlistmodel.h"
 
 #include "../objects/relais/model/relaismodel.h"
+#include "../objects/acei_lever/model/aceilevermodel.h"
 
 #include <QJsonObject>
 
@@ -35,6 +36,7 @@ ModeManager::ModeManager(QObject *parent)
     : QObject{parent}
 {
     mRelaisModel = new RelaisModel(this, this);
+    mLeversModel = new ACEILeverModel(this, this);
 
     mCircuitFactory = new NodeEditFactory(this);
     StandardNodeTypes::registerTypes(mCircuitFactory);
@@ -75,6 +77,7 @@ void ModeManager::resetFileEdited()
 
     mCircuitList->resetHasUnsavedChanges();
     mRelaisModel->resetHasUnsavedChanges();
+    mLeversModel->resetHasUnsavedChanges();
 
     emit fileEdited(false);
 }
@@ -97,6 +100,9 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
     QJsonObject relais = obj.value("relais").toObject();
     mRelaisModel->loadFromJSON(relais);
 
+    QJsonObject levers = obj.value("levers").toObject();
+    mLeversModel->loadFromJSON(levers);
+
     QJsonObject circuits = obj.value("circuits").toObject();
     mCircuitList->loadFromJSON(circuits);
 
@@ -116,8 +122,12 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
     QJsonObject relais;
     mRelaisModel->saveToJSON(relais);
 
+    QJsonObject levers;
+    mLeversModel->saveToJSON(levers);
+
     obj["circuits"] = circuits;
     obj["relais"] = relais;
+    obj["levers"] = levers;
 }
 
 void ModeManager::clearAll()
@@ -126,6 +136,7 @@ void ModeManager::clearAll()
 
     mCircuitList->clear();
     mRelaisModel->clear();
+    mLeversModel->clear();
 
     resetFileEdited();
 
@@ -136,4 +147,9 @@ void ModeManager::clearAll()
 RelaisModel *ModeManager::relaisModel() const
 {
     return mRelaisModel;
+}
+
+ACEILeverModel *ModeManager::leversModel() const
+{
+    return mLeversModel;
 }

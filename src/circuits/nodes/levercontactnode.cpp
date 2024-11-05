@@ -27,6 +27,7 @@
 #include "../../views/modemanager.h"
 
 #include "../../objects/acei_lever/model/aceileverobject.h"
+#include "../../objects/acei_lever/model/aceilevermodel.h"
 
 #include <QJsonObject>
 #include "../../utils/genericleverutils.h"
@@ -121,7 +122,7 @@ bool LeverContactNode::loadFromJSON(const QJsonObject &obj)
         return false;
 
     QString leverName = obj.value("lever").toString();
-    //setLever(modeMgr()->relaisModel()->getRelay(relaisName));
+    setLever(modeMgr()->leversModel()->getLever(leverName));
 
     setFlipContact(obj.value("flip").toBool());
     setSwapContactState(obj.value("swap_state").toBool());

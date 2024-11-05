@@ -270,7 +270,7 @@ void ACEILeverObject::addContactNode(LeverContactNode *c)
 void ACEILeverObject::removeContactNode(LeverContactNode *c)
 {
     Q_ASSERT(mContactNodes.contains(c));
-    Q_ASSERT(c->relais() == this);
+    Q_ASSERT(c->lever() == this);
 
     mContactNodes.removeOne(c);
 }

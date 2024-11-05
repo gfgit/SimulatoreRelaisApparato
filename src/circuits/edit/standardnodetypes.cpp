@@ -51,10 +51,6 @@
 #include "../graphs/levercontactgraphitem.h"
 #include "../nodes/levercontactnode.h"
 
-// TODO: remove
-#include <QPointer>
-#include "../../objects/acei_lever/model/aceileverobject.h"
-
 #include <QWidget>
 #include <QFormLayout>
 #include <QLineEdit>
@@ -68,6 +64,9 @@
 #include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/relais/view/relaylineedit.h"
 
+#include "../../objects/acei_lever/model/aceilevermodel.h"
+#include "../../objects/acei_lever/view/aceileverlineedit.h"
+
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
 {
@@ -76,9 +75,6 @@ AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
     Graph *graph = new Graph(node);
     return graph;
 }
-
-// TODO: remove
-static QPointer<ACEILeverObject> superHack;
 
 void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 {
@@ -331,18 +327,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Always;
         factory.nodeType = ACEILeverGraphItem::CustomNodeType;
         factory.prettyName = tr("ACEI Lever");
-
-        auto addNewNodeToSceneHack = [](CircuitScene *s, ModeManager *mgr) -> AbstractNodeGraphItem *
-        {
-            auto item = addNewNodeToScene<ACEILeverGraphItem>(s, mgr);
-
-            superHack = static_cast<ACEILeverGraphItem *>(item)->lever();
-
-            return item;
-        };
-
-        factory.create = addNewNodeToSceneHack;
-
+        factory.create = &addNewNodeToScene<ACEILeverGraphItem>;
         factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
@@ -353,18 +338,63 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         NodeEditFactory::FactoryItem factory;
         factory.nodeType = LeverContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Lever Contact");
-
-        auto addNewNodeToSceneHack = [](CircuitScene *s, ModeManager *mgr) -> AbstractNodeGraphItem *
+        factory.create = &addNewNodeToScene<LeverContactGraphItem>;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
         {
-            auto item = addNewNodeToScene<LeverContactGraphItem>(s, mgr);
+            LeverContactNode *node = static_cast<LeverContactNode *>(item->getAbstractNode());
 
-            static_cast<LeverContactGraphItem *>(item)->node()->setLever(superHack);
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
 
-            return item;
+            // Lever
+            ACEILeverLineEdit *leverEdit = new ACEILeverLineEdit(mgr->leversModel());
+            QObject::connect(node, &LeverContactNode::leverChanged,
+                             leverEdit, &ACEILeverLineEdit::setLever);
+            QObject::connect(leverEdit, &ACEILeverLineEdit::leverChanged,
+                             node, &LeverContactNode::setLever);
+            leverEdit->setLever(node->lever());
+            lay->addRow(tr("Lever:"), leverEdit);
+
+            QCheckBox *flipContact = new QCheckBox(tr("Flip contact"));
+            lay->addRow(flipContact);
+
+            QObject::connect(flipContact, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setFlipContact(val);
+            });
+
+            QCheckBox *swapContacts = new QCheckBox(tr("Swap contact state"));
+            lay->addRow(swapContacts);
+
+            QObject::connect(swapContacts, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setSwapContactState(val);
+            });
+
+            QCheckBox *hasCentralConn = new QCheckBox(tr("Has central connector"));
+            lay->addRow(hasCentralConn);
+
+            QObject::connect(hasCentralConn, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setHasCentralConnector(val);
+            });
+
+            auto updLambda = [flipContact, swapContacts, hasCentralConn, node]()
+            {
+                flipContact->setChecked(node->flipContact());
+                swapContacts->setChecked(node->swapContactState());
+                hasCentralConn->setChecked(node->hasCentralConnector());
+            };
+
+            QObject::connect(node, &RelaisContactNode::shapeChanged,
+                             w, updLambda);
+            updLambda();
+
+            return w;
         };
-
-        factory.create = addNewNodeToSceneHack;
-        factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
     }
