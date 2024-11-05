@@ -3,6 +3,7 @@
 set(PROJECT_SOURCES
     ${PROJECT_SOURCES}
 
+    enums/genericleverposition.h
     enums/aceileverposition.h
 
     enums/cabletypes.h

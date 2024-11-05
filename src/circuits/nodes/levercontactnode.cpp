@@ -29,6 +29,7 @@
 #include "../../objects/acei_lever/model/aceileverobject.h"
 
 #include <QJsonObject>
+#include "../../utils/genericleverutils.h"
 
 LeverContactNode::LeverContactNode(ModeManager *mgr, QObject *parent)
     : AbstractCircuitNode{mgr, false, parent}
@@ -37,6 +38,22 @@ LeverContactNode::LeverContactNode(ModeManager *mgr, QObject *parent)
     mContacts.append(NodeContact("11", "12")); // Common
     mContacts.append(NodeContact("21", "22")); // Up
     mContacts.append(NodeContact("31", "32")); // Down
+
+    // Some default conditions
+    LeverPositionConditionSet condSet;
+    LeverPositionCondition item;
+
+    item.type = LeverPositionConditionType::Exact;
+    item.positionFrom = int(ACEILeverPosition::Left);
+    item.positionFrom = 0;
+    condSet.append(item);
+
+    item.type = LeverPositionConditionType::FromTo;
+    item.positionFrom = int(ACEILeverPosition::Normal);
+    item.positionTo = int(ACEILeverPosition::Right);
+    condSet.append(item);
+
+    setConditionSet(condSet);
 }
 
 LeverContactNode::~LeverContactNode()
@@ -61,7 +78,7 @@ QVector<CableItem> LeverContactNode::getActiveConnections(CableItem source, bool
     }
     else
     {
-        bool isDown = !m_isOn;
+        bool isDown = m_isOn;
         if(swapContactState())
             isDown = !isDown;
 
@@ -106,6 +123,12 @@ bool LeverContactNode::loadFromJSON(const QJsonObject &obj)
     QString leverName = obj.value("lever").toString();
     //setLever(modeMgr()->relaisModel()->getRelay(relaisName));
 
+    setFlipContact(obj.value("flip").toBool());
+    setSwapContactState(obj.value("swap_state").toBool());
+    setHasCentralConnector(obj.value("central_connector").toBool(true));
+
+    mConditionSet = GenericLeverUtils::fromJSON(obj.value("conditions").toObject());
+
     return true;
 }
 
@@ -114,6 +137,11 @@ void LeverContactNode::saveToJSON(QJsonObject &obj) const
     AbstractCircuitNode::saveToJSON(obj);
 
     obj["lever"] = mLever ? mLever->name() : QString();
+    obj["flip"] = flipContact();
+    obj["swap_state"] = swapContactState();
+    obj["central_connector"] = hasCentralConnector();
+
+    obj["conditions"] = GenericLeverUtils::toJSON(mConditionSet);
 }
 
 QString LeverContactNode::nodeType() const
@@ -162,24 +190,12 @@ bool LeverContactNode::isOn() const
 
 void LeverContactNode::setIsOn(bool newIsOn)
 {
-    if (m_isOn == newIsOn)
-        return;
-    m_isOn = newIsOn;
-    emit isOnChanged(m_isOn);
-}
-
-void LeverContactNode::onLeverPositionChanged()
-{
     if(modeMgr()->mode() == FileMode::Editing)
         return; // Prevent turning on during editing
 
-    bool newOn = false;
-    if(mLever)
-        newOn = isPositionOn(mLever->position());
-
-    if (m_isOn == newOn)
+    if (m_isOn == newIsOn)
         return;
-    m_isOn = newOn;
+    m_isOn = newIsOn;
     emit isOnChanged(m_isOn);
 
     if(m_isOn)
@@ -204,20 +220,42 @@ void LeverContactNode::onLeverPositionChanged()
     }
 }
 
-bool LeverContactNode::isPositionOn(ACEILeverPosition pos) const
+void LeverContactNode::onLeverPositionChanged()
 {
-    ACEILeverPosition onPos1 = ACEILeverPosition::Left;
+    bool newIsOn = false;
+    if(mLever)
+        newIsOn = isPositionOn(int(mLever->position()));
 
-    ACEILeverPosition onPos2From = ACEILeverPosition::Normal;
-    ACEILeverPosition onPos2To = ACEILeverPosition::Right;
+    setIsOn(newIsOn);
+}
 
-    if(pos == onPos1)
-        return true;
+bool LeverContactNode::isPositionOn(int pos) const
+{
+    for(const LeverPositionCondition& item : std::as_const(mConditionSet))
+    {
+        if(item.type == LeverPositionConditionType::Exact)
+        {
+            if(item.positionFrom == pos)
+                return true;
+            continue;
+        }
 
-    if(pos >= onPos2From && pos <= onPos2To)
-        return true;
+        // From/To
+        if(item.positionFrom <= pos && pos <= item.positionTo)
+            return true;
+    }
 
     return false;
+}
+
+LeverPositionConditionSet LeverContactNode::conditionSet() const
+{
+    return mConditionSet;
+}
+
+void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newConditionSet)
+{
+    mConditionSet = newConditionSet;
 }
 
 bool LeverContactNode::swapContactState() const

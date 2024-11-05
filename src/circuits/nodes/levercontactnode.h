@@ -25,6 +25,7 @@
 
 #include "abstractcircuitnode.h"
 
+#include "../../enums/genericleverposition.h"
 #include "../../enums/aceileverposition.h"
 
 // TODO: make common generic lever interface
@@ -60,6 +61,9 @@ public:
     bool hasCentralConnector() const;
     void setHasCentralConnector(bool newHasCentralConnector);
 
+    LeverPositionConditionSet conditionSet() const;
+    void setConditionSet(const LeverPositionConditionSet &newConditionSet);
+
 signals:
     void isOnChanged(bool on);
     void leverChanged(ACEILeverObject *l);
@@ -68,10 +72,13 @@ private slots:
     void onLeverPositionChanged();
 
 private:
-    bool isPositionOn(ACEILeverPosition pos) const;
+    bool isPositionOn(int pos) const;
 
 private:
     ACEILeverObject *mLever = nullptr;
+
+    LeverPositionConditionSet mConditionSet;
+
     bool m_isOn = false;
     bool mFlipContact = false;
     bool mSwapContactState = false;

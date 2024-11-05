@@ -3,6 +3,9 @@
 set(PROJECT_SOURCES
     ${PROJECT_SOURCES}
 
+    utils/genericleverutils.cpp
+    utils/genericleverutils.h
+
     utils/tilerotate.cpp
     utils/tilerotate.h
 
