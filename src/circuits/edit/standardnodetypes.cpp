@@ -328,7 +328,24 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ACEILeverGraphItem::CustomNodeType;
         factory.prettyName = tr("ACEI Lever");
         factory.create = &addNewNodeToScene<ACEILeverGraphItem>;
-        factory.edit = nullptr;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            ACEILeverGraphItem *specialItem = static_cast<ACEILeverGraphItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Lever
+            ACEILeverLineEdit *leverEdit = new ACEILeverLineEdit(mgr->leversModel());
+            QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
+                             leverEdit, &ACEILeverLineEdit::setLever);
+            QObject::connect(leverEdit, &ACEILeverLineEdit::leverChanged,
+                             specialItem, &ACEILeverGraphItem::setLever);
+            leverEdit->setLever(specialItem->lever());
+            lay->addRow(tr("Lever:"), leverEdit);
+
+            return w;
+        };
 
         factoryReg->registerFactory(factory);
     }

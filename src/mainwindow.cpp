@@ -136,6 +136,11 @@ void MainWindow::buildMenuBar()
     connect(showRelayList, &QAction::triggered,
             mViewMgr, &ViewManager::showRelayListView);
 
+    QAction *showLeverList = menuView->addAction(tr("Lever list"));
+
+    connect(showLeverList, &QAction::triggered,
+            mViewMgr, &ViewManager::showLeverListView);
+
     actionEditMode = menuView->addAction(tr("Edit mode"));
     actionEditMode->setCheckable(true);
 

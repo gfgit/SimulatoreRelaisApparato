@@ -24,8 +24,12 @@
 
 //TODO: fake
 #include "../../nodes/onoffswitchnode.h"
+#include <QJsonObject>
 
 #include "../../../objects/acei_lever/model/aceileverobject.h"
+#include "../../../objects/acei_lever/model/aceilevermodel.h"
+
+#include "../../../views/modemanager.h"
 
 #include <QGraphicsSceneMouseEvent>
 
@@ -37,13 +41,7 @@
 ACEILeverGraphItem::ACEILeverGraphItem(OnOffSwitchNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-    mLever = new ACEILeverObject(this);
-    mLever->setHasSpringReturn(true);
 
-    connect(mLever, &ACEILeverObject::angleChanged,
-            this, &ACEILeverGraphItem::triggerUpdate);
-    connect(mLever, &ACEILeverObject::pressedChanged,
-            this, &ACEILeverGraphItem::triggerUpdate);
 }
 
 void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -60,7 +58,7 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     // Zero is vertical up, so cos/sin are swapped
     // Also returned angle must be inverted to be clockwise
-    const double angleRadiants = -qDegreesToRadians(mLever->angle());
+    const double angleRadiants = -qDegreesToRadians(mLever ? mLever->angle() : 0);
 
     QPointF endPt(qSin(angleRadiants),
                   qCos(angleRadiants));
@@ -68,7 +66,7 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     endPt += center;
 
     QColor color = Qt::darkCyan;
-    if(mLever->isPressed())
+    if(!mLever || mLever->isPressed())
         color = Qt::blue;
 
     QPen pen;
@@ -89,32 +87,36 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
 void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(ev->button() == Qt::LeftButton)
+    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
+            && mLever)
     {
-        ev->accept();
-        mLever->setPressed(true);
-        mLastMousePos = ev->pos();
-        return;
-    }
-    else if(ev->button() == Qt::RightButton)
-    {
-        // Customize lever
-        if(ev->modifiers() == Qt::ShiftModifier)
+        if(ev->button() == Qt::LeftButton)
         {
-            // Toggle spring
-            mLever->setHasSpringReturn(!mLever->hasSpringReturn());
+            ev->accept();
+            mLever->setPressed(true);
+            mLastMousePos = ev->pos();
+            return;
         }
-        else if(ev->modifiers() == Qt::AltModifier)
+        else if(ev->button() == Qt::RightButton)
         {
-            // Toggle absolute min
-            ACEILeverPosition minPos = mLever->absoluteMin();
-            if(minPos == ACEILeverPosition::Left)
-                minPos = ACEILeverPosition::Normal;
-            else
-                minPos = ACEILeverPosition::Left;
+            // Customize lever
+            if(ev->modifiers() == Qt::ShiftModifier)
+            {
+                // Toggle spring
+                mLever->setHasSpringReturn(!mLever->hasSpringReturn());
+            }
+            else if(ev->modifiers() == Qt::AltModifier)
+            {
+                // Toggle absolute min
+                ACEILeverPosition minPos = mLever->absoluteMin();
+                if(minPos == ACEILeverPosition::Left)
+                    minPos = ACEILeverPosition::Normal;
+                else
+                    minPos = ACEILeverPosition::Left;
 
-            mLever->setAbsoluteRange(minPos,
-                                     mLever->absoluteMax());
+                mLever->setAbsoluteRange(minPos,
+                                         mLever->absoluteMax());
+            }
         }
     }
 
@@ -126,30 +128,34 @@ void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
 
-    if(ev->buttons() & Qt::LeftButton)
+    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
+            && mLever)
     {
-        QPointF delta = ev->pos() - mLastMousePos;
-        if(delta.manhattanLength() > 2)
+        if(ev->buttons() & Qt::LeftButton)
         {
-            // Calculate angle
-            delta = center - ev->pos();
+            QPointF delta = ev->pos() - mLastMousePos;
+            if(delta.manhattanLength() > 2)
+            {
+                // Calculate angle
+                delta = center - ev->pos();
 
-            // Zero is vertical up, so x/y are swapped
-            // Also returned angle must be inverted to be clockwise
-            const double angleRadiants = -qAtan2(delta.x(), delta.y());
+                // Zero is vertical up, so x/y are swapped
+                // Also returned angle must be inverted to be clockwise
+                const double angleRadiants = -qAtan2(delta.x(), delta.y());
 
-            int newAngle = qRound(qRadiansToDegrees(angleRadiants));
+                int newAngle = qRound(qRadiansToDegrees(angleRadiants));
 
-            // Disable snap with shift
-            if(ev->modifiers() == Qt::ShiftModifier)
-                mLever->setAngle(newAngle);
-            else
-                mLever->setAngleTrySnap(newAngle);
+                // Disable snap with shift
+                if(ev->modifiers() == Qt::ShiftModifier)
+                    mLever->setAngle(newAngle);
+                else
+                    mLever->setAngleTrySnap(newAngle);
 
-            mLastMousePos = ev->pos();
+                mLastMousePos = ev->pos();
 
-            ev->accept();
-            return;
+                ev->accept();
+                return;
+            }
         }
     }
 
@@ -158,9 +164,13 @@ void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 
 void ACEILeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    // We don't care about button
-    // Also sometimes there are already no buttons
-    mLever->setPressed(false);
+    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing)
+    {
+        // We don't care about button
+        // Also sometimes there are already no buttons
+        if(mLever)
+            mLever->setPressed(false);
+    }
 
     AbstractNodeGraphItem::mouseReleaseEvent(ev);
 }
@@ -172,5 +182,64 @@ ACEILeverObject *ACEILeverGraphItem::lever() const
 
 void ACEILeverGraphItem::setLever(ACEILeverObject *newLever)
 {
+    if (mLever == newLever)
+        return;
+
+    if(mLever)
+    {
+        disconnect(mLever, &ACEILeverObject::destroyed,
+                   this, &ACEILeverGraphItem::onLeverDestroyed);
+
+        disconnect(mLever, &ACEILeverObject::angleChanged,
+                   this, &ACEILeverGraphItem::triggerUpdate);
+        disconnect(mLever, &ACEILeverObject::pressedChanged,
+                   this, &ACEILeverGraphItem::triggerUpdate);
+    }
+
     mLever = newLever;
+
+    if(mLever)
+    {
+        connect(mLever, &ACEILeverObject::destroyed,
+                this, &ACEILeverGraphItem::onLeverDestroyed);
+
+        connect(mLever, &ACEILeverObject::angleChanged,
+                this, &ACEILeverGraphItem::triggerUpdate);
+        connect(mLever, &ACEILeverObject::pressedChanged,
+                this, &ACEILeverGraphItem::triggerUpdate);
+    }
+
+    emit leverChanged(mLever);
+}
+
+bool ACEILeverGraphItem::loadFromJSON(const QJsonObject &obj)
+{
+    QJsonObject objCopy = obj;
+
+    // Restore fake node type
+    objCopy["type"] = Node::NodeType;
+    QString leverName = obj.value("lever").toString();
+    setLever(getAbstractNode()->modeMgr()->leversModel()->getLever(leverName));
+
+    return AbstractNodeGraphItem::loadFromJSON(objCopy);
+}
+
+void ACEILeverGraphItem::saveToJSON(QJsonObject &obj) const
+{
+    AbstractNodeGraphItem::saveToJSON(obj);
+
+    // Replace fake node type with ours
+    obj["type"] = CustomNodeType;
+    obj["lever"] = mLever ? mLever->name() : QString();
+}
+
+void ACEILeverGraphItem::onLeverDestroyed()
+{
+    mLever = nullptr;
+    emit leverChanged(mLever);
+}
+
+QString FakeLeverNode::nodeType() const
+{
+    return FakeLeverNode::NodeType;
 }

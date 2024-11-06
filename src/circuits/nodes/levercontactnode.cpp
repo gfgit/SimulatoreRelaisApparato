@@ -160,8 +160,6 @@ void LeverContactNode::setLever(ACEILeverObject *newLever)
     if (mLever == newLever)
         return;
 
-    mLever = newLever;
-
     if(mLever)
     {
         disconnect(mLever, &ACEILeverObject::positionChanged,

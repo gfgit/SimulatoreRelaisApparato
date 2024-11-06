@@ -25,16 +25,29 @@
 
 #include "../abstractnodegraphitem.h"
 
+#include "../../nodes/onoffswitchnode.h"
+
 class ACEILeverObject;
 
 // TODO: this is a fake node
-class OnOffSwitchNode;
+class FakeLeverNode : public OnOffSwitchNode
+{
+public:
+    explicit FakeLeverNode(ModeManager *mgr, QObject *parent = nullptr)
+        : OnOffSwitchNode(mgr, parent)
+    {
+
+    }
+
+    static constexpr QLatin1String NodeType = QLatin1String("acei_lever");
+    QString nodeType() const override;
+};
 
 class ACEILeverGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    typedef OnOffSwitchNode Node;
+    typedef FakeLeverNode Node;
     static constexpr QLatin1String CustomNodeType = QLatin1String("acei_lever");
 
     explicit ACEILeverGraphItem(OnOffSwitchNode *node_);
@@ -43,6 +56,15 @@ public:
 
     ACEILeverObject *lever() const;
     void setLever(ACEILeverObject *newLever);
+
+    bool loadFromJSON(const QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) const override;
+
+signals:
+    void leverChanged(ACEILeverObject *newLever);
+
+private slots:
+    void onLeverDestroyed();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
