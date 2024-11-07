@@ -23,7 +23,7 @@
 #include "relaylineedit.h"
 
 #include <QCompleter>
-
+#include <QAbstractProxyModel>
 
 #include "../model/abstractrelais.h"
 #include "../model/relaismodel.h"
@@ -43,6 +43,15 @@ RelayLineEdit::RelayLineEdit(RelaisModel *m, QWidget *parent)
             this, [this](const QModelIndex& idx)
     {
         setRelais(mRelaisModel->relayAt(idx.row()));
+    });
+
+    connect(c, qOverload<const QModelIndex&>(&QCompleter::activated),
+            this, [this, c](const QModelIndex& idx)
+    {
+        QAbstractProxyModel *m = static_cast<QAbstractProxyModel *>(c->completionModel());
+        const QModelIndex sourceIdx = m->mapToSource(idx);
+
+        setRelais(mRelaisModel->relayAt(sourceIdx.row()));
     });
 }
 

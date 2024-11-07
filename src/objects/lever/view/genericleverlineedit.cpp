@@ -23,7 +23,7 @@
 #include "genericleverlineedit.h"
 
 #include <QCompleter>
-
+#include <QAbstractProxyModel>
 
 #include "../model/genericleverobject.h"
 #include "../model/genericlevermodel.h"
@@ -40,9 +40,12 @@ GenericLeverLineEdit::GenericLeverLineEdit(GenericLeverModel *m, QWidget *parent
     setCompleter(c);
 
     connect(c, qOverload<const QModelIndex&>(&QCompleter::activated),
-            this, [this](const QModelIndex& idx)
+            this, [this, c](const QModelIndex& idx)
     {
-        setLever(mLeverModel->leverAt(idx.row()));
+        QAbstractProxyModel *m = static_cast<QAbstractProxyModel *>(c->completionModel());
+        const QModelIndex sourceIdx = m->mapToSource(idx);
+
+        setLever(mLeverModel->leverAt(sourceIdx.row()));
     });
 }
 
