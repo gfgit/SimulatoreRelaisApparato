@@ -112,7 +112,8 @@ bool LeverContactNode::loadFromJSON(const QJsonObject &obj)
     setSwapContactState(obj.value("swap_state").toBool());
     setHasCentralConnector(obj.value("central_connector").toBool(true));
 
-    mConditionSet = GenericLeverUtils::fromJSON(obj.value("conditions").toObject());
+    auto conditions = GenericLeverUtils::fromJSON(obj.value("conditions").toObject());
+    setConditionSet(conditions);
 
     return true;
 }
@@ -180,6 +181,9 @@ void LeverContactNode::onLeverPositionChanged()
     }
 
     setState(s);
+
+    // Refresh every lever position change
+    emit stateChanged();
 }
 
 bool LeverContactNode::isPositionOn(int pos) const
@@ -242,6 +246,49 @@ LeverPositionConditionSet LeverContactNode::conditionSet() const
 void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newConditionSet)
 {
     mConditionSet = newConditionSet;
+
+    // Sanitize conditions
+    for(auto it = mConditionSet.begin(); it != mConditionSet.end(); it++)
+    {
+        LeverPositionCondition& item = *it;
+        if(item.type == LeverPositionConditionType::Exact)
+            item.positionTo = item.positionFrom;
+        else
+        {
+            item.positionTo = qMax(item.positionFrom + 2,
+                                   item.positionTo);
+        }
+    }
+
+    // Sort conditions
+    std::sort(mConditionSet.begin(),
+              mConditionSet.end(),
+              [](const LeverPositionCondition& lhs,
+                 const LeverPositionCondition& rhs) -> bool
+    {
+        if(lhs.positionFrom == rhs.positionFrom)
+            return lhs.positionTo < rhs.positionTo;
+        return lhs.positionFrom < rhs.positionTo;
+    });
+
+    // Remove duplicates/overlapping ranges
+    int lastFromPosition = -1;
+    int lastToPosition = -1;
+    for(auto it = mConditionSet.begin(); it != mConditionSet.end();)
+    {
+        LeverPositionCondition& item = *it;
+        if((item.positionFrom >= lastFromPosition && item.positionFrom <= lastToPosition)
+                || (item.positionTo >= lastFromPosition && item.positionTo <= lastToPosition))
+        {
+            // Duplicates/overlapping
+            it = mConditionSet.erase(it);
+            continue;
+        }
+
+        lastFromPosition = item.positionFrom;
+        lastToPosition = item.positionTo;
+        it++;
+    }
 
     // Refresh state based on new conditions
     onLeverPositionChanged();
