@@ -81,7 +81,6 @@ void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
     CircuitScene *s = circuitScene();
     if(s && s->mode() == FileMode::Simulation)
     {
-        // TODO: block the node instead
         // Toggle on double click
         bool val = node()->getEnabled();
         node()->setEnabled(!val);

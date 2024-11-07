@@ -172,7 +172,6 @@ void OnOffGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
     CircuitScene *s = circuitScene();
     if(s && s->mode() == FileMode::Simulation)
     {
-        // TODO: block the node instead
         // Toggle on double click
         bool val = node()->isOn();
         node()->setOn(!val);
