@@ -328,7 +328,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // ACEI Lever
         NodeEditFactory::FactoryItem factory;
-        factory.needsName = NodeEditFactory::NeedsName::Always;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = ACEILeverGraphItem::CustomNodeType;
         factory.prettyName = tr("ACEI Lever");
         factory.create = &addNewNodeToScene<ACEILeverGraphItem>;
@@ -357,6 +357,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // Lever Contact
         NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = LeverContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Lever Contact");
         factory.create = &addNewNodeToScene<LeverContactGraphItem>;

@@ -40,6 +40,9 @@ public:
     void getConnectors(std::vector<Connector>& connectors) const final;
 
     LeverContactNode *node() const;
+
+protected:
+    void drawLeverConditions(QPainter *painter, TileRotate r);
 };
 
 #endif // LEVERCONTACTGRAPHITEM_H
