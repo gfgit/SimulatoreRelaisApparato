@@ -204,14 +204,25 @@ bool RelaisModel::loadFromJSON(const QJsonObject &obj)
     const QJsonArray arr = obj.value("relais").toArray();
     for(const QJsonValue& v : arr)
     {
+        QJsonObject relayObj = v.toObject();
+        if(getRelay(relayObj.value("name").toString()))
+            continue; // Skip duplicates
+
         AbstractRelais *r = new AbstractRelais(this);
-        r->loadFromJSON(v.toObject());
+        r->loadFromJSON(relayObj);
 
         connect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
         connect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
         connect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
         mRelais.append(r);
     }
+
+    std::sort(mRelais.begin(),
+              mRelais.end(),
+              [](const AbstractRelais *lhs, const AbstractRelais *rhs) -> bool
+    {
+        return lhs->name() < rhs->name();
+    });
 
     endResetModel();
     

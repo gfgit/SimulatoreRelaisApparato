@@ -49,7 +49,7 @@ QVariant GenericLeverModel::headerData(int section, Qt::Orientation orientation,
 {
     if(orientation == Qt::Horizontal && section == 0 && role == Qt::DisplayRole)
     {
-        return tr("Relais");
+        return tr("Levers");
     }
 
     return QAbstractListModel::headerData(section, orientation, role);
@@ -204,17 +204,28 @@ bool GenericLeverModel::loadFromJSON(const QJsonObject &obj)
 
     clearInternal();
 
-    const QJsonArray arr = obj.value("relais").toArray();
+    const QJsonArray arr = obj.value("levers").toArray();
     for(const QJsonValue& v : arr)
     {
-        GenericLeverObject *r = new ACEILeverObject(this);
-        r->loadFromJSON(v.toObject());
+        QJsonObject leverObj = v.toObject();
+        if(getLever(leverObj.value("name").toString()))
+            continue; // Skip duplicates
 
-        connect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
-        connect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
-        connect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
-        mLevers.append(r);
+        GenericLeverObject *l = new ACEILeverObject(this);
+        l->loadFromJSON(leverObj);
+
+        connect(l, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
+        connect(l, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+        connect(l, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
+        mLevers.append(l);
     }
+
+    std::sort(mLevers.begin(),
+              mLevers.end(),
+              [](const GenericLeverObject *lhs, const GenericLeverObject *rhs) -> bool
+    {
+        return lhs->name() < rhs->name();
+    });
 
     endResetModel();
     
@@ -225,14 +236,14 @@ void GenericLeverModel::saveToJSON(QJsonObject &obj) const
 {
     QJsonArray arr;
 
-    for(GenericLeverObject *r : std::as_const(mLevers))
+    for(GenericLeverObject *l : std::as_const(mLevers))
     {
-        QJsonObject relay;
-        r->saveToJSON(relay);
-        arr.append(relay);
+        QJsonObject lever;
+        l->saveToJSON(lever);
+        arr.append(lever);
     }
 
-    obj["relais"] = arr;
+    obj["levers"] = arr;
 }
 
 bool GenericLeverModel::isNameAvailable(const QString &name) const
