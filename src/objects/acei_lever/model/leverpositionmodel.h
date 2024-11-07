@@ -1,5 +1,5 @@
 /**
- * src/enums/aceileverposition.h
+ * src/objects/acei_lever/model/leverpositionmodel.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,19 +20,35 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEILEVERPOSITION_H
-#define ACEILEVERPOSITION_H
+#ifndef LEVERPOSITIONMODEL_H
+#define LEVERPOSITIONMODEL_H
 
-#include <QVector>
+#include <QAbstractListModel>
 
-enum class ACEILeverPosition
+class LeverPositionDesc;
+
+class LeverPositionModel : public QAbstractListModel
 {
-    Left = 0,
-    Middle1,
-    Normal,
-    Middle2,
-    Right,
-    NPositions
+    Q_OBJECT
+
+public:
+    LeverPositionModel(const LeverPositionDesc& desc, QObject *parent = nullptr);
+
+    // Basic functionality:
+    int rowCount(const QModelIndex &p = QModelIndex()) const override;
+
+    QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
+
+    void setPositionRange(int min, int max);
+
+    int positionAt(int row) const;
+    int rowForPosition(int position) const;
+
+private:
+    const LeverPositionDesc &mPositionDesc;
+
+    int mPositionMin = 0;
+    int mPositionMax = 0;
 };
 
-#endif // ACEILEVERPOSITION_H
+#endif // LEVERPOSITIONMODEL_H

@@ -25,9 +25,13 @@
 
 #include "../enums/genericleverposition.h"
 
+#include <QString>
+
 class QJsonObject;
 
 namespace GenericLeverUtils {
+
+QString getTypeName(LeverPositionConditionType type);
 
 LeverPositionConditionSet fromJSON(const QJsonObject& obj);
 QJsonObject toJSON(const LeverPositionConditionSet& conditions);

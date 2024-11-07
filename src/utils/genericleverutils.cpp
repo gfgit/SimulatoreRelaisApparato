@@ -25,6 +25,25 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include <QCoreApplication>
+
+class LeverPositionTypeNames
+{
+    Q_DECLARE_TR_FUNCTIONS(LeverPositionTypeNames)
+public:
+    static const char *texts[];
+};
+
+const char *LeverPositionTypeNames::texts[] = {QT_TRANSLATE_NOOP("LeverPositionTypeNames", "Exact"),
+                                               QT_TRANSLATE_NOOP("LeverPositionTypeNames", "From/To")};
+
+QString GenericLeverUtils::getTypeName(LeverPositionConditionType type)
+{
+    if (type >= LeverPositionConditionType::NTypes)
+        return QString();
+    return LeverPositionTypeNames::tr(LeverPositionTypeNames::texts[int(type)]);
+}
+
 LeverPositionConditionSet GenericLeverUtils::fromJSON(const QJsonObject &obj)
 {
     LeverPositionConditionSet conditions;

@@ -65,7 +65,11 @@
 #include "../../objects/relais/view/relaylineedit.h"
 
 #include "../../objects/acei_lever/model/aceilevermodel.h"
+#include "../../objects/acei_lever/model/aceileverobject.h"
+#include "../../objects/acei_lever/model/levercontactconditionsmodel.h"
+
 #include "../../objects/acei_lever/view/aceileverlineedit.h"
+#include "../../objects/acei_lever/view/levercontactconditionsview.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -365,8 +369,6 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Lever
             ACEILeverLineEdit *leverEdit = new ACEILeverLineEdit(mgr->leversModel());
-            QObject::connect(node, &LeverContactNode::leverChanged,
-                             leverEdit, &ACEILeverLineEdit::setLever);
             QObject::connect(leverEdit, &ACEILeverLineEdit::leverChanged,
                              node, &LeverContactNode::setLever);
             leverEdit->setLever(node->lever());
@@ -409,6 +411,53 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QObject::connect(node, &RelaisContactNode::shapeChanged,
                              w, updLambda);
             updLambda();
+
+            // Conditions
+            LeverContactConditionsModel *conditionsModel =
+                    new LeverContactConditionsModel(w);
+
+            LeverContactConditionsView *conditionsView =
+                    new LeverContactConditionsView;
+            lay->addRow(tr("Conditions"), conditionsView);
+
+            conditionsView->setModel(conditionsModel);
+
+            QObject::connect(node, &LeverContactNode::leverChanged,
+                             w,
+                             [leverEdit, conditionsModel,
+                             node, conditionsView]()
+            {
+                leverEdit->setLever(node->lever());
+
+                if(node->lever())
+                {
+                    auto conditions = conditionsModel->conditions();
+                    conditionsModel->setConditions(&node->lever()->positionDesc(),
+                                                   conditions);
+                    conditionsModel->setPositionRange(node->lever()->absoluteMin(),
+                                                      node->lever()->absoluteMax());
+                }
+
+                conditionsView->setVisible(node->lever());
+            });
+
+            const LeverPositionDesc *desc = nullptr;
+            if(node->lever())
+            {
+                desc = &node->lever()->positionDesc();
+                conditionsModel->setPositionRange(node->lever()->absoluteMin(),
+                                                  node->lever()->absoluteMax());
+            }
+
+            conditionsView->setVisible(node->lever());
+            conditionsModel->setConditions(desc, node->conditionSet());
+
+            QObject::connect(conditionsModel, &LeverContactConditionsModel::changed,
+                             node, [node, conditionsModel]()
+            {
+                // Apply changes
+                node->setConditionSet(conditionsModel->conditions());
+            });
 
             return w;
         };

@@ -1,5 +1,5 @@
 /**
- * src/enums/aceileverposition.h
+ * src/objects/acei_lever/view/levercontactconditionsview.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,19 +20,36 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEILEVERPOSITION_H
-#define ACEILEVERPOSITION_H
+#ifndef LEVERCONTACTCONDITIONSVIEW_H
+#define LEVERCONTACTCONDITIONSVIEW_H
 
-#include <QVector>
+#include <QWidget>
 
-enum class ACEILeverPosition
+class LeverContactConditionsModel;
+
+class QPushButton;
+class QTableView;
+
+class LeverContactConditionsView : public QWidget
 {
-    Left = 0,
-    Middle1,
-    Normal,
-    Middle2,
-    Right,
-    NPositions
+    Q_OBJECT
+public:
+    explicit LeverContactConditionsView(QWidget *parent = nullptr);
+
+    LeverContactConditionsModel *model() const;
+    void setModel(LeverContactConditionsModel *newModel);
+
+private slots:
+    void addCondition();
+    void removeCurrentCondition();
+
+private:
+    QTableView *mView;
+
+    QPushButton *addBut;
+    QPushButton *remBut;
+
+    LeverContactConditionsModel *mModel = nullptr;
 };
 
-#endif // ACEILEVERPOSITION_H
+#endif // LEVERCONTACTCONDITIONSVIEW_H

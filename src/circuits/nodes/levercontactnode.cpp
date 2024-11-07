@@ -258,6 +258,9 @@ LeverPositionConditionSet LeverContactNode::conditionSet() const
 void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newConditionSet)
 {
     mConditionSet = newConditionSet;
+
+    // Refresh state based on new conditions
+    onLeverPositionChanged();
 }
 
 bool LeverContactNode::swapContactState() const

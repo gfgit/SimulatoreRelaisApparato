@@ -29,6 +29,8 @@
 #include "../../../objects/acei_lever/model/aceileverobject.h"
 #include "../../../objects/acei_lever/model/aceilevermodel.h"
 
+#include "../../../enums/aceileverposition.h"
+
 #include "../../../views/modemanager.h"
 
 #include <QGraphicsSceneMouseEvent>
@@ -49,11 +51,12 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
 
-    constexpr double circleRadius = 5;
+    constexpr double circleRadius = 10;
     constexpr double leverLength = 40;
 
     QRectF circle;
-    circle.setSize(QSizeF(circleRadius, circleRadius));
+    circle.setSize(QSizeF(circleRadius * 2,
+                          circleRadius * 2));
     circle.moveCenter(center);
 
     // Zero is vertical up, so cos/sin are swapped
@@ -108,13 +111,13 @@ void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             else if(ev->modifiers() == Qt::AltModifier)
             {
                 // Toggle absolute min
-                ACEILeverPosition minPos = mLever->absoluteMin();
+                ACEILeverPosition minPos = ACEILeverPosition(mLever->absoluteMin());
                 if(minPos == ACEILeverPosition::Left)
                     minPos = ACEILeverPosition::Normal;
                 else
                     minPos = ACEILeverPosition::Left;
 
-                mLever->setAbsoluteRange(minPos,
+                mLever->setAbsoluteRange(int(minPos),
                                          mLever->absoluteMax());
             }
         }

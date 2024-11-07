@@ -24,14 +24,42 @@
 
 #include "../../../circuits/nodes/levercontactnode.h"
 
+#include "../../../enums/aceileverposition.h"
+
 #include <QTimerEvent>
 
 #include <QJsonObject>
 
+static QString ACEILeverPosition_translate(const char *nameId)
+{
+    return ACEILeverObject::tr(nameId);
+}
+
+static const LeverPositionDesc::Item aceiLeverItems[] =
+{
+    {-90, QT_TRANSLATE_NOOP("ACEILeverObject", "Left")},
+    {}, // Middle1
+    {0,   QT_TRANSLATE_NOOP("ACEILeverObject", "Normal")},
+    {}, // Middle2
+    {+90, QT_TRANSLATE_NOOP("ACEILeverObject", "Right")}
+};
+
+static const LeverPositionDesc aceiLeverDesc(aceiLeverItems,
+                                             int(ACEILeverPosition::Normal),
+                                             &ACEILeverPosition_translate);
+
 ACEILeverObject::ACEILeverObject(QObject *parent)
-    : QObject{parent}
+    : ACEILeverObject(aceiLeverDesc, parent)
 {
 
+}
+
+ACEILeverObject::ACEILeverObject(const LeverPositionDesc &desc, QObject *parent)
+    : QObject{parent}
+    , mPositionDesc(aceiLeverDesc)
+{
+    // Recalculate range
+    setAbsoluteRange(0, mPositionDesc.maxPosition());
 }
 
 ACEILeverObject::~ACEILeverObject()
@@ -53,8 +81,7 @@ bool ACEILeverObject::loadFromJSON(const QJsonObject &obj)
     // Renge
     int pos_min = obj.value("pos_min").toInt();
     int pos_max = obj.value("pos_max").toInt();
-    setAbsoluteRange(ACEILeverPosition(pos_min),
-                     ACEILeverPosition(pos_max));
+    setAbsoluteRange(pos_min, pos_max);
 
     return true;
 }
@@ -65,8 +92,8 @@ void ACEILeverObject::saveToJSON(QJsonObject &obj) const
     obj["spring_return"] = hasSpringReturn();
 
     // Range
-    obj["pos_min"] = int(mAbsoluteMin);
-    obj["pos_max"] = int(mAbsoluteMax);
+    obj["pos_min"] = mAbsoluteMin;
+    obj["pos_max"] = mAbsoluteMax;
 }
 
 QString ACEILeverObject::name() const
@@ -110,12 +137,12 @@ void ACEILeverObject::setAngle(int newAngle)
 
 void ACEILeverObject::setAngleTrySnap(int newAngle)
 {
-    ACEILeverPosition pos = closestPosition(newAngle, true);
+    int pos = closestPosition(newAngle, true);
     if(isPositionMiddle(pos))
     {
         // Try snap
         pos = snapTarget(newAngle);
-        if(pos != ACEILeverPosition::NPositions)
+        if(pos != LeverPositionDesc::InvalidPosition)
         {
             // We can snap
             newAngle = angleForPosition(pos);
@@ -125,12 +152,12 @@ void ACEILeverObject::setAngleTrySnap(int newAngle)
     setAngle(newAngle);
 }
 
-ACEILeverPosition ACEILeverObject::position() const
+int ACEILeverObject::position() const
 {
     return mPosition;
 }
 
-void ACEILeverObject::setPosition(ACEILeverPosition newPosition)
+void ACEILeverObject::setPosition(int newPosition)
 {
     if(mPosition == newPosition)
         return;
@@ -138,12 +165,12 @@ void ACEILeverObject::setPosition(ACEILeverPosition newPosition)
     // Always ensure all positions are passed
     const int increment = (newPosition > mPosition) ? +1 : -1;
 
-    int p = int(mPosition);
-    while(p != int(newPosition))
+    int p = mPosition;
+    while(p != newPosition)
     {
         p += increment;
 
-        mPosition = ACEILeverPosition(p);
+        mPosition = p;
         emit positionChanged(this, mPosition);
     }
 }
@@ -190,11 +217,40 @@ void ACEILeverObject::setPressed(bool newIsPressed)
     }
 }
 
+int ACEILeverObject::closestPosition(int angle, bool allowMiddle) const
+{
+    for(int i = mAbsoluteMin; i <= mAbsoluteMax; i++)
+    {
+        if(mPositionDesc.isMiddle(i))
+        {
+            const int prevPosAngle = mPositionDesc.angleFor(i - 1);
+            const int nextPosAngle = mPositionDesc.angleFor(i + 1);
+
+            if(angle <= prevPosAngle || angle >= nextPosAngle)
+                continue;
+
+            if(allowMiddle)
+                return i; // Return middle position
+
+            if((angle - prevPosAngle) < (nextPosAngle - angle))
+                return (i - 1); // Closest to prev
+
+            return (i + 1); // Closest to next
+        }
+
+        if(angle == mPositionDesc.angleFor(i))
+            return i;
+    }
+
+    // Invalid
+    return LeverPositionDesc::InvalidPosition;
+}
+
 void ACEILeverObject::timerEvent(QTimerEvent *e)
 {
     if(e->timerId() == springTimerId && springTimerId)
     {
-        constexpr int targetAngle = angleForPosition(ACEILeverPosition::Normal);
+        const int targetAngle = angleForPosition(mPositionDesc.normalPositionIdx);
 
         if(qAbs(targetAngle - mAngle) <= SpringTimerAngleDelta)
         {
@@ -233,18 +289,21 @@ void ACEILeverObject::startSpringTimer()
     springTimerId = startTimer(100);
 }
 
-ACEILeverPosition ACEILeverObject::absoluteMax() const
+int ACEILeverObject::absoluteMax() const
 {
     return mAbsoluteMax;
 }
 
-ACEILeverPosition ACEILeverObject::absoluteMin() const
+int ACEILeverObject::absoluteMin() const
 {
     return mAbsoluteMin;
 }
 
-void ACEILeverObject::setAbsoluteRange(ACEILeverPosition newMin, ACEILeverPosition newMax)
+void ACEILeverObject::setAbsoluteRange(int newMin, int newMax)
 {
+    newMin = qMax(newMin, 0);
+    newMax = qMin(newMax, mPositionDesc.maxPosition());
+
     if(newMax < newMin)
         newMax = newMin;
 
@@ -273,4 +332,9 @@ void ACEILeverObject::removeContactNode(LeverContactNode *c)
     Q_ASSERT(c->lever() == this);
 
     mContactNodes.removeOne(c);
+}
+
+const LeverPositionDesc& ACEILeverObject::positionDesc() const
+{
+    return mPositionDesc;
 }

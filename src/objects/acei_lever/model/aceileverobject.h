@@ -25,7 +25,7 @@
 
 #include <QObject>
 
-#include "../../../enums/aceileverposition.h"
+#include "../../../enums/genericleverposition.h"
 
 class LeverContactNode;
 
@@ -35,15 +35,12 @@ class ACEILeverObject : public QObject
 {
     Q_OBJECT
 public:
-    // This is a placeholder value to represent a range
-    // Starting from previous position to next position
-    static constexpr int MiddleAngle = 361;
-
     static constexpr int MaxSnapAngleDelta = 20;
     static constexpr int SpringTimerAngleDelta = 15;
 
 public:
     explicit ACEILeverObject(QObject *parent = nullptr);
+    ACEILeverObject(const LeverPositionDesc& desc, QObject *parent = nullptr);
     ~ACEILeverObject();
 
     virtual bool loadFromJSON(const QJsonObject& obj);
@@ -56,8 +53,8 @@ public:
     void setAngle(int newAngle);
     void setAngleTrySnap(int newAngle);
 
-    ACEILeverPosition position() const;
-    void setPosition(ACEILeverPosition newPosition);
+    int position() const;
+    void setPosition(int newPosition);
 
     bool hasSpringReturn() const;
     void setHasSpringReturn(bool newHasSpringReturn);
@@ -65,79 +62,44 @@ public:
     bool isPressed() const;
     void setPressed(bool newIsPressed);
 
-    static constexpr int angleForPosition(ACEILeverPosition pos)
+    int absoluteMin() const;
+    void setAbsoluteRange(int newMin, int newMax);
+
+    int absoluteMax() const;
+
+    const LeverPositionDesc &positionDesc() const;
+
+    int closestPosition(int angle, bool allowMiddle) const;
+
+
+    inline int angleForPosition(int pos) const
     {
-        return PositionAngles[int(pos)];
+        return mPositionDesc.angleFor(pos);
     }
 
-    static constexpr bool isPositionMiddle(ACEILeverPosition pos)
+    inline bool isPositionMiddle(int pos) const
     {
-        return angleForPosition(pos) == MiddleAngle;
-    }
-
-    static inline int middlePositionAngle(ACEILeverPosition pos)
-    {
-        Q_ASSERT(isPositionMiddle(pos));
-
-        const int prevPosAngle = PositionAngles[int(pos) - 1];
-        const int nextPosAngle = PositionAngles[int(pos) + 1];
-
-        // Average
-        return (prevPosAngle + nextPosAngle) / 2;
-    }
-
-    static inline ACEILeverPosition closestPosition(int angle, bool allowMiddle)
-    {
-        for(int i = 0; i < int(ACEILeverPosition::NPositions); i++)
-        {
-            if(PositionAngles[i] == MiddleAngle)
-            {
-                const int prevPosAngle = PositionAngles[i - 1];
-                const int nextPosAngle = PositionAngles[i + 1];
-
-                if(angle <= prevPosAngle || angle >= nextPosAngle)
-                    continue;
-
-                if(allowMiddle)
-                    return ACEILeverPosition(i); // Return middle position
-
-                if((angle - prevPosAngle) < (nextPosAngle - angle))
-                    return ACEILeverPosition(i - 1); // Closest to prev
-
-                return ACEILeverPosition(i + 1); // Closest to next
-            }
-
-            if(angle == PositionAngles[i])
-                return ACEILeverPosition(i);
-        }
-
-        // Invalid
-        return ACEILeverPosition::NPositions;
+        return angleForPosition(pos) == LeverPositionDesc::MiddleAngle;
     }
 
     // Returns NPositions if cannot snap
-    static inline ACEILeverPosition snapTarget(int angle)
+    inline int snapTarget(int angle) const
     {
         // Skip Middle positions
-        const ACEILeverPosition pos = closestPosition(angle, false);
+        const int pos = closestPosition(angle, false);
         const int posAngle = angleForPosition(pos);
 
         if(qAbs(posAngle - angle) <= MaxSnapAngleDelta)
             return pos; // Snap to position
 
         // Do not snap
-        return ACEILeverPosition::NPositions;
+        return LeverPositionDesc::InvalidPosition;
     }
-
-    ACEILeverPosition absoluteMin() const;
-    void setAbsoluteRange(ACEILeverPosition newMin, ACEILeverPosition newMax);
-
-    ACEILeverPosition absoluteMax() const;
 
 signals:
     void nameChanged(ACEILeverObject *self, const QString& newName);
     void angleChanged(ACEILeverObject *self, int newAngle);
-    void positionChanged(ACEILeverObject *self, ACEILeverPosition newPosition);
+    void positionChanged(ACEILeverObject *self, int newPosition);
     void pressedChanged(bool pressed);
     void changed(ACEILeverObject *self);
 
@@ -152,28 +114,20 @@ private:
     void removeContactNode(LeverContactNode *c);
 
 private:
-    // Angle in degrees clockwise from Normal (vertical up)
-    static constexpr int PositionAngles[int(ACEILeverPosition::NPositions)]
-    {
-        -90, // Left
-        MiddleAngle,
-        0,   // Normal
-        MiddleAngle,
-        90   // Right
-    };
-
     QString mName;
 
-    int mAngle = angleForPosition(ACEILeverPosition::Normal);
-    ACEILeverPosition mPosition = ACEILeverPosition::Normal;
+    const LeverPositionDesc &mPositionDesc;
+
+    int mAngle = 0;
+    int mPosition = 0;
 
     int springTimerId = 0;
 
     bool mHasSpringReturn = false;
     bool mIsPressed = false;
 
-    ACEILeverPosition mAbsoluteMin = ACEILeverPosition(0);
-    ACEILeverPosition mAbsoluteMax = ACEILeverPosition(int(ACEILeverPosition::NPositions) - 1);
+    int mAbsoluteMin = 0;
+    int mAbsoluteMax = 0;
 
     QVector<LeverContactNode *> mContactNodes;
 };
