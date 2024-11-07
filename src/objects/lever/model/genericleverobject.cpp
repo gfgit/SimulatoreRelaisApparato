@@ -35,6 +35,10 @@ GenericLeverObject::GenericLeverObject(const LeverPositionDesc &desc, QObject *p
 {
     // Recalculate range
     setAbsoluteRange(0, mPositionDesc.maxPosition());
+
+    // Default to normal position
+    setAngle(angleForPosition(positionDesc().normalPositionIdx));
+    setPosition(positionDesc().normalPositionIdx);
 }
 
 GenericLeverObject::~GenericLeverObject()
