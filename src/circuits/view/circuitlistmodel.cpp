@@ -211,8 +211,7 @@ void CircuitListModel::clear()
 {
     beginResetModel();
 
-    qDeleteAll(mCircuitScenes);
-    mCircuitScenes.clear();
+    clearInternal();
 
     endResetModel();
 }
@@ -221,8 +220,7 @@ bool CircuitListModel::loadFromJSON(const QJsonObject &obj)
 {
     beginResetModel();
 
-    qDeleteAll(mCircuitScenes);
-    mCircuitScenes.clear();
+    clearInternal();
 
     const QJsonArray arr = obj.value("scenes").toArray();
     for(const QJsonValue& v : arr)
@@ -287,4 +285,10 @@ void CircuitListModel::onSceneEdited()
 
     mHasUnsavedChanges = true;
     modeMgr()->setFileEdited();
+}
+
+void CircuitListModel::clearInternal()
+{
+    qDeleteAll(mCircuitScenes);
+    mCircuitScenes.clear();
 }

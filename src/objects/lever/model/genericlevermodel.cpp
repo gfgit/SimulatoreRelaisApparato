@@ -40,6 +40,11 @@ GenericLeverModel::GenericLeverModel(ModeManager *mgr, QObject *parent)
 {
 }
 
+GenericLeverModel::~GenericLeverModel()
+{
+    clear();
+}
+
 QVariant GenericLeverModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(orientation == Qt::Horizontal && section == 0 && role == Qt::DisplayRole)
@@ -188,14 +193,7 @@ void GenericLeverModel::clear()
 {
     beginResetModel();
 
-    for(GenericLeverObject *r : std::as_const(mLevers))
-    {
-        disconnect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
-        disconnect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
-        disconnect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
-        delete r;
-    }
-    mLevers.clear();
+    clearInternal();
 
     endResetModel();
 }
@@ -203,6 +201,8 @@ void GenericLeverModel::clear()
 bool GenericLeverModel::loadFromJSON(const QJsonObject &obj)
 {
     beginResetModel();
+
+    clearInternal();
 
     const QJsonArray arr = obj.value("relais").toArray();
     for(const QJsonValue& v : arr)
@@ -287,6 +287,18 @@ void GenericLeverModel::onLeverEdited()
     mHasUnsavedChanges = true;
     modeMgr()->setFileEdited();
     emit modelEdited(true);
+}
+
+void GenericLeverModel::clearInternal()
+{
+    for(GenericLeverObject *r : std::as_const(mLevers))
+    {
+        disconnect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
+        disconnect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+        disconnect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
+        delete r;
+    }
+    mLevers.clear();
 }
 
 void GenericLeverModel::resetHasUnsavedChanges()

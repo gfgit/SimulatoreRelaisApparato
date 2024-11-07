@@ -38,7 +38,8 @@ class RelaisModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit RelaisModel(ModeManager *mgr, QObject *parent = nullptr);
+    RelaisModel(ModeManager *mgr, QObject *parent = nullptr);
+    ~RelaisModel();
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -88,6 +89,8 @@ private slots:
 private:
     void updateRelayRow(AbstractRelais *r);
     void onRelayEdited();
+
+    void clearInternal();
 
 private:
     QVector<AbstractRelais *> mRelais;

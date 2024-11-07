@@ -37,6 +37,11 @@ RelaisModel::RelaisModel(ModeManager *mgr, QObject *parent)
 {
 }
 
+RelaisModel::~RelaisModel()
+{
+    clear();
+}
+
 QVariant RelaisModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(orientation == Qt::Horizontal && section == 0 && role == Qt::DisplayRole)
@@ -185,14 +190,7 @@ void RelaisModel::clear()
 {
     beginResetModel();
 
-    for(AbstractRelais *r : std::as_const(mRelais))
-    {
-        disconnect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
-        disconnect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
-        disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
-        delete r;
-    }
-    mRelais.clear();
+    clearInternal();
 
     endResetModel();
 }
@@ -200,6 +198,8 @@ void RelaisModel::clear()
 bool RelaisModel::loadFromJSON(const QJsonObject &obj)
 {
     beginResetModel();
+
+    clearInternal();
 
     const QJsonArray arr = obj.value("relais").toArray();
     for(const QJsonValue& v : arr)
@@ -284,6 +284,18 @@ void RelaisModel::onRelayEdited()
     mHasUnsavedChanges = true;
     modeMgr()->setFileEdited();
     emit modelEdited(true);
+}
+
+void RelaisModel::clearInternal()
+{
+    for(AbstractRelais *r : std::as_const(mRelais))
+    {
+        disconnect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
+        disconnect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
+        disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
+        delete r;
+    }
+    mRelais.clear();
 }
 
 void RelaisModel::resetHasUnsavedChanges()

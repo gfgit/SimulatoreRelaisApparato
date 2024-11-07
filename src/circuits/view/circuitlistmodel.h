@@ -107,6 +107,8 @@ private:
     friend class CircuitScene;
     void onSceneEdited();
 
+    void clearInternal();
+
 private:
     QVector<CircuitScene *> mCircuitScenes;
 

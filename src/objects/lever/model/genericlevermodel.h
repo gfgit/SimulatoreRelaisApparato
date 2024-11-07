@@ -38,7 +38,8 @@ class GenericLeverModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit GenericLeverModel(ModeManager *mgr, QObject *parent = nullptr);
+    GenericLeverModel(ModeManager *mgr, QObject *parent = nullptr);
+    ~GenericLeverModel();
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -88,6 +89,8 @@ private slots:
 private:
     void updateLeverRow(GenericLeverObject *r);
     void onLeverEdited();
+
+    void clearInternal();
 
 private:
     QVector<GenericLeverObject *> mLevers;
