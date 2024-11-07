@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/view/levercontactconditionsview.cpp
+ * src/objects/lever/view/levercontactconditionsview.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

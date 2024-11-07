@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/model/aceileverobject.cpp
+ * src/objects/lever/model/genericleverobject.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,49 +20,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "aceileverobject.h"
+#include "genericleverobject.h"
 
 #include "../../../circuits/nodes/levercontactnode.h"
-
-#include "../../../enums/aceileverposition.h"
 
 #include <QTimerEvent>
 
 #include <QJsonObject>
 
-static QString ACEILeverPosition_translate(const char *nameId)
-{
-    return ACEILeverObject::tr(nameId);
-}
 
-static const LeverPositionDesc::Item aceiLeverItems[] =
-{
-    {-90, QT_TRANSLATE_NOOP("ACEILeverObject", "Left")},
-    {}, // Middle1
-    {0,   QT_TRANSLATE_NOOP("ACEILeverObject", "Normal")},
-    {}, // Middle2
-    {+90, QT_TRANSLATE_NOOP("ACEILeverObject", "Right")}
-};
-
-static const LeverPositionDesc aceiLeverDesc(aceiLeverItems,
-                                             int(ACEILeverPosition::Normal),
-                                             &ACEILeverPosition_translate);
-
-ACEILeverObject::ACEILeverObject(QObject *parent)
-    : ACEILeverObject(aceiLeverDesc, parent)
-{
-
-}
-
-ACEILeverObject::ACEILeverObject(const LeverPositionDesc &desc, QObject *parent)
+GenericLeverObject::GenericLeverObject(const LeverPositionDesc &desc, QObject *parent)
     : QObject{parent}
-    , mPositionDesc(aceiLeverDesc)
+    , mPositionDesc(desc)
 {
     // Recalculate range
     setAbsoluteRange(0, mPositionDesc.maxPosition());
 }
 
-ACEILeverObject::~ACEILeverObject()
+GenericLeverObject::~GenericLeverObject()
 {
     auto contactNodes = mContactNodes;
     for(LeverContactNode *c : contactNodes)
@@ -73,7 +48,7 @@ ACEILeverObject::~ACEILeverObject()
     stopSpringTimer();
 }
 
-bool ACEILeverObject::loadFromJSON(const QJsonObject &obj)
+bool GenericLeverObject::loadFromJSON(const QJsonObject &obj)
 {
     setName(obj.value("name").toString());
     setHasSpringReturn(obj.value("spring_return").toBool());
@@ -86,7 +61,7 @@ bool ACEILeverObject::loadFromJSON(const QJsonObject &obj)
     return true;
 }
 
-void ACEILeverObject::saveToJSON(QJsonObject &obj) const
+void GenericLeverObject::saveToJSON(QJsonObject &obj) const
 {
     obj["name"] = mName;
     obj["spring_return"] = hasSpringReturn();
@@ -96,12 +71,12 @@ void ACEILeverObject::saveToJSON(QJsonObject &obj) const
     obj["pos_max"] = mAbsoluteMax;
 }
 
-QString ACEILeverObject::name() const
+QString GenericLeverObject::name() const
 {
     return mName;
 }
 
-void ACEILeverObject::setName(const QString &newName)
+void GenericLeverObject::setName(const QString &newName)
 {
     if (mName == newName)
         return;
@@ -114,12 +89,12 @@ void ACEILeverObject::setName(const QString &newName)
     }
 }
 
-int ACEILeverObject::angle() const
+int GenericLeverObject::angle() const
 {
     return mAngle;
 }
 
-void ACEILeverObject::setAngle(int newAngle)
+void GenericLeverObject::setAngle(int newAngle)
 {
     const int MinAngleAbs= angleForPosition(mAbsoluteMin);
     const int MaxAngleAbs = angleForPosition(mAbsoluteMax);
@@ -135,7 +110,7 @@ void ACEILeverObject::setAngle(int newAngle)
     emit angleChanged(this, mAngle);
 }
 
-void ACEILeverObject::setAngleTrySnap(int newAngle)
+void GenericLeverObject::setAngleTrySnap(int newAngle)
 {
     int pos = closestPosition(newAngle, true);
     if(isPositionMiddle(pos))
@@ -152,12 +127,12 @@ void ACEILeverObject::setAngleTrySnap(int newAngle)
     setAngle(newAngle);
 }
 
-int ACEILeverObject::position() const
+int GenericLeverObject::position() const
 {
     return mPosition;
 }
 
-void ACEILeverObject::setPosition(int newPosition)
+void GenericLeverObject::setPosition(int newPosition)
 {
     if(mPosition == newPosition)
         return;
@@ -175,12 +150,12 @@ void ACEILeverObject::setPosition(int newPosition)
     }
 }
 
-bool ACEILeverObject::hasSpringReturn() const
+bool GenericLeverObject::hasSpringReturn() const
 {
     return mHasSpringReturn;
 }
 
-void ACEILeverObject::setHasSpringReturn(bool newHasSpringReturn)
+void GenericLeverObject::setHasSpringReturn(bool newHasSpringReturn)
 {
     if(mHasSpringReturn == newHasSpringReturn)
         return;
@@ -192,12 +167,12 @@ void ACEILeverObject::setHasSpringReturn(bool newHasSpringReturn)
         startSpringTimer();
 }
 
-bool ACEILeverObject::isPressed() const
+bool GenericLeverObject::isPressed() const
 {
     return mIsPressed;
 }
 
-void ACEILeverObject::setPressed(bool newIsPressed)
+void GenericLeverObject::setPressed(bool newIsPressed)
 {
     if(mIsPressed == newIsPressed)
         return;
@@ -217,7 +192,7 @@ void ACEILeverObject::setPressed(bool newIsPressed)
     }
 }
 
-int ACEILeverObject::closestPosition(int angle, bool allowMiddle) const
+int GenericLeverObject::closestPosition(int angle, bool allowMiddle) const
 {
     for(int i = mAbsoluteMin; i <= mAbsoluteMax; i++)
     {
@@ -246,7 +221,7 @@ int ACEILeverObject::closestPosition(int angle, bool allowMiddle) const
     return LeverPositionDesc::InvalidPosition;
 }
 
-void ACEILeverObject::timerEvent(QTimerEvent *e)
+void GenericLeverObject::timerEvent(QTimerEvent *e)
 {
     if(e->timerId() == springTimerId && springTimerId)
     {
@@ -272,7 +247,7 @@ void ACEILeverObject::timerEvent(QTimerEvent *e)
     QObject::timerEvent(e);
 }
 
-void ACEILeverObject::stopSpringTimer()
+void GenericLeverObject::stopSpringTimer()
 {
     if(!springTimerId)
         return;
@@ -281,7 +256,7 @@ void ACEILeverObject::stopSpringTimer()
     springTimerId = 0;
 }
 
-void ACEILeverObject::startSpringTimer()
+void GenericLeverObject::startSpringTimer()
 {
     stopSpringTimer();
 
@@ -289,17 +264,17 @@ void ACEILeverObject::startSpringTimer()
     springTimerId = startTimer(100);
 }
 
-int ACEILeverObject::absoluteMax() const
+int GenericLeverObject::absoluteMax() const
 {
     return mAbsoluteMax;
 }
 
-int ACEILeverObject::absoluteMin() const
+int GenericLeverObject::absoluteMin() const
 {
     return mAbsoluteMin;
 }
 
-void ACEILeverObject::setAbsoluteRange(int newMin, int newMax)
+void GenericLeverObject::setAbsoluteRange(int newMin, int newMax)
 {
     newMin = qMax(newMin, 0);
     newMax = qMin(newMax, mPositionDesc.maxPosition());
@@ -318,7 +293,7 @@ void ACEILeverObject::setAbsoluteRange(int newMin, int newMax)
     setAngle(mAngle);
 }
 
-void ACEILeverObject::addContactNode(LeverContactNode *c)
+void GenericLeverObject::addContactNode(LeverContactNode *c)
 {
     Q_ASSERT(!mContactNodes.contains(c));
 
@@ -326,7 +301,7 @@ void ACEILeverObject::addContactNode(LeverContactNode *c)
     c->setObjectName(mName);
 }
 
-void ACEILeverObject::removeContactNode(LeverContactNode *c)
+void GenericLeverObject::removeContactNode(LeverContactNode *c)
 {
     Q_ASSERT(mContactNodes.contains(c));
     Q_ASSERT(c->lever() == this);
@@ -334,7 +309,7 @@ void ACEILeverObject::removeContactNode(LeverContactNode *c)
     mContactNodes.removeOne(c);
 }
 
-const LeverPositionDesc& ACEILeverObject::positionDesc() const
+const LeverPositionDesc& GenericLeverObject::positionDesc() const
 {
     return mPositionDesc;
 }

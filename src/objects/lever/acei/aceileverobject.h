@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/view/leverconditionsitemdelegate.h
+ * src/objects/lever/acei/aceileverobject.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,29 +20,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef LEVERCONDITIONSITEMDELEGATE_H
-#define LEVERCONDITIONSITEMDELEGATE_H
+#ifndef ACEILEVEROBJECT_H
+#define ACEILEVEROBJECT_H
 
-#include <QStyledItemDelegate>
-#include <QStringListModel>
+#include "../model/genericleverobject.h"
 
-class LeverConditionsItemDelegate : public QStyledItemDelegate
+enum class ACEILeverPosition
+{
+    Left = 0,
+    Middle1,
+    Normal,
+    Middle2,
+    Right,
+    NPositions
+};
+
+class ACEILeverObject : public GenericLeverObject
 {
     Q_OBJECT
 public:
-    explicit LeverConditionsItemDelegate(QObject *parent = nullptr);
-
-    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &options,
-                          const QModelIndex &index) const override;
-    void setEditorData(QWidget *editor, const QModelIndex &index) const override;
-    void setModelData(QWidget *editor, QAbstractItemModel *model,
-                      const QModelIndex &index) const override;
-
-private slots:
-    //void onItemClicked();
-
-private:
-    QStringListModel conditionsTypeModel;
+    explicit ACEILeverObject(QObject *parent = nullptr);
 };
 
-#endif // LEVERCONDITIONSITEMDELEGATE_H
+#endif // ACEILEVEROBJECT_H

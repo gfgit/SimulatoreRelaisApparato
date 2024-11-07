@@ -23,7 +23,7 @@
 #include "levercontactgraphitem.h"
 
 #include "../nodes/levercontactnode.h"
-#include "../../objects/acei_lever/model/aceileverobject.h"
+#include "../../objects/lever/model/genericleverobject.h"
 
 #include <QPainter>
 

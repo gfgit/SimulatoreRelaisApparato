@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/model/aceileverobject.h
+ * src/objects/lever/model/genericleverobject.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,8 +20,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEILEVEROBJECT_H
-#define ACEILEVEROBJECT_H
+#ifndef GENERIC_LEVER_OBJECT_H
+#define GENERIC_LEVER_OBJECT_H
 
 #include <QObject>
 
@@ -31,17 +31,18 @@ class LeverContactNode;
 
 class QJsonObject;
 
-class ACEILeverObject : public QObject
+class GenericLeverObject : public QObject
 {
     Q_OBJECT
-public:
+private:
     static constexpr int MaxSnapAngleDelta = 20;
     static constexpr int SpringTimerAngleDelta = 15;
 
+protected:
+    GenericLeverObject(const LeverPositionDesc& desc, QObject *parent = nullptr);
+
 public:
-    explicit ACEILeverObject(QObject *parent = nullptr);
-    ACEILeverObject(const LeverPositionDesc& desc, QObject *parent = nullptr);
-    ~ACEILeverObject();
+    ~GenericLeverObject();
 
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
@@ -97,11 +98,11 @@ public:
     }
 
 signals:
-    void nameChanged(ACEILeverObject *self, const QString& newName);
-    void angleChanged(ACEILeverObject *self, int newAngle);
-    void positionChanged(ACEILeverObject *self, int newPosition);
+    void nameChanged(GenericLeverObject *self, const QString& newName);
+    void angleChanged(GenericLeverObject *self, int newAngle);
+    void positionChanged(GenericLeverObject *self, int newPosition);
     void pressedChanged(bool pressed);
-    void changed(ACEILeverObject *self);
+    void changed(GenericLeverObject *self);
 
 private:
     void timerEvent(QTimerEvent *e) override;
@@ -132,4 +133,4 @@ private:
     QVector<LeverContactNode *> mContactNodes;
 };
 
-#endif // ACEILEVEROBJECT_H
+#endif // GENERIC_LEVER_OBJECT_H

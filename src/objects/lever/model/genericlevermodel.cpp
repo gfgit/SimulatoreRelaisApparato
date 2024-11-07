@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/model/aceilevermodel.cpp
+ * src/objects/lever/model/genericlevermodel.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,9 +20,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "aceilevermodel.h"
+#include "genericlevermodel.h"
 
-#include "aceileverobject.h"
+#include "genericleverobject.h"
+
+// TODO: factory for different lever types
+#include "../acei/aceileverobject.h"
 
 #include "../../../views/modemanager.h"
 
@@ -31,13 +34,13 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-ACEILeverModel::ACEILeverModel(ModeManager *mgr, QObject *parent)
+GenericLeverModel::GenericLeverModel(ModeManager *mgr, QObject *parent)
     : QAbstractListModel(parent)
     , mModeMgr(mgr)
 {
 }
 
-QVariant ACEILeverModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant GenericLeverModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(orientation == Qt::Horizontal && section == 0 && role == Qt::DisplayRole)
     {
@@ -47,12 +50,12 @@ QVariant ACEILeverModel::headerData(int section, Qt::Orientation orientation, in
     return QAbstractListModel::headerData(section, orientation, role);
 }
 
-int ACEILeverModel::rowCount(const QModelIndex &p) const
+int GenericLeverModel::rowCount(const QModelIndex &p) const
 {
     return p.isValid() ? 0 : mLevers.size();
 }
 
-QVariant ACEILeverModel::data(const QModelIndex &idx, int role) const
+QVariant GenericLeverModel::data(const QModelIndex &idx, int role) const
 {
     if (!idx.isValid() || idx.row() >= mLevers.size())
         return QVariant();
@@ -67,14 +70,14 @@ QVariant ACEILeverModel::data(const QModelIndex &idx, int role) const
     //     QColor color = Qt::black;
     //     switch (mLevers.at(idx.row())->state())
     //     {
-    //     case ACEILeverObject::State::Up:
+    //     case GenericLeverObject::State::Up:
     //         color = Qt::red;
     //         break;
-    //     case ACEILeverObject::State::GoingUp:
-    //     case ACEILeverObject::State::GoingDown:
+    //     case GenericLeverObject::State::GoingUp:
+    //     case GenericLeverObject::State::GoingDown:
     //         color.setRgb(120, 210, 255); // Light blue
     //         break;
-    //     case ACEILeverObject::State::Down:
+    //     case GenericLeverObject::State::Down:
     //     default:
     //         break;
     //     }
@@ -89,7 +92,7 @@ QVariant ACEILeverModel::data(const QModelIndex &idx, int role) const
     return QVariant();
 }
 
-bool ACEILeverModel::setData(const QModelIndex &idx, const QVariant &value, int role)
+bool GenericLeverModel::setData(const QModelIndex &idx, const QVariant &value, int role)
 {
     if(mModeMgr->mode() != FileMode::Editing)
         return false;
@@ -111,7 +114,7 @@ bool ACEILeverModel::setData(const QModelIndex &idx, const QVariant &value, int 
     return true;
 }
 
-Qt::ItemFlags ACEILeverModel::flags(const QModelIndex &idx) const
+Qt::ItemFlags GenericLeverModel::flags(const QModelIndex &idx) const
 {
     Qt::ItemFlags f;
 
@@ -127,7 +130,7 @@ Qt::ItemFlags ACEILeverModel::flags(const QModelIndex &idx) const
     return f;
 }
 
-void ACEILeverModel::addLever(ACEILeverObject *r)
+void GenericLeverModel::addLever(GenericLeverObject *r)
 {
     if(mModeMgr->mode() != FileMode::Editing)
         return;
@@ -135,9 +138,9 @@ void ACEILeverModel::addLever(ACEILeverObject *r)
     int row = mLevers.size();
     beginInsertRows(QModelIndex(), row, row);
 
-    connect(r, &QObject::destroyed, this, &ACEILeverModel::onLeverDestroyed);
-    connect(r, &ACEILeverObject::nameChanged, this, &ACEILeverModel::onLeverChanged);
-    connect(r, &ACEILeverObject::positionChanged, this, &ACEILeverModel::onLeverStateChanged);
+    connect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
+    connect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+    connect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
     mLevers.append(r);
 
     endInsertRows();
@@ -145,7 +148,7 @@ void ACEILeverModel::addLever(ACEILeverObject *r)
     onLeverEdited();
 }
 
-void ACEILeverModel::removeLever(ACEILeverObject *r)
+void GenericLeverModel::removeLever(GenericLeverObject *r)
 {
     if(mModeMgr->mode() != FileMode::Editing)
         return;
@@ -156,9 +159,9 @@ void ACEILeverModel::removeLever(ACEILeverObject *r)
 
     beginRemoveRows(QModelIndex(), row, row);
 
-    disconnect(r, &QObject::destroyed, this, &ACEILeverModel::onLeverDestroyed);
-    disconnect(r, &ACEILeverObject::nameChanged, this, &ACEILeverModel::onLeverChanged);
-    disconnect(r, &ACEILeverObject::positionChanged, this, &ACEILeverModel::onLeverStateChanged);
+    disconnect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
+    disconnect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+    disconnect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
     mLevers.removeAt(row);
 
     endRemoveRows();
@@ -166,12 +169,12 @@ void ACEILeverModel::removeLever(ACEILeverObject *r)
     onLeverEdited();
 }
 
-ACEILeverObject *ACEILeverModel::leverAt(int row) const
+GenericLeverObject *GenericLeverModel::leverAt(int row) const
 {
     return mLevers.value(row, nullptr);
 }
 
-ACEILeverObject *ACEILeverModel::getLever(const QString &name)
+GenericLeverObject *GenericLeverModel::getLever(const QString &name)
 {
     for(int i = 0; i < mLevers.size(); i++)
     {
@@ -181,15 +184,15 @@ ACEILeverObject *ACEILeverModel::getLever(const QString &name)
     return nullptr;
 }
 
-void ACEILeverModel::clear()
+void GenericLeverModel::clear()
 {
     beginResetModel();
 
-    for(ACEILeverObject *r : std::as_const(mLevers))
+    for(GenericLeverObject *r : std::as_const(mLevers))
     {
-        disconnect(r, &QObject::destroyed, this, &ACEILeverModel::onLeverDestroyed);
-        disconnect(r, &ACEILeverObject::nameChanged, this, &ACEILeverModel::onLeverChanged);
-        disconnect(r, &ACEILeverObject::positionChanged, this, &ACEILeverModel::onLeverStateChanged);
+        disconnect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
+        disconnect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+        disconnect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
         delete r;
     }
     mLevers.clear();
@@ -197,19 +200,19 @@ void ACEILeverModel::clear()
     endResetModel();
 }
 
-bool ACEILeverModel::loadFromJSON(const QJsonObject &obj)
+bool GenericLeverModel::loadFromJSON(const QJsonObject &obj)
 {
     beginResetModel();
 
     const QJsonArray arr = obj.value("relais").toArray();
     for(const QJsonValue& v : arr)
     {
-        ACEILeverObject *r = new ACEILeverObject(this);
+        GenericLeverObject *r = new ACEILeverObject(this);
         r->loadFromJSON(v.toObject());
 
-        connect(r, &QObject::destroyed, this, &ACEILeverModel::onLeverDestroyed);
-        connect(r, &ACEILeverObject::nameChanged, this, &ACEILeverModel::onLeverChanged);
-        connect(r, &ACEILeverObject::positionChanged, this, &ACEILeverModel::onLeverStateChanged);
+        connect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
+        connect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+        connect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
         mLevers.append(r);
     }
 
@@ -218,11 +221,11 @@ bool ACEILeverModel::loadFromJSON(const QJsonObject &obj)
     return true;
 }
 
-void ACEILeverModel::saveToJSON(QJsonObject &obj) const
+void GenericLeverModel::saveToJSON(QJsonObject &obj) const
 {
     QJsonArray arr;
 
-    for(ACEILeverObject *r : std::as_const(mLevers))
+    for(GenericLeverObject *r : std::as_const(mLevers))
     {
         QJsonObject relay;
         r->saveToJSON(relay);
@@ -232,31 +235,31 @@ void ACEILeverModel::saveToJSON(QJsonObject &obj) const
     obj["relais"] = arr;
 }
 
-bool ACEILeverModel::isNameAvailable(const QString &name) const
+bool GenericLeverModel::isNameAvailable(const QString &name) const
 {
     return std::none_of(mLevers.cbegin(),
                         mLevers.cend(),
-                        [name](ACEILeverObject *r) -> bool
+                        [name](GenericLeverObject *r) -> bool
     {
         return r->name() == name;
     });
 }
 
-void ACEILeverModel::onLeverChanged(ACEILeverObject *r)
+void GenericLeverModel::onLeverChanged(GenericLeverObject *r)
 {
     updateLeverRow(r);
     onLeverEdited();
 }
 
-void ACEILeverModel::onLeverStateChanged(ACEILeverObject *r)
+void GenericLeverModel::onLeverStateChanged(GenericLeverObject *r)
 {
     // No changes to save in this case
     updateLeverRow(r);
 }
 
-void ACEILeverModel::onLeverDestroyed(QObject *obj)
+void GenericLeverModel::onLeverDestroyed(QObject *obj)
 {
-    ACEILeverObject *r = static_cast<ACEILeverObject *>(obj);
+    GenericLeverObject *r = static_cast<GenericLeverObject *>(obj);
     int row = mLevers.indexOf(r);
     Q_ASSERT(row >= 0);
 
@@ -267,7 +270,7 @@ void ACEILeverModel::onLeverDestroyed(QObject *obj)
     onLeverEdited();
 }
 
-void ACEILeverModel::updateLeverRow(ACEILeverObject *r)
+void GenericLeverModel::updateLeverRow(GenericLeverObject *r)
 {
     int row = mLevers.indexOf(r);
     Q_ASSERT(row >= 0);
@@ -276,7 +279,7 @@ void ACEILeverModel::updateLeverRow(ACEILeverObject *r)
     emit dataChanged(idx, idx);
 }
 
-void ACEILeverModel::onLeverEdited()
+void GenericLeverModel::onLeverEdited()
 {
     if(mHasUnsavedChanges)
         return;
@@ -286,7 +289,7 @@ void ACEILeverModel::onLeverEdited()
     emit modelEdited(true);
 }
 
-void ACEILeverModel::resetHasUnsavedChanges()
+void GenericLeverModel::resetHasUnsavedChanges()
 {
     if(!mHasUnsavedChanges)
         return;

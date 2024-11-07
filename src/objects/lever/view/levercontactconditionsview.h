@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/view/aceileverlistwidget.h
+ * src/objects/lever/view/levercontactconditionsview.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,44 +20,36 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEI_LEVER_LISTWIDGET_H
-#define ACEI_LEVER_LISTWIDGET_H
+#ifndef LEVERCONTACTCONDITIONSVIEW_H
+#define LEVERCONTACTCONDITIONSVIEW_H
 
 #include <QWidget>
 
-#include "../../../enums/filemodes.h"
-
-class ACEILeverModel;
-class QSortFilterProxyModel;
+class LeverContactConditionsModel;
 
 class QPushButton;
 class QTableView;
 
-class ViewManager;
-
-class ACEILeverListWidget : public QWidget
+class LeverContactConditionsView : public QWidget
 {
     Q_OBJECT
 public:
-    ACEILeverListWidget(ViewManager *mgr, ACEILeverModel *model, QWidget *parent = nullptr);
+    explicit LeverContactConditionsView(QWidget *parent = nullptr);
 
-    ACEILeverModel *model() const;
+    LeverContactConditionsModel *model() const;
+    void setModel(LeverContactConditionsModel *newModel);
 
 private slots:
-    void onFileModeChanged(FileMode mode);
+    void addCondition();
+    void removeCurrentCondition();
 
-    void addLever();
-    void removeCurrentLever();
 private:
     QTableView *mView;
 
     QPushButton *addBut;
     QPushButton *remBut;
 
-    ViewManager *mViewMgr;
-    ACEILeverModel *mModel;
-
-    QSortFilterProxyModel *mProxyModel;
+    LeverContactConditionsModel *mModel = nullptr;
 };
 
-#endif // ACEI_LEVER_LISTWIDGET_H
+#endif // LEVERCONTACTCONDITIONSVIEW_H

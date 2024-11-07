@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/view/aceileverlistwidget.cpp
+ * src/objects/lever/view/genericleverlistwidget.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,10 +20,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "aceileverlistwidget.h"
+#include "genericleverlistwidget.h"
 
-#include "../model/aceilevermodel.h"
-#include "../model/aceileverobject.h"
+#include "../model/genericlevermodel.h"
+#include "../model/genericleverobject.h"
+
+// TODO: factory for different lever types
+#include "../acei/aceileverobject.h"
 
 #include "../../../views/viewmanager.h"
 #include "../../../views/modemanager.h"
@@ -37,7 +40,7 @@
 
 #include <QSortFilterProxyModel>
 
-ACEILeverListWidget::ACEILeverListWidget(ViewManager *mgr, ACEILeverModel *model, QWidget *parent)
+GenericLeverListWidget::GenericLeverListWidget(ViewManager *mgr, GenericLeverModel *model, QWidget *parent)
     : QWidget{parent}
     , mViewMgr(mgr)
     , mModel(model)
@@ -64,22 +67,22 @@ ACEILeverListWidget::ACEILeverListWidget(ViewManager *mgr, ACEILeverModel *model
     mView->setModel(mProxyModel);
 
     connect(mModel->modeMgr(), &ModeManager::modeChanged,
-            this, &ACEILeverListWidget::onFileModeChanged);
+            this, &GenericLeverListWidget::onFileModeChanged);
 
     connect(addBut, &QPushButton::clicked,
-            this, &ACEILeverListWidget::addLever);
+            this, &GenericLeverListWidget::addLever);
     connect(remBut, &QPushButton::clicked,
-            this, &ACEILeverListWidget::removeCurrentLever);
+            this, &GenericLeverListWidget::removeCurrentLever);
 
     onFileModeChanged(mModel->modeMgr()->mode());
 }
 
-ACEILeverModel *ACEILeverListWidget::model() const
+GenericLeverModel *GenericLeverListWidget::model() const
 {
     return mModel;
 }
 
-void ACEILeverListWidget::onFileModeChanged(FileMode mode)
+void GenericLeverListWidget::onFileModeChanged(FileMode mode)
 {
     const bool canEdit = mode == FileMode::Editing;
     addBut->setEnabled(canEdit);
@@ -88,7 +91,7 @@ void ACEILeverListWidget::onFileModeChanged(FileMode mode)
     remBut->setVisible(canEdit);
 }
 
-void ACEILeverListWidget::addLever()
+void GenericLeverListWidget::addLever()
 {
     if(mModel->modeMgr()->mode() != FileMode::Editing)
         return;
@@ -115,12 +118,13 @@ void ACEILeverListWidget::addLever()
         first = false;
     }
 
+    // TODO: factory for different lever types
     ACEILeverObject *r = new ACEILeverObject(mModel);
     r->setName(name);
     mModel->addLever(r);
 }
 
-void ACEILeverListWidget::removeCurrentLever()
+void GenericLeverListWidget::removeCurrentLever()
 {
     if(mModel->modeMgr()->mode() != FileMode::Editing)
         return;
@@ -130,7 +134,7 @@ void ACEILeverListWidget::removeCurrentLever()
     if(!idx.isValid())
         return;
 
-    ACEILeverObject *r = mModel->leverAt(idx.row());
+    GenericLeverObject *r = mModel->leverAt(idx.row());
     if(!r)
         return;
 

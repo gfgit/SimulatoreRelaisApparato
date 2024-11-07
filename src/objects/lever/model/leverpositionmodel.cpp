@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/model/leverpositionmodel.cpp
+ * src/objects/lever/model/leverpositionmodel.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

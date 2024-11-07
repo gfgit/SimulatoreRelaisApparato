@@ -26,10 +26,8 @@
 #include "abstractcircuitnode.h"
 
 #include "../../enums/genericleverposition.h"
-#include "../../enums/aceileverposition.h"
 
-// TODO: make common generic lever interface
-class ACEILeverObject;
+class GenericLeverObject;
 
 class LeverContactNode : public AbstractCircuitNode
 {
@@ -53,8 +51,8 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("lever_contact");
     QString nodeType() const override;
 
-    ACEILeverObject *lever() const;
-    void setLever(ACEILeverObject *newLever);
+    GenericLeverObject *lever() const;
+    void setLever(GenericLeverObject *newLever);
 
     State state() const;
     void setState(State newState);
@@ -73,7 +71,7 @@ public:
 
 signals:
     void stateChanged();
-    void leverChanged(ACEILeverObject *l);
+    void leverChanged(GenericLeverObject *l);
 
 private slots:
     void onLeverPositionChanged();
@@ -82,7 +80,7 @@ private:
     bool isPositionOn(int pos) const;
 
 private:
-    ACEILeverObject *mLever = nullptr;
+    GenericLeverObject *mLever = nullptr;
 
     LeverPositionConditionSet mConditionSet;
 

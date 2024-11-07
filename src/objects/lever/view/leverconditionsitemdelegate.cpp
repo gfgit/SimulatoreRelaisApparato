@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/view/leverconditionsitemdelegate.cpp
+ * src/objects/lever/view/leverconditionsitemdelegate.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

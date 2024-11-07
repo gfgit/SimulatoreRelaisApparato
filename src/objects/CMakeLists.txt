@@ -1,6 +1,6 @@
 # src/objects
 
-add_subdirectory(acei_lever)
+add_subdirectory(lever)
 add_subdirectory(relais)
 
 set(PROJECT_SOURCES

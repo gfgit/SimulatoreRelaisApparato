@@ -35,7 +35,7 @@
 
 
 #include "../objects/relais/view/relaislistwidget.h"
-#include "../objects/acei_lever/view/aceileverlistwidget.h"
+#include "../objects/lever/view/genericleverlistwidget.h"
 
 #include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
 #include <kddockwidgets-qt6/kddockwidgets/core/DockWidget.h>
@@ -291,8 +291,8 @@ void ViewManager::showLeverListView()
         return;
     }
 
-    ACEILeverModel *leversList = mainWin()->modeMgr()->leversModel();
-    ACEILeverListWidget *leversListView = new ACEILeverListWidget(this, leversList);
+    GenericLeverModel *leversList = mainWin()->modeMgr()->leversModel();
+    GenericLeverListWidget *leversListView = new GenericLeverListWidget(this, leversList);
 
     mLeverListViewDock = new DockWidget(QLatin1String("levers_list"),
                                           KDDockWidgets::DockWidgetOption_DeleteOnClose);

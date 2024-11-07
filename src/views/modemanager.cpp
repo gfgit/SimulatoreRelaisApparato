@@ -28,7 +28,7 @@
 #include "../circuits/view/circuitlistmodel.h"
 
 #include "../objects/relais/model/relaismodel.h"
-#include "../objects/acei_lever/model/aceilevermodel.h"
+#include "../objects/lever/model/genericlevermodel.h"
 
 #include <QJsonObject>
 
@@ -36,7 +36,7 @@ ModeManager::ModeManager(QObject *parent)
     : QObject{parent}
 {
     mRelaisModel = new RelaisModel(this, this);
-    mLeversModel = new ACEILeverModel(this, this);
+    mLeversModel = new GenericLeverModel(this, this);
 
     mCircuitFactory = new NodeEditFactory(this);
     StandardNodeTypes::registerTypes(mCircuitFactory);
@@ -149,7 +149,7 @@ RelaisModel *ModeManager::relaisModel() const
     return mRelaisModel;
 }
 
-ACEILeverModel *ModeManager::leversModel() const
+GenericLeverModel *ModeManager::leversModel() const
 {
     return mLeversModel;
 }

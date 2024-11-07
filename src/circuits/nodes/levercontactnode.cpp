@@ -26,8 +26,8 @@
 
 #include "../../views/modemanager.h"
 
-#include "../../objects/acei_lever/model/aceileverobject.h"
-#include "../../objects/acei_lever/model/aceilevermodel.h"
+#include "../../objects/lever/model/genericleverobject.h"
+#include "../../objects/lever/model/genericlevermodel.h"
 
 #include <QJsonObject>
 #include "../../utils/genericleverutils.h"
@@ -39,22 +39,6 @@ LeverContactNode::LeverContactNode(ModeManager *mgr, QObject *parent)
     mContacts.append(NodeContact("11", "12")); // Common
     mContacts.append(NodeContact("21", "22")); // Up
     mContacts.append(NodeContact("31", "32")); // Down
-
-    // Some default conditions
-    LeverPositionConditionSet condSet;
-    LeverPositionCondition item;
-
-    item.type = LeverPositionConditionType::Exact;
-    item.positionFrom = int(ACEILeverPosition::Left);
-    item.positionFrom = 0;
-    condSet.append(item);
-
-    item.type = LeverPositionConditionType::FromTo;
-    item.positionFrom = int(ACEILeverPosition::Normal);
-    item.positionTo = int(ACEILeverPosition::Right);
-    condSet.append(item);
-
-    setConditionSet(condSet);
 }
 
 LeverContactNode::~LeverContactNode()
@@ -150,19 +134,19 @@ QString LeverContactNode::nodeType() const
     return NodeType;
 }
 
-ACEILeverObject *LeverContactNode::lever() const
+GenericLeverObject *LeverContactNode::lever() const
 {
     return mLever;
 }
 
-void LeverContactNode::setLever(ACEILeverObject *newLever)
+void LeverContactNode::setLever(GenericLeverObject *newLever)
 {
     if (mLever == newLever)
         return;
 
     if(mLever)
     {
-        disconnect(mLever, &ACEILeverObject::positionChanged,
+        disconnect(mLever, &GenericLeverObject::positionChanged,
                    this, &LeverContactNode::onLeverPositionChanged);
 
         mLever->removeContactNode(this);
@@ -172,7 +156,7 @@ void LeverContactNode::setLever(ACEILeverObject *newLever)
 
     if(mLever)
     {
-        connect(mLever, &ACEILeverObject::positionChanged,
+        connect(mLever, &GenericLeverObject::positionChanged,
                 this, &LeverContactNode::onLeverPositionChanged);
 
         mLever->addContactNode(this);

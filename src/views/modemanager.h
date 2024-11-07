@@ -31,7 +31,7 @@ class NodeEditFactory;
 class CircuitListModel;
 
 class RelaisModel;
-class ACEILeverModel;
+class GenericLeverModel;
 
 class QJsonObject;
 
@@ -69,7 +69,7 @@ public:
 
     RelaisModel *relaisModel() const;
 
-    ACEILeverModel *leversModel() const;
+    GenericLeverModel *leversModel() const;
 
 signals:
     void modeChanged(FileMode newMode, FileMode oldMode);
@@ -82,7 +82,7 @@ private:
     CircuitListModel *mCircuitList;
 
     RelaisModel *mRelaisModel;
-    ACEILeverModel *mLeversModel;
+    GenericLeverModel *mLeversModel;
 
     bool mFileWasEdited = false;
 };

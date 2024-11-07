@@ -26,10 +26,10 @@
 #include "../../nodes/onoffswitchnode.h"
 #include <QJsonObject>
 
-#include "../../../objects/acei_lever/model/aceileverobject.h"
-#include "../../../objects/acei_lever/model/aceilevermodel.h"
+#include "../../../objects/lever/model/genericleverobject.h"
+#include "../../../objects/lever/model/genericlevermodel.h"
 
-#include "../../../enums/aceileverposition.h"
+#include "../../../objects/lever/acei/aceileverobject.h"
 
 #include "../../../views/modemanager.h"
 
@@ -178,24 +178,24 @@ void ACEILeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     AbstractNodeGraphItem::mouseReleaseEvent(ev);
 }
 
-ACEILeverObject *ACEILeverGraphItem::lever() const
+GenericLeverObject *ACEILeverGraphItem::lever() const
 {
     return mLever;
 }
 
-void ACEILeverGraphItem::setLever(ACEILeverObject *newLever)
+void ACEILeverGraphItem::setLever(GenericLeverObject *newLever)
 {
     if (mLever == newLever)
         return;
 
     if(mLever)
     {
-        disconnect(mLever, &ACEILeverObject::destroyed,
+        disconnect(mLever, &GenericLeverObject::destroyed,
                    this, &ACEILeverGraphItem::onLeverDestroyed);
 
-        disconnect(mLever, &ACEILeverObject::angleChanged,
+        disconnect(mLever, &GenericLeverObject::angleChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
-        disconnect(mLever, &ACEILeverObject::pressedChanged,
+        disconnect(mLever, &GenericLeverObject::pressedChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
     }
 
@@ -203,12 +203,12 @@ void ACEILeverGraphItem::setLever(ACEILeverObject *newLever)
 
     if(mLever)
     {
-        connect(mLever, &ACEILeverObject::destroyed,
+        connect(mLever, &GenericLeverObject::destroyed,
                 this, &ACEILeverGraphItem::onLeverDestroyed);
 
-        connect(mLever, &ACEILeverObject::angleChanged,
+        connect(mLever, &GenericLeverObject::angleChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
-        connect(mLever, &ACEILeverObject::pressedChanged,
+        connect(mLever, &GenericLeverObject::pressedChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
     }
 

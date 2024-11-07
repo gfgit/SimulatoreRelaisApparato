@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/view/aceileverlineedit.cpp
+ * src/objects/lever/view/genericleverlineedit.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,32 +20,32 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "aceileverlineedit.h"
+#include "genericleverlineedit.h"
 
 #include <QCompleter>
 
 
-#include "../model/aceileverobject.h"
-#include "../model/aceilevermodel.h"
+#include "../model/genericleverobject.h"
+#include "../model/genericlevermodel.h"
 
-ACEILeverLineEdit::ACEILeverLineEdit(ACEILeverModel *m, QWidget *parent)
+GenericLeverLineEdit::GenericLeverLineEdit(GenericLeverModel *m, QWidget *parent)
     : QLineEdit(parent)
-    , mACEILeverModel(m)
+    , mLeverModel(m)
 {
     QCompleter *c = new QCompleter;
     c->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
     c->setCaseSensitivity(Qt::CaseInsensitive);
-    c->setModel(mACEILeverModel);
+    c->setModel(mLeverModel);
     setCompleter(c);
 
     connect(c, qOverload<const QModelIndex&>(&QCompleter::activated),
             this, [this](const QModelIndex& idx)
     {
-        setLever(mACEILeverModel->leverAt(idx.row()));
+        setLever(mLeverModel->leverAt(idx.row()));
     });
 }
 
-void ACEILeverLineEdit::setLever(ACEILeverObject *newLever)
+void GenericLeverLineEdit::setLever(GenericLeverObject *newLever)
 {
     if(mLever == newLever)
         return;

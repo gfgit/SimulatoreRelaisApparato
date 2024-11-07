@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/model/levercontactconditionsmodel.h
+ * src/objects/lever/model/levercontactconditionsmodel.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

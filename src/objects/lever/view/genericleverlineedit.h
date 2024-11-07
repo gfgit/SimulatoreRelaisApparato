@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/view/levercontactconditionsview.h
+ * src/objects/lever/view/genericleverlineedit.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,36 +20,35 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef LEVERCONTACTCONDITIONSVIEW_H
-#define LEVERCONTACTCONDITIONSVIEW_H
+#ifndef GENERIC_LEVER_LINEEDIT_H
+#define GENERIC_LEVER_LINEEDIT_H
 
-#include <QWidget>
+#include <QLineEdit>
 
-class LeverContactConditionsModel;
+class GenericLeverModel;
+class GenericLeverObject;
 
-class QPushButton;
-class QTableView;
-
-class LeverContactConditionsView : public QWidget
+class GenericLeverLineEdit : public QLineEdit
 {
     Q_OBJECT
 public:
-    explicit LeverContactConditionsView(QWidget *parent = nullptr);
+    GenericLeverLineEdit(GenericLeverModel *m, QWidget *parent = nullptr);
 
-    LeverContactConditionsModel *model() const;
-    void setModel(LeverContactConditionsModel *newModel);
+    GenericLeverObject *relais() const
+    {
+        return mLever;
+    }
 
-private slots:
-    void addCondition();
-    void removeCurrentCondition();
+public slots:
+    void setLever(GenericLeverObject *newLever);
+
+signals:
+    void leverChanged(GenericLeverObject *r);
 
 private:
-    QTableView *mView;
-
-    QPushButton *addBut;
-    QPushButton *remBut;
-
-    LeverContactConditionsModel *mModel = nullptr;
+    GenericLeverModel *mLeverModel = nullptr;
+    GenericLeverObject *mLever = nullptr;
 };
 
-#endif // LEVERCONTACTCONDITIONSVIEW_H
+
+#endif // GENERIC_LEVER_LINEEDIT_H

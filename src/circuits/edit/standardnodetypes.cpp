@@ -64,12 +64,12 @@
 #include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/relais/view/relaylineedit.h"
 
-#include "../../objects/acei_lever/model/aceilevermodel.h"
-#include "../../objects/acei_lever/model/aceileverobject.h"
-#include "../../objects/acei_lever/model/levercontactconditionsmodel.h"
+#include "../../objects/lever/model/genericlevermodel.h"
+#include "../../objects/lever/model/genericleverobject.h"
+#include "../../objects/lever/model/levercontactconditionsmodel.h"
 
-#include "../../objects/acei_lever/view/aceileverlineedit.h"
-#include "../../objects/acei_lever/view/levercontactconditionsview.h"
+#include "../../objects/lever/view/genericleverlineedit.h"
+#include "../../objects/lever/view/levercontactconditionsview.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -340,10 +340,10 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            ACEILeverLineEdit *leverEdit = new ACEILeverLineEdit(mgr->leversModel());
+            GenericLeverLineEdit *leverEdit = new GenericLeverLineEdit(mgr->leversModel());
             QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
-                             leverEdit, &ACEILeverLineEdit::setLever);
-            QObject::connect(leverEdit, &ACEILeverLineEdit::leverChanged,
+                             leverEdit, &GenericLeverLineEdit::setLever);
+            QObject::connect(leverEdit, &GenericLeverLineEdit::leverChanged,
                              specialItem, &ACEILeverGraphItem::setLever);
             leverEdit->setLever(specialItem->lever());
             lay->addRow(tr("Lever:"), leverEdit);
@@ -368,8 +368,8 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            ACEILeverLineEdit *leverEdit = new ACEILeverLineEdit(mgr->leversModel());
-            QObject::connect(leverEdit, &ACEILeverLineEdit::leverChanged,
+            GenericLeverLineEdit *leverEdit = new GenericLeverLineEdit(mgr->leversModel());
+            QObject::connect(leverEdit, &GenericLeverLineEdit::leverChanged,
                              node, &LeverContactNode::setLever);
             leverEdit->setLever(node->lever());
             lay->addRow(tr("Lever:"), leverEdit);

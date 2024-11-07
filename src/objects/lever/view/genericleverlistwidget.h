@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/view/aceileverlineedit.h
+ * src/objects/lever/view/genericleverlistwidget.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,35 +20,44 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEI_LEVER_LINEEDIT_H
-#define ACEI_LEVER_LINEEDIT_H
+#ifndef GENERIC_LEVER_LISTWIDGET_H
+#define GENERIC_LEVER_LISTWIDGET_H
 
-#include <QLineEdit>
+#include <QWidget>
 
-class ACEILeverModel;
-class ACEILeverObject;
+#include "../../../enums/filemodes.h"
 
-class ACEILeverLineEdit : public QLineEdit
+class GenericLeverModel;
+class QSortFilterProxyModel;
+
+class QPushButton;
+class QTableView;
+
+class ViewManager;
+
+class GenericLeverListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    ACEILeverLineEdit(ACEILeverModel *m, QWidget *parent = nullptr);
+    GenericLeverListWidget(ViewManager *mgr, GenericLeverModel *model, QWidget *parent = nullptr);
 
-    ACEILeverObject *relais() const
-    {
-        return mLever;
-    }
+    GenericLeverModel *model() const;
 
-public slots:
-    void setLever(ACEILeverObject *newLever);
+private slots:
+    void onFileModeChanged(FileMode mode);
 
-signals:
-    void leverChanged(ACEILeverObject *r);
-
+    void addLever();
+    void removeCurrentLever();
 private:
-    ACEILeverModel *mACEILeverModel = nullptr;
-    ACEILeverObject *mLever = nullptr;
+    QTableView *mView;
+
+    QPushButton *addBut;
+    QPushButton *remBut;
+
+    ViewManager *mViewMgr;
+    GenericLeverModel *mModel;
+
+    QSortFilterProxyModel *mProxyModel;
 };
 
-
-#endif // ACEI_LEVER_LINEEDIT_H
+#endif // GENERIC_LEVER_LISTWIDGET_H

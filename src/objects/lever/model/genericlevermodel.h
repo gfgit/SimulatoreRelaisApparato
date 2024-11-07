@@ -1,5 +1,5 @@
 /**
- * src/objects/acei_lever/model/aceilevermodel.h
+ * src/objects/lever/model/genericlevermodel.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -27,18 +27,18 @@
 
 #include <QVector>
 
-class ACEILeverObject;
+class GenericLeverObject;
 
 class ModeManager;
 
 class QJsonObject;
 
-class ACEILeverModel : public QAbstractListModel
+class GenericLeverModel : public QAbstractListModel
 {
     Q_OBJECT
 
 public:
-    explicit ACEILeverModel(ModeManager *mgr, QObject *parent = nullptr);
+    explicit GenericLeverModel(ModeManager *mgr, QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -51,12 +51,12 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &idx) const override;
 
-    void addLever(ACEILeverObject *r);
-    void removeLever(ACEILeverObject *r);
+    void addLever(GenericLeverObject *r);
+    void removeLever(GenericLeverObject *r);
 
-    ACEILeverObject *leverAt(int row) const;
+    GenericLeverObject *leverAt(int row) const;
 
-    ACEILeverObject *getLever(const QString& name);
+    GenericLeverObject *getLever(const QString& name);
 
     void clear();
 
@@ -81,16 +81,16 @@ signals:
     void modelEdited(bool val);
 
 private slots:
-    void onLeverChanged(ACEILeverObject *r);
-    void onLeverStateChanged(ACEILeverObject *r);
+    void onLeverChanged(GenericLeverObject *r);
+    void onLeverStateChanged(GenericLeverObject *r);
     void onLeverDestroyed(QObject *obj);
 
 private:
-    void updateLeverRow(ACEILeverObject *r);
+    void updateLeverRow(GenericLeverObject *r);
     void onLeverEdited();
 
 private:
-    QVector<ACEILeverObject *> mLevers;
+    QVector<GenericLeverObject *> mLevers;
 
     ModeManager *mModeMgr;
 
