@@ -57,7 +57,13 @@ public:
 
     struct Item
     {
+        // Lever position angle
         int angle = MiddleAngle;
+
+        // Lever contact preview angle
+        int contactDrawingAngle = MiddleAngle;
+
+        // Position name
         const char *nameId = nullptr;
 
         inline bool isMiddle() const
@@ -104,6 +110,13 @@ public:
         if(idx < 0 || idx >= mSize)
             return MiddleAngle;
         return mItems[idx].angle;
+    }
+
+    inline int previewAngleFor(int idx) const
+    {
+        if(idx < 0 || idx >= mSize)
+            return MiddleAngle;
+        return mItems[idx].contactDrawingAngle;
     }
 
     inline int isMiddle(int idx) const

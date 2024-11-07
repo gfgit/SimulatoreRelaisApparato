@@ -35,11 +35,11 @@ static QString ACEILeverPosition_translate(const char *nameId)
 
 static const LeverPositionDesc::Item aceiLeverItems[] =
 {
-    {-90, QT_TRANSLATE_NOOP("ACEILeverObject", "Left")},
+    {-90, -90, QT_TRANSLATE_NOOP("ACEILeverObject", "Left")},
     {}, // Middle1
-    {0,   QT_TRANSLATE_NOOP("ACEILeverObject", "Normal")},
+    {  0,   0, QT_TRANSLATE_NOOP("ACEILeverObject", "Normal")},
     {}, // Middle2
-    {+90, QT_TRANSLATE_NOOP("ACEILeverObject", "Right")}
+    {+90, +90, QT_TRANSLATE_NOOP("ACEILeverObject", "Right")}
 };
 
 static const LeverPositionDesc aceiLeverDesc(aceiLeverItems,
