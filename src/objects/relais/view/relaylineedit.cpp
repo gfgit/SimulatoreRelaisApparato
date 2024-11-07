@@ -33,7 +33,8 @@ RelayLineEdit::RelayLineEdit(RelaisModel *m, QWidget *parent)
     , mRelaisModel(m)
 {
     QCompleter *c = new QCompleter;
-    c->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+    c->setCompletionMode(QCompleter::PopupCompletion);
+    c->setFilterMode(Qt::MatchContains);
     c->setCaseSensitivity(Qt::CaseInsensitive);
     c->setModel(mRelaisModel);
     setCompleter(c);
