@@ -86,6 +86,14 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->setBrush(color);
     painter->setPen(Qt::NoPen);
     painter->drawEllipse(circle);
+
+    // Draw Lever name
+    painter->setBrush(Qt::NoBrush);
+    pen.setColor(Qt::black);
+    painter->setPen(pen);
+    drawName(painter,
+             mLever ? mLever->name() : tr("NULL"),
+             TileRotate::Deg90); // Put at bottom
 }
 
 void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
@@ -197,6 +205,8 @@ void ACEILeverGraphItem::setLever(GenericLeverObject *newLever)
                    this, &ACEILeverGraphItem::triggerUpdate);
         disconnect(mLever, &GenericLeverObject::pressedChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
+        disconnect(mLever, &GenericLeverObject::objectNameChanged,
+                   this, &ACEILeverGraphItem::triggerUpdate);
     }
 
     mLever = newLever;
@@ -209,6 +219,8 @@ void ACEILeverGraphItem::setLever(GenericLeverObject *newLever)
         connect(mLever, &GenericLeverObject::angleChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
         connect(mLever, &GenericLeverObject::pressedChanged,
+                this, &ACEILeverGraphItem::triggerUpdate);
+        connect(mLever, &GenericLeverObject::objectNameChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
     }
 
