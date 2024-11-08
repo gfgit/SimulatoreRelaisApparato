@@ -91,7 +91,7 @@ private:
     QString mName;
     State mState = State::Down;
     State mInternalState = State::Down;
-    bool mNormallyUp = false;
+    bool mNormallyUp = true;
 
     // Steps per 250ms (Speed of 0.25 means it goes up in 1 sec)
     double mUpSpeed = 0.18;
