@@ -51,12 +51,14 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverModel *m,
     // Spring return
     mHasSpringReturn = new QCheckBox(tr("Spring return to normal"));
     mHasSpringReturn->setChecked(mLever->hasSpringReturn());
+    mHasSpringReturn->setToolTip(tr("When released lever will return"
+                                    " to its normal position."));
     lay->addWidget(mHasSpringReturn);
 
-    // Initial position and range
+    // Normal position and range
     mMinPosModel = new LeverPositionModel(mLever->positionDesc(), this);
     mMaxPosModel = new LeverPositionModel(mLever->positionDesc(), this);
-    mInitPosModel = new LeverPositionModel(mLever->positionDesc(), this);
+    mNormalPosModel = new LeverPositionModel(mLever->positionDesc(), this);
 
     mMinPosCombo = new QComboBox;
     mMinPosCombo->setModel(mMinPosModel);
@@ -66,9 +68,11 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverModel *m,
     mMaxPosCombo->setModel(mMaxPosModel);
     lay->addRow(tr("Maximum Position:"), mMaxPosCombo);
 
-    mInitPosCombo = new QComboBox;
-    mInitPosCombo->setModel(mInitPosModel);
-    lay->addRow(tr("Initial Position:"), mInitPosCombo);
+    mNormalPosCombo = new QComboBox;
+    mNormalPosCombo->setModel(mNormalPosModel);
+    mNormalPosCombo->setToolTip(tr("On program start,"
+                                   " lever will be in this position."));
+    lay->addRow(tr("Normal Position:"), mNormalPosCombo);
 
     connect(mNameEdit, &QLineEdit::editingFinished,
             this, &GenericLeverOptionsWidget::setLeverName);
@@ -102,11 +106,11 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverModel *m,
                                  mMaxPosModel->positionAt(idx));
     });
 
-    connect(mInitPosCombo, &QComboBox::activated,
+    connect(mNormalPosCombo, &QComboBox::activated,
             this, [this](int idx)
     {
-        // Change initial position
-        mLever->setInitialPosition(mInitPosModel->positionAt(idx));
+        // Change normal position
+        mLever->setNormalPosition(mNormalPosModel->positionAt(idx));
     });
 }
 
@@ -174,13 +178,13 @@ void GenericLeverOptionsWidget::updatePositionRanges()
         if(mMaxPosCombo->currentIndex() != maxPosIdx)
             mMaxPosCombo->setCurrentIndex(maxPosIdx);
 
-        // Initial position must be in range min/max
-        mInitPosModel->setPositionRange(minPos, maxPos);
+        // Normal position must be in range min/max
+        mNormalPosModel->setPositionRange(minPos, maxPos);
     }
 
-    const int initPosIdx = mInitPosModel->rowForPosition(mLever->initialPosition());
-    if(initPosIdx != -1 && mInitPosCombo->currentIndex() != initPosIdx)
-        mInitPosCombo->setCurrentIndex(initPosIdx);
+    const int normalPosIdx = mNormalPosModel->rowForPosition(mLever->normalPosition());
+    if(normalPosIdx != -1 && mNormalPosCombo->currentIndex() != normalPosIdx)
+        mNormalPosCombo->setCurrentIndex(normalPosIdx);
 }
 
 void GenericLeverOptionsWidget::setNameValid(bool valid)

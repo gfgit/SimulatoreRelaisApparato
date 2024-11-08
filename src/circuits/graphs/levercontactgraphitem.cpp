@@ -68,7 +68,7 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
     {
         // In static or editing mode,
         // draw contact with lever in its normal state
-        const int leverNormalPos = node()->lever()->positionDesc().normalPositionIdx;
+        const int leverNormalPos = node()->lever()->normalPosition();
 
         state = LeverContactNode::State::Up;
         if(node()->isPositionOn(leverNormalPos))

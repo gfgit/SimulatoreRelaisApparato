@@ -80,16 +80,16 @@ private:
 public:
     template<int N>
     LeverPositionDesc(const Item (&arr)[N],
-                      int normalPos_,
+                      int defaultPos_,
                       TranslateFunc f)
         : mItems(arr)
         , mSize(N)
-        , normalPositionIdx(normalPos_)
+        , defaultPositionIdx(defaultPos_)
         , mTranslateFunc(f)
     {
     }
 
-    const int normalPositionIdx = 0;
+    const int defaultPositionIdx = 0;
 
     inline QString nameFor(int idx) const
     {

@@ -59,11 +59,11 @@ private:
 
     QComboBox *mMinPosCombo = nullptr;
     QComboBox *mMaxPosCombo = nullptr;
-    QComboBox *mInitPosCombo = nullptr;
+    QComboBox *mNormalPosCombo = nullptr;
 
     LeverPositionModel *mMinPosModel = nullptr;
     LeverPositionModel *mMaxPosModel = nullptr;
-    LeverPositionModel *mInitPosModel = nullptr;
+    LeverPositionModel *mNormalPosModel = nullptr;
 
     QPalette normalEditPalette;
 

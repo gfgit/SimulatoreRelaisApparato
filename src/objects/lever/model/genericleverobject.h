@@ -70,8 +70,8 @@ public:
     int absoluteMax() const;
     void setAbsoluteRange(int newMin, int newMax);
 
-    int initialPosition() const;
-    void setInitialPosition(int newInitialPosition);
+    int normalPosition() const;
+    void setNormalPosition(int newNormalPosition);
 
 
     const LeverPositionDesc &positionDesc() const;
@@ -127,7 +127,7 @@ private:
 
     int mAngle = 0;
     int mPosition = 0;
-    int mInitialPosition = 0;
+    int mNormalPosition = 0;
 
     int springTimerId = 0;
 
