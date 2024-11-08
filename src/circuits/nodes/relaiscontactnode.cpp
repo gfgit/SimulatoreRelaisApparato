@@ -138,6 +138,8 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais)
     if(mRelais == newRelais)
         return;
 
+    const bool hadRelay = mRelais;
+
     if(mRelais)
     {
         disconnect(mRelais, &AbstractRelais::stateChanged,
@@ -154,10 +156,19 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais)
                 this, &RelaisContactNode::onRelaisStateChanged);
 
         mRelais->addContactNode(this);
+
+        if(!hadRelay &&
+                modeMgr()->mode() == FileMode::Editing &&
+                mRelais->normallyUp())
+        {
+            // Swap by default for new normally up ralais contacts
+            setSwapContactState(true);
+        }
     }
 
     emit relayChanged(mRelais);
     onRelaisStateChanged();
+    modeMgr()->setFileEdited();
 }
 
 bool RelaisContactNode::swapContactState() const
@@ -169,8 +180,11 @@ void RelaisContactNode::setSwapContactState(bool newSwapContactState)
 {
     if(mSwapContactState == newSwapContactState)
         return;
+
     mSwapContactState = newSwapContactState;
+
     emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 bool RelaisContactNode::flipContact() const
@@ -182,8 +196,11 @@ void RelaisContactNode::setFlipContact(bool newFlipContact)
 {
     if(mFlipContact == newFlipContact)
         return;
+
     mFlipContact = newFlipContact;
+
     emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 bool RelaisContactNode::hasCentralConnector() const
@@ -195,8 +212,11 @@ void RelaisContactNode::setHasCentralConnector(bool newHasCentralConnector)
 {
     if(mHasCentralConnector == newHasCentralConnector)
         return;
+
     mHasCentralConnector = newHasCentralConnector;
+
     emit shapeChanged();
+    modeMgr()->setFileEdited();
 
     if(!mHasCentralConnector)
     {

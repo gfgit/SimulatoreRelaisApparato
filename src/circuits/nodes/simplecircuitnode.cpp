@@ -24,6 +24,8 @@
 
 #include "../electriccircuit.h"
 
+#include "../../views/modemanager.h"
+
 #include <QJsonObject>
 
 SimpleCircuitNode::SimpleCircuitNode(ModeManager *mgr, QObject *parent)
@@ -72,8 +74,11 @@ void SimpleCircuitNode::setDisabledContact(int val)
     Q_ASSERT(val >= 0 && val < 4);
     if(mDisabledContact == val)
         return;
+
     mDisabledContact = val;
+
     emit shapeChanged();
+    modeMgr()->setFileEdited();
 
     // Commmon cannot be disabled
     if(mDisabledContact > 0)

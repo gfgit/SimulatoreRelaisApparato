@@ -141,5 +141,9 @@ bool OnOffSwitchNode::isInitiallyOn() const
 
 void OnOffSwitchNode::setInitiallyOn(bool newInitiallyOn)
 {
+    if(m_initiallyOn == newInitiallyOn)
+        return;
+
     m_initiallyOn = newInitiallyOn;
+    modeMgr()->setFileEdited();
 }

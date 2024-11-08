@@ -425,7 +425,7 @@ void CircuitScene::connectItems(AbstractCircuitNode *node1, AbstractCircuitNode 
                 }
             }
 
-            CircuitCable *newCable = new CircuitCable(this);
+            CircuitCable *newCable = new CircuitCable(circuitsModel()->modeMgr(), this);
 
             // First we set graph path
             CableGraphItem *item = new CableGraphItem(newCable);
@@ -943,7 +943,7 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
         const QJsonObject cableObj = v.toObject();
 
         // Create new cable
-        CircuitCable *cable = new CircuitCable(this);
+        CircuitCable *cable = new CircuitCable(circuitsModel()->modeMgr(), this);
         CableGraphItem *item = new CableGraphItem(cable);
         item->setPos(0, 0);
 
@@ -1106,7 +1106,7 @@ void CircuitScene::endEditCable(bool apply)
     if(isNew)
     {
         // Create new cable
-        CircuitCable *cable = new CircuitCable(this);
+        CircuitCable *cable = new CircuitCable(circuitsModel()->modeMgr(), this);
         item = new CableGraphItem(cable);
         item->setPos(0, 0);
     }

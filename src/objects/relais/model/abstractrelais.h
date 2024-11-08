@@ -66,6 +66,7 @@ public:
 
 signals:
     void nameChanged(AbstractRelais *self, const QString& name);
+    void settingsChanged(AbstractRelais *self);
     void stateChanged(AbstractRelais *self, State s);
 
 private:

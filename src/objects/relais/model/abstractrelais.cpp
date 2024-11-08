@@ -79,6 +79,7 @@ void AbstractRelais::setName(const QString &newName)
         return;
     mName = newName;
     emit nameChanged(this, mName);
+    emit settingsChanged(this);
 
     for(RelaisPowerNode *p : mPowerNodes)
     {

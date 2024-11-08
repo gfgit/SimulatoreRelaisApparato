@@ -24,6 +24,8 @@
 
 #include "../electriccircuit.h"
 
+#include "../../views/modemanager.h"
+
 #include <QJsonObject>
 
 ACEIButtonNode::ACEIButtonNode(ModeManager *mgr, QObject *parent)
@@ -143,6 +145,7 @@ void ACEIButtonNode::setFlipContact(bool newFlipContact)
         return;
     mFlipContact = newFlipContact;
     emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 ACEIButtonNode::State ACEIButtonNode::state() const

@@ -298,6 +298,9 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
         it++;
     }
 
+    // Notify settings changed
+    modeMgr()->setFileEdited();
+
     // Refresh state based on new conditions
     onLeverPositionChanged();
 }
@@ -311,8 +314,11 @@ void LeverContactNode::setSwapContactState(bool newSwapContactState)
 {
     if(mSwapContactState == newSwapContactState)
         return;
+
     mSwapContactState = newSwapContactState;
+
     emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 bool LeverContactNode::flipContact() const
@@ -324,8 +330,11 @@ void LeverContactNode::setFlipContact(bool newFlipContact)
 {
     if(mFlipContact == newFlipContact)
         return;
+
     mFlipContact = newFlipContact;
+
     emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 bool LeverContactNode::hasCentralConnector() const
@@ -337,8 +346,11 @@ void LeverContactNode::setHasCentralConnector(bool newHasCentralConnector)
 {
     if(mHasCentralConnector == newHasCentralConnector)
         return;
+
     mHasCentralConnector = newHasCentralConnector;
+
     emit shapeChanged();
+    modeMgr()->setFileEdited();
 
     if(!mHasCentralConnector)
     {

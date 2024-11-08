@@ -32,6 +32,8 @@
 class ElectricCircuit;
 class AbstractCircuitNode;
 
+class ModeManager;
+
 class CircuitCable : public QObject
 {
     Q_OBJECT
@@ -45,7 +47,7 @@ public:
         BifilarBoth
     };
 
-    explicit CircuitCable(QObject *parent = nullptr);
+    CircuitCable(ModeManager *mgr, QObject *parent = nullptr);
     ~CircuitCable();
 
     Mode mode() const;
@@ -72,6 +74,11 @@ public:
         return {};
     }
 
+    inline ModeManager *modeMgr() const
+    {
+        return mModeMgr;
+    }
+
 signals:
     void modeChanged(Mode m);
     void powerChanged(CablePower p);
@@ -82,6 +89,8 @@ private:
     void setNode(CableSide s, CableEnd node);
 
 private:
+    ModeManager *mModeMgr;
+
     Mode mMode = Mode::Unifilar;
 
     typedef QVector<ElectricCircuit *> CircuitList;

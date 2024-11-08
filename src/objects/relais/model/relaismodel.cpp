@@ -141,7 +141,7 @@ void RelaisModel::addRelay(AbstractRelais *r)
     beginInsertRows(QModelIndex(), row, row);
 
     connect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
-    connect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
+    connect(r, &AbstractRelais::settingsChanged, this, &RelaisModel::onRelayChanged);
     connect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
     mRelais.append(r);
 
@@ -162,7 +162,7 @@ void RelaisModel::removeRelay(AbstractRelais *r)
     beginRemoveRows(QModelIndex(), row, row);
 
     disconnect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
-    disconnect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
+    disconnect(r, &AbstractRelais::settingsChanged, this, &RelaisModel::onRelayChanged);
     disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
     mRelais.removeAt(row);
 
@@ -212,7 +212,7 @@ bool RelaisModel::loadFromJSON(const QJsonObject &obj)
         r->loadFromJSON(relayObj);
 
         connect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
-        connect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
+        connect(r, &AbstractRelais::settingsChanged, this, &RelaisModel::onRelayChanged);
         connect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
         mRelais.append(r);
     }
@@ -302,7 +302,7 @@ void RelaisModel::clearInternal()
     for(AbstractRelais *r : std::as_const(mRelais))
     {
         disconnect(r, &QObject::destroyed, this, &RelaisModel::onRelayDestroyed);
-        disconnect(r, &AbstractRelais::nameChanged, this, &RelaisModel::onRelayChanged);
+        disconnect(r, &AbstractRelais::settingsChanged, this, &RelaisModel::onRelayChanged);
         disconnect(r, &AbstractRelais::stateChanged, this, &RelaisModel::onRelayStateChanged);
         delete r;
     }

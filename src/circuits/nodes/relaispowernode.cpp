@@ -151,6 +151,7 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
     }
 
     emit relayChanged(mRelais);
+    modeMgr()->setFileEdited();
 }
 
 int RelaisPowerNode::delayUpSeconds() const
@@ -165,6 +166,7 @@ void RelaisPowerNode::setDelayUpSeconds(int newDelayUpSeconds)
 
     mDelayUpSeconds = newDelayUpSeconds;
     emit delaysChanged();
+    modeMgr()->setFileEdited();
 }
 
 int RelaisPowerNode::delayDownSeconds() const
@@ -179,6 +181,7 @@ void RelaisPowerNode::setDelayDownSeconds(int newDelayDownSeconds)
 
     mDelayDownSeconds = newDelayDownSeconds;
     emit delaysChanged();
+    modeMgr()->setFileEdited();
 }
 
 void RelaisPowerNode::timerEvent(QTimerEvent *e)

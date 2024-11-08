@@ -26,8 +26,11 @@
 
 #include "../electriccircuit.h"
 
-CircuitCable::CircuitCable(QObject *parent)
+#include "../../views/modemanager.h"
+
+CircuitCable::CircuitCable(ModeManager *mgr, QObject *parent)
     : QObject{parent}
+    , mModeMgr(mgr)
 {
 
 }
@@ -97,6 +100,7 @@ void CircuitCable::setMode(Mode newMode)
     mMode = newMode;
 
     emit modeChanged(mMode);
+    modeMgr()->setFileEdited();
 }
 
 void CircuitCable::addCircuit(ElectricCircuit *circuit, CircuitPole pole)
