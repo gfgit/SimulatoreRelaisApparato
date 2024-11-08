@@ -40,6 +40,9 @@
 
 #include <QSortFilterProxyModel>
 
+#include <QMenu>
+#include <QAction>
+
 GenericLeverListWidget::GenericLeverListWidget(ViewManager *mgr, GenericLeverModel *model, QWidget *parent)
     : QWidget{parent}
     , mViewMgr(mgr)
@@ -65,6 +68,7 @@ GenericLeverListWidget::GenericLeverListWidget(ViewManager *mgr, GenericLeverMod
     mProxyModel->sort(0);
 
     mView->setModel(mProxyModel);
+    mView->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(mModel->modeMgr(), &ModeManager::modeChanged,
             this, &GenericLeverListWidget::onFileModeChanged);
@@ -73,6 +77,9 @@ GenericLeverListWidget::GenericLeverListWidget(ViewManager *mgr, GenericLeverMod
             this, &GenericLeverListWidget::addLever);
     connect(remBut, &QPushButton::clicked,
             this, &GenericLeverListWidget::removeCurrentLever);
+
+    connect(mView, &QTableView::customContextMenuRequested,
+            this, &GenericLeverListWidget::showViewContextMenu);
 
     onFileModeChanged(mModel->modeMgr()->mode());
 }
@@ -146,4 +153,23 @@ void GenericLeverListWidget::removeCurrentLever()
     {
         mModel->removeLever(r);
     }
+}
+
+void GenericLeverListWidget::showViewContextMenu(const QPoint &pos)
+{
+    if(mModel->modeMgr()->mode() != FileMode::Editing)
+        return;
+
+    QPointer<QMenu> menu = new QMenu(this);
+
+    QModelIndex idx = mView->indexAt(pos);
+    idx = mProxyModel->mapToSource(idx);
+    GenericLeverObject *lever = mModel->leverAt(idx.row());
+    if(!lever)
+        return;
+
+    QAction *actionEdit = menu->addAction(tr("Edit"));
+    QAction *ret = menu->exec(mView->viewport()->mapToGlobal(pos));
+    if(ret == actionEdit)
+        mViewMgr->showLeverEdit(lever);
 }

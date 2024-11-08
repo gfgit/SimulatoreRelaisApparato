@@ -47,9 +47,7 @@ public:
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
 
-    QString name() const;
-    void setName(const QString &newName);
-
+    // State
     int angle() const;
     void setAngle(int newAngle);
     void setAngleTrySnap(int newAngle);
@@ -57,16 +55,24 @@ public:
     int position() const;
     void setPosition(int newPosition);
 
-    bool hasSpringReturn() const;
-    void setHasSpringReturn(bool newHasSpringReturn);
-
     bool isPressed() const;
     void setPressed(bool newIsPressed);
 
+    // Options
+
+    QString name() const;
+    void setName(const QString &newName);
+
+    bool hasSpringReturn() const;
+    void setHasSpringReturn(bool newHasSpringReturn);
+
     int absoluteMin() const;
+    int absoluteMax() const;
     void setAbsoluteRange(int newMin, int newMax);
 
-    int absoluteMax() const;
+    int initialPosition() const;
+    void setInitialPosition(int newInitialPosition);
+
 
     const LeverPositionDesc &positionDesc() const;
 
@@ -121,6 +127,7 @@ private:
 
     int mAngle = 0;
     int mPosition = 0;
+    int mInitialPosition = 0;
 
     int springTimerId = 0;
 

@@ -145,6 +145,7 @@ void GenericLeverModel::addLever(GenericLeverObject *r)
 
     connect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
     connect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+    connect(r, &GenericLeverObject::changed, this, &GenericLeverModel::onLeverChanged);
     connect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
     mLevers.append(r);
 
@@ -166,6 +167,7 @@ void GenericLeverModel::removeLever(GenericLeverObject *r)
 
     disconnect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
     disconnect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+    disconnect(r, &GenericLeverObject::changed, this, &GenericLeverModel::onLeverChanged);
     disconnect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
     mLevers.removeAt(row);
 
@@ -216,6 +218,7 @@ bool GenericLeverModel::loadFromJSON(const QJsonObject &obj)
 
         connect(l, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
         connect(l, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+        connect(l, &GenericLeverObject::changed, this, &GenericLeverModel::onLeverChanged);
         connect(l, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
         mLevers.append(l);
     }
@@ -306,6 +309,7 @@ void GenericLeverModel::clearInternal()
     {
         disconnect(r, &QObject::destroyed, this, &GenericLeverModel::onLeverDestroyed);
         disconnect(r, &GenericLeverObject::nameChanged, this, &GenericLeverModel::onLeverChanged);
+        disconnect(r, &GenericLeverObject::changed, this, &GenericLeverModel::onLeverChanged);
         disconnect(r, &GenericLeverObject::positionChanged, this, &GenericLeverModel::onLeverStateChanged);
         delete r;
     }

@@ -37,6 +37,7 @@ GenericLeverObject::GenericLeverObject(const LeverPositionDesc &desc, QObject *p
     setAbsoluteRange(0, mPositionDesc.maxPosition());
 
     // Default to normal position
+    setInitialPosition(positionDesc().normalPositionIdx);
     setAngle(angleForPosition(positionDesc().normalPositionIdx));
     setPosition(positionDesc().normalPositionIdx);
 }
@@ -57,10 +58,19 @@ bool GenericLeverObject::loadFromJSON(const QJsonObject &obj)
     setName(obj.value("name").toString());
     setHasSpringReturn(obj.value("spring_return").toBool());
 
-    // Renge
+    // Range
     int pos_min = obj.value("pos_min").toInt();
     int pos_max = obj.value("pos_max").toInt();
     setAbsoluteRange(pos_min, pos_max);
+
+    // Load initial position if valid
+    int initPos = obj.value("initial_position").toInt(LeverPositionDesc::InvalidPosition);
+    if(initPos != LeverPositionDesc::InvalidPosition)
+        setInitialPosition(initPos);
+
+    // Move lever to initial position
+    setAngle(angleForPosition(initialPosition()));
+    setPosition(initialPosition());
 
     return true;
 }
@@ -73,6 +83,8 @@ void GenericLeverObject::saveToJSON(QJsonObject &obj) const
     // Range
     obj["pos_min"] = mAbsoluteMin;
     obj["pos_max"] = mAbsoluteMax;
+
+    obj["initial_position"] = initialPosition();
 }
 
 QString GenericLeverObject::name() const
@@ -268,14 +280,14 @@ void GenericLeverObject::startSpringTimer()
     springTimerId = startTimer(100);
 }
 
-int GenericLeverObject::absoluteMax() const
-{
-    return mAbsoluteMax;
-}
-
 int GenericLeverObject::absoluteMin() const
 {
     return mAbsoluteMin;
+}
+
+int GenericLeverObject::absoluteMax() const
+{
+    return mAbsoluteMax;
 }
 
 void GenericLeverObject::setAbsoluteRange(int newMin, int newMax)
@@ -290,11 +302,13 @@ void GenericLeverObject::setAbsoluteRange(int newMin, int newMax)
     mAbsoluteMin = newMin;
     mAbsoluteMax = newMax;
 
+
     if(rangeChanged)
         emit changed(this);
 
-    // Recalculate angle
+    // Recalculate angle and initial position
     setAngle(mAngle);
+    setInitialPosition(mInitialPosition);
 }
 
 void GenericLeverObject::addContactNode(LeverContactNode *c)
@@ -311,6 +325,24 @@ void GenericLeverObject::removeContactNode(LeverContactNode *c)
     Q_ASSERT(c->lever() == this);
 
     mContactNodes.removeOne(c);
+}
+
+int GenericLeverObject::initialPosition() const
+{
+    return mInitialPosition;
+}
+
+void GenericLeverObject::setInitialPosition(int newInitialPosition)
+{
+    newInitialPosition = qBound(mAbsoluteMin,
+                                newInitialPosition,
+                                mAbsoluteMax);
+
+    if(mInitialPosition == newInitialPosition)
+        return;
+
+    mInitialPosition = newInitialPosition;
+    emit changed(this);
 }
 
 const LeverPositionDesc& GenericLeverObject::positionDesc() const

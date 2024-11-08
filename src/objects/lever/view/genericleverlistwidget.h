@@ -48,6 +48,9 @@ private slots:
 
     void addLever();
     void removeCurrentLever();
+
+    void showViewContextMenu(const QPoint &pos);
+
 private:
     QTableView *mView;
 

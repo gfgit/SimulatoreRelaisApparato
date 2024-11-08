@@ -37,6 +37,8 @@ class CircuitScene;
 class AbstractNodeGraphItem;
 class CableGraphItem;
 
+class GenericLeverObject;
+
 namespace KDDockWidgets::QtWidgets
 {
 class DockWidget;
@@ -57,6 +59,7 @@ public:
                                   bool forceNew = false);
 
     void showCircuitSceneEdit(CircuitScene *scene);
+    void showLeverEdit(GenericLeverObject *lever);
 
     void closeAllEditDocks();
     void closeAllFileSpecificDocks();
@@ -95,6 +98,7 @@ private:
 
     // Edit views
     QHash<CircuitScene *, DockWidget *> mCircuitEdits;
+    QHash<GenericLeverObject *, DockWidget *> mLeverEdits;
 
     // General views
     QPointer<DockWidget> mCircuitListViewDock;

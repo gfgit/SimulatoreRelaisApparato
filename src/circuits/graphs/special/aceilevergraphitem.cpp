@@ -108,27 +108,6 @@ void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             mLastMousePos = ev->pos();
             return;
         }
-        else if(ev->button() == Qt::RightButton)
-        {
-            // Customize lever
-            if(ev->modifiers() == Qt::ShiftModifier)
-            {
-                // Toggle spring
-                mLever->setHasSpringReturn(!mLever->hasSpringReturn());
-            }
-            else if(ev->modifiers() == Qt::AltModifier)
-            {
-                // Toggle absolute min
-                ACEILeverPosition minPos = ACEILeverPosition(mLever->absoluteMin());
-                if(minPos == ACEILeverPosition::Left)
-                    minPos = ACEILeverPosition::Normal;
-                else
-                    minPos = ACEILeverPosition::Left;
-
-                mLever->setAbsoluteRange(int(minPos),
-                                         mLever->absoluteMax());
-            }
-        }
     }
 
     AbstractNodeGraphItem::mousePressEvent(ev);
@@ -205,7 +184,7 @@ void ACEILeverGraphItem::setLever(GenericLeverObject *newLever)
                    this, &ACEILeverGraphItem::triggerUpdate);
         disconnect(mLever, &GenericLeverObject::pressedChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
-        disconnect(mLever, &GenericLeverObject::objectNameChanged,
+        disconnect(mLever, &GenericLeverObject::nameChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
     }
 
@@ -220,7 +199,7 @@ void ACEILeverGraphItem::setLever(GenericLeverObject *newLever)
                 this, &ACEILeverGraphItem::triggerUpdate);
         connect(mLever, &GenericLeverObject::pressedChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
-        connect(mLever, &GenericLeverObject::objectNameChanged,
+        connect(mLever, &GenericLeverObject::nameChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
     }
 

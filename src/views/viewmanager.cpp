@@ -35,7 +35,10 @@
 
 
 #include "../objects/relais/view/relaislistwidget.h"
+
+#include "../objects/lever/model/genericleverobject.h"
 #include "../objects/lever/view/genericleverlistwidget.h"
+#include "../objects/lever/view/genericleveroptionswidget.h"
 
 #include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
 #include <kddockwidgets-qt6/kddockwidgets/core/DockWidget.h>
@@ -218,11 +221,59 @@ void ViewManager::showCircuitSceneEdit(CircuitScene *scene)
     mCircuitEdits.insert(scene, dock);
 }
 
+void ViewManager::showLeverEdit(GenericLeverObject *lever)
+{
+    // Raise existing edit window if present
+    for(auto it : mLeverEdits.asKeyValueRange())
+    {
+        if(it.first == lever)
+        {
+            it.second->raise();
+            return;
+        }
+    }
+
+    // Create new edit window
+    GenericLeverOptionsWidget *w = new GenericLeverOptionsWidget(mainWin()->modeMgr()->leversModel(),
+                                                                 lever);
+    DockWidget *dock = new DockWidget(lever->name(),
+                                      KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    dock->setWidget(w);
+
+    auto updateDock = [dock, lever]()
+    {
+        QString name = tr("Edit Lever %1").arg(lever->name());
+        dock->setTitle(name);
+        dock->dockWidget()->setUniqueName(name);
+    };
+
+    connect(lever, &GenericLeverObject::nameChanged,
+            dock, updateDock);
+    connect(lever, &GenericLeverObject::destroyed,
+            dock, &QWidget::close);
+    connect(dock, &QObject::destroyed,
+            this, [this, lever]()
+    {
+        mLeverEdits.remove(lever);
+    });
+
+    updateDock();
+
+    // By default open as floating window
+    dock->open();
+
+    mLeverEdits.insert(lever, dock);
+}
+
 void ViewManager::closeAllEditDocks()
 {
     auto circuitEditsCopy = mCircuitEdits;
     qDeleteAll(circuitEditsCopy);
     mCircuitEdits.clear();
+
+    auto leverEditsCopy = mLeverEdits;
+    qDeleteAll(leverEditsCopy);
+    mLeverEdits.clear();
 }
 
 void ViewManager::closeAllFileSpecificDocks()

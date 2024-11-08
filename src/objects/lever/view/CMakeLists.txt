@@ -9,6 +9,9 @@ set(PROJECT_SOURCES
     objects/lever/view/genericleverlineedit.cpp
     objects/lever/view/genericleverlineedit.h
 
+    objects/lever/view/genericleveroptionswidget.cpp
+    objects/lever/view/genericleveroptionswidget.h
+
     objects/lever/view/levercontactconditionsview.cpp
     objects/lever/view/levercontactconditionsview.h
 

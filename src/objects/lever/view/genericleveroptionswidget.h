@@ -1,5 +1,5 @@
 /**
- * src/circuits/view/circuitlistwidget.h
+ * src/objects/lever/view/genericleveroptionswidget.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,71 +20,55 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef CIRCUITLISTWIDGET_H
-#define CIRCUITLISTWIDGET_H
+#ifndef GENERICLEVEROPTIONSWIDGET_H
+#define GENERICLEVEROPTIONSWIDGET_H
 
 #include <QWidget>
 
-#include "../../enums/filemodes.h"
-
-class CircuitListModel;
-class CircuitScene;
-
 class QLineEdit;
-class QPushButton;
-class QTableView;
+class QCheckBox;
+class QComboBox;
 
-class ViewManager;
+class GenericLeverObject;
+class GenericLeverModel;
 
-class CircuitListWidget : public QWidget
+class LeverPositionModel;
+
+class GenericLeverOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    CircuitListWidget(ViewManager *mgr, CircuitListModel *model, QWidget *parent = nullptr);
-
-    CircuitListModel *model() const;
-
-private slots:
-    void onFileModeChanged(FileMode mode);
-
-    void addScene();
-    void removeCurrentScene();
-
-    void onSceneDoubleClicked(const QModelIndex& idx);
-
-    void showViewContextMenu(const QPoint& pos);
-
-private:
-    QTableView *mView;
-
-    QPushButton *addBut;
-    QPushButton *remBut;
-
-    ViewManager *mViewMgr;
-    CircuitListModel *mModel;
-};
-
-class CircuitSceneOptionsWidget : public QWidget
-{
-    Q_OBJECT
-public:
-    CircuitSceneOptionsWidget(CircuitScene *scene, QWidget *parent = nullptr);
+    GenericLeverOptionsWidget(GenericLeverModel *m,
+                              GenericLeverObject *lever,
+                              QWidget *parent = nullptr);
 
 private slots:
-    void setSceneName();
+    void setLeverName();
     void onNameTextEdited();
-    void setSceneLongName();
+    void updatePositionRanges();
 
 private:
     void setNameValid(bool valid);
 
 private:
-    CircuitScene *mScene = nullptr;
+    GenericLeverModel *mModel = nullptr;
+    GenericLeverObject *mLever = nullptr;
 
     QLineEdit *mNameEdit = nullptr;
-    QLineEdit *mLongNameEdit = nullptr;
+    QCheckBox *mHasSpringReturn = nullptr;
+
+    QComboBox *mMinPosCombo = nullptr;
+    QComboBox *mMaxPosCombo = nullptr;
+    QComboBox *mInitPosCombo = nullptr;
+
+    LeverPositionModel *mMinPosModel = nullptr;
+    LeverPositionModel *mMaxPosModel = nullptr;
+    LeverPositionModel *mInitPosModel = nullptr;
 
     QPalette normalEditPalette;
+
+    int minPos = -1;
+    int maxPos = -1;
 };
 
-#endif // CIRCUITLISTWIDGET_H
+#endif // GENERICLEVEROPTIONSWIDGET_H
