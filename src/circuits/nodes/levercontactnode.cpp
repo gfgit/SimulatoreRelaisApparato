@@ -263,12 +263,18 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
     // Sort conditions
     std::sort(mConditionSet.begin(),
               mConditionSet.end(),
-              [](const LeverPositionCondition& lhs,
-                 const LeverPositionCondition& rhs) -> bool
+              [](const LeverPositionCondition& a,
+              const LeverPositionCondition& b) -> bool
     {
-        if(lhs.positionFrom == rhs.positionFrom)
-            return lhs.positionTo < rhs.positionTo;
-        return lhs.positionFrom < rhs.positionTo;
+        if(a.positionFrom == b.positionFrom)
+        {
+            if(a.type == b.type)
+                return a.positionTo < b.positionTo;
+
+            // Prefer ranges over exact positions
+            return a.type > b.type;
+        }
+        return a.positionFrom < b.positionFrom;
     });
 
     // Remove duplicates/overlapping ranges
@@ -278,7 +284,9 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
     {
         LeverPositionCondition& item = *it;
         if((item.positionFrom >= lastFromPosition && item.positionFrom <= lastToPosition)
-                || (item.positionTo >= lastFromPosition && item.positionTo <= lastToPosition))
+                || (item.positionTo >= lastFromPosition && item.positionTo <= lastToPosition)
+                || (item.positionFrom <= lastFromPosition && item.positionTo >= lastFromPosition)
+                || (item.positionFrom <= lastToPosition && item.positionTo >= lastToPosition))
         {
             // Duplicates/overlapping
             it = mConditionSet.erase(it);
