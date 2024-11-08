@@ -464,8 +464,9 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
             painter->drawLine(leverCenter, endPt);
 
             // drawArc wants degrees multiplied by 16
-            // Counter-clockwise and starting from 3 o'clock (so +90)
-            painter->drawArc(arcRect, (90 + fromAngle) * 16,
+            // Counter-clockwise and starting from 3 o'clock
+            // so +90 and inverted sign
+            painter->drawArc(arcRect, (90 - fromAngle) * 16,
                              (fromAngle - toAngle) * 16);
         }
     }
