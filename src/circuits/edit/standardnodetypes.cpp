@@ -89,7 +89,34 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = OnOffGraphItem::Node::NodeType;
         factory.prettyName = tr("On/Off switch");
         factory.create = &addNewNodeToScene<OnOffGraphItem>;
-        factory.edit = nullptr;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            OnOffSwitchNode *node = static_cast<OnOffSwitchNode *>(item->getAbstractNode());
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Initially On
+            QCheckBox *initiallyOn = new QCheckBox(tr("Initially On"));
+            lay->addRow(initiallyOn);
+
+            QObject::connect(initiallyOn, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setInitiallyOn(val);
+            });
+
+            auto updLambda = [initiallyOn, node]()
+            {
+                initiallyOn->setChecked(node->isInitiallyOn());
+            };
+
+            //QObject::connect(node, &OnOffSwitchNode::shapeChanged,
+            //                 w, updLambda);
+            updLambda();
+
+            return w;
+        };
 
         factoryReg->registerFactory(factory);
     }

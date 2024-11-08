@@ -26,6 +26,8 @@
 
 #include "../../views/modemanager.h"
 
+#include <QJsonObject>
+
 OnOffSwitchNode::OnOffSwitchNode(ModeManager *mgr, QObject *parent)
     : AbstractCircuitNode{mgr, false, parent}
 {
@@ -67,6 +69,25 @@ QVector<CableItem> OnOffSwitchNode::getActiveConnections(CableItem source, bool 
     }
 
     return {};
+}
+
+bool OnOffSwitchNode::loadFromJSON(const QJsonObject &obj)
+{
+    if(!AbstractCircuitNode::loadFromJSON(obj))
+        return false;
+
+    setInitiallyOn(obj.value("initially_on").toBool(false));
+
+    setOn(isInitiallyOn());
+
+    return true;
+}
+
+void OnOffSwitchNode::saveToJSON(QJsonObject &obj) const
+{
+    AbstractCircuitNode::saveToJSON(obj);
+
+    obj["initially_on"] = isInitiallyOn();
 }
 
 QString OnOffSwitchNode::nodeType() const
@@ -111,4 +132,14 @@ void OnOffSwitchNode::setOn(bool newOn)
             ElectricCircuit::defaultReachNextOpenCircuit(this);
         }
     }
+}
+
+bool OnOffSwitchNode::isInitiallyOn() const
+{
+    return m_initiallyOn;
+}
+
+void OnOffSwitchNode::setInitiallyOn(bool newInitiallyOn)
+{
+    m_initiallyOn = newInitiallyOn;
 }

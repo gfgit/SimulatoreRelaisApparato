@@ -33,17 +33,25 @@ public:
 
     virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
+    bool loadFromJSON(const QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) const override;
+
     static constexpr QLatin1String NodeType = QLatin1String("on_off_switch");
     QString nodeType() const override;
 
     bool isOn() const;
     void setOn(bool newOn);
 
+    bool isInitiallyOn() const;
+    void setInitiallyOn(bool newInitiallyOn);
+
 signals:
     void isOnChanged(bool on);
 
 private:
     bool m_isOn = false;
+
+    bool m_initiallyOn = false;
 };
 
 #endif // ONOFFSWITCHNODE_H
