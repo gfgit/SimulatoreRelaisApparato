@@ -200,7 +200,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
             const double halfHeight = relayRadius * 0.6;
             QPointF triangle[3] =
             {
-                {TileLocation::HalfSize - halfHeight, TileLocation::HalfSize},
+                {TileLocation::HalfSize - halfHeight * 0.86, TileLocation::HalfSize},
                 {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize - halfHeight},
                 {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize + halfHeight}
             };
