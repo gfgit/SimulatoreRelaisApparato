@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/relaispowergraphitem.h
+ * src/objects/relais/view/abstractrelayoptionswidget.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,44 +20,40 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef RELAISPOWERGRAPHITEM_H
-#define RELAISPOWERGRAPHITEM_H
+#ifndef ABSTRACT_RELAY_OPTIONSWIDGET_H
+#define ABSTRACT_RELAY_OPTIONSWIDGET_H
 
+#include <QWidget>
 
-#include "abstractnodegraphitem.h"
+class QLineEdit;
+class QCheckBox;
 
-class RelaisPowerNode;
 class AbstractRelais;
+class RelaisModel;
 
-class RelaisPowerGraphItem : public AbstractNodeGraphItem
+class AbstractRelayOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    typedef RelaisPowerNode Node;
-
-    RelaisPowerGraphItem(RelaisPowerNode *node_);
-
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
-
-    void getConnectors(std::vector<Connector>& connectors) const final;
-
-    RelaisPowerNode *node() const;
+    AbstractRelayOptionsWidget(RelaisModel *m,
+                              AbstractRelais *lever,
+                              QWidget *parent = nullptr);
 
 private slots:
-    void updateRelay();
-
-protected slots:
-    void updateName() override;
+    void setRelaisName();
+    void onNameTextEdited();
 
 private:
-    void drawRelayArrow(QPainter *painter,
-                        TileRotate r,
-                        const QColor &color);
+    void setNameValid(bool valid);
 
 private:
-    static constexpr double relayRadius = 16.0;
-
+    RelaisModel *mModel = nullptr;
     AbstractRelais *mRelay = nullptr;
+
+    QLineEdit *mNameEdit = nullptr;
+    QCheckBox *mNormallyUp = nullptr;
+
+    QPalette normalEditPalette;
 };
 
-#endif // RELAISPOWERGRAPHITEM_H
+#endif // ABSTRACT_RELAY_OPTIONSWIDGET_H

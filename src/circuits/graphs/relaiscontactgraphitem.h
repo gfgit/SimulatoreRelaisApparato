@@ -41,6 +41,9 @@ public:
     void getConnectors(std::vector<Connector>& connectors) const final;
 
     RelaisContactNode *node() const;
+
+private:
+    void drawRelayArrow(QPainter *painter, TileRotate r, const QColor &color, const QRectF &textBr);
 };
 
 #endif // RELAISCONTACTGRAPHITEM_H

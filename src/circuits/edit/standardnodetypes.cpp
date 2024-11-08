@@ -285,11 +285,24 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                 node->setHasCentralConnector(val);
             });
 
-            auto updLambda = [flipContact, swapContacts, hasCentralConn, node]()
+            QCheckBox *hideRelayNormal = new QCheckBox(tr("Hide relay normal state"));
+            lay->addRow(hideRelayNormal);
+
+            QObject::connect(hideRelayNormal, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setHideRelayNormalState(val);
+            });
+
+            auto updLambda =
+                    [flipContact, swapContacts,
+                    hasCentralConn, hideRelayNormal,
+                    node]()
             {
                 flipContact->setChecked(node->flipContact());
                 swapContacts->setChecked(node->swapContactState());
                 hasCentralConn->setChecked(node->hasCentralConnector());
+                hideRelayNormal->setChecked(node->hideRelayNormalState());
             };
 
             QObject::connect(node, &RelaisContactNode::shapeChanged,

@@ -37,6 +37,9 @@
 
 #include <QSortFilterProxyModel>
 
+#include <QMenu>
+#include <QAction>
+
 RelaisListWidget::RelaisListWidget(ViewManager *mgr, RelaisModel *model, QWidget *parent)
     : QWidget{parent}
     , mViewMgr(mgr)
@@ -62,6 +65,7 @@ RelaisListWidget::RelaisListWidget(ViewManager *mgr, RelaisModel *model, QWidget
     mProxyModel->sort(0);
 
     mView->setModel(mProxyModel);
+    mView->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(mModel->modeMgr(), &ModeManager::modeChanged,
             this, &RelaisListWidget::onFileModeChanged);
@@ -70,6 +74,9 @@ RelaisListWidget::RelaisListWidget(ViewManager *mgr, RelaisModel *model, QWidget
             this, &RelaisListWidget::addRelay);
     connect(remBut, &QPushButton::clicked,
             this, &RelaisListWidget::removeCurrentRelay);
+
+    connect(mView, &QTableView::customContextMenuRequested,
+            this, &RelaisListWidget::showViewContextMenu);
 
     onFileModeChanged(mModel->modeMgr()->mode());
 }
@@ -142,4 +149,23 @@ void RelaisListWidget::removeCurrentRelay()
     {
         mModel->removeRelay(r);
     }
+}
+
+void RelaisListWidget::showViewContextMenu(const QPoint &pos)
+{
+    if(mModel->modeMgr()->mode() != FileMode::Editing)
+        return;
+
+    QPointer<QMenu> menu = new QMenu(this);
+
+    QModelIndex idx = mView->indexAt(pos);
+    idx = mProxyModel->mapToSource(idx);
+    AbstractRelais *relay = mModel->relayAt(idx.row());
+    if(!relay)
+        return;
+
+    QAction *actionEdit = menu->addAction(tr("Edit"));
+    QAction *ret = menu->exec(mView->viewport()->mapToGlobal(pos));
+    if(ret == actionEdit)
+        mViewMgr->showRelayEdit(relay);
 }

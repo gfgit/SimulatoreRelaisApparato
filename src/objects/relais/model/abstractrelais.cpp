@@ -58,6 +58,7 @@ bool AbstractRelais::loadFromJSON(const QJsonObject &obj)
     setName(obj.value("name").toString());
     setUpSpeed(obj.value("speed_up").toDouble());
     setDownSpeed(obj.value("speed_down").toDouble());
+    setNormallyUp(obj.value("normally_up").toBool());
     return true;
 }
 
@@ -66,6 +67,7 @@ void AbstractRelais::saveToJSON(QJsonObject &obj) const
     obj["name"] = mName;
     obj["speed_up"] = mUpSpeed;
     obj["speed_down"] = mDownSpeed;
+    obj["normally_up"] = normallyUp();
 }
 
 QString AbstractRelais::name() const
@@ -229,6 +231,31 @@ void AbstractRelais::startMove(bool up)
     mInternalState = up ? State::GoingUp : State::GoingDown;
     killTimer(mTimerId);
     mTimerId = startTimer(250);
+}
+
+bool AbstractRelais::normallyUp() const
+{
+    return mNormallyUp;
+}
+
+void AbstractRelais::setNormallyUp(bool newNormallyUp)
+{
+    if(mNormallyUp == newNormallyUp)
+        return;
+
+    mNormallyUp = newNormallyUp;
+    emit settingsChanged(this);
+
+    // Update nodes
+    for(RelaisPowerNode *p : mPowerNodes)
+    {
+        emit p->shapeChanged();
+    }
+
+    for(RelaisContactNode *c : mContactNodes)
+    {
+        emit c->shapeChanged();
+    }
 }
 
 AbstractRelais::State AbstractRelais::state() const

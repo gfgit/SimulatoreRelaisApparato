@@ -109,6 +109,7 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
     setFlipContact(obj.value("flip").toBool());
     setSwapContactState(obj.value("swap_state").toBool());
     setHasCentralConnector(obj.value("central_connector").toBool(true));
+    setHideRelayNormalState(obj.value("hide_relay_normal").toBool());
 
     return true;
 }
@@ -121,6 +122,7 @@ void RelaisContactNode::saveToJSON(QJsonObject &obj) const
     obj["flip"] = flipContact();
     obj["swap_state"] = swapContactState();
     obj["central_connector"] = hasCentralConnector();
+    obj["hide_relay_normal"] = hideRelayNormalState();
 }
 
 QString RelaisContactNode::nodeType() const
@@ -289,4 +291,19 @@ void RelaisContactNode::onRelaisStateChanged()
     }
 
     setState(s);
+}
+
+bool RelaisContactNode::hideRelayNormalState() const
+{
+    return mHideRelayNormalState;
+}
+
+void RelaisContactNode::setHideRelayNormalState(bool newHideRelayNormalState)
+{
+    if(mHideRelayNormalState == newHideRelayNormalState)
+        return;
+
+    mHideRelayNormalState = newHideRelayNormalState;
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
 }

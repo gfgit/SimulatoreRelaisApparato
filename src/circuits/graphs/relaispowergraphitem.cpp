@@ -40,8 +40,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
     constexpr double morsettiOffset = 22.0;
-    constexpr double relaySize = 32.0;
-    constexpr double centerOffset = relaySize / 2.0;
+    constexpr double centerOffset = relayRadius;
 
     constexpr QLineF centerToNorth(center.x(), center.y() - centerOffset,
                                    center.x(), morsettiOffset);
@@ -57,7 +56,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     QLineF commonLine;
     QRectF relayRect;
-    relayRect.setSize(QSizeF(relaySize, relaySize));
+    relayRect.setSize(QSizeF(relayRadius * 2.0, relayRadius * 2.0));
     relayRect.moveCenter(center);
 
     switch (toConnectorDirection(rotate()))
@@ -137,12 +136,20 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         painter->drawLine(relayRect.bottomLeft(), relayRect.bottomRight());
     }
 
+    // Draw state arrow
+    TileRotate arrowRotate = TileRotate::Deg90;
+    if(rotate() == TileRotate::Deg90)
+        arrowRotate = TileRotate::Deg270;
+    drawRelayArrow(painter, arrowRotate, color);
+
+    // Draw name
     TileRotate textRotate = TileRotate::Deg90;
     if(rotate() == TileRotate::Deg0)
         textRotate = TileRotate::Deg270;
 
-    if(node()->relais())
-        drawName(painter, node()->objectName(), textRotate);
+    drawName(painter,
+             node()->relais() ? node()->objectName() : tr("REL!"),
+             textRotate);
 }
 
 void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) const
@@ -177,6 +184,80 @@ void RelaisPowerGraphItem::updateName()
     setToolTip(mRelay ?
                    mRelay->objectName() :
                    QLatin1String("NO RELAY SET"));
+    update();
+}
+
+void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
+                                          TileRotate r,
+                                          const QColor& color)
+{
+    if(!node()->relais())
+        return;
+
+    // Draw arrow up/down for normally up/down relays
+    QRectF arrowRect;
+
+    switch (toConnectorDirection(r))
+    {
+    case Connector::Direction::East:
+        arrowRect.setLeft(TileLocation::HalfSize + relayRadius + 5.0);
+        arrowRect.setRight(TileLocation::Size - 5.0);
+        arrowRect.setTop(TileLocation::HalfSize - relayRadius);
+        arrowRect.setBottom(TileLocation::HalfSize + relayRadius);
+        break;
+
+    case Connector::Direction::West:
+        arrowRect.setLeft(5.0);
+        arrowRect.setRight(TileLocation::HalfSize - relayRadius - 5.0);
+        arrowRect.setTop(TileLocation::HalfSize - relayRadius);
+        arrowRect.setBottom(TileLocation::HalfSize + relayRadius);
+        break;
+    default:
+        break;
+    }
+
+    QLineF line;
+    QPointF triangle[3];
+
+    const double centerX = arrowRect.center().x();
+    const double lineHeight = arrowRect.height() * 0.6;
+
+    const double triangleSemiWidth = 0.5 * qMin(arrowRect.width(),
+                                                arrowRect.height() - lineHeight);
+
+    if(node()->relais()->normallyUp())
+    {
+        // Arrow up
+        line.setP1(QPointF(centerX, arrowRect.bottom() - lineHeight));
+        line.setP2(QPointF(centerX, arrowRect.bottom()));
+
+        triangle[0] = QPointF(centerX, arrowRect.top());
+        triangle[1] = QPointF(centerX + triangleSemiWidth, line.y1());
+        triangle[2] = QPointF(centerX - triangleSemiWidth, line.y1());
+    }
+    else
+    {
+        // Arrow down
+        line.setP1(QPointF(centerX, arrowRect.top() + lineHeight));
+        line.setP2(QPointF(centerX, arrowRect.top()));
+
+        triangle[0] = QPointF(centerX, arrowRect.bottom());
+        triangle[1] = QPointF(centerX + triangleSemiWidth, line.y1());
+        triangle[2] = QPointF(centerX - triangleSemiWidth, line.y1());
+    }
+
+    QPen pen;
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setWidthF(3.0);
+    pen.setColor(color);
+
+    painter->setPen(pen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawLine(line);
+
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(color);
+    painter->drawPolygon(triangle, 3);
 }
 
 RelaisPowerNode *RelaisPowerGraphItem::node() const

@@ -48,6 +48,8 @@ private slots:
 
     void addRelay();
     void removeCurrentRelay();
+    void showViewContextMenu(const QPoint &pos);
+
 private:
     QTableView *mView;
 

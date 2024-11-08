@@ -77,7 +77,10 @@ protected:
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
     void drawMorsetti(QPainter *painter, int nodeContact, TileRotate r);
-    void drawName(QPainter *painter, const QString &name, TileRotate r);
+    void drawName(QPainter *painter,
+                  const QString &name,
+                  TileRotate r,
+                  QRectF *br = nullptr);
 
     void invalidateConnections(bool tryReconnectImmediately = true);
 

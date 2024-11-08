@@ -9,5 +9,8 @@ set(PROJECT_SOURCES
     objects/relais/view/relaylineedit.cpp
     objects/relais/view/relaylineedit.h
 
+    objects/relais/view/abstractrelayoptionswidget.cpp
+    objects/relais/view/abstractrelayoptionswidget.h
+
     PARENT_SCOPE
 )

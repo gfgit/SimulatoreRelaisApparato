@@ -25,6 +25,8 @@
 #include "../nodes/relaiscontactnode.h"
 #include "../../objects/relais/model/abstractrelais.h"
 
+#include "../../views/modemanager.h"
+
 #include <QPainter>
 
 RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
@@ -61,6 +63,15 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     bool contact2On = node()->state() == RelaisContactNode::State::Down;
     if(node()->swapContactState())
         std::swap(contact1On, contact2On);
+
+    if(!node()->hideRelayNormalState()
+            && node()->modeMgr()->mode() != FileMode::Simulation)
+    {
+        // In static or editing mode,
+        // draw relay in its normal state
+        if(node()->relais() && node()->relais()->normallyUp())
+            std::swap(contact1On, contact2On);
+    }
 
     int startAngle = 0;
     int endAngle = 0;
@@ -332,8 +343,109 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
         TileRotate nameRotate = rotate();
         if(node()->flipContact())
             nameRotate += TileRotate::Deg180;
-        drawName(painter, node()->objectName(), nameRotate);
+
+        QRectF textBr;
+        drawName(painter,
+                 node()->relais() ? node()->objectName() : tr("REL!"),
+                 nameRotate, &textBr);
+
+        if(!node()->hideRelayNormalState())
+            drawRelayArrow(painter, nameRotate, color, textBr);
     }
+}
+
+void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
+                                            TileRotate r,
+                                            const QColor& color,
+                                            const QRectF& textBr)
+{
+    if(!node()->relais())
+        return;
+
+    // Draw arrow up/down for normally up/down relays
+    QRectF arrowRect;
+
+    // Follow drawName() layout to place arrown next to name
+    switch (toConnectorDirection(r - TileRotate::Deg90))
+    {
+    case Connector::Direction::North:
+        arrowRect.setLeft(textBr.right() + 5.0);
+        arrowRect.setWidth(10.0);
+        arrowRect.setBottom(TileLocation::HalfSize - 12.0);
+        arrowRect.setTop(10.0);
+        break;
+
+    case Connector::Direction::South:
+        arrowRect.setLeft(textBr.right() + 5.0);
+        arrowRect.setWidth(10.0);
+        arrowRect.setTop(TileLocation::HalfSize + 12.0);
+        arrowRect.setBottom(TileLocation::Size - 10.0);
+        break;
+
+    case Connector::Direction::East:
+        arrowRect.setLeft(TileLocation::HalfSize + 3.0);
+        arrowRect.setRight(TileLocation::Size - 10.0);
+        arrowRect.setTop(TileLocation::HalfSize + 2.0);
+        arrowRect.setBottom(TileLocation::Size - 20.0);
+        break;
+
+    case Connector::Direction::West:
+        arrowRect.setLeft(10.0);
+        arrowRect.setRight(TileLocation::HalfSize - 3.0);
+        arrowRect.setTop(TileLocation::HalfSize + 2.0);
+        arrowRect.setBottom(TileLocation::Size - 20.0);
+        break;
+
+    default:
+        break;
+    }
+
+    // Don't draw out of item's tile rect
+    if(arrowRect.right() > TileLocation::Size)
+        arrowRect.setRight(TileLocation::Size);
+
+    QLineF line;
+    QPointF triangle[3];
+
+    const double centerX = arrowRect.center().x();
+    const double lineHeight = arrowRect.height() * 0.55;
+
+    const double triangleSemiWidth = 0.5 * qMin(arrowRect.width(),
+                                                arrowRect.height() - lineHeight);
+
+    if(node()->relais()->normallyUp())
+    {
+        // Arrow up
+        line.setP1(QPointF(centerX, arrowRect.bottom() - lineHeight));
+        line.setP2(QPointF(centerX, arrowRect.bottom()));
+
+        triangle[0] = QPointF(centerX, arrowRect.top());
+        triangle[1] = QPointF(centerX + triangleSemiWidth, line.y1());
+        triangle[2] = QPointF(centerX - triangleSemiWidth, line.y1());
+    }
+    else
+    {
+        // Arrow down
+        line.setP1(QPointF(centerX, arrowRect.top() + lineHeight));
+        line.setP2(QPointF(centerX, arrowRect.top()));
+
+        triangle[0] = QPointF(centerX, arrowRect.bottom());
+        triangle[1] = QPointF(centerX + triangleSemiWidth, line.y1());
+        triangle[2] = QPointF(centerX - triangleSemiWidth, line.y1());
+    }
+
+    QPen pen;
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setWidthF(3.5);
+    pen.setColor(color);
+
+    painter->setPen(pen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawLine(line);
+
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(color);
+    painter->drawPolygon(triangle, 3);
 }
 
 void RelaisContactGraphItem::getConnectors(std::vector<Connector> &connectors) const

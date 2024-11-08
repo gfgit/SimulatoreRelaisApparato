@@ -64,6 +64,7 @@ void AbstractNodeGraphItem::triggerUpdate()
 void AbstractNodeGraphItem::updateName()
 {
     setToolTip(mAbstractNode->objectName());
+    update();
 }
 
 void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
@@ -275,7 +276,10 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, Til
     painter->drawText(textRect2, contact.name2, text2Align);
 }
 
-void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, TileRotate r)
+void AbstractNodeGraphItem::drawName(QPainter *painter,
+                                     const QString& name,
+                                     TileRotate r,
+                                     QRectF *br)
 {
     QRectF textRect;
 
@@ -330,11 +334,17 @@ void AbstractNodeGraphItem::drawName(QPainter *painter, const QString& name, Til
     double width = metrics.horizontalAdvance(name, QTextOption(textAlign));
     if(width > textRect.width())
     {
-        f.setPointSizeF(f.pointSizeF() * textRect.width() / width);
+        f.setPointSizeF(f.pointSizeF() * textRect.width() / width * 0.9);
     }
 
     painter->setFont(f);
-    painter->drawText(textRect, name, textAlign);
+    painter->drawText(textRect, textAlign, name, br);
+
+    if(br)
+    {
+        // Cut bounding rect exceeding text rect
+        *br = br->intersected(textRect);
+    }
 }
 
 void AbstractNodeGraphItem::invalidateConnections(bool tryReconnectImmediately)

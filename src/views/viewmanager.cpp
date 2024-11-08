@@ -33,8 +33,9 @@
 #include "../circuits/view/circuitlistmodel.h"
 #include "../circuits/circuitscene.h"
 
-
+#include "../objects/relais/model/abstractrelais.h"
 #include "../objects/relais/view/relaislistwidget.h"
+#include "../objects/relais/view/abstractrelayoptionswidget.h"
 
 #include "../objects/lever/model/genericleverobject.h"
 #include "../objects/lever/view/genericleverlistwidget.h"
@@ -265,6 +266,50 @@ void ViewManager::showLeverEdit(GenericLeverObject *lever)
     mLeverEdits.insert(lever, dock);
 }
 
+void ViewManager::showRelayEdit(AbstractRelais *relay)
+{
+    // Raise existing edit window if present
+    for(auto it : mRelayEdits.asKeyValueRange())
+    {
+        if(it.first == relay)
+        {
+            it.second->raise();
+            return;
+        }
+    }
+
+    // Create new edit window
+    AbstractRelayOptionsWidget *w = new AbstractRelayOptionsWidget(mainWin()->modeMgr()->relaisModel(),
+                                                                   relay);
+    DockWidget *dock = new DockWidget(relay->name(),
+                                      KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    dock->setWidget(w);
+
+    auto updateDock = [dock, relay]()
+    {
+        QString name = tr("Edit Relay %1").arg(relay->name());
+        dock->setTitle(name);
+        dock->dockWidget()->setUniqueName(name);
+    };
+
+    connect(relay, &AbstractRelais::nameChanged,
+            dock, updateDock);
+    connect(relay, &AbstractRelais::destroyed,
+            dock, &QWidget::close);
+    connect(dock, &QObject::destroyed,
+            this, [this, relay]()
+    {
+        mRelayEdits.remove(relay);
+    });
+
+    updateDock();
+
+    // By default open as floating window
+    dock->open();
+
+    mRelayEdits.insert(relay, dock);
+}
+
 void ViewManager::closeAllEditDocks()
 {
     auto circuitEditsCopy = mCircuitEdits;
@@ -274,6 +319,10 @@ void ViewManager::closeAllEditDocks()
     auto leverEditsCopy = mLeverEdits;
     qDeleteAll(leverEditsCopy);
     mLeverEdits.clear();
+
+    auto relayEditsCopy = mRelayEdits;
+    qDeleteAll(relayEditsCopy);
+    mRelayEdits.clear();
 }
 
 void ViewManager::closeAllFileSpecificDocks()

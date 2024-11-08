@@ -64,6 +64,9 @@ public:
     bool hasCentralConnector() const;
     void setHasCentralConnector(bool newHasCentralConnector);
 
+    bool hideRelayNormalState() const;
+    void setHideRelayNormalState(bool newHideRelayNormalState);
+
 signals:
     void stateChanged();
     void relayChanged(AbstractRelais *r);
@@ -77,6 +80,7 @@ private:
     bool mFlipContact = false;
     bool mSwapContactState = false;
     bool mHasCentralConnector = true;
+    bool mHideRelayNormalState = false;
 };
 
 #endif // RELAISCONTACTNODE_H

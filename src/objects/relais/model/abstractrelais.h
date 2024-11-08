@@ -64,6 +64,9 @@ public:
 
     void timerEvent(QTimerEvent *e) override;
 
+    bool normallyUp() const;
+    void setNormallyUp(bool newNormallyUp);
+
 signals:
     void nameChanged(AbstractRelais *self, const QString& name);
     void settingsChanged(AbstractRelais *self);
@@ -88,6 +91,7 @@ private:
     QString mName;
     State mState = State::Down;
     State mInternalState = State::Down;
+    bool mNormallyUp = false;
 
     // Steps per 250ms (Speed of 0.25 means it goes up in 1 sec)
     double mUpSpeed = 0.18;
