@@ -147,6 +147,8 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     if(rotate() == TileRotate::Deg0)
         textRotate = TileRotate::Deg270;
 
+    painter->setPen(pen);
+    painter->setBrush(Qt::NoBrush);
     drawName(painter,
              node()->relais() ? node()->objectName() : tr("REL!"),
              textRotate);
