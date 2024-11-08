@@ -25,6 +25,8 @@
 #include "../nodes/levercontactnode.h"
 #include "../../objects/lever/model/genericleverobject.h"
 
+#include "../../views/modemanager.h"
+
 #include <QPainter>
 
 LeverContactGraphItem::LeverContactGraphItem(LeverContactNode *node_)
@@ -59,8 +61,22 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
     QLineF contact1Line;
     QLineF contact2Line;
 
-    bool contact1On = node()->state() == LeverContactNode::State::Up;
-    bool contact2On = node()->state() == LeverContactNode::State::Down;
+    LeverContactNode::State state = node()->state();
+
+    if(node()->lever() &&
+            node()->modeMgr()->mode() != FileMode::Simulation)
+    {
+        // In static or editing mode,
+        // draw contact with lever in its normal state
+        const int leverNormalPos = node()->lever()->positionDesc().normalPositionIdx;
+
+        state = LeverContactNode::State::Down;
+        if(node()->isPositionOn(leverNormalPos))
+            state = LeverContactNode::State::Up;
+    }
+
+    bool contact1On = state == LeverContactNode::State::Up;
+    bool contact2On = state == LeverContactNode::State::Down;
     if(node()->swapContactState())
         std::swap(contact1On, contact2On);
 
@@ -476,34 +492,40 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
         leverColor = Qt::red;
     pen.setColor(leverColor);
 
-    // Draw lever line
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
-
-    double leverAngle = 0;
-
-    const int leverPos = node()->lever()->position();
-    if(positionDesc.isMiddle(leverPos))
+    const bool drawState = node()->modeMgr()->mode() == FileMode::Simulation;
+    if(drawState)
     {
-        // Average prev/next angles
-        const double prev = positionDesc.previewAngleFor(leverPos - 1);
-        const double next = positionDesc.previewAngleFor(leverPos + 1);
-        leverAngle = (prev + next) / 2.0;
-    }
-    else
-    {
-        leverAngle = positionDesc.previewAngleFor(leverPos);
-    }
+        // Draw current lever state only in Simulation
 
-    const double leverAngleRadiants = -qDegreesToRadians(leverAngle);
+        // Draw lever line
+        painter->setPen(pen);
+        painter->setBrush(Qt::NoBrush);
 
-    endPt = QPointF(qSin(leverAngleRadiants), qCos(leverAngleRadiants));
-    endPt *= -leverLength; // Negative to go upwards
-    endPt += leverCenter;
-    painter->drawLine(leverCenter, endPt);
+        double leverAngle = 0;
+
+        const int leverPos = node()->lever()->position();
+        if(positionDesc.isMiddle(leverPos))
+        {
+            // Average prev/next angles
+            const double prev = positionDesc.previewAngleFor(leverPos - 1);
+            const double next = positionDesc.previewAngleFor(leverPos + 1);
+            leverAngle = (prev + next) / 2.0;
+        }
+        else
+        {
+            leverAngle = positionDesc.previewAngleFor(leverPos);
+        }
+
+        const double leverAngleRadiants = -qDegreesToRadians(leverAngle);
+
+        endPt = QPointF(qSin(leverAngleRadiants), qCos(leverAngleRadiants));
+        endPt *= -leverLength; // Negative to go upwards
+        endPt += leverCenter;
+        painter->drawLine(leverCenter, endPt);
+    }
 
     // Draw circle
-    painter->setBrush(leverColor);
+    painter->setBrush(drawState ? leverColor : Qt::black);
     painter->setPen(Qt::NoPen);
     painter->drawEllipse(circle);
 }

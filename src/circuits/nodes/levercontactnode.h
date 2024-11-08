@@ -69,15 +69,14 @@ public:
     LeverPositionConditionSet conditionSet() const;
     void setConditionSet(const LeverPositionConditionSet &newConditionSet);
 
+    bool isPositionOn(int pos) const;
+
 signals:
     void stateChanged();
     void leverChanged(GenericLeverObject *l);
 
 private slots:
     void onLeverPositionChanged();
-
-private:
-    bool isPositionOn(int pos) const;
 
 private:
     GenericLeverObject *mLever = nullptr;
