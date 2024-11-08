@@ -173,11 +173,11 @@ void LeverContactNode::onLeverPositionChanged()
 
     if(mLever)
     {
-        s = State::Down;
+        s = State::Up;
 
         // TODO: there is no middle transitions
         if(isPositionOn(int(mLever->position())))
-            s = State::Up;
+            s = State::Down;
     }
 
     setState(s);

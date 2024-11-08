@@ -70,9 +70,9 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
         // draw contact with lever in its normal state
         const int leverNormalPos = node()->lever()->positionDesc().normalPositionIdx;
 
-        state = LeverContactNode::State::Down;
+        state = LeverContactNode::State::Up;
         if(node()->isPositionOn(leverNormalPos))
-            state = LeverContactNode::State::Up;
+            state = LeverContactNode::State::Down;
     }
 
     bool contact1On = state == LeverContactNode::State::Up;
@@ -488,7 +488,7 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
     }
 
     QColor leverColor = Qt::darkCyan;
-    if(node()->state() == LeverContactNode::Up)
+    if(node()->state() == LeverContactNode::Down)
         leverColor = Qt::red;
     pen.setColor(leverColor);
 
