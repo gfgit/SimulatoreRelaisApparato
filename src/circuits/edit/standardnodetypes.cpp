@@ -223,9 +223,13 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             lay->addRow(hasSecondContact);
 
             QObject::connect(hasSecondContact, &QCheckBox::toggled,
-                             node, [node](bool val)
+                             node, [node, hasSecondContact](bool val)
             {
                 node->setHasSecondConnector(val);
+
+                // It could have been rejected, check it
+                if(node->hasSecondConnector() != val)
+                    hasSecondContact->setChecked(val);
             });
 
             auto updDelayLambda =
