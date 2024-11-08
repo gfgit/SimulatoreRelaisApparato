@@ -43,11 +43,44 @@ public:
         GoingDown = 3
     };
 
+    enum class Type
+    {
+        Normal = 0,
+        Polarized,
+        PolarizedInverted,
+        Stabilized,
+        Combinator,
+        NTypes
+    };
+
+    static QString getTypeName(Type t);
+
     explicit AbstractRelais(QObject *parent = nullptr);
     ~AbstractRelais();
 
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
+
+    static bool isStateIndependent(Type t);
+
+    inline bool stateIndependent() const
+    {
+        return isStateIndependent(type());
+    }
+
+    inline bool canHaveTwoConnectors() const
+    {
+        if(type() == Type::Combinator)
+            return false; // We use 2 different tiles for it
+        return true;
+    }
+
+    inline bool mustHaveTwoConnectors() const
+    {
+        if(type() == Type::Stabilized)
+            return true;
+        return false;
+    }
 
     State state() const;
     void setState(State newState);
@@ -67,10 +100,25 @@ public:
     bool normallyUp() const;
     void setNormallyUp(bool newNormallyUp);
 
+    Type type() const;
+    void setType(Type newType);
+
+    inline int hasActivePowerUp() const
+    {
+        return mActivePowerNodesUp > 0;
+    }
+
+    inline int hasActivePowerDown() const
+    {
+        return mActivePowerNodesDown > 0;
+    }
+
 signals:
     void nameChanged(AbstractRelais *self, const QString& name);
     void settingsChanged(AbstractRelais *self);
     void stateChanged(AbstractRelais *self, State s);
+    void powerChanged(AbstractRelais *self);
+    void typeChanged(AbstractRelais *self, Type s);
 
 private:
     friend class RelaisPowerNode;
@@ -81,14 +129,17 @@ private:
     void addContactNode(RelaisContactNode *c);
     void removeContactNode(RelaisContactNode *c);
 
-    void powerNodeActivated(RelaisPowerNode *p);
-    void powerNodeDeactivated(RelaisPowerNode *p);
+    void powerNodeActivated(RelaisPowerNode *p, bool secondContact);
+    void powerNodeDeactivated(RelaisPowerNode *p, bool secondContact);
 
     void setPosition(double newPosition);
     void startMove(bool up);
 
 private:
     QString mName;
+
+    Type mType = Type::Normal;
+
     State mState = State::Down;
     State mInternalState = State::Down;
     bool mNormallyUp = true;
@@ -100,7 +151,8 @@ private:
     int mTimerId = 0;
 
     QVector<RelaisPowerNode *> mPowerNodes;
-    int mActivePowerNodes = 0;
+    int mActivePowerNodesUp = 0;
+    int mActivePowerNodesDown = 0;
 
     QVector<RelaisContactNode *> mContactNodes;
 };

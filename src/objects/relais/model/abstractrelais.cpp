@@ -29,6 +29,25 @@
 
 #include <QJsonObject>
 
+QString AbstractRelais::getTypeName(Type t)
+{
+    switch(t)
+    {
+    case Type::Normal:
+        return tr("Normal");
+    case Type::Polarized:
+        return tr("Polarized");
+    case Type::PolarizedInverted:
+        return tr("Polarized Inverted");
+    case Type::Stabilized:
+        return tr("Stabilized");
+    case Type::Combinator:
+        return tr("Combinator");
+    }
+
+    return QString();
+}
+
 AbstractRelais::AbstractRelais(QObject *parent)
     : QObject{parent}
 {
@@ -59,6 +78,7 @@ bool AbstractRelais::loadFromJSON(const QJsonObject &obj)
     setUpSpeed(obj.value("speed_up").toDouble());
     setDownSpeed(obj.value("speed_down").toDouble());
     setNormallyUp(obj.value("normally_up").toBool());
+    setType(Type(obj.value("relay_type").toInt(int(Type::Normal))));
     return true;
 }
 
@@ -68,6 +88,21 @@ void AbstractRelais::saveToJSON(QJsonObject &obj) const
     obj["speed_up"] = mUpSpeed;
     obj["speed_down"] = mDownSpeed;
     obj["normally_up"] = normallyUp();
+    obj["relay_type"] = int(type());
+}
+
+bool AbstractRelais::isStateIndependent(Type t)
+{
+    switch(t)
+    {
+    case AbstractRelais::Type::Stabilized:
+    case AbstractRelais::Type::Combinator:
+        return true;
+    default:
+        break;
+    }
+
+    return false;
 }
 
 QString AbstractRelais::name() const
@@ -176,33 +211,88 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
     QObject::timerEvent(e);
 }
 
-void AbstractRelais::powerNodeActivated(RelaisPowerNode *p)
+void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
 {
     Q_ASSERT(mPowerNodes.contains(p));
     Q_ASSERT(p->relais() == this);
-    Q_ASSERT(mActivePowerNodes < mPowerNodes.size());
 
-    mActivePowerNodes++;
-    if(mActivePowerNodes == 1)
+    const bool hadActiveUp = mActivePowerNodesUp > 0;
+    const bool hadActiveDown = mActivePowerNodesDown > 0;
+
+    if(stateIndependent() && secondContact)
     {
-        // Begin powering relais
-        // TODO
+        mActivePowerNodesDown++;
+    }
+    else
+    {
+        mActivePowerNodesUp++;
+    }
+
+    if(stateIndependent())
+    {
+        if(mActivePowerNodesDown == 0)
+        {
+            if((hadActiveDown || !hadActiveUp) && mActivePowerNodesUp > 0)
+            {
+                startMove(true);
+            }
+        }
+        else if(!hadActiveDown)
+        {
+            // Down circuit wins always if present
+            startMove(false);
+        }
+    }
+    else if(mActivePowerNodesUp == 1)
+    {
+        // Begin powering normal relais
         startMove(true);
     }
+
+    emit powerChanged(this);
 }
 
-void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p)
+void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact)
 {
     Q_ASSERT(mPowerNodes.contains(p));
     Q_ASSERT(p->relais() == this);
-    Q_ASSERT(mActivePowerNodes > 0);
 
-    mActivePowerNodes--;
-    if(mActivePowerNodes == 0)
+    const bool hadActiveUp = mActivePowerNodesUp > 0;
+    const bool hadActiveDown = mActivePowerNodesDown > 0;
+
+    if(stateIndependent() && secondContact)
     {
-        // End powering relais
+        Q_ASSERT(mActivePowerNodesDown > 0);
+        mActivePowerNodesDown--;
+    }
+    else
+    {
+        Q_ASSERT(mActivePowerNodesUp > 0);
+        mActivePowerNodesUp--;
+    }
+
+    if(stateIndependent())
+    {
+        if(mActivePowerNodesDown == 0)
+        {
+            if((hadActiveDown || !hadActiveUp) && mActivePowerNodesUp > 0)
+            {
+                startMove(true);
+            }
+        }
+        else if(!hadActiveDown)
+        {
+            // Down circuit wins always if present
+            startMove(false);
+        }
+    }
+    else if(mActivePowerNodesUp == 0)
+    {
+        // End powering normal relais
         startMove(false);
     }
+
+    emit powerChanged(this);
 }
 
 void AbstractRelais::setPosition(double newPosition)
@@ -231,6 +321,21 @@ void AbstractRelais::startMove(bool up)
     mInternalState = up ? State::GoingUp : State::GoingDown;
     killTimer(mTimerId);
     mTimerId = startTimer(250);
+}
+
+AbstractRelais::Type AbstractRelais::type() const
+{
+    return mType;
+}
+
+void AbstractRelais::setType(Type newType)
+{
+    if(mType == newType)
+        return;
+
+    mType = newType;
+    emit settingsChanged(this);
+    emit typeChanged(this, mType);
 }
 
 bool AbstractRelais::normallyUp() const

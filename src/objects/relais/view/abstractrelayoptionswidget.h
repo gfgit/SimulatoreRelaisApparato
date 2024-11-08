@@ -27,6 +27,7 @@
 
 class QLineEdit;
 class QCheckBox;
+class QComboBox;
 
 class AbstractRelais;
 class RelaisModel;
@@ -52,6 +53,8 @@ private:
 
     QLineEdit *mNameEdit = nullptr;
     QCheckBox *mNormallyUp = nullptr;
+
+    QComboBox *mTypeCombo = nullptr;
 
     QPalette normalEditPalette;
 };

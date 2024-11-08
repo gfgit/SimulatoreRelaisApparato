@@ -54,27 +54,36 @@ public:
     int delayDownSeconds() const;
     void setDelayDownSeconds(int newDelayDownSeconds);
 
+    bool hasSecondConnector() const;
+    void setHasSecondConnector(bool newHasSecondConnector);
+
 signals:
     void relayChanged(AbstractRelais *r);
     void delaysChanged();
+
+private slots:
+    void onRelayTypeChanged();
 
 protected:
     void timerEvent(QTimerEvent *e);
 
 private:
-    void activateRelay();
-    void deactivateRelay();
-    void stopTimer();
+    void activateRelay(int contact);
+    void deactivateRelay(int contact);
+    void stopTimer(int contact);
 
 private:
+    // Settings
     AbstractRelais *mRelais = nullptr;
 
     int mDelayUpSeconds = 0;
     int mDelayDownSeconds = 0;
+    bool mHasSecondConnector = false;
 
-    int mTimerId = 0;
-    bool wasGoingUp = true;
-    bool mIsUp = false;
+    // State
+    int mTimerIds[2] = {0, 0};
+    bool wasGoingUp[2] = {true, true};
+    bool mIsUp[2] = {false, false};
 };
 
 #endif // RELAISPOWERNODE_H

@@ -219,13 +219,28 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                 node->setDelayDownSeconds(val);
             });
 
-            auto updDelayLambda = [delayUpSeconds, delayDownSeconds, node]()
+            QCheckBox *hasSecondContact = new QCheckBox(tr("Has second contact"));
+            lay->addRow(hasSecondContact);
+
+            QObject::connect(hasSecondContact, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setHasSecondConnector(val);
+            });
+
+            auto updDelayLambda =
+                    [delayUpSeconds, delayDownSeconds,
+                    hasSecondContact,
+                    node]()
             {
                 delayUpSeconds->setValue(node->delayUpSeconds());
                 delayDownSeconds->setValue(node->delayDownSeconds());
+                hasSecondContact->setChecked(node->hasSecondConnector());
             };
 
             QObject::connect(node, &RelaisPowerNode::delaysChanged,
+                             w, updDelayLambda);
+            QObject::connect(node, &RelaisPowerNode::shapeChanged,
                              w, updDelayLambda);
             updDelayLambda();
 

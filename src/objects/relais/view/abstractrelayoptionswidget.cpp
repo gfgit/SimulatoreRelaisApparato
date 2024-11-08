@@ -28,6 +28,9 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QComboBox>
+
+#include <QStringListModel>
 
 AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(RelaisModel *m,
                                                        AbstractRelais *relay,
@@ -51,6 +54,19 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(RelaisModel *m,
     mNormallyUp->setChecked(mRelay->normallyUp());
     lay->addWidget(mNormallyUp);
 
+    // Type
+    mTypeCombo = new QComboBox;
+    lay->addRow(tr("Type:"), mTypeCombo);
+
+    QStringList typeList;
+    typeList.reserve(int(AbstractRelais::Type::NTypes));
+    for(int i = 0; i < int(AbstractRelais::Type::NTypes); i++)
+    {
+        typeList.append(AbstractRelais::getTypeName(AbstractRelais::Type(i)));
+    }
+    QStringListModel *typeModel = new QStringListModel(typeList, mTypeCombo);
+    mTypeCombo->setModel(typeModel);
+    mTypeCombo->setCurrentIndex(int(mRelay->type()));
 
     connect(mNameEdit, &QLineEdit::editingFinished,
             this, &AbstractRelayOptionsWidget::setRelaisName);
@@ -61,6 +77,12 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(RelaisModel *m,
             this, [this](bool val)
     {
         mRelay->setNormallyUp(val);
+    });
+
+    connect(mTypeCombo, &QComboBox::activated,
+            this, [this](int idx)
+    {
+        mRelay->setType(AbstractRelais::Type(idx));
     });
 }
 

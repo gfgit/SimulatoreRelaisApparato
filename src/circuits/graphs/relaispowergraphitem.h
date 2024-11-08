@@ -43,6 +43,18 @@ public:
 
     RelaisPowerNode *node() const;
 
+    inline TileRotate twoConnectorsRotate() const
+    {
+        // Always put connectors horizontal
+        // We ignore other rotations otherwise we cannot draw name :(
+        TileRotate r = rotate();
+        if(r == TileRotate::Deg90)
+            r = TileRotate::Deg0;
+        else if(r == TileRotate::Deg270)
+            r = TileRotate::Deg180;
+        return r;
+    }
+
 private slots:
     void updateRelay();
 

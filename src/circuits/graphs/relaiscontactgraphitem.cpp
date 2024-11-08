@@ -59,19 +59,25 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     QLineF contact1Line;
     QLineF contact2Line;
 
+    RelaisContactNode::State state = node()->state();
+    if(node()->modeMgr()->mode() != FileMode::Simulation)
+    {
+        // In static or editing mode,
+        // draw relay in its normal state
+        // unlsess user choses to hide state for this node
+        state = RelaisContactNode::State::Down;
+
+        if(node()->relais() && node()->relais()->normallyUp())
+        {
+            if(!node()->hideRelayNormalState())
+                state = RelaisContactNode::State::Up;
+        }
+    }
+
     bool contact1On = node()->state() == RelaisContactNode::State::Up;
     bool contact2On = node()->state() == RelaisContactNode::State::Down;
     if(node()->swapContactState())
         std::swap(contact1On, contact2On);
-
-    if(!node()->hideRelayNormalState()
-            && node()->modeMgr()->mode() != FileMode::Simulation)
-    {
-        // In static or editing mode,
-        // draw relay in its normal state
-        if(node()->relais() && node()->relais()->normallyUp())
-            std::swap(contact1On, contact2On);
-    }
 
     int startAngle = 0;
     int endAngle = 0;
@@ -371,8 +377,8 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
     case Connector::Direction::North:
         arrowRect.setLeft(textBr.right() + 5.0);
         arrowRect.setWidth(10.0);
-        arrowRect.setBottom(TileLocation::HalfSize - 12.0);
         arrowRect.setTop(10.0);
+        arrowRect.setBottom(TileLocation::HalfSize - 12.0);
         break;
 
     case Connector::Direction::South:

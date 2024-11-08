@@ -25,6 +25,8 @@
 #include "../nodes/relaispowernode.h"
 #include "../../objects/relais/model/abstractrelais.h"
 
+#include "../../views/modemanager.h"
+
 #include <QPainter>
 
 RelaisPowerGraphItem::RelaisPowerGraphItem(RelaisPowerNode *node_)
@@ -55,32 +57,49 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
                                   morsettiOffset, center.y());
 
     QLineF commonLine;
+    QLineF secondLine;
     QRectF relayRect;
     relayRect.setSize(QSizeF(relayRadius * 2.0, relayRadius * 2.0));
     relayRect.moveCenter(center);
 
-    switch (toConnectorDirection(rotate()))
+    TileRotate r = rotate();
+    if(node()->hasSecondConnector())
+        r = twoConnectorsRotate() + TileRotate::Deg90;
+
+    switch (toConnectorDirection(r))
     {
     case Connector::Direction::North:
         commonLine = centerToNorth;
+        secondLine = centerToSouth;
         break;
 
     case Connector::Direction::South:
         commonLine = centerToSouth;
+        secondLine = centerToNorth;
         break;
 
     case Connector::Direction::East:
         commonLine = centerToEast;
+        secondLine = centerToWest;
         break;
 
     case Connector::Direction::West:
         commonLine = centerToWest;
+        secondLine = centerToEast;
         break;
     default:
         break;
     }
 
-    drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
+    if(node()->hasSecondConnector())
+    {
+        drawMorsetti(painter, 0, twoConnectorsRotate() + TileRotate::Deg90);
+        drawMorsetti(painter, 1, twoConnectorsRotate() + TileRotate::Deg270);
+    }
+    else
+    {
+        drawMorsetti(painter, 0, r + TileRotate::Deg0);
+    }
 
     // Now draw wires
     painter->setBrush(Qt::NoBrush);
@@ -100,9 +119,18 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
-    QColor color = colors[int(AnyCircuitType::None)]; // Black
-    if(node()->relais())
+    if(node()->hasSecondConnector())
     {
+        // Draw second contact (1)
+        pen.setColor(colors[int(node()->hasAnyCircuit(1))]);
+        painter->setPen(pen);
+        painter->drawLine(secondLine);
+    }
+
+    QColor color = colors[int(AnyCircuitType::None)]; // Black
+    if(node()->relais() && node()->modeMgr()->mode() == FileMode::Simulation)
+    {
+        // Draw relay color only during simulation
         switch (node()->relais()->state())
         {
         case AbstractRelais::State::Up:
@@ -120,6 +148,89 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     pen.setWidthF(3.0);
     pen.setColor(color);
+
+    if(node()->relais())
+    {
+        switch (node()->relais()->type())
+        {
+        case AbstractRelais::Type::Stabilized:
+        {
+            // Stabilized relais have a slice
+            // The slice represent the permanent magnet
+            // We use it instead to show disabling coil,
+            // which if active brings the relay down.
+            const QColor coilColor = qRgb(255, 140, 140);
+            QColor downCoilColor = Qt::black;
+
+            painter->setPen(Qt::NoPen);
+
+            int upCoilAngleStart = -90 * 16;
+            if(toConnectorDirection(r) == Connector::Direction::West)
+            {
+                upCoilAngleStart += 180 * 16;
+            }
+
+            if(node()->modeMgr()->mode() == FileMode::Simulation)
+            {
+                // Draw it in black if off, in light red if on
+                if(node()->relais()->hasActivePowerDown())
+                {
+                    downCoilColor = coilColor;
+                }
+                else if(node()->relais()->hasActivePowerUp())
+                {
+                    // Only if in simulation and if down coil is off
+                    // Draw up coil in light red if active
+                    painter->setBrush(coilColor);
+                    painter->drawPie(relayRect, upCoilAngleStart, 180 * 16);
+                }
+            }
+
+            // Draw slice on second connector side
+            painter->setBrush(downCoilColor);
+            painter->drawPie(relayRect,
+                             upCoilAngleStart - 180 * 16,
+                             180 * 16);
+            break;
+        }
+        case AbstractRelais::Type::Polarized:
+        case AbstractRelais::Type::PolarizedInverted:
+        {
+            // Draw a diode symbol inside relay circle
+            const double halfHeight = relayRadius * 0.6;
+            QPointF triangle[3] =
+            {
+                {TileLocation::HalfSize - halfHeight, TileLocation::HalfSize},
+                {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize - halfHeight},
+                {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize + halfHeight}
+            };
+
+            if(node()->relais()->type() == AbstractRelais::Type::PolarizedInverted)
+            {
+                // Invert diode
+                std::swap(triangle[0].rx(), triangle[1].rx());
+                triangle[2].rx() = triangle[1].x();
+            }
+
+            // Diode triangle
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(color);
+            painter->drawPolygon(triangle, 3);
+
+            painter->setPen(pen);
+            painter->setBrush(Qt::NoBrush);
+
+            // Diode vertical line
+            painter->drawLine(QLineF(triangle[0].x(), triangle[1].y(),
+                                     triangle[0].x(), triangle[2].y()));
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
 
@@ -136,16 +247,23 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         painter->drawLine(relayRect.bottomLeft(), relayRect.bottomRight());
     }
 
-    // Draw state arrow
-    TileRotate arrowRotate = TileRotate::Deg90;
-    if(rotate() == TileRotate::Deg90)
-        arrowRotate = TileRotate::Deg270;
-    drawRelayArrow(painter, arrowRotate, color);
-
-    // Draw name
+    // Draw name and state arrow
     TileRotate textRotate = TileRotate::Deg90;
-    if(rotate() == TileRotate::Deg0)
-        textRotate = TileRotate::Deg270;
+    TileRotate arrowRotate = TileRotate::Deg90;
+    if(node()->hasSecondConnector())
+    {
+        textRotate = twoConnectorsRotate() + TileRotate::Deg90;
+        arrowRotate = textRotate + TileRotate::Deg90;
+    }
+    else
+    {
+        if(r == TileRotate::Deg0)
+            textRotate = TileRotate::Deg270;
+        if(r == TileRotate::Deg90)
+            arrowRotate = TileRotate::Deg270;
+    }
+
+    drawRelayArrow(painter, arrowRotate, color);
 
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
@@ -156,7 +274,17 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
 void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
-    connectors.emplace_back(location(), rotate(), 0);
+    if(node()->hasSecondConnector())
+    {
+        // Always put connectors horizontal
+        // We ignore other rotations otherwise we cannot draw name :(
+        connectors.emplace_back(location(), twoConnectorsRotate() + TileRotate::Deg90, 0);
+        connectors.emplace_back(location(), twoConnectorsRotate() + TileRotate::Deg270, 1);
+    }
+    else
+    {
+        connectors.emplace_back(location(), rotate(), 0);
+    }
 }
 
 void RelaisPowerGraphItem::updateRelay()
@@ -168,6 +296,8 @@ void RelaisPowerGraphItem::updateRelay()
     {
         disconnect(mRelay, &AbstractRelais::stateChanged,
                    this, &RelaisPowerGraphItem::triggerUpdate);
+        disconnect(mRelay, &AbstractRelais::powerChanged,
+                   this, &RelaisPowerGraphItem::triggerUpdate);
     }
 
     mRelay = node()->relais();
@@ -175,6 +305,8 @@ void RelaisPowerGraphItem::updateRelay()
     if(mRelay)
     {
         connect(mRelay, &AbstractRelais::stateChanged,
+                this, &RelaisPowerGraphItem::triggerUpdate);
+        connect(mRelay, &AbstractRelais::powerChanged,
                 this, &RelaisPowerGraphItem::triggerUpdate);
     }
 
@@ -201,6 +333,20 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
 
     switch (toConnectorDirection(r))
     {
+    case Connector::Direction::North:
+        arrowRect.setLeft(10.0);
+        arrowRect.setRight(TileLocation::HalfSize);
+        arrowRect.setTop(15.0);
+        arrowRect.setBottom(TileLocation::HalfSize - relayRadius + 5.0);
+        break;
+
+    case Connector::Direction::South:
+        arrowRect.setLeft(10.0);
+        arrowRect.setRight(TileLocation::HalfSize);
+        arrowRect.setTop(TileLocation::HalfSize + relayRadius - 5.0);
+        arrowRect.setBottom(TileLocation::Size - 15.0);
+        break;
+
     case Connector::Direction::East:
         arrowRect.setLeft(TileLocation::HalfSize + relayRadius + 5.0);
         arrowRect.setRight(TileLocation::Size - 5.0);
