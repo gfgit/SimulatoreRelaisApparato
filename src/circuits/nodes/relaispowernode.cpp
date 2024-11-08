@@ -364,4 +364,7 @@ void RelaisPowerNode::onRelayTypeChanged()
 
     // Update having second connector
     setHasSecondConnector(hasSecondConnector());
+
+    // Emit regardless to update visual drawing
+    emit shapeChanged();
 }
