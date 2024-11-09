@@ -23,11 +23,11 @@
 #ifndef ACEIBUTTONGRAPHITEM_H
 #define ACEIBUTTONGRAPHITEM_H
 
-#include "abstractnodegraphitem.h"
+#include "abstractdeviatorgraphitem.h"
 
 class ACEIButtonNode;
 
-class ACEIButtonGraphItem : public AbstractNodeGraphItem
+class ACEIButtonGraphItem : public AbstractDeviatorGraphItem
 {
     Q_OBJECT
 public:
@@ -37,13 +37,16 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    void getConnectors(std::vector<Connector>& connectors) const final;
-
     ACEIButtonNode *node() const;
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
+
+    void drawCustomArc(QPainter *painter,
+                       const QLineF &contact1Line,
+                       const QLineF &contact2Line,
+                       const QPointF &center) override;
 };
 
 #endif // ACEIBUTTONGRAPHITEM_H

@@ -78,6 +78,4 @@ void ACEIButtonNode::setState(State newState)
     setContactState(mState == State::Pressed,
                     mState == State::Normal
                     || mState == State::Pressed);
-
-    emit stateChanged();
 }

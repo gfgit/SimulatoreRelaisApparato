@@ -115,8 +115,8 @@ void LeverContactNode::onLeverPositionChanged()
 
     setState(s);
 
-    // Refresh every lever position change
-    emit stateChanged();
+    // Refresh at every lever position change
+    emit deviatorStateChanged();
 }
 
 bool LeverContactNode::isPositionOn(int pos) const
@@ -151,8 +151,6 @@ void LeverContactNode::setState(State newState)
 
     setContactState(mState == State::Up,
                     mState == State::Down);
-
-    emit stateChanged();
 }
 
 LeverPositionConditionSet LeverContactNode::conditionSet() const

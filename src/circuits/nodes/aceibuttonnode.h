@@ -48,9 +48,6 @@ public:
     State state() const;
     void setState(State newState);
 
-signals:
-    void stateChanged();
-
 private:
     State mState = State::Normal;
 };

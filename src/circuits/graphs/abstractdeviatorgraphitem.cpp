@@ -29,7 +29,7 @@
 AbstractDeviatorGraphItem::AbstractDeviatorGraphItem(AbstractDeviatorNode *node_)
     : AbstractNodeGraphItem{node_}
 {
-    connect(deviatorNode(), &AbstractDeviatorNode::dev,
+    connect(deviatorNode(), &AbstractDeviatorNode::deviatorStateChanged,
             this, &AbstractDeviatorGraphItem::triggerUpdate);
 }
 
@@ -52,7 +52,7 @@ void AbstractDeviatorGraphItem::getConnectors(std::vector<Connector> &connectors
 
 AbstractDeviatorNode *AbstractDeviatorGraphItem::deviatorNode() const
 {
-    return static_cast<AbstractDeviatorNode *>(getAbstractdeviatorNode());
+    return static_cast<AbstractDeviatorNode *>(getAbstractNode());
 }
 
 void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn)
@@ -187,16 +187,29 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     pen.setCapStyle(Qt::FlatCap);
     pen.setJoinStyle(Qt::MiterJoin);
 
+    // Draw black custom arc below everything
     pen.setColor(colors[int(AnyCircuitType::None)]);
     painter->setPen(pen);
 
+    drawCustomArc(painter, contact1Line, contact2Line, center);
+
     // Draw full switch arc below wires
-    // On relay contact, the 2 contacts cannot be
-    // turned on at same time, so arc is always black
     const QRectF arcRect(center.x() - arcRadius,
                          center.y() - arcRadius,
                          arcRadius * 2, arcRadius * 2);
 
+    // Default to black arc
+    if((contactUpOn && contactDownOn))
+    {
+        // Both sides are turned on, draw color on switch arc
+        // Set correct pen if has also closed circuits
+        if(deviatorNode()->hasCircuits(CircuitType::Closed))
+            pen.setColor(colors[int(AnyCircuitType::Closed)]);
+        else if(deviatorNode()->hasCircuits(CircuitType::Open))
+            pen.setColor(colors[int(AnyCircuitType::Open)]);
+    }
+
+    painter->setPen(pen);
     painter->drawArc(arcRect,
                      startAngle * 16,
                      arcLength * 16);
@@ -321,4 +334,16 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
                          topArcStart * 16,
                          (arcLength / 2) * 16);
     }
+}
+
+void AbstractDeviatorGraphItem::drawCustomArc(QPainter *painter,
+                                              const QLineF &contact1Line,
+                                              const QLineF &contact2Line,
+                                              const QPointF &center)
+{
+    Q_UNUSED(painter)
+    Q_UNUSED(contact1Line)
+    Q_UNUSED(contact2Line)
+    Q_UNUSED(center)
+    // Reimplemented in subclasses
 }

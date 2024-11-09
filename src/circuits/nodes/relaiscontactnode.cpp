@@ -122,8 +122,6 @@ void RelaisContactNode::setState(State newState)
 
     setContactState(mState == State::Up,
                     mState == State::Down);
-
-    emit stateChanged();
 }
 
 void RelaisContactNode::onRelaisStateChanged()

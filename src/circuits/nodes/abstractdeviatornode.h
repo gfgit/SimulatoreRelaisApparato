@@ -54,7 +54,16 @@ public:
     bool hasCentralConnector() const;
     void setHasCentralConnector(bool newHasCentralConnector);
 
-    bool isContactOn(int contact) const;
+    inline bool isContactOn(int contact) const
+    {
+        Q_ASSERT(contact >= 0 && contact < NContacts);
+
+        if(contact == CommonIdx)
+            return true; // Common is always on
+
+        // We do not store common, so -1
+        return mContactOnArr[contact - 1];
+    }
 
     bool allowSwap() const;
 

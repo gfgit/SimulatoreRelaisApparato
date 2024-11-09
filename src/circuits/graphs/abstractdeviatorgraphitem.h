@@ -43,9 +43,14 @@ public:
 
     AbstractDeviatorNode *deviatorNode() const;
 
-private:
+protected:
     // Contacts must be already swapped
     void drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn);
+
+    virtual void drawCustomArc(QPainter *painter,
+                               const QLineF& contact1Line,
+                               const QLineF& contact2Line,
+                               const QPointF& center);
 };
 
 #endif // ABSTRACTDEVIATORGRAPHITEM_H

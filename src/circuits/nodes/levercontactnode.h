@@ -61,7 +61,6 @@ public:
     bool isPositionOn(int pos) const;
 
 signals:
-    void stateChanged();
     void leverChanged(GenericLeverObject *l);
 
 private slots:

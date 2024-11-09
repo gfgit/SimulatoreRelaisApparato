@@ -57,7 +57,6 @@ public:
     void setHideRelayNormalState(bool newHideRelayNormalState);
 
 signals:
-    void stateChanged();
     void relayChanged(AbstractRelais *r);
 
 private slots:

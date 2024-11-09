@@ -23,11 +23,11 @@
 #ifndef LEVERCONTACTGRAPHITEM_H
 #define LEVERCONTACTGRAPHITEM_H
 
-#include "abstractnodegraphitem.h"
+#include "abstractdeviatorgraphitem.h"
 
 class LeverContactNode;
 
-class LeverContactGraphItem : public AbstractNodeGraphItem
+class LeverContactGraphItem : public AbstractDeviatorGraphItem
 {
     Q_OBJECT
 public:
@@ -36,8 +36,6 @@ public:
     LeverContactGraphItem(LeverContactNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
-
-    void getConnectors(std::vector<Connector>& connectors) const final;
 
     LeverContactNode *node() const;
 

@@ -203,17 +203,6 @@ void AbstractDeviatorNode::setHasCentralConnector(bool newHasCentralConnector)
     }
 }
 
-bool AbstractDeviatorNode::isContactOn(int contact) const
-{
-    Q_ASSERT(contact >= 0 && contact < NContacts);
-
-    if(contact == CommonIdx)
-        return true; // Common is always on
-
-    // We do not store common, so -1
-    return mContactOnArr[contact - 1];
-}
-
 void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
 {
     if(mSwapContactState)
