@@ -5,6 +5,8 @@ set(PROJECT_SOURCES
 
     circuits/graphs/abstractnodegraphitem.cpp
     circuits/graphs/abstractnodegraphitem.h
+    circuits/graphs/abstractdeviatorgraphitem.cpp
+    circuits/graphs/abstractdeviatorgraphitem.h
     circuits/graphs/aceibuttongraphitem.cpp
     circuits/graphs/aceibuttongraphitem.h
     circuits/graphs/cablegraphitem.cpp

@@ -277,6 +277,8 @@ void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
     {
         ElectricCircuit::defaultReachNextOpenCircuit(this);
     }
+
+    emit deviatorStateChanged();
 }
 
 bool AbstractDeviatorNode::allowSwap() const
