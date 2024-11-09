@@ -58,6 +58,7 @@
 
 #include <QCheckBox>
 #include <QSpinBox>
+#include <QLabel>
 
 #include "../../views/modemanager.h"
 
@@ -78,6 +79,71 @@ AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
 
     Graph *graph = new Graph(node);
     return graph;
+}
+
+QWidget *defaultDeviatorEdit(AbstractDeviatorGraphItem *item, ModeManager *mgr)
+{
+    AbstractDeviatorNode *node = item->deviatorNode();
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    QCheckBox *flipContact = new QCheckBox(StandardNodeTypes::tr("Flip contact"));
+    lay->addRow(flipContact);
+
+    QObject::connect(flipContact, &QCheckBox::toggled,
+                     node, [node, flipContact](bool val)
+    {
+        node->setFlipContact(val);
+
+        // It could have been rejected, check it
+        if(node->flipContact() != val)
+            flipContact->setChecked(val);
+    });
+
+    QCheckBox *swapContacts = new QCheckBox(StandardNodeTypes::tr("Swap contact state"));
+    lay->addRow(swapContacts);
+
+    QObject::connect(swapContacts, &QCheckBox::toggled,
+                     node, [node, swapContacts](bool val)
+    {
+        node->setSwapContactState(val);
+
+        // It could have been rejected, check it
+        if(node->swapContactState() != val)
+            swapContacts->setChecked(val);
+    });
+
+    QCheckBox *hasCentralConn = new QCheckBox(StandardNodeTypes::tr("Has central connector"));
+    lay->addRow(hasCentralConn);
+
+    QObject::connect(hasCentralConn, &QCheckBox::toggled,
+                     node, [node, hasCentralConn](bool val)
+    {
+        node->setHasCentralConnector(val);
+
+        // It could have been rejected, check it
+        if(node->hasCentralConnector() != val)
+            hasCentralConn->setChecked(val);
+    });
+
+    auto updLambda =
+            [flipContact, swapContacts,
+            hasCentralConn, node]()
+    {
+        flipContact->setChecked(node->flipContact());
+        swapContacts->setChecked(node->swapContactState());
+        hasCentralConn->setChecked(node->hasCentralConnector());
+
+        swapContacts->setVisible(node->allowSwap());
+        hasCentralConn->setVisible(node->canChangeCentralConnector());
+    };
+
+    QObject::connect(node, &AbstractDeviatorNode::shapeChanged,
+                     w, updLambda);
+    updLambda();
+
+    return w;
 }
 
 void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
@@ -277,35 +343,12 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             relayEdit->setRelais(node->relais());
             lay->addRow(tr("Relay:"), relayEdit);
 
-            QCheckBox *flipContact = new QCheckBox(tr("Flip contact"));
-            lay->addRow(flipContact);
-
-            QObject::connect(flipContact, &QCheckBox::toggled,
-                             node, [node](bool val)
-            {
-                node->setFlipContact(val);
-            });
-
-            QCheckBox *swapContacts = new QCheckBox(tr("Swap contact state"));
-            lay->addRow(swapContacts);
-
-            QObject::connect(swapContacts, &QCheckBox::toggled,
-                             node, [node](bool val)
-            {
-                node->setSwapContactState(val);
-            });
-
-            QCheckBox *hasCentralConn = new QCheckBox(tr("Has central connector"));
-            lay->addRow(hasCentralConn);
-
-            QObject::connect(hasCentralConn, &QCheckBox::toggled,
-                             node, [node](bool val)
-            {
-                node->setHasCentralConnector(val);
-            });
+            // Deviator
+            lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
+                                               mgr));
 
             QCheckBox *hideRelayNormal = new QCheckBox(tr("Hide relay normal state"));
-            lay->addRow(hideRelayNormal);
+            lay->addWidget(hideRelayNormal);
 
             QObject::connect(hideRelayNormal, &QCheckBox::toggled,
                              node, [node](bool val)
@@ -314,13 +357,8 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             });
 
             auto updLambda =
-                    [flipContact, swapContacts,
-                    hasCentralConn, hideRelayNormal,
-                    node]()
+                    [hideRelayNormal, node]()
             {
-                flipContact->setChecked(node->flipContact());
-                swapContacts->setChecked(node->swapContactState());
-                hasCentralConn->setChecked(node->hasCentralConnector());
                 hideRelayNormal->setChecked(node->hideRelayNormalState());
             };
 
@@ -348,23 +386,9 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QWidget *w = new QWidget;
             QFormLayout *lay = new QFormLayout(w);
 
-            QCheckBox *flipContact = new QCheckBox(tr("Flip contact"));
-            lay->addRow(flipContact);
-
-            QObject::connect(flipContact, &QCheckBox::toggled,
-                             node, [node](bool val)
-            {
-                node->setFlipContact(val);
-            });
-
-            auto updLambda = [flipContact, node]()
-            {
-                flipContact->setChecked(node->flipContact());
-            };
-
-            QObject::connect(node, &ACEIButtonNode::shapeChanged,
-                             w, updLambda);
-            updLambda();
+            // Deviator
+            lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
+                                               mgr));
 
             return w;
         };
@@ -434,43 +458,9 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             leverEdit->setLever(node->lever());
             lay->addRow(tr("Lever:"), leverEdit);
 
-            QCheckBox *flipContact = new QCheckBox(tr("Flip contact"));
-            lay->addRow(flipContact);
-
-            QObject::connect(flipContact, &QCheckBox::toggled,
-                             node, [node](bool val)
-            {
-                node->setFlipContact(val);
-            });
-
-            QCheckBox *swapContacts = new QCheckBox(tr("Swap contact state"));
-            lay->addRow(swapContacts);
-
-            QObject::connect(swapContacts, &QCheckBox::toggled,
-                             node, [node](bool val)
-            {
-                node->setSwapContactState(val);
-            });
-
-            QCheckBox *hasCentralConn = new QCheckBox(tr("Has central connector"));
-            lay->addRow(hasCentralConn);
-
-            QObject::connect(hasCentralConn, &QCheckBox::toggled,
-                             node, [node](bool val)
-            {
-                node->setHasCentralConnector(val);
-            });
-
-            auto updLambda = [flipContact, swapContacts, hasCentralConn, node]()
-            {
-                flipContact->setChecked(node->flipContact());
-                swapContacts->setChecked(node->swapContactState());
-                hasCentralConn->setChecked(node->hasCentralConnector());
-            };
-
-            QObject::connect(node, &RelaisContactNode::shapeChanged,
-                             w, updLambda);
-            updLambda();
+            // Deviator
+            lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
+                                               mgr));
 
             // Conditions
             LeverContactConditionsModel *conditionsModel =
@@ -478,7 +468,8 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             LeverContactConditionsView *conditionsView =
                     new LeverContactConditionsView;
-            lay->addRow(tr("Conditions"), conditionsView);
+            lay->addWidget(new QLabel(tr("Conditions")));
+            lay->addWidget(conditionsView);
 
             conditionsView->setModel(conditionsModel);
 

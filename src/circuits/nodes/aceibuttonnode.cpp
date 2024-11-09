@@ -34,6 +34,7 @@ ACEIButtonNode::ACEIButtonNode(ModeManager *mgr, QObject *parent)
     // Pressed (Deviator Up contact)
     // Normal  (Deviator Down contact)
     setAllowSwap(false);
+    setCanChangeCentralConnector(false);
 
     // Default state
     setContactState(mState == State::Pressed,
