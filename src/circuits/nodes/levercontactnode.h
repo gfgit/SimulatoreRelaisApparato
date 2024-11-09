@@ -23,13 +23,13 @@
 #ifndef LEVERCONTACTNODE_H
 #define LEVERCONTACTNODE_H
 
-#include "abstractcircuitnode.h"
+#include "abstractdeviatornode.h"
 
 #include "../../enums/genericleverposition.h"
 
 class GenericLeverObject;
 
-class LeverContactNode : public AbstractCircuitNode
+class LeverContactNode : public AbstractDeviatorNode
 {
     Q_OBJECT
 public:
@@ -43,8 +43,6 @@ public:
     explicit LeverContactNode(ModeManager *mgr, QObject *parent = nullptr);
     ~LeverContactNode();
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
-
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
@@ -56,15 +54,6 @@ public:
 
     State state() const;
     void setState(State newState);
-
-    bool swapContactState() const;
-    void setSwapContactState(bool newSwapContactState);
-
-    bool flipContact() const;
-    void setFlipContact(bool newFlipContact);
-
-    bool hasCentralConnector() const;
-    void setHasCentralConnector(bool newHasCentralConnector);
 
     LeverPositionConditionSet conditionSet() const;
     void setConditionSet(const LeverPositionConditionSet &newConditionSet);
@@ -84,9 +73,6 @@ private:
     LeverPositionConditionSet mConditionSet;
 
     State mState = State::Middle;
-    bool mFlipContact = false;
-    bool mSwapContactState = false;
-    bool mHasCentralConnector = true;
 };
 
 #endif // LEVERCONTACTNODE_H

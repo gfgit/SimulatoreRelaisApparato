@@ -5,6 +5,8 @@ set(PROJECT_SOURCES
 
     circuits/nodes/abstractcircuitnode.cpp
     circuits/nodes/abstractcircuitnode.h
+    circuits/nodes/abstractdeviatornode.cpp
+    circuits/nodes/abstractdeviatornode.h
     circuits/nodes/aceibuttonnode.cpp
     circuits/nodes/aceibuttonnode.h
     circuits/nodes/circuitcable.cpp

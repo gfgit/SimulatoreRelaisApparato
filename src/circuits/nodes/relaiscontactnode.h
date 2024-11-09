@@ -23,11 +23,11 @@
 #ifndef RELAISCONTACTNODE_H
 #define RELAISCONTACTNODE_H
 
-#include "abstractcircuitnode.h"
+#include "abstractdeviatornode.h"
 
 class AbstractRelais;
 
-class RelaisContactNode : public AbstractCircuitNode
+class RelaisContactNode : public AbstractDeviatorNode
 {
     Q_OBJECT
 public:
@@ -41,8 +41,6 @@ public:
     explicit RelaisContactNode(ModeManager *mgr, QObject *parent = nullptr);
     ~RelaisContactNode();
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
-
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
@@ -54,15 +52,6 @@ public:
 
     State state() const;
     void setState(State newState);
-
-    bool swapContactState() const;
-    void setSwapContactState(bool newSwapContactState);
-
-    bool flipContact() const;
-    void setFlipContact(bool newFlipContact);
-
-    bool hasCentralConnector() const;
-    void setHasCentralConnector(bool newHasCentralConnector);
 
     bool hideRelayNormalState() const;
     void setHideRelayNormalState(bool newHideRelayNormalState);
@@ -77,9 +66,6 @@ private slots:
 private:
     AbstractRelais *mRelais = nullptr;
     State mState = State::Middle;
-    bool mFlipContact = false;
-    bool mSwapContactState = false;
-    bool mHasCentralConnector = true;
     bool mHideRelayNormalState = false;
 };
 

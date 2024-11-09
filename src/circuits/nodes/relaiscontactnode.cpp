@@ -22,8 +22,6 @@
 
 #include "relaiscontactnode.h"
 
-#include "../electriccircuit.h"
-
 #include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/relais/model/relaismodel.h"
 
@@ -32,12 +30,9 @@
 #include <QJsonObject>
 
 RelaisContactNode::RelaisContactNode(ModeManager *mgr, QObject *parent)
-    : AbstractCircuitNode{mgr, false, parent}
+    : AbstractDeviatorNode{mgr, parent}
 {
-    // 3 sides
-    mContacts.append(NodeContact("11", "12")); // Common
-    mContacts.append(NodeContact("21", "22")); // Up
-    mContacts.append(NodeContact("31", "32")); // Down
+
 }
 
 RelaisContactNode::~RelaisContactNode()
@@ -45,70 +40,14 @@ RelaisContactNode::~RelaisContactNode()
     setRelais(nullptr);
 }
 
-QVector<CableItem> RelaisContactNode::getActiveConnections(CableItem source, bool invertDir)
-{
-    if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
-        return {};
-
-    int otherContactIdx = -1;
-
-    const NodeContact& sourceContact = mContacts.at(source.nodeContact);
-    if(sourceContact.getType(source.cable.pole) == ContactType::Passthrough &&
-            (source.nodeContact == 0 || source.nodeContact == 2))
-    {
-        // Pass to other contact straight
-        otherContactIdx = source.nodeContact == 0 ? 2 : 0;
-    }
-    else if(mState != State::Middle)
-    {
-        bool isDown = mState == State::Down;
-        if(swapContactState())
-            isDown = mState == State::Up;
-
-        switch (source.nodeContact)
-        {
-        case 0:
-            otherContactIdx = isDown ? 2 : 1;
-            break;
-        case 1:
-            if(!isDown)
-                otherContactIdx = 0;
-            break;
-        case 2:
-            if(isDown)
-                otherContactIdx = 0;
-            break;
-        default:
-            break;
-        }
-    }
-
-    if(otherContactIdx != -1)
-    {
-        const NodeContact& otherContact = mContacts.at(otherContactIdx);
-        CableItem other;
-        other.cable.cable = otherContact.cable;
-        other.cable.side = otherContact.cableSide;
-        other.cable.pole = source.cable.pole;
-        other.nodeContact = otherContactIdx;
-
-        return {other};
-    }
-
-    return {};
-}
-
 bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
 {
-    if(!AbstractCircuitNode::loadFromJSON(obj))
+    if(!AbstractDeviatorNode::loadFromJSON(obj))
         return false;
 
     QString relaisName = obj.value("relais").toString();
     setRelais(modeMgr()->relaisModel()->getRelay(relaisName));
 
-    setFlipContact(obj.value("flip").toBool());
-    setSwapContactState(obj.value("swap_state").toBool());
-    setHasCentralConnector(obj.value("central_connector").toBool(true));
     setHideRelayNormalState(obj.value("hide_relay_normal").toBool());
 
     return true;
@@ -116,12 +55,9 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
 
 void RelaisContactNode::saveToJSON(QJsonObject &obj) const
 {
-    AbstractCircuitNode::saveToJSON(obj);
+    AbstractDeviatorNode::saveToJSON(obj);
 
     obj["relais"] = mRelais ? mRelais->name() : QString();
-    obj["flip"] = flipContact();
-    obj["swap_state"] = swapContactState();
-    obj["central_connector"] = hasCentralConnector();
     obj["hide_relay_normal"] = hideRelayNormalState();
 }
 
@@ -173,72 +109,6 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais)
     modeMgr()->setFileEdited();
 }
 
-bool RelaisContactNode::swapContactState() const
-{
-    return mSwapContactState;
-}
-
-void RelaisContactNode::setSwapContactState(bool newSwapContactState)
-{
-    if(mSwapContactState == newSwapContactState)
-        return;
-
-    mSwapContactState = newSwapContactState;
-
-    emit shapeChanged();
-    modeMgr()->setFileEdited();
-}
-
-bool RelaisContactNode::flipContact() const
-{
-    return mFlipContact;
-}
-
-void RelaisContactNode::setFlipContact(bool newFlipContact)
-{
-    if(mFlipContact == newFlipContact)
-        return;
-
-    mFlipContact = newFlipContact;
-
-    emit shapeChanged();
-    modeMgr()->setFileEdited();
-}
-
-bool RelaisContactNode::hasCentralConnector() const
-{
-    return mHasCentralConnector;
-}
-
-void RelaisContactNode::setHasCentralConnector(bool newHasCentralConnector)
-{
-    if(mHasCentralConnector == newHasCentralConnector)
-        return;
-
-    mHasCentralConnector = newHasCentralConnector;
-
-    emit shapeChanged();
-    modeMgr()->setFileEdited();
-
-    if(!mHasCentralConnector)
-    {
-        // Remove circuits and detach cable
-        // No need to re-add circuits later
-        // Since it will not have cable attached
-        if(hasCircuit(1) > 0)
-        {
-            // Disable all circuits passing on disabled contact
-            const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-            disableCircuits(closedCopy, this, 1);
-
-            const CircuitList openCopy = getCircuits(CircuitType::Open);
-            truncateCircuits(openCopy, this, 1);
-        }
-
-        detachCable(1);
-    }
-}
-
 RelaisContactNode::State RelaisContactNode::state() const
 {
     return mState;
@@ -249,27 +119,11 @@ void RelaisContactNode::setState(State newState)
     if (mState == newState)
         return;
     mState = newState;
+
+    setContactState(mState == State::Up,
+                    mState == State::Down);
+
     emit stateChanged();
-
-    bool hadCircuits = hasCircuits(CircuitType::Closed) || hasCircuits(CircuitType::Open);
-
-    // Disable circuits
-    const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-    disableCircuits(closedCopy, this);
-
-    const CircuitList openCopy = getCircuits(CircuitType::Open);
-    truncateCircuits(openCopy, this);
-
-    if(mState != State::Middle)
-    {
-        // Scan for new circuits
-        ElectricCircuit::createCircuitsFromOtherNode(this);
-    }
-
-    if(hadCircuits)
-    {
-        ElectricCircuit::defaultReachNextOpenCircuit(this);
-    }
 }
 
 void RelaisContactNode::onRelaisStateChanged()

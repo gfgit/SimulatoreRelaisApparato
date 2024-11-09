@@ -23,9 +23,9 @@
 #ifndef ACEIBUTTONNODE_H
 #define ACEIBUTTONNODE_H
 
-#include "abstractcircuitnode.h"
+#include "abstractdeviatornode.h"
 
-class ACEIButtonNode : public AbstractCircuitNode
+class ACEIButtonNode : public AbstractDeviatorNode
 {
     Q_OBJECT
 public:
@@ -39,8 +39,6 @@ public:
     explicit ACEIButtonNode(ModeManager *mgr, QObject *parent = nullptr);
     ~ACEIButtonNode();
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
-
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
@@ -50,15 +48,11 @@ public:
     State state() const;
     void setState(State newState);
 
-    bool flipContact() const;
-    void setFlipContact(bool newFlipContact);
-
 signals:
     void stateChanged();
 
 private:
     State mState = State::Normal;
-    bool mFlipContact = false;
 };
 
 #endif // ACEIBUTTONNODE_H
