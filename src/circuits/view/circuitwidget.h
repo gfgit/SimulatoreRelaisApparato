@@ -75,13 +75,13 @@ private:
 private:
     CircuitScene *mScene = nullptr;
 
-    ZoomGraphView *mCircuitView;
-    DoubleClickSlider *mZoomSlider;
-    QDoubleSpinBox *mZoomSpin;
+    ZoomGraphView *mCircuitView = nullptr;
+    DoubleClickSlider *mZoomSlider = nullptr;
+    QDoubleSpinBox *mZoomSpin = nullptr;
 
-    QWidget *statusBar;
+    QWidget *statusBar = nullptr;
 
-    ViewManager *mViewMgr;
+    ViewManager *mViewMgr = nullptr;
 
     int mUniqueNum = 1;
 };
