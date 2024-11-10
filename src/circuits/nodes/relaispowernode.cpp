@@ -255,6 +255,23 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
         stopTimer(contact);
         return;
     }
+    else if(e->timerId() == mPercentTimerId)
+    {
+        Q_ASSERT(mRelais);
+
+        // Increment timeout percent (down is negative)
+        const double upIncrement = 1.0 / (4.0 * qMax(0.1, double(mDelayUpSeconds)));
+        const double downIncrement = -1.0 / (4.0 * qMax(0.1, double(mDelayDownSeconds)));
+
+        if(mTimerIds[0])
+            mTimeoutPercentStatus[0] += wasGoingUp[0] ? upIncrement : downIncrement;
+        if(mTimerIds[1])
+            mTimeoutPercentStatus[1] += wasGoingUp[1] ? upIncrement : downIncrement;
+
+        // Update visual drawing
+        emit circuitsChanged();
+        return;
+    }
 
     AbstractCircuitNode::timerEvent(e);
 }
@@ -282,6 +299,8 @@ void RelaisPowerNode::activateRelay(int contact)
         wasGoingUp[contact] = true;
         mTimerIds[contact] = startTimer(mDelayUpSeconds * 1000,
                                         Qt::PreciseTimer);
+        mTimeoutPercentStatus[contact] = 0.0; // We start from bottom
+        ensureTimeoutPercentTimer();
     }
 }
 
@@ -308,6 +327,8 @@ void RelaisPowerNode::deactivateRelay(int contact)
         wasGoingUp[contact] = false;
         mTimerIds[contact] = startTimer(mDelayDownSeconds * 1000,
                                         Qt::PreciseTimer);
+        mTimeoutPercentStatus[contact] = 1.0; // We start from top
+        ensureTimeoutPercentTimer();
     }
 }
 
@@ -320,6 +341,37 @@ void RelaisPowerNode::stopTimer(int contact)
 
     killTimer(mTimerIds[contact]);
     mTimerIds[contact] = 0;
+
+    if(!mTimerIds[0] && !mTimerIds[1])
+    {
+        stopTimeoutPercentTimer();
+    }
+}
+
+void RelaisPowerNode::ensureTimeoutPercentTimer()
+{
+    if(mPercentTimerId)
+        return;
+
+    // Start an auxiliary timer which increases
+    // percent of elapsed time since delay started
+    mPercentTimerId = startTimer(250, Qt::CoarseTimer);
+}
+
+void RelaisPowerNode::stopTimeoutPercentTimer()
+{
+    if(!mPercentTimerId)
+        return;
+
+    killTimer(mPercentTimerId);
+    mPercentTimerId = 0;
+
+    // Reset percent status
+    mTimeoutPercentStatus[0] = 0.0;
+    mTimeoutPercentStatus[1] = 0.0;
+
+    // Update visual drawing
+    emit circuitsChanged();
 }
 
 bool RelaisPowerNode::hasSecondConnector() const

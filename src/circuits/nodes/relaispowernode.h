@@ -57,6 +57,18 @@ public:
     bool hasSecondConnector() const;
     void setHasSecondConnector(bool newHasSecondConnector);
 
+    inline bool isTimeoutActive() const
+    {
+        return mPercentTimerId > 0;
+    }
+
+    inline double getTimeoutPercent() const
+    {
+        const double percent = std::max(mTimeoutPercentStatus[0],
+                                        mTimeoutPercentStatus[1]);
+        return qBound(0.0, percent, 1.0);
+    }
+
 signals:
     void relayChanged(AbstractRelais *r);
     void delaysChanged();
@@ -71,6 +83,8 @@ private:
     void activateRelay(int contact);
     void deactivateRelay(int contact);
     void stopTimer(int contact);
+    void ensureTimeoutPercentTimer();
+    void stopTimeoutPercentTimer();
 
 private:
     // Settings
@@ -82,6 +96,9 @@ private:
 
     // State
     int mTimerIds[2] = {0, 0};
+    int mPercentTimerId = 0;
+
+    double mTimeoutPercentStatus[2] = {0, 0};
     bool wasGoingUp[2] = {true, true};
     bool mIsUp[2] = {false, false};
 };

@@ -149,6 +149,21 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     pen.setWidthF(3.0);
     pen.setColor(color);
 
+    if(node()->modeMgr()->mode() == FileMode::Simulation
+            && node()->isTimeoutActive())
+    {
+        // Draw up/down timeout percent by filling relais circle
+        const double timeoutStatus = node()->getTimeoutPercent();
+
+        const double topY = relayRadius * (2 * timeoutStatus - 1);
+        const double angleDeg = qRadiansToDegrees(qAsin(topY / relayRadius));
+        const double arcLen = -180 - 2 * angleDeg;
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(Qt::green);
+        painter->drawChord(relayRect, angleDeg * 16, arcLen * 16);
+    }
+
     if(node()->relais())
     {
         switch (node()->relais()->type())
