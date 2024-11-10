@@ -471,6 +471,73 @@ bool CircuitScene::checkCable(CableGraphItem *item)
     AbstractNodeGraphItem *itemA = getItemAt(nodeLocA);
     AbstractNodeGraphItem *itemB = getItemAt(nodeLocB);
 
+    if(!item->cableZeroLength())
+    {
+        // If there is no node next to us,
+        // check if there are other cables to merge with
+        if(!itemA)
+        {
+            const TileCablePair pair = getCablesAt(nodeLocA);
+
+            CableGraphPath merged;
+            CableGraphItem *other = nullptr;
+
+            if(pair.first)
+            {
+                merged = item->cablePath().tryMerge(pair.first->cablePath());
+                other = pair.first;
+            }
+            if(merged.isEmpty() && pair.second)
+            {
+                merged = item->cablePath().tryMerge(pair.second->cablePath());
+                other = pair.second;
+            }
+
+            if(!merged.isEmpty())
+            {
+                // Delete other cable, set our path to merged
+                removeCable(other->cable());
+
+                item->setCablePath(merged);
+
+                // Retry searching nodes
+                nodeLocA = item->sideA();
+                itemA = getItemAt(nodeLocA);
+            }
+        }
+
+        if(!itemB)
+        {
+            const TileCablePair pair = getCablesAt(nodeLocB);
+
+            CableGraphPath merged;
+            CableGraphItem *other = nullptr;
+
+            if(pair.first)
+            {
+                merged = item->cablePath().tryMerge(pair.first->cablePath());
+                other = pair.first;
+            }
+            if(merged.isEmpty() && pair.second)
+            {
+                merged = item->cablePath().tryMerge(pair.second->cablePath());
+                other = pair.second;
+            }
+
+            if(!merged.isEmpty())
+            {
+                // Delete other cable, set our path to merged
+                removeCable(other->cable());
+
+                item->setCablePath(merged);
+
+                // Retry searching nodes
+                nodeLocB = item->sideB();
+                itemB = getItemAt(nodeLocB);
+            }
+        }
+    }
+
     AbstractCircuitNode *nodeA = itemA ? itemA->getAbstractNode() : nullptr;
     AbstractCircuitNode *nodeB = itemB ? itemB->getAbstractNode() : nullptr;
 

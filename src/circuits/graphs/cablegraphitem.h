@@ -84,6 +84,8 @@ public:
         return mPathIsComplete;
     }
 
+    CableGraphPath tryMerge(const CableGraphPath& other) const;
+
     static CableGraphPath createZeroLength(const TileLocation& a,
                                            const TileLocation& b);
 

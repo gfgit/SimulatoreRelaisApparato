@@ -587,6 +587,130 @@ QPainterPath CableGraphPath::generatePath() const
     return path;
 }
 
+CableGraphPath CableGraphPath::tryMerge(const CableGraphPath &other) const
+{
+    // No point in merging zero length cables
+    if(isZeroLength() || other.isZeroLength())
+        return {}; // Return empty
+
+    CableGraphPath totalPath;
+
+    TileLocation ourNextFirst = this->first() + this->startDirection();
+    if(ourNextFirst == other.first()
+            && other.startDirection() == ~this->startDirection())
+    {
+        // Pass other cable reversed and then ourselves
+        totalPath.setStartDirection(other.endDirection());
+        for(int i = other.getTilesCount() - 1; i >= 0; i--)
+        {
+            if(!totalPath.addTile(other.at(i)))
+            {
+                return {};
+            }
+        }
+
+        for(int i = 0; i < this->getTilesCount(); i++)
+        {
+            if(!totalPath.addTile(this->at(i)))
+            {
+                return {};
+            }
+        }
+
+        if(!totalPath.setEndDirection(this->endDirection()))
+            return {};
+
+        return totalPath;
+    }
+
+    if(ourNextFirst == other.last()
+            && other.endDirection() == ~this->startDirection())
+    {
+        // Pass other cable and then ourselves
+        totalPath.setStartDirection(other.startDirection());
+        for(int i = 0; i < other.getTilesCount(); i++)
+        {
+            if(!totalPath.addTile(other.at(i)))
+            {
+                return {};
+            }
+        }
+
+        for(int i = 0; i < this->getTilesCount(); i++)
+        {
+            if(!totalPath.addTile(this->at(i)))
+            {
+                return {};
+            }
+        }
+
+        if(!totalPath.setEndDirection(this->endDirection()))
+            return {};
+
+        return totalPath;
+    }
+
+    TileLocation ourNextLast = this->last() + this->endDirection();
+    if(ourNextLast == other.first()
+            && other.startDirection() == ~this->endDirection())
+    {
+        // Pass ourselves and then other cable
+        totalPath.setStartDirection(this->startDirection());
+
+        for(int i = 0; i < this->getTilesCount(); i++)
+        {
+            if(!totalPath.addTile(this->at(i)))
+            {
+                return {};
+            }
+        }
+
+        for(int i = 0; i < other.getTilesCount(); i++)
+        {
+            if(!totalPath.addTile(other.at(i)))
+            {
+                return {};
+            }
+        }
+
+        if(!totalPath.setEndDirection(other.endDirection()))
+            return {};
+
+        return totalPath;
+    }
+
+    if(ourNextLast == other.last()
+            && other.endDirection() == ~this->endDirection())
+    {
+        // Pass ourselves and then other cable reversed
+        totalPath.setStartDirection(this->startDirection());
+
+        for(int i = 0; i < this->getTilesCount(); i++)
+        {
+            if(!totalPath.addTile(this->at(i)))
+            {
+                return {};
+            }
+        }
+
+        for(int i = other.getTilesCount() - 1; i >= 0; i--)
+        {
+            if(!totalPath.addTile(other.at(i)))
+            {
+                return {};
+            }
+        }
+
+        if(!totalPath.setEndDirection(other.startDirection()))
+            return {};
+
+        return totalPath;
+    }
+
+    // Return empty
+    return {};
+}
+
 CableGraphPath CableGraphPath::createZeroLength(const TileLocation &a, const TileLocation &b)
 {
     CableGraphPath path;
