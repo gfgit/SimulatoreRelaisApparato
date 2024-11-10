@@ -86,6 +86,9 @@ public:
 
     CableGraphPath tryMerge(const CableGraphPath& other) const;
 
+    typedef std::pair<CableGraphPath, CableGraphPath> SplitPair;
+    bool splitted(const TileLocation splitLoc, SplitPair& result) const;
+
     static CableGraphPath createZeroLength(const TileLocation& a,
                                            const TileLocation& b);
 

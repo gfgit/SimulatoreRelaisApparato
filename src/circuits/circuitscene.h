@@ -102,6 +102,8 @@ public:
 
     CircuitListModel *circuitsModel() const;
 
+    bool splitCableAt(CableGraphItem *item, const TileLocation &splitLoc);
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);

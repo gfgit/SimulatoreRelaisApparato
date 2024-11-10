@@ -711,6 +711,60 @@ CableGraphPath CableGraphPath::tryMerge(const CableGraphPath &other) const
     return {};
 }
 
+bool CableGraphPath::splitted(const TileLocation splitLoc, SplitPair& result) const
+{
+    if(isZeroLength() || !mTiles.contains(splitLoc))
+        return false; // Nothing to split
+
+    CableGraphPath a, b;
+
+    // Set a start
+    a.setStartDirection(this->startDirection());
+
+    int tileIdx = 0;
+    for(; tileIdx < mTiles.size(); tileIdx++)
+    {
+        const TileLocation& tile = mTiles.at(tileIdx);
+
+        if(tile == splitLoc)
+        {
+            // We reached node tile
+            if(a.isEmpty())
+                break; // No path before tile
+
+            // Set end direction
+            a.setEndDirection(getDirection(a.last(), splitLoc));
+            break;
+        }
+
+        // Copy first half to a
+        a.addTile(tile);
+    }
+
+    // Skip splitLoc tile
+    tileIdx++;
+
+    for(; tileIdx < mTiles.size(); tileIdx++)
+    {
+        const TileLocation& tile = mTiles.at(tileIdx);
+
+        if(b.isEmpty())
+        {
+            // Set b start direction
+            b.setStartDirection(getDirection(tile, splitLoc));
+        }
+
+        // Copy second half to b
+        b.addTile(tile);
+    }
+
+    b.setEndDirection(this->endDirection());
+
+    result.first = a;
+    result.second = b;
+    return true;
+}
+
 CableGraphPath CableGraphPath::createZeroLength(const TileLocation &a, const TileLocation &b)
 {
     CableGraphPath path;

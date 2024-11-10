@@ -769,6 +769,44 @@ void CircuitScene::checkItem(AbstractNodeGraphItem *item, QVector<CircuitCable *
     }
 }
 
+bool CircuitScene::splitCableAt(CableGraphItem *item, const TileLocation& splitLoc)
+{
+    CableGraphPath::SplitPair pathResult;
+    if(!item->cablePath().splitted(splitLoc, pathResult))
+        return false;
+
+    // Set original cable path to new splitted half
+    bool firstEmpty = pathResult.first.isEmpty();
+    bool secondEmpty = pathResult.second.isEmpty();
+
+    if(firstEmpty && secondEmpty)
+    {
+        // Cable was only 1 tile long, remove it
+        removeCable(item->cable());
+        return true;
+    }
+
+    // Set original cable to non-empty half
+    item->setCablePath(firstEmpty ? pathResult.second : pathResult.first);
+    checkCable(item);
+
+    if(firstEmpty)
+        return true; // Only one half was left
+
+    // Create new cable for second half
+    CircuitCable *otherCable = new CircuitCable(circuitsModel()->modeMgr(), this);
+    CableGraphItem *otherItem = new CableGraphItem(otherCable);
+    otherItem->setPos(0, 0);
+
+    otherItem->setCablePath(pathResult.second);
+
+    // Register and check new cable
+    addCable(otherItem);
+    checkCable(otherItem);
+
+    return true;
+}
+
 void CircuitScene::addCableTiles(CableGraphItem *item)
 {
     if(item->cableZeroLength())
@@ -861,13 +899,9 @@ void CircuitScene::endMovingItem()
 
     Q_ASSERT(mLastMovedItemValidLocation.isValid());
 
-    // After move has ended we go back to last valid location
-    if(mItemBeingMoved->location() != mLastMovedItemValidLocation)
-    {
-        mItemBeingMoved->setLocation(mLastMovedItemValidLocation);
-    }
     mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, false);
 
+    const TileLocation lastValidLocation = mLastMovedItemValidLocation;
     AbstractNodeGraphItem *item = mItemBeingMoved;
     mItemBeingMoved = nullptr;
 
@@ -875,6 +909,67 @@ void CircuitScene::endMovingItem()
     // calls stopOperations() which calls endMovingItem()
     // we call this after resetting mItemBeingMoved
     // This way we prevent recursion
+
+
+    const TileLocation itemLocation = item->location();
+    TileLocation newLocation = lastValidLocation;
+
+    const bool shiftPressed = QGuiApplication::keyboardModifiers() == Qt::ShiftModifier;
+    if(shiftPressed && itemLocation != lastValidLocation)
+    {
+        // If shift is pressed and node is on a cable, split the cable
+        auto otherNode = getNodeAt(itemLocation);
+        TileCablePair pair;
+
+        bool canSplitCables = true;
+
+        if(otherNode)
+        {
+            // We are over another node
+            // This is not valid, return to last valid position
+            canSplitCables = false;
+        }
+
+        if(canSplitCables)
+        {
+            pair = getCablesAt(itemLocation);
+
+            if(pair.first)
+            {
+                if(!splitCableAt(pair.first, itemLocation))
+                    canSplitCables = false;
+            }
+        }
+
+        if(canSplitCables && pair.second)
+        {
+            if(!splitCableAt(pair.second, itemLocation))
+                canSplitCables = false;
+        }
+
+        if(canSplitCables)
+        {
+            // We succeded in splitting existing cables
+            // Place node in previously invalid location
+            newLocation = itemLocation;
+        }
+    }
+
+    if(itemLocation != lastValidLocation)
+    {
+        // Go back to last valid location
+
+        // Trick scene to allow us to move
+        const auto oldValue = mItemBeingMoved;
+        mItemBeingMoved = item;
+        item->setLocation(lastValidLocation);
+        mItemBeingMoved = oldValue;
+    }
+
+    // And then go to new location if it became valid
+    if(newLocation != lastValidLocation)
+        item->setLocation(newLocation);
+
     refreshItemConnections(item, true);
 }
 
