@@ -237,14 +237,26 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     // Draw circle
     painter->drawEllipse(relayRect);
 
-    // Draw delayed up/down
+    // Draw lines top/bottom
+    painter->drawLine(relayRect.topLeft(), relayRect.topRight());
+    painter->drawLine(relayRect.bottomLeft(), relayRect.bottomRight());
+
+    // Draw delayed up/down lines with wider pen
+    pen.setWidthF(5.0);
+    painter->setPen(pen);
+
+    // Separate a bit delay line and relay circle
+    const double delayLineMargin = pen.widthF() * 0.3;
+
     if(node()->delayUpSeconds() > 0)
     {
-        painter->drawLine(relayRect.topLeft(), relayRect.topRight());
+        painter->drawLine(QLineF(relayRect.left(), relayRect.top() - delayLineMargin,
+                                 relayRect.right(), relayRect.top() - delayLineMargin));
     }
     if(node()->delayDownSeconds() > 0)
     {
-        painter->drawLine(relayRect.bottomLeft(), relayRect.bottomRight());
+        painter->drawLine(QLineF(relayRect.left(), relayRect.bottom() + delayLineMargin,
+                                 relayRect.right(), relayRect.bottom() + delayLineMargin));
     }
 
     // Draw name and state arrow
