@@ -960,9 +960,15 @@ void CircuitScene::endMovingItem()
     Q_ASSERT_X(mLastMovedItemValidLocation.isValid(),
                "endMovingItem", "last location not valid");
 
+    // After move has ended we go back to last valid location
+    const TileLocation possibleNewLocation = mItemBeingMoved->location();
+    const TileLocation lastValidLocation = mLastMovedItemValidLocation;
+    if(possibleNewLocation != lastValidLocation)
+    {
+        mItemBeingMoved->setLocation(lastValidLocation);
+    }
     mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, false);
 
-    const TileLocation lastValidLocation = mLastMovedItemValidLocation;
     AbstractNodeGraphItem *item = mItemBeingMoved;
     mItemBeingMoved = nullptr;
 
@@ -970,17 +976,14 @@ void CircuitScene::endMovingItem()
     // calls stopOperations() which calls endMovingItem()
     // we call this after resetting mItemBeingMoved
     // This way we prevent recursion
-    modeMgr()->setEditingSubMode(EditingSubMode::Default);
-
-
-    const TileLocation itemLocation = item->location();
-    TileLocation newLocation = lastValidLocation;
+    if(modeMgr()->editingSubMode() == EditingSubMode::SingleItemMove)
+        modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     const bool shiftPressed = QGuiApplication::keyboardModifiers() == Qt::ShiftModifier;
-    if(shiftPressed && itemLocation != lastValidLocation)
+    if(shiftPressed && possibleNewLocation != lastValidLocation)
     {
         // If shift is pressed and node is on a cable, split the cable
-        auto otherNode = getNodeAt(itemLocation);
+        auto otherNode = getNodeAt(possibleNewLocation);
         TileCablePair pair;
 
         bool canSplitCables = true;
@@ -994,18 +997,18 @@ void CircuitScene::endMovingItem()
 
         if(canSplitCables)
         {
-            pair = getCablesAt(itemLocation);
+            pair = getCablesAt(possibleNewLocation);
 
             if(pair.first)
             {
-                if(!splitCableAt(pair.first, itemLocation))
+                if(!splitCableAt(pair.first, possibleNewLocation))
                     canSplitCables = false;
             }
         }
 
         if(canSplitCables && pair.second)
         {
-            if(!splitCableAt(pair.second, itemLocation))
+            if(!splitCableAt(pair.second, possibleNewLocation))
                 canSplitCables = false;
         }
 
@@ -1013,24 +1016,9 @@ void CircuitScene::endMovingItem()
         {
             // We succeded in splitting existing cables
             // Place node in previously invalid location
-            newLocation = itemLocation;
+            item->setLocation(possibleNewLocation);
         }
     }
-
-    if(itemLocation != lastValidLocation)
-    {
-        // Go back to last valid location
-
-        // Trick scene to allow us to move
-        const auto oldValue = mItemBeingMoved;
-        mItemBeingMoved = item;
-        item->setLocation(lastValidLocation);
-        mItemBeingMoved = oldValue;
-    }
-
-    // And then go to new location if it became valid
-    if(newLocation != lastValidLocation)
-        item->setLocation(newLocation);
 
     refreshItemConnections(item, true);
 }
