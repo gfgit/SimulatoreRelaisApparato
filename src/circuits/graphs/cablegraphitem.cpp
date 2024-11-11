@@ -331,51 +331,10 @@ bool CableGraphItem::loadFromJSON(const QJsonObject &obj)
     if(!obj.contains("path"))
         return false;
 
-    CableGraphPath newPath;
-
     const QJsonObject pathObj = obj.value("path").toObject();
-
-    const QJsonArray tiles = pathObj.value("tiles").toArray();
-
-    bool zero = pathObj.value("zero").toBool(false);
-    if(zero)
-    {
-        if(tiles.size() != 2)
-            return false;
-
-        QJsonObject tileObj = tiles.first().toObject();
-        TileLocation a;
-        a.x = int16_t(tileObj.value("x").toInt());
-        a.y = int16_t(tileObj.value("y").toInt());
-
-        tileObj = tiles.last().toObject();
-        TileLocation b;
-        b.x = int16_t(tileObj.value("x").toInt());
-        b.y = int16_t(tileObj.value("y").toInt());
-
-        newPath = CableGraphPath::createZeroLength(a, b);
-    }
-    else
-    {
-        int startDir = pathObj.value("start_dir").toInt();
-        int endDir = pathObj.value("end_dir").toInt();
-
-        newPath.setStartDirection(Connector::Direction(startDir));
-
-        for(const QJsonValue& v : tiles)
-        {
-            const QJsonObject tileObj = v.toObject();
-            TileLocation tile;
-            tile.x = int16_t(tileObj.value("x").toInt());
-            tile.y = int16_t(tileObj.value("y").toInt());
-            newPath.addTile(tile);
-        }
-
-        newPath.setEndDirection(Connector::Direction(endDir));
-
-        if(!newPath.isComplete())
-            return false;
-    }
+    CableGraphPath newPath = CableGraphPath::loadFromJSON(pathObj);
+    if(newPath.isEmpty())
+        return false;
 
     setCablePath(newPath);
     return true;
@@ -384,24 +343,7 @@ bool CableGraphItem::loadFromJSON(const QJsonObject &obj)
 void CableGraphItem::saveToJSON(QJsonObject &obj) const
 {
     QJsonObject pathObj;
-    pathObj["zero"] = mCablePath.isZeroLength();
-
-    QJsonArray tiles;
-    for(const TileLocation tile : mCablePath.tiles())
-    {
-        QJsonObject tileObj;
-        tileObj["x"] = tile.x;
-        tileObj["y"] = tile.y;
-        tiles.append(tileObj);
-    }
-    pathObj["tiles"] = tiles;
-
-    if(!mCablePath.isZeroLength())
-    {
-        pathObj["start_dir"] = int(mCablePath.startDirection());
-        pathObj["end_dir"] = int(mCablePath.endDirection());
-    }
-
+    CableGraphPath::saveToJSON(mCablePath, pathObj);
     obj["path"] = pathObj;
 }
 
@@ -871,6 +813,76 @@ CableGraphPath CableGraphPath::createZeroLength(const TileLocation &a, const Til
     path.mEndDirection = ~path.mStartDirection;
 
     return path;
+}
+
+CableGraphPath CableGraphPath::loadFromJSON(const QJsonObject &obj)
+{
+    const QJsonArray tiles = obj.value("tiles").toArray();
+
+    bool zero = obj.value("zero").toBool(false);
+    if(zero)
+    {
+        if(tiles.size() != 2)
+            return {};
+
+        QJsonObject tileObj = tiles.first().toObject();
+        TileLocation a;
+        a.x = int16_t(tileObj.value("x").toInt());
+        a.y = int16_t(tileObj.value("y").toInt());
+
+        tileObj = tiles.last().toObject();
+        TileLocation b;
+        b.x = int16_t(tileObj.value("x").toInt());
+        b.y = int16_t(tileObj.value("y").toInt());
+
+        return CableGraphPath::createZeroLength(a, b);
+    }
+    else
+    {
+        CableGraphPath result;
+
+        int startDir = obj.value("start_dir").toInt();
+        int endDir = obj.value("end_dir").toInt();
+
+        result.setStartDirection(Connector::Direction(startDir));
+
+        for(const QJsonValue& v : tiles)
+        {
+            const QJsonObject tileObj = v.toObject();
+            TileLocation tile;
+            tile.x = int16_t(tileObj.value("x").toInt());
+            tile.y = int16_t(tileObj.value("y").toInt());
+            result.addTile(tile);
+        }
+
+        result.setEndDirection(Connector::Direction(endDir));
+
+        if(!result.isComplete())
+            return {};
+
+        return result;
+    }
+}
+
+void CableGraphPath::saveToJSON(const CableGraphPath &path, QJsonObject &obj)
+{
+    obj["zero"] = path.isZeroLength();
+
+    QJsonArray tiles;
+    for(const TileLocation tile : path.tiles())
+    {
+        QJsonObject tileObj;
+        tileObj["x"] = tile.x;
+        tileObj["y"] = tile.y;
+        tiles.append(tileObj);
+    }
+    obj["tiles"] = tiles;
+
+    if(!path.isZeroLength())
+    {
+        obj["start_dir"] = int(path.startDirection());
+        obj["end_dir"] = int(path.endDirection());
+    }
 }
 
 Connector::Direction CableGraphPath::getDirection(const TileLocation &a, const TileLocation &b)

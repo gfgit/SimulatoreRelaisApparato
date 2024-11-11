@@ -94,6 +94,9 @@ public:
     static CableGraphPath createZeroLength(const TileLocation& a,
                                            const TileLocation& b);
 
+    static CableGraphPath loadFromJSON(const QJsonObject& obj);
+    static void saveToJSON(const CableGraphPath& path, QJsonObject& obj);
+
 private:
     static Connector::Direction getDirection(const TileLocation& a,
                                              const TileLocation& b);
