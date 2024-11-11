@@ -106,10 +106,14 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     }
 
     QColor oldColor = pen.color();
-    if(showUnconnected)
+    if(s && s->mode() == FileMode::Editing && isSelected())
     {
-        // Draw line with cyan color
         pen.setColor(Qt::darkCyan);
+    }
+    else if(showUnconnected)
+    {
+        // Draw line with light orange
+        pen.setColor(qRgb(255, 178, 102));
     }
 
     // Draw cable path
@@ -130,6 +134,30 @@ void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
     }
 
     QGraphicsObject::mouseDoubleClickEvent(ev);
+}
+
+QVariant CableGraphItem::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+    CircuitScene *s = circuitScene();
+    switch (change)
+    {
+    case GraphicsItemChange::ItemSelectedHasChanged:
+    {
+        s->onCableSelected(this, isSelected());
+    }
+    default:
+        break;
+    }
+
+    return QGraphicsObject::itemChange(change, value);
+}
+
+void CableGraphItem::setPathInternal(const QPainterPath &newPath)
+{
+    prepareGeometryChange();
+    mPath = newPath;
+    mBoundingRect = QRectF();
+    update();
 }
 
 CircuitScene *CableGraphItem::circuitScene() const

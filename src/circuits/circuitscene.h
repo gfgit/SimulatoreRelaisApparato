@@ -165,6 +165,8 @@ private:
     void allowItemSelection(bool enabled);
 
     void onItemSelected(AbstractNodeGraphItem *item, bool value);
+    void onCableSelected(CableGraphItem *item, bool value);
+
     void moveSelectionBy(int16_t dx, int16_t dy);
     void endSelectionMove();
 
@@ -192,6 +194,7 @@ private:
     bool m_hasUnsavedChanges = false;
 
     std::unordered_map<AbstractNodeGraphItem *, TileLocation> mSelectedItemPositions;
+    std::unordered_map<CableGraphItem *, std::pair<TileLocation, TileLocation>> mSelectedCablePositions;
 };
 
 #endif // CIRCUITSCENE_H

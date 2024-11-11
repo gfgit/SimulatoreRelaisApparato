@@ -144,6 +144,11 @@ public:
 
 protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev);
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+
+private:
+    friend class CircuitScene;
+    void setPathInternal(const QPainterPath& newPath);
 
 private slots:
     void updatePen();

@@ -237,7 +237,9 @@ CircuitScene::TileCablePair CircuitScene::getCablesAt(TileLocation l) const
     return it->second;
 }
 
-bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphItem *item) const
+template <typename TileHasNode, typename GetCablePairAt>
+bool cablePathIsValid_helper(const CableGraphPath &cablePath, CableGraphItem *item,
+                             TileHasNode hasNode, GetCablePairAt getCablePairAt)
 {
     // Check all tiles are free
     if(cablePath.isZeroLength())
@@ -249,12 +251,12 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
     {
         TileLocation tile = cablePath.at(i);
 
-        if(getItemAt(tile))
+        if(hasNode(tile))
         {
             return false;
         }
 
-        TileCablePair pair = getCablesAt(tile);
+        CircuitScene::TileCablePair pair = getCablePairAt(tile);
         if(item)
         {
             // Do not consider ourselves
@@ -312,6 +314,21 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
     }
 
     return true;
+}
+
+bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphItem *item) const
+{
+    auto hasNode = [this](const TileLocation& tile) -> bool
+    {
+        return getItemAt(tile) != nullptr;
+    };
+
+    auto getCablePairAt = [this](const TileLocation& tile) -> TileCablePair
+    {
+        return getCablesAt(tile);
+    };
+
+    return cablePathIsValid_helper(cablePath, item, hasNode, getCablePairAt);
 }
 
 bool CircuitScene::updateItemLocation(TileLocation newLocation, AbstractNodeGraphItem *item)
@@ -1060,9 +1077,11 @@ void CircuitScene::allowItemSelection(bool enabled)
 
 void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
 {
-    const TileLocation tile = item->location();
     if(value)
+    {
+        const TileLocation tile = item->location();
         mSelectedItemPositions.insert({item, tile});
+    }
     else
     {
         auto it = mSelectedItemPositions.find(item);
@@ -1072,6 +1091,37 @@ void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
             const TileLocation lastValidLocation = it->second;
             item->setLocation(lastValidLocation);
             mSelectedItemPositions.erase(it);
+        }
+    }
+}
+
+void CircuitScene::onCableSelected(CableGraphItem *item, bool value)
+{
+    if(item->cableZeroLength())
+        return;
+
+    if(value)
+    {
+        const TileLocation firstTile = item->cablePath().first();
+        mSelectedCablePositions.insert({item, {firstTile, firstTile}});
+    }
+    else
+    {
+        auto it = mSelectedCablePositions.find(item);
+        if(it != mSelectedCablePositions.end())
+        {
+            // Reset to last valid location
+            const TileLocation lastValidLocation = it->second.first;
+            const TileLocation firstTile = item->cablePath().first();
+
+            if(lastValidLocation != firstTile)
+            {
+                const int16_t dx = lastValidLocation.x - firstTile.x;
+                const int16_t dy = lastValidLocation.y - firstTile.y;
+                CableGraphPath translated = item->cablePath().translatedBy(dx, dy);
+                item->setCablePath(translated);
+            }
+            mSelectedCablePositions.erase(it);
         }
     }
 }
@@ -1101,15 +1151,94 @@ void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
 
         if(allFree)
         {
+            // Check if move is valid
             TileCablePair pair = getCablesAt(newTile);
-            if(pair.first || pair.second)
+            if(pair.first)
+            {
+                // Check if we landed on top of a cable which is not being moved
+                if(mSelectedCablePositions.find(pair.first) == mSelectedCablePositions.end())
+                    allFree = false;
+            }
+            if(allFree && pair.second)
+            {
+                // Check if we landed on top of a cable which is not being moved
+                if(mSelectedCablePositions.find(pair.second) == mSelectedCablePositions.end())
+                    allFree = false;
+            }
+        }
+    }
+
+    for(auto it = mSelectedCablePositions.begin();
+        it != mSelectedCablePositions.end();
+        it++)
+    {
+        CableGraphItem *item = it->first;
+        const TileLocation lastValidLocation = it->second.first;
+        const TileLocation currentFirstLocation = it->second.second;
+        const TileLocation newFirstLocation = currentFirstLocation.adjusted(dx, dy);
+
+        const int16_t cableDx = newFirstLocation.x - lastValidLocation.x;
+        const int16_t cableDy = newFirstLocation.y - lastValidLocation.y;
+
+        CableGraphPath translated = item->cablePath().translatedBy(cableDx, cableDy);
+
+        // We are not sure yet this is a valid move
+        item->setPathInternal(translated.generatePath());
+
+        // Store current possible first location
+        it->second.second = newFirstLocation;
+
+        if(allFree)
+        {
+            // Check if move is valid
+            auto hasNode = [this](const TileLocation& tile) -> bool
+            {
+                AbstractNodeGraphItem *otherItem = getItemAt(tile);
+                if(otherItem &&
+                        mSelectedItemPositions.find(otherItem) == mSelectedItemPositions.end())
+                {
+                    // We landed on top of another item which is not being moved
+                    return true;
+                }
+
+                return false;
+            };
+
+            auto getCablePairAt = [this, item](const TileLocation& tile) -> TileCablePair
+            {
+                // Check if we landed on top of a cable which is not being moved
+                TileCablePair pair = getCablesAt(tile);
+
+                if(pair.first && pair.first != item)
+                {
+                    if(mSelectedCablePositions.find(pair.first) != mSelectedCablePositions.end())
+                    {
+                        // This cable is being moved with us so it will not be there
+                        // When move is applied in the end
+                        pair.first = nullptr;
+                    }
+                }
+                if(pair.second && pair.second != item)
+                {
+                    if(mSelectedCablePositions.find(pair.second) != mSelectedCablePositions.end())
+                    {
+                        // This cable is being moved with us so it will not be there
+                        // When move is applied in the end
+                        pair.second = nullptr;
+                    }
+                }
+
+                return pair;
+            };
+
+            if(!cablePathIsValid_helper(translated, item, hasNode, getCablePairAt))
                 allFree = false;
         }
     }
 
     if(allFree)
     {
-        // Register new valid position for all
+        // Register new valid position for all nodes
         for(auto it = mSelectedItemPositions.begin();
             it != mSelectedItemPositions.end();
             it++)
@@ -1126,13 +1255,34 @@ void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
             it->second = newLocation;
         }
 
+        // Register new valid position for all cables
+        for(auto it = mSelectedCablePositions.begin();
+            it != mSelectedCablePositions.end();
+            it++)
+        {
+            CableGraphItem *item = it->first;
+            const TileLocation lastValidLocation = it->second.first;
+            const TileLocation currentFirstLocation = it->second.second;
+
+            const int16_t cableDx = currentFirstLocation.x - lastValidLocation.x;
+            const int16_t cableDy = currentFirstLocation.y - lastValidLocation.y;
+
+            CableGraphPath translated = item->cablePath().translatedBy(cableDx, cableDy);
+
+            // Now we really apply path
+            item->setCablePath(translated);
+
+            // Store new valid location to current first location
+            it->second.first = currentFirstLocation;
+        }
+
         setHasUnsavedChanges(true);
     }
 }
 
 void CircuitScene::endSelectionMove()
 {
-    // Reset all selected items to last valid location
+    // Reset all selected nodes to last valid location
     for(auto it = mSelectedItemPositions.begin();
         it != mSelectedItemPositions.end();
         it++)
@@ -1140,6 +1290,22 @@ void CircuitScene::endSelectionMove()
         AbstractNodeGraphItem *item = it->first;
         const TileLocation lastValidLocation = it->second;
         item->setLocation(lastValidLocation);
+    }
+
+    // Reset all selected cables to last valid location
+    for(auto it = mSelectedCablePositions.begin();
+        it != mSelectedCablePositions.end();
+        it++)
+    {
+        CableGraphItem *item = it->first;
+        const TileLocation lastValidLocation = it->second.first;
+        const TileLocation currentFirstLocation = it->second.second;
+
+        if(lastValidLocation != currentFirstLocation)
+        {
+            // Reset to last valid path
+            item->setCablePath(item->cablePath());
+        }
     }
 }
 
