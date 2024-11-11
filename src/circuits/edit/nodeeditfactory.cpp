@@ -55,8 +55,7 @@ QStringList NodeEditFactory::getRegisteredTypes() const
 }
 
 AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType,
-                                                   CircuitScene *scene,
-                                                   TileLocation hint)
+                                                   CircuitScene *scene)
 {
     const FactoryItem *factory = getItemForType(nodeType);
     if(!factory)
@@ -64,9 +63,6 @@ AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType,
 
     AbstractNodeGraphItem *item = factory->create(scene,
                                                   scene->circuitsModel()->modeMgr());
-    if(hint.isValid())
-        item->setLocation(hint);
-    scene->addNode(item);
     return item;
 }
 

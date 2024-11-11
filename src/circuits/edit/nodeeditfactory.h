@@ -67,8 +67,7 @@ public:
     QStringList getRegisteredTypes() const;
 
     AbstractNodeGraphItem *createItem(const QString& nodeType,
-                                      CircuitScene *scene,
-                                      TileLocation hint = TileLocation::invalid);
+                                      CircuitScene *scene);
     void editItem(QWidget *parent, AbstractNodeGraphItem *item);
     void editCable(QWidget *parent, CableGraphItem *item);
 

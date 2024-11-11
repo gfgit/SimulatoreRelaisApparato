@@ -231,10 +231,16 @@ void CircuitWidget::addNodeToCenter(NodeEditFactory *editFactory,
     QPointF sceneCenter = mCircuitView->mapToScene(vpCenter);
     TileLocation hint = TileLocation::fromPoint(sceneCenter);
 
-    auto item = editFactory->createItem(nodeType, mScene, hint);
+    auto item = editFactory->createItem(nodeType, mScene);
 
     if(needsName == NodeEditFactory::NeedsName::Always)
         item->getAbstractNode()->setObjectName(name);
+
+    // Set location hint, then scene might change it if not free
+    item->setLocation(hint);
+
+    // Add node to scene
+    scene()->addNode(item);
 
     mCircuitView->ensureVisible(item);
 }

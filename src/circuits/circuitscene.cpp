@@ -1536,17 +1536,8 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
         if(nodeType.isEmpty())
             continue;
 
-        TileLocation tile{0, 0};
-        tile.x = obj.value("x").toInt();
-        tile.y = obj.value("y").toInt();
-
-        // Translate node
-        tile = tile.adjusted(dx, dy);
-        obj["x"] = tile.x;
-        obj["y"] = tile.y;
-
         // Create new node
-        AbstractNodeGraphItem *item = factory->createItem(nodeType, this, tile);
+        AbstractNodeGraphItem *item = factory->createItem(nodeType, this);
         if(item)
         {
             if(!item->loadFromJSON(obj))
@@ -1556,8 +1547,13 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
                 delete node;
             }
 
-            // Just to be sure set it again
+            // Translate node
+            TileLocation tile = item->location();
+            tile = tile.adjusted(dx, dy);
             item->setLocation(tile);
+
+            // Add node to scene
+            addNode(item);
 
             pastedItems.append(item);
         }
@@ -1918,6 +1914,8 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
                 delete node;
                 continue;
             }
+
+            addNode(item);
         }
     }
 
