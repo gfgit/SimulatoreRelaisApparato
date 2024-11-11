@@ -89,6 +89,8 @@ public:
     typedef std::pair<CableGraphPath, CableGraphPath> SplitPair;
     bool splitted(const TileLocation splitLoc, SplitPair& result) const;
 
+    CableGraphPath translatedBy(int16_t dx, int16_t dy) const;
+
     static CableGraphPath createZeroLength(const TileLocation& a,
                                            const TileLocation& b);
 

@@ -116,7 +116,7 @@ struct TileLocation
         return x != other.x || y != other.y;
     }
 
-    TileLocation adjusted(int16_t dx, int16_t dy)
+    TileLocation adjusted(int16_t dx, int16_t dy) const
     {
         return {static_cast<int16_t>(x + dx), static_cast<int16_t>(y + dy)};
     }

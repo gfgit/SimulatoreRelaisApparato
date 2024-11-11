@@ -765,6 +765,24 @@ bool CableGraphPath::splitted(const TileLocation splitLoc, SplitPair& result) co
     return true;
 }
 
+CableGraphPath CableGraphPath::translatedBy(int16_t dx, int16_t dy) const
+{
+    if(isZeroLength() || isEmpty())
+        return {};
+
+    CableGraphPath translated;
+    translated.setStartDirection(startDirection());
+
+    for(const TileLocation tile : mTiles)
+    {
+        translated.addTile(tile.adjusted(dx, dy));
+    }
+
+    translated.setEndDirection(endDirection());
+
+    return translated;
+}
+
 CableGraphPath CableGraphPath::createZeroLength(const TileLocation &a, const TileLocation &b)
 {
     CableGraphPath path;
