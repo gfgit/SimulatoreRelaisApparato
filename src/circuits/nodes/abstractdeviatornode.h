@@ -80,7 +80,7 @@ protected:
 private:
     bool mFlipContact = false;
     bool mSwapContactState = false;
-    bool mHasCentralConnector = true; // Up connector
+    bool mHasCentralConnector = false; // Up connector
     bool mAllowSwap = true;
     bool mCanChangeCentralConnector = true;
 

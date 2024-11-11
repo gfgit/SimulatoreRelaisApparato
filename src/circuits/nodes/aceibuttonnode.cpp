@@ -33,7 +33,11 @@ ACEIButtonNode::ACEIButtonNode(ModeManager *mgr, QObject *parent)
     // Common
     // Pressed (Deviator Up contact)
     // Normal  (Deviator Down contact)
+
+    setSwapContactState(false);
     setAllowSwap(false);
+
+    setHasCentralConnector(true);
     setCanChangeCentralConnector(false);
 
     // Default state
