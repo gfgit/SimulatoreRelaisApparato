@@ -1534,31 +1534,6 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
     QVector<QGraphicsItem *> pastedItems;
     pastedItems.reserve(fragment.validNodes.size() + fragment.validCables.size());
 
-    for(const QJsonValue& v : fragment.validCables)
-    {
-        const QJsonObject cableObj = v.toObject();
-
-        // Create new cable
-        CircuitCable *cable = new CircuitCable(circuitsModel()->modeMgr(), this);
-        CableGraphItem *item = new CableGraphItem(cable);
-        item->setPos(0, 0);
-
-        if(!item->loadFromJSON(cableObj))
-        {
-            delete item;
-            delete cable;
-            continue;
-        }
-
-        // Translate cable
-        const CableGraphPath translated = item->cablePath().translatedBy(dx, dy);
-        item->setCablePath(translated);
-
-        addCable(item);
-
-        pastedItems.append(item);
-    }
-
     for(const QJsonValue& v : fragment.validNodes)
     {
         QJsonObject obj = v.toObject();
@@ -1591,6 +1566,34 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
 
             pastedItems.append(item);
         }
+    }
+
+    for(const QJsonValue& v : fragment.validCables)
+    {
+        const QJsonObject cableObj = v.toObject();
+
+        // Create new cable
+        CircuitCable *cable = new CircuitCable(circuitsModel()->modeMgr(), this);
+        CableGraphItem *item = new CableGraphItem(cable);
+        item->setPos(0, 0);
+
+        if(!item->loadFromJSON(cableObj))
+        {
+            delete item;
+            delete cable;
+            continue;
+        }
+
+        // Translate cable
+        const CableGraphPath translated = item->cablePath().translatedBy(dx, dy);
+        item->setCablePath(translated);
+
+        addCable(item);
+
+        // Try connect nodes
+        checkCable(item);
+
+        pastedItems.append(item);
     }
 
     // Now select all pasted items so user can move them
@@ -1890,7 +1893,13 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
         CableGraphItem *item = new CableGraphItem(cable);
         item->setPos(0, 0);
 
-        item->loadFromJSON(cableObj);
+        if(!item->loadFromJSON(cableObj))
+        {
+            delete item;
+            delete cable;
+            continue;
+        }
+
         addCable(item);
     }
 
@@ -1907,7 +1916,13 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
         AbstractNodeGraphItem *item = factory->createItem(nodeType, this);
         if(item)
         {
-            item->loadFromJSON(obj);
+            if(!item->loadFromJSON(obj))
+            {
+                auto *node = item->getAbstractNode();
+                delete item;
+                delete node;
+                continue;
+            }
         }
     }
 

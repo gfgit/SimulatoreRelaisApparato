@@ -228,7 +228,11 @@ bool CircuitListModel::loadFromJSON(const QJsonObject &obj)
     for(const QJsonValue& v : arr)
     {
         CircuitScene *scene = new CircuitScene(this);
-        scene->loadFromJSON(v.toObject(), modeMgr()->circuitFactory());
+        if(!scene->loadFromJSON(v.toObject(), modeMgr()->circuitFactory()))
+        {
+            delete scene;
+            continue;
+        }
 
         connect(scene, &CircuitScene::nameChanged,
                 this, &CircuitListModel::onSceneNameChanged);

@@ -340,6 +340,8 @@ void MainWindow::loadFile(const QString& fileName)
     addFileToRecents(fileName);
 
     QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
+    if(doc.isNull())
+        return;
 
     const QJsonObject rootObj = doc.object();
 
