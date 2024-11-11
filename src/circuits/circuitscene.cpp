@@ -126,7 +126,9 @@ bool cablePathIsValid_helper(const CableGraphPath &cablePath,
         // Check if other cable can co-exist with us in same tile
         const CableGraphPath& otherPath = pair.first ? pair.first.value() : pair.second.value();
         int otherIdx = otherPath.tiles().indexOf(tile);
-        Q_ASSERT(otherIdx >= 0);
+        Q_ASSERT_X(otherIdx >= 0,
+                   "cablePathIsValid_helper",
+                   "other cable does not contain tile");
 
         const bool isLastTile = i == cablePath.getTilesCount() - 1;
         const bool canCheckExit = !isLastTile || cablePath.isComplete();
@@ -224,7 +226,8 @@ void CircuitScene::removeNode(AbstractNodeGraphItem *item)
     if(item == itemBeingMoved())
         endMovingItem();
 
-    Q_ASSERT(getNodeAt(item->location()) == item);
+    Q_ASSERT_X(getNodeAt(item->location()) == item,
+               "removeNode", "item location is not in item map");
 
     removeItem(item);
     mItemMap.erase(item->location());
@@ -390,7 +393,8 @@ bool CircuitScene::updateItemLocation(TileLocation newLocation, AbstractNodeGrap
         mLastMovedItemValidLocation = newLocation;
     }
 
-    Q_ASSERT(getItemAt(oldLocation) == item);
+    Q_ASSERT_X(getItemAt(oldLocation) == item,
+               "updateItemLocation", "Item old location is not in map");
 
     // Update location in map
     mItemMap.erase(oldLocation);
@@ -898,10 +902,12 @@ void CircuitScene::removeCableTiles(CableGraphItem *item)
         TileLocation tile = item->cablePath().at(i);
 
         auto it = mCableTiles.find(tile);
-        Q_ASSERT(it != mCableTiles.end());
+        Q_ASSERT_X(it != mCableTiles.end(),
+                   "removeCableTiles", "unknown tile");
 
         TileCablePair &pair = it->second;
-        Q_ASSERT(pair.first == item || pair.second == item);
+        Q_ASSERT_X(pair.first == item || pair.second == item,
+                   "removeCableTiles", "cable not registered");
 
         if(pair.first == item)
             pair.first = nullptr;
@@ -951,7 +957,8 @@ void CircuitScene::endMovingItem()
     if(!mItemBeingMoved)
         return;
 
-    Q_ASSERT(mLastMovedItemValidLocation.isValid());
+    Q_ASSERT_X(mLastMovedItemValidLocation.isValid(),
+               "endMovingItem", "last location not valid");
 
     mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, false);
 

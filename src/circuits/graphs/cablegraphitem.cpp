@@ -794,18 +794,22 @@ CableGraphPath CableGraphPath::createZeroLength(const TileLocation &a, const Til
 
     if(a.x == b.x)
     {
-        Q_ASSERT(std::abs(a.y - b.y) == 1);
+        Q_ASSERT_X(std::abs(a.y - b.y) == 1,
+                   "CableGraphPath::createZeroLength",
+                   "horizontal not adjacent");
         path.mStartDirection = getDirection(b, a); // Opposite
     }
     else if(a.y == b.y)
     {
-        Q_ASSERT(std::abs(a.x - b.x) == 1);
+        Q_ASSERT_X(std::abs(a.x - b.x) == 1,
+                   "CableGraphPath::createZeroLength",
+                   "vertical not adjacent");
         path.mStartDirection = getDirection(b, a); // Opposite
     }
     else
     {
         // Tiles are not adjacent
-        Q_ASSERT(false);
+        Q_ASSERT_X(false, "CableGraphPath::createZeroLength", "tiles not adjacent");
     }
 
     path.mTiles.append(a);

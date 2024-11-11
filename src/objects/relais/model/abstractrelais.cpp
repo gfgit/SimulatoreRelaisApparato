@@ -151,7 +151,8 @@ void AbstractRelais::setDownSpeed(double newDownSpeed)
 
 void AbstractRelais::addPowerNode(RelaisPowerNode *p)
 {
-    Q_ASSERT(!mPowerNodes.contains(p));
+    Q_ASSERT_X(!mPowerNodes.contains(p),
+               "addPowerNode", "already added");
 
     mPowerNodes.append(p);
     p->setObjectName(mName);
@@ -159,15 +160,18 @@ void AbstractRelais::addPowerNode(RelaisPowerNode *p)
 
 void AbstractRelais::removePowerNode(RelaisPowerNode *p)
 {
-    Q_ASSERT(mPowerNodes.contains(p));
-    Q_ASSERT(p->relais() == this);
+    Q_ASSERT_X(mPowerNodes.contains(p),
+               "removePowerNode", "not registered");
+    Q_ASSERT_X(p->relais() == this,
+               "removePowerNode", "relay does not match");
 
     mPowerNodes.removeOne(p);
 }
 
 void AbstractRelais::addContactNode(RelaisContactNode *c)
 {
-    Q_ASSERT(!mContactNodes.contains(c));
+    Q_ASSERT_X(!mContactNodes.contains(c),
+               "addContactNode", "already added");
 
     mContactNodes.append(c);
     c->setObjectName(mName);
@@ -175,8 +179,10 @@ void AbstractRelais::addContactNode(RelaisContactNode *c)
 
 void AbstractRelais::removeContactNode(RelaisContactNode *c)
 {
-    Q_ASSERT(mContactNodes.contains(c));
-    Q_ASSERT(c->relais() == this);
+    Q_ASSERT_X(mContactNodes.contains(c),
+               "removeContactNode", "not registered");
+    Q_ASSERT_X(c->relais() == this,
+               "removeContactNode", "relay does not match");
 
     mContactNodes.removeOne(c);
 }
@@ -262,12 +268,16 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
 
     if(stateIndependent() && secondContact)
     {
-        Q_ASSERT(mActivePowerNodesDown > 0);
+        Q_ASSERT_X(mActivePowerNodesDown > 0,
+                   "powerNodeDeactivated",
+                   "none active down");
         mActivePowerNodesDown--;
     }
     else
     {
-        Q_ASSERT(mActivePowerNodesUp > 0);
+        Q_ASSERT_X(mActivePowerNodesUp > 0,
+                   "powerNodeDeactivated",
+                   "none active up");
         mActivePowerNodesUp--;
     }
 

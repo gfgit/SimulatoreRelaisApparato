@@ -443,7 +443,8 @@ void ViewManager::onCircuitViewDestroyed(QObject *obj)
 
 void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
 {
-    Q_ASSERT(mActiveCircuitView);
+    Q_ASSERT_X(mActiveCircuitView,
+               "nodeEditRequested", "no active view");
 
     DockWidget *dock = mCircuitViews.value(mActiveCircuitView);
 
@@ -454,7 +455,8 @@ void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
 
 void ViewManager::cableEditRequested(CableGraphItem *item)
 {
-    Q_ASSERT(mActiveCircuitView);
+    Q_ASSERT_X(mActiveCircuitView,
+               "nodeEditRequested", "no active view");
 
     // Allow delete or modify path
     auto editFactory = mainWin()->modeMgr()->circuitFactory();

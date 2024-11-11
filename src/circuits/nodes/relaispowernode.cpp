@@ -242,7 +242,7 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
 {
     if(e->timerId() == mTimerIds[0] || e->timerId() == mTimerIds[1])
     {
-        Q_ASSERT(mRelais);
+        Q_ASSERT_X(mRelais, "RelaisPowerNode::timerEvent", "no relay");
         const int contact = (e->timerId() == mTimerIds[0]) ? 0 : 1;
 
         // Do delayed action
@@ -257,7 +257,7 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
     }
     else if(e->timerId() == mPercentTimerId)
     {
-        Q_ASSERT(mRelais);
+        Q_ASSERT_X(mRelais, "RelaisPowerNode::timerEvent", "no relay");
 
         // Increment timeout percent (down is negative)
         const double upIncrement = 1.0 / (4.0 * qMax(0.1, double(mDelayUpSeconds)));
