@@ -1038,6 +1038,8 @@ void CircuitScene::endItemSelection()
 
     allowItemSelection(false);
 
+    mSelectedItemPositions.clear();
+
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 }
 
@@ -1053,6 +1055,91 @@ void CircuitScene::allowItemSelection(bool enabled)
     {
         AbstractNodeGraphItem *item = it.second;
         item->setFlag(QGraphicsItem::ItemIsSelectable, enabled);
+    }
+}
+
+void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
+{
+    const TileLocation tile = item->location();
+    if(value)
+        mSelectedItemPositions.insert({item, tile});
+    else
+    {
+        auto it = mSelectedItemPositions.find(item);
+        if(it != mSelectedItemPositions.end())
+        {
+            // Reset to last valid location
+            const TileLocation lastValidLocation = it->second;
+            item->setLocation(lastValidLocation);
+            mSelectedItemPositions.erase(it);
+        }
+    }
+}
+
+void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
+{
+    bool allFree = true;
+
+    for(auto it = mSelectedItemPositions.begin();
+        it != mSelectedItemPositions.end();
+        it++)
+    {
+        AbstractNodeGraphItem *item = it->first;
+        const TileLocation newTile = item->location().adjusted(dx, dy);
+        item->setLocation(newTile);
+
+        if(allFree)
+        {
+            AbstractNodeGraphItem *otherItem = getItemAt(newTile);
+            if(otherItem &&
+                    mSelectedItemPositions.find(otherItem) == mSelectedItemPositions.end())
+            {
+                // We landed on top of another item which is not being moved
+                allFree = false;
+            }
+        }
+
+        if(allFree)
+        {
+            TileCablePair pair = getCablesAt(newTile);
+            if(pair.first || pair.second)
+                allFree = false;
+        }
+    }
+
+    if(allFree)
+    {
+        // Register new valid position for all
+        for(auto it = mSelectedItemPositions.begin();
+            it != mSelectedItemPositions.end();
+            it++)
+        {
+            AbstractNodeGraphItem *item = it->first;
+            const TileLocation oldLocation = it->second;
+            const TileLocation newLocation = item->location();
+
+            // Update location in map
+            mItemMap.erase(oldLocation);
+            mItemMap.insert({newLocation, item});
+
+            // Save last valid location
+            it->second = newLocation;
+        }
+
+        setHasUnsavedChanges(true);
+    }
+}
+
+void CircuitScene::endSelectionMove()
+{
+    // Reset all selected items to last valid location
+    for(auto it = mSelectedItemPositions.begin();
+        it != mSelectedItemPositions.end();
+        it++)
+    {
+        AbstractNodeGraphItem *item = it->first;
+        const TileLocation lastValidLocation = it->second;
+        item->setLocation(lastValidLocation);
     }
 }
 
@@ -1502,13 +1589,32 @@ void CircuitScene::keyReleaseEvent(QKeyEvent *e)
         modeMgr()->setEditingSubMode(EditingSubMode::Default);
         break;
     case Qt::Key_S:
-        modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
+        if(e->modifiers() == Qt::NoModifier && modeMgr()->mode() == FileMode::Editing)
+            modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
         break;
     case Qt::Key_Enter:
     case Qt::Key_Return:
         if(isEditingCable())
             endEditCable(true);
         break;
+    case Qt::Key_Delete:
+    {
+        if(modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
+        {
+            const auto selectionCopy = selectedItems();
+            for(auto *item : selectionCopy)
+            {
+                if(auto *node = qobject_cast<AbstractNodeGraphItem *>(item->toGraphicsObject()))
+                {
+                    removeNode(node);
+                }
+                else if(auto *cable = qobject_cast<CableGraphItem *>(item->toGraphicsObject()))
+                {
+                    removeCable(cable->cable());
+                }
+            }
+        }
+    }
     default:
         consumed = false;
         break;

@@ -110,13 +110,43 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
     QGraphicsObject::mousePressEvent(ev);
 }
 
+void AbstractNodeGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
+{
+    CircuitScene *s = circuitScene();
+    if(s && s->modeMgr()->editingSubMode() == EditingSubMode::ItemSelection
+            && ev->buttons() & Qt::LeftButton)
+    {
+        ev->setAccepted(true);
+
+        TileLocation currentTile = location();
+        TileLocation destTile = TileLocation::fromPointFloor(ev->scenePos());
+
+        if(currentTile != destTile)
+            s->moveSelectionBy(destTile.x - currentTile.x,
+                               destTile.y - currentTile.y);
+
+        return;
+    }
+
+    QGraphicsObject::mouseMoveEvent(ev);
+}
+
 void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
     if(s && s->mode() == FileMode::Editing)
     {
-        // After move has ended we go back to last valid location
-        s->endMovingItem();
+        const EditingSubMode subMode = s->modeMgr()->editingSubMode();
+
+        if(subMode == EditingSubMode::SingleItemMove)
+        {
+            // After move has ended we go back to last valid location
+            s->endMovingItem();
+        }
+        else if(subMode == EditingSubMode::ItemSelection)
+        {
+            s->endSelectionMove();
+        }
     }
 
     QGraphicsObject::mouseReleaseEvent(ev);
@@ -139,15 +169,19 @@ void AbstractNodeGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 
 QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
-    if(change == GraphicsItemChange::ItemPositionChange)
+    CircuitScene *s = circuitScene();
+    switch (change)
+    {
+    case GraphicsItemChange::ItemPositionChange:
     {
         // Snap to grid
         QPointF newPos = value.toPointF();
         newPos.rx() = std::round(newPos.x() / TileLocation::Size) * TileLocation::Size;
         newPos.ry() = std::round(newPos.y() / TileLocation::Size) * TileLocation::Size;
 
-        if(newPos != pos() && scene())
+        if(newPos != pos() && s && s->modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
         {
+            // For item selection mode we bypass normal logic
             CircuitScene *s = circuitScene();
             TileLocation newLocation = TileLocation::fromPoint(newPos);
             if(!s->updateItemLocation(newLocation, this))
@@ -159,10 +193,18 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
         }
         return newPos;
     }
-    else if(change == GraphicsItemChange::ItemPositionHasChanged)
+    case GraphicsItemChange::ItemPositionHasChanged:
     {
         // Detach all contacts, will be revaluated later
         invalidateConnections(false);
+        break;
+    }
+    case GraphicsItemChange::ItemSelectedHasChanged:
+    {
+        s->onItemSelected(this, isSelected());
+    }
+    default:
+        break;
     }
 
     return QGraphicsObject::itemChange(change, value);

@@ -127,6 +127,12 @@ struct TileLocation
                 static_cast<int16_t>(std::round(p.y() / Size))};
     }
 
+    static TileLocation fromPointFloor(const QPointF& p)
+    {
+        return {static_cast<int16_t>(std::floor(p.x() / Size)),
+                static_cast<int16_t>(std::floor(p.y() / Size))};
+    }
+
     QPointF toPoint() const
     {
         return QPointF(double(x) * Size,

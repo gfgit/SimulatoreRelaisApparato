@@ -164,6 +164,10 @@ private:
     void endItemSelection();
     void allowItemSelection(bool enabled);
 
+    void onItemSelected(AbstractNodeGraphItem *item, bool value);
+    void moveSelectionBy(int16_t dx, int16_t dy);
+    void endSelectionMove();
+
 private:
     QString mCircuitSheetName;
     QString mCircuitSheetLongName;
@@ -186,6 +190,8 @@ private:
     TileLocation mLastMovedItemValidLocation = TileLocation::invalid;
 
     bool m_hasUnsavedChanges = false;
+
+    std::unordered_map<AbstractNodeGraphItem *, TileLocation> mSelectedItemPositions;
 };
 
 #endif // CIRCUITSCENE_H
