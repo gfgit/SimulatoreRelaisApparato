@@ -143,7 +143,9 @@ public:
     void saveToJSON(QJsonObject& obj) const;
 
 protected:
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *ev) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 private:

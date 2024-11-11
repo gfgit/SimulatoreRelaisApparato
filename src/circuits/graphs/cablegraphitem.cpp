@@ -26,6 +26,7 @@
 #include "../nodes/abstractcircuitnode.h"
 
 #include "../circuitscene.h"
+#include "../../views/modemanager.h"
 
 #include <QPainterPathStroker>
 #include <QPainter>
@@ -124,6 +125,38 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     pen.setColor(oldColor);
 }
 
+void CableGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
+{
+    CircuitScene *s = circuitScene();
+    if(s && s->modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
+    {
+        if(ev->buttons() & Qt::LeftButton)
+        {
+            s->moveSelectedCableAt(TileLocation::fromPointFloor(ev->scenePos()));
+
+            // Eat the event, we bypass normal item move logic
+            return;
+        }
+    }
+
+    QGraphicsObject::mouseMoveEvent(ev);
+}
+
+void CableGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
+{
+    CircuitScene *s = circuitScene();
+    if(s && s->modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
+    {
+        if(!ev->buttons().testFlag(Qt::LeftButton))
+        {
+            s->endSelectionMove();
+            // Do not eat event to let QGraphicsItem process select/unselect
+        }
+    }
+
+    QGraphicsObject::mouseReleaseEvent(ev);
+}
+
 void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
@@ -144,6 +177,7 @@ QVariant CableGraphItem::itemChange(GraphicsItemChange change, const QVariant &v
     case GraphicsItemChange::ItemSelectedHasChanged:
     {
         s->onCableSelected(this, isSelected());
+        break;
     }
     default:
         break;

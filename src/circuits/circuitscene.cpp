@@ -1051,11 +1051,14 @@ void CircuitScene::startItemSelection()
 
 void CircuitScene::endItemSelection()
 {
+    endSelectionMove();
+
     clearSelection();
 
     allowItemSelection(false);
 
     mSelectedItemPositions.clear();
+    mSelectedCablePositions.clear();
 
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 }
@@ -1282,6 +1285,8 @@ void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
 
 void CircuitScene::endSelectionMove()
 {
+    mSelectedCableMoveStart = TileLocation::invalid;
+
     // Reset all selected nodes to last valid location
     for(auto it = mSelectedItemPositions.begin();
         it != mSelectedItemPositions.end();
@@ -1305,8 +1310,35 @@ void CircuitScene::endSelectionMove()
         {
             // Reset to last valid path
             item->setCablePath(item->cablePath());
+
+            // Set new first to last valid location
+            it->second.second = lastValidLocation;
         }
     }
+}
+
+void CircuitScene::moveSelectedCableAt(const TileLocation &tile)
+{
+    if(!tile.isValid())
+        return;
+
+    if(!mSelectedCableMoveStart.isValid())
+    {
+        // Start move, save original mouse position
+        mSelectedCableMoveStart = tile;
+        return;
+    }
+
+    if(mSelectedCableMoveStart == tile)
+        return; // No move
+
+    int16_t dx = tile.x - mSelectedCableMoveStart.x;
+    int16_t dy = tile.y - mSelectedCableMoveStart.y;
+
+    // Update new move start to track relative mouse moves
+    mSelectedCableMoveStart = tile;
+
+    moveSelectionBy(dx, dy);
 }
 
 QString CircuitScene::circuitSheetLongName() const

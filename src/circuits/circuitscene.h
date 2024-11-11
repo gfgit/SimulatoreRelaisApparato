@@ -170,6 +170,8 @@ private:
     void moveSelectionBy(int16_t dx, int16_t dy);
     void endSelectionMove();
 
+    void moveSelectedCableAt(const TileLocation& tile);
+
 private:
     QString mCircuitSheetName;
     QString mCircuitSheetLongName;
@@ -195,6 +197,7 @@ private:
 
     std::unordered_map<AbstractNodeGraphItem *, TileLocation> mSelectedItemPositions;
     std::unordered_map<CableGraphItem *, std::pair<TileLocation, TileLocation>> mSelectedCablePositions;
+    TileLocation mSelectedCableMoveStart = TileLocation::invalid;
 };
 
 #endif // CIRCUITSCENE_H
