@@ -433,13 +433,13 @@ void CircuitScene::calculateConnections()
         checkItem(item, verifiedCables);
     }
 
-    // Delete unconnected zero length cables
+    // Delete unconnected zero length cables and empty cables
     // Copy to avoid invalidating iterators while looping
     cableCopy = mCables;
     for(auto it = cableCopy.begin(); it != cableCopy.end(); it++)
     {
         CableGraphItem *item = it->second;
-        if(item->cableZeroLength() && !verifiedCables.contains(item->cable()))
+        if(item->cablePath().isEmpty() || (item->cableZeroLength() && !verifiedCables.contains(item->cable())))
         {
             removeCable(item->cable());
         }
@@ -552,9 +552,12 @@ bool CircuitScene::checkCable(CableGraphItem *item)
 
             if(!merged.isEmpty())
             {
-                // Delete other cable, set our path to merged
-                removeCable(other->cable());
+                // We cannot delete other cable because
+                // this function is called iterating cable list
+                // so we set it to empty path and it will be garbage collected
+                other->setCablePath(CableGraphPath{});
 
+                // Set our path to merged
                 item->setCablePath(merged);
 
                 // Retry searching nodes
@@ -583,9 +586,12 @@ bool CircuitScene::checkCable(CableGraphItem *item)
 
             if(!merged.isEmpty())
             {
-                // Delete other cable, set our path to merged
-                removeCable(other->cable());
+                // We cannot delete other cable because
+                // this function is called iterating cable list
+                // so we set it to empty path and it will be garbage collected
+                other->setCablePath(CableGraphPath{});
 
+                // Set our path to merged
                 item->setCablePath(merged);
 
                 // Retry searching nodes
@@ -1582,8 +1588,11 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     // Really paste items
-    QVector<QGraphicsItem *> pastedItems;
-    pastedItems.reserve(fragment.validNodes.size() + fragment.validCables.size());
+    QVector<AbstractNodeGraphItem *> pastedItems;
+    pastedItems.reserve(fragment.validNodes.size());
+
+    QVector<CableGraphItem *> pastedCables;
+    pastedCables.reserve(fragment.validCables.size());
 
     for(const QJsonValue& v : fragment.validNodes)
     {
@@ -1637,16 +1646,30 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
 
         addCable(item);
 
-        // Try connect nodes
-        checkCable(item);
+        pastedCables.append(item);
+    }
 
-        pastedItems.append(item);
+    // Try to connect new nodes and cables
+    QVector<CircuitCable *> verifiedCables;
+    for(AbstractNodeGraphItem *item : std::as_const(pastedItems))
+    {
+        checkItem(item, verifiedCables);
+    }
+
+    for(CableGraphItem *item : std::as_const(pastedCables))
+    {
+        checkCable(item);
     }
 
     // Now select all pasted items so user can move them
     modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
 
     for(QGraphicsItem *item : std::as_const(pastedItems))
+    {
+        item->setSelected(true);
+    }
+
+    for(QGraphicsItem *item : std::as_const(pastedCables))
     {
         item->setSelected(true);
     }
