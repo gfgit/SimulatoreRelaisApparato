@@ -72,8 +72,7 @@ void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 {
     if(oldMode == FileMode::Editing)
     {
-        // Reset editing sub mode
-        modeMgr()->setEditingSubMode(EditingSubMode::Default);
+        // Recalculate circuit
         calculateConnections();
     }
 

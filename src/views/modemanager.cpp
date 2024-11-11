@@ -49,7 +49,14 @@ void ModeManager::setMode(FileMode newMode)
     if (mMode == newMode)
         return;
 
-    FileMode oldMode = mMode;
+    const FileMode oldMode = mMode;
+
+    if(oldMode == FileMode::Editing)
+    {
+        // Reset sub editing mode to default
+        setEditingSubMode(EditingSubMode::Default);
+    }
+
     mMode = newMode;
     emit modeChanged(mMode, oldMode);
 

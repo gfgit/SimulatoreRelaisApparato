@@ -125,6 +125,7 @@ void AbstractNodeGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
             s->moveSelectionBy(destTile.x - currentTile.x,
                                destTile.y - currentTile.y);
 
+        // Eat the event, we bypass normal item move logic
         return;
     }
 
@@ -202,6 +203,7 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
     case GraphicsItemChange::ItemSelectedHasChanged:
     {
         s->onItemSelected(this, isSelected());
+        break;
     }
     default:
         break;
