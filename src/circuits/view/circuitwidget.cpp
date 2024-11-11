@@ -21,6 +21,7 @@
  */
 
 #include "circuitwidget.h"
+#include "circuitsview.h"
 
 #include "../circuitscene.h"
 #include "../edit/nodeeditfactory.h"
@@ -30,7 +31,6 @@
 
 #include "../../views/viewmanager.h"
 
-#include "../../utils/zoomgraphview.h"
 #include "../../utils/doubleclickslider.h"
 #include <QDoubleSpinBox>
 
@@ -48,7 +48,7 @@ CircuitWidget::CircuitWidget(ViewManager *mgr, QWidget *parent)
     lay->setContentsMargins(QMargins());
     setContentsMargins(QMargins());
 
-    mCircuitView = new ZoomGraphView;
+    mCircuitView = new CircuitsView;
     mCircuitView->installEventFilter(this);
     lay->addWidget(mCircuitView);
 
@@ -254,7 +254,7 @@ void CircuitWidget::setUniqueNum(int newUniqueNum)
     mUniqueNum = newUniqueNum;
 }
 
-ZoomGraphView *CircuitWidget::circuitView() const
+CircuitsView *CircuitWidget::circuitsView() const
 {
     return mCircuitView;
 }

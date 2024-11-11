@@ -29,7 +29,7 @@ class ViewManager;
 
 class CircuitScene;
 
-class ZoomGraphView;
+class CircuitsView;
 class QDoubleSpinBox;
 class DoubleClickSlider;
 
@@ -45,7 +45,7 @@ public:
     CircuitScene *scene() const;
     void setScene(CircuitScene *newScene, bool updateName = true);
 
-    ZoomGraphView *circuitView() const;
+    CircuitsView *circuitsView() const;
 
     int uniqueNum() const;
     void setUniqueNum(int newUniqueNum);
@@ -75,7 +75,7 @@ private:
 private:
     CircuitScene *mScene = nullptr;
 
-    ZoomGraphView *mCircuitView = nullptr;
+    CircuitsView *mCircuitView = nullptr;
     DoubleClickSlider *mZoomSlider = nullptr;
     QDoubleSpinBox *mZoomSpin = nullptr;
 

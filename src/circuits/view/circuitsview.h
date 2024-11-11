@@ -1,5 +1,5 @@
 /**
- * src/utils/zoomgraphview.h
+ * src/circuits/view/circuitsview.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,46 +20,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ZOOMGRAPHVIEW_H
-#define ZOOMGRAPHVIEW_H
+#ifndef CIRCUITSVIEW_H
+#define CIRCUITSVIEW_H
 
-#include <QGraphicsView>
+#include "../../utils/zoomgraphview.h"
 
-class ZoomGraphView : public QGraphicsView
+class CircuitScene;
+
+class CircuitsView : public ZoomGraphView
 {
     Q_OBJECT
 public:
-    static constexpr double MinZoom = 0.1;
-    static constexpr double MaxZoom = 2.0;
+    explicit CircuitsView(QWidget *parent = nullptr);
 
-    explicit ZoomGraphView(QWidget *parent = nullptr);
-
-    double zoomFactor() const;
-
-    inline QPointF getTargetScenePos() const
-    {
-        return targetScenePos;
-    }
-
-signals:
-    void zoomChanged(double val);
-
-public slots:
-    void setZoom(double val);
+    CircuitScene *circuitScene() const;
 
 protected:
-    bool viewportEvent(QEvent *e) override;
+    void keyPressEvent(QKeyEvent *ev) override;
 
 private:
-    void zoomBy(double factor);
-
-private:
-    static constexpr Qt::KeyboardModifier ZoomModifiers = Qt::ControlModifier;
-    static constexpr double ZoomFactorBase = 1.0015;
-
-    double mZoomFactor = 1.0;
-
-    QPointF targetScenePos, targetViewportPos;
+    void deleteSelectedItems();
 };
 
-#endif // ZOOMGRAPHVIEW_H
+#endif // CIRCUITSVIEW_H
