@@ -1107,9 +1107,15 @@ void CircuitScene::allowItemSelection(bool enabled)
 
 void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
 {
+    if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
+        return;
+
     if(value)
     {
         const TileLocation tile = item->location();
+        Q_ASSERT_X(getItemAt(tile) == item, "onItemSelected",
+                   "Item location is not registered");
+
         mSelectedItemPositions.insert({item, tile});
     }
     else
@@ -1127,6 +1133,9 @@ void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
 
 void CircuitScene::onCableSelected(CableGraphItem *item, bool value)
 {
+    if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
+        return;
+
     if(item->cableZeroLength())
         return;
 
@@ -1158,6 +1167,9 @@ void CircuitScene::onCableSelected(CableGraphItem *item, bool value)
 
 void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
 {
+    if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
+        return;
+
     bool allFree = true;
 
     for(auto it = mSelectedItemPositions.begin();
@@ -1167,6 +1179,9 @@ void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
         AbstractNodeGraphItem *item = it->first;
         const TileLocation newTile = item->location().adjusted(dx, dy);
         item->setLocation(newTile);
+
+        Q_ASSERT_X(getNodeAt(it->second) == item,
+                   "moveSelectionBy", "item last valid location is not in item map");
 
         if(allFree)
         {
@@ -1269,21 +1284,56 @@ void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
 
     if(allFree)
     {
-        // Register new valid position for all nodes
+        // Unregister last valid position
+        // This is because items could move to position previously held
+        // by other moved items, so they could block each other
         for(auto it = mSelectedItemPositions.begin();
             it != mSelectedItemPositions.end();
             it++)
         {
             AbstractNodeGraphItem *item = it->first;
             const TileLocation oldLocation = it->second;
+
+            Q_ASSERT_X(getNodeAt(oldLocation) == item,
+                       "moveSelectionBy", "item OLD location is not in item map");
+
+            mItemMap.erase(oldLocation);
+        }
+
+        // Register new valid position for all nodes
+        for(auto it = mSelectedItemPositions.begin();
+            it != mSelectedItemPositions.end();
+            it++)
+        {
+            AbstractNodeGraphItem *item = it->first;
             const TileLocation newLocation = item->location();
 
+            Q_ASSERT_X(getNodeAt(newLocation) == nullptr,
+                       "moveSelectionBy", "item being moved to invalid position");
+
             // Update location in map
-            mItemMap.erase(oldLocation);
             mItemMap.insert({newLocation, item});
 
             // Save last valid location
             it->second = newLocation;
+
+            Q_ASSERT_X(getNodeAt(newLocation) == item,
+                       "moveSelectionBy", "item new location is not in item map");
+            Q_ASSERT_X(item->location() == newLocation,
+                       "moveSelectionBy", "error");
+
+            Q_ASSERT_X(getNodeAt(item->location()) == item,
+                       "moveSelectionBy", "item new location is not in item map");
+        }
+
+        // Unregister old tiles for all cables
+        // So that during move they do not conflict with each other
+        for(auto it = mSelectedCablePositions.begin();
+            it != mSelectedCablePositions.end();
+            it++)
+        {
+            CableGraphItem *item = it->first;
+            removeCableTiles(item);
         }
 
         // Register new valid position for all cables
@@ -1298,10 +1348,13 @@ void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
             const int16_t cableDx = currentFirstLocation.x - lastValidLocation.x;
             const int16_t cableDy = currentFirstLocation.y - lastValidLocation.y;
 
-            CableGraphPath translated = item->cablePath().translatedBy(cableDx, cableDy);
+            const CableGraphPath translated = item->cablePath().translatedBy(cableDx, cableDy);
 
             // Now we really apply path
-            item->setCablePath(translated);
+            item->setCablePathInternal(translated, false);
+
+            // And register new tiles
+            addCableTiles(item);
 
             // Store new valid location to current first location
             it->second.first = currentFirstLocation;
@@ -1323,6 +1376,9 @@ void CircuitScene::endSelectionMove()
         AbstractNodeGraphItem *item = it->first;
         const TileLocation lastValidLocation = it->second;
         item->setLocation(lastValidLocation);
+
+        Q_ASSERT_X(getNodeAt(item->location()) == item,
+                   "endSelectionMove", "item location is not in item map");
     }
 
     // Reset all selected cables to last valid location

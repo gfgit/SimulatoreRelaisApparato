@@ -124,7 +124,11 @@ public:
     QPainterPath path() const;
 
     const CableGraphPath& cablePath() const;
-    void setCablePath(const CableGraphPath &newCablePath);
+
+    void setCablePath(const CableGraphPath &newCablePath)
+    {
+        setCablePathInternal(newCablePath, true);
+    }
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
@@ -154,6 +158,9 @@ protected:
 private:
     friend class CircuitScene;
     void setPathInternal(const QPainterPath& newPath);
+
+    void setCablePathInternal(const CableGraphPath &newCablePath,
+                              bool registerTiles);
 
 private slots:
     void updatePen();

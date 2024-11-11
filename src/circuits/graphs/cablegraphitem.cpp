@@ -209,18 +209,18 @@ const CableGraphPath &CableGraphItem::cablePath() const
     return mCablePath;
 }
 
-void CableGraphItem::setCablePath(const CableGraphPath &newCablePath)
+void CableGraphItem::setCablePathInternal(const CableGraphPath &newCablePath, bool registerTiles)
 {
     prepareGeometryChange();
 
     // Update scene
     auto *s = circuitScene();
-    if(s)
+    if(s && registerTiles)
         s->removeCableTiles(this);
 
     mCablePath = newCablePath;
 
-    if(s)
+    if(s && registerTiles)
         s->addCableTiles(this);
 
     mPath = mCablePath.generatePath();
