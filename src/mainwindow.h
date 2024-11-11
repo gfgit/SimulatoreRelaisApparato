@@ -63,8 +63,8 @@ private slots:
     void onNew();
     void onOpen();
     void onOpenRecent();
-    void onSave();
-    void onSaveAs();
+    bool onSave();
+    bool onSaveAs();
 
     void updateWindowModified();
 

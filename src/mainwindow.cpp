@@ -377,7 +377,7 @@ bool MainWindow::maybeSave()
     if(ret == QMessageBox::Save)
     {
         // Check if really save
-        if(!saveFile(windowFilePath()))
+        if(!onSave())
             return false; // Saving was canceled
     }
 
@@ -404,31 +404,32 @@ bool MainWindow::saveFile(const QString& fileName)
     return true;
 }
 
-void MainWindow::onSave()
+bool MainWindow::onSave()
 {
     if(windowFilePath().isEmpty())
     {
         // Show file dialog for new files
-        onSaveAs();
-        return;
+        return onSaveAs();
     }
 
     // Save on same file
-    saveFile(windowFilePath());
+    return saveFile(windowFilePath());
 }
 
-void MainWindow::onSaveAs()
+bool MainWindow::onSaveAs()
 {
     QString fileName = QFileDialog::getSaveFileName(this,
                                                     tr("Save Circuit"),
                                                     windowFilePath());
     if(fileName.isEmpty())
-        return;
+        return false;
 
-    saveFile(fileName);
+    if(!saveFile(fileName))
+        return false;
 
     // Set current file to new file path
     setWindowFilePath(fileName);
+    return true;
 }
 
 void MainWindow::updateWindowModified()
