@@ -42,10 +42,43 @@
 
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonDocument>
 
 #include <QPainter>
 
+#include <QClipboard>
+#include <QMimeData>
+
 #include "edit/nodeeditfactory.h"
+
+template <typename Func>
+bool spiral_helper(const TileLocation& origin,
+                   TileLocation &outTile,
+                   Func func)
+{
+    // Loop in a square spiral around origin
+    // For each tile, func is called
+    // If func returns true, looping is stopped
+    const int N = 1000;
+    int16_t x = 0;
+    int16_t y = 0;
+    for(int i = 0; i < N; ++i)
+    {
+        const TileLocation tile = origin.adjusted(x, y);
+        if(func(tile))
+        {
+            outTile = tile;
+            return true;
+        }
+
+        if(std::abs(x) <= std::abs(y) && (x != y || x >= 0))
+            x += ((y >= 0) ? 1 : -1);
+        else
+            y += ((x >= 0) ? -1 : 1);
+    }
+
+    return false;
+}
 
 template <typename TileHasNode, typename GetCablePairAt>
 bool cablePathIsValid_helper(const CableGraphPath &cablePath,
@@ -168,7 +201,7 @@ void CircuitScene::addNode(AbstractNodeGraphItem *item)
     if(!isLocationFree(item->location()))
     {
         // Assign a new location to node
-        item->setLocation(getNewFreeLocation(item->location()));
+        item->setLocation(getFreeLocationNear(item->location()));
     }
 
     mItemMap.insert({item->location(), item});
@@ -258,28 +291,20 @@ CableGraphItem *CircuitScene::graphForCable(CircuitCable *cable) const
     return it->second;
 }
 
-TileLocation CircuitScene::getNewFreeLocation(TileLocation hint)
+TileLocation CircuitScene::getFreeLocationNear(TileLocation origin)
 {
-    if(!hint.isValid())
-        hint = {0, 0};
+    if(!origin.isValid())
+        origin = {0, 0};
 
-    while(true)
+    TileLocation result = TileLocation::invalid;
+    bool success = spiral_helper(origin, result, [this](const TileLocation& tile)
     {
-        TileLocation location = hint;
-        for(location.x = hint.x; location.x < hint.x + 15; location.x++)
-        {
-            if(isLocationFree(location))
-                return location;
-        }
-        for(location.x = hint.x; location.x > hint.x - 15; location.x--)
-        {
-            if(isLocationFree(location))
-                return location;
-        }
-        hint.y++;
-    }
+        return isLocationFree(tile);
+    });
 
-    Q_UNREACHABLE();
+    if(success)
+        return result;
+
     return TileLocation::invalid;
 }
 
@@ -318,12 +343,22 @@ bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphI
         return getItemAt(tile) != nullptr;
     };
 
-    auto getCablePairAt = [this](const TileLocation& tile) -> TileCablePair
+    auto getCablePairAt = [this, item](const TileLocation& tile) -> TileCablePathPair
     {
-        return getCablesAt(tile);
+        const TileCablePair cablePair = getCablesAt(tile);
+
+        TileCablePathPair pathPair;
+
+        // Do not consider ourselves
+        if(cablePair.first && cablePair.first != item)
+            pathPair.first = cablePair.first->cablePath();
+        if(cablePair.second && cablePair.second != item)
+            pathPair.second = cablePair.second->cablePath();
+
+        return pathPair;
     };
 
-    return cablePathIsValid_helper(cablePath, item, hasNode, getCablePairAt);
+    return cablePathIsValid_helper(cablePath, hasNode, getCablePairAt);
 }
 
 bool CircuitScene::updateItemLocation(TileLocation newLocation, AbstractNodeGraphItem *item)
@@ -1055,7 +1090,9 @@ void CircuitScene::endItemSelection()
     mSelectedItemPositions.clear();
     mSelectedCablePositions.clear();
 
-    modeMgr()->setEditingSubMode(EditingSubMode::Default);
+    // Disable item selection if not already done
+    if(modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
+        modeMgr()->setEditingSubMode(EditingSubMode::Default);
 }
 
 void CircuitScene::allowItemSelection(bool enabled)
@@ -1202,34 +1239,35 @@ void CircuitScene::moveSelectionBy(int16_t dx, int16_t dy)
                 return false;
             };
 
-            auto getCablePairAt = [this, item](const TileLocation& tile) -> TileCablePair
+            auto getCablePairAt = [this, item](const TileLocation& tile) -> TileCablePathPair
             {
                 // Check if we landed on top of a cable which is not being moved
-                TileCablePair pair = getCablesAt(tile);
+                const TileCablePair cablePair = getCablesAt(tile);
 
-                if(pair.first && pair.first != item)
+                TileCablePathPair pathPair;
+
+                // Do not consider ourselves
+                if(cablePair.first && cablePair.first != item)
                 {
-                    if(mSelectedCablePositions.find(pair.first) != mSelectedCablePositions.end())
+                    if(mSelectedCablePositions.find(cablePair.first) == mSelectedCablePositions.end())
                     {
-                        // This cable is being moved with us so it will not be there
-                        // When move is applied in the end
-                        pair.first = nullptr;
+                        // This cable is not being moved with us
+                        pathPair.first = cablePair.first->cablePath();
                     }
                 }
-                if(pair.second && pair.second != item)
+                if(cablePair.second && cablePair.second != item)
                 {
-                    if(mSelectedCablePositions.find(pair.second) != mSelectedCablePositions.end())
+                    if(mSelectedCablePositions.find(cablePair.second) == mSelectedCablePositions.end())
                     {
-                        // This cable is being moved with us so it will not be there
-                        // When move is applied in the end
-                        pair.second = nullptr;
+                        // This cable is not being moved with us
+                        pathPair.second = cablePair.second->cablePath();
                     }
                 }
 
-                return pair;
+                return pathPair;
             };
 
-            if(!cablePathIsValid_helper(translated, item, hasNode, getCablePairAt))
+            if(!cablePathIsValid_helper(translated, hasNode, getCablePairAt))
                 allFree = false;
         }
     }
@@ -1334,6 +1372,408 @@ void CircuitScene::moveSelectedCableAt(const TileLocation &tile)
     mSelectedCableMoveStart = tile;
 
     moveSelectionBy(dx, dy);
+}
+
+void CircuitScene::copySelectedItems()
+{
+    QJsonArray nodes;
+    for(auto it : mSelectedItemPositions)
+    {
+        AbstractNodeGraphItem *item = it.first;
+
+        QJsonObject nodeObj;
+        item->saveToJSON(nodeObj);
+        nodes.append(nodeObj);
+    }
+
+    QJsonArray cables;
+    for(auto it : mSelectedCablePositions)
+    {
+        CableGraphItem *item = it.first;
+
+        QJsonObject cableObj;
+        item->saveToJSON(cableObj);
+        cables.append(cableObj);
+    }
+
+    QJsonObject rootObj;
+    rootObj["nodes"] = nodes;
+    rootObj["cables"] = cables;
+
+    QByteArray value = QJsonDocument(rootObj).toJson(QJsonDocument::Compact);
+
+    QMimeData *mime = new QMimeData;
+    mime->setData(CircuitMimeType, value);
+
+    QGuiApplication::clipboard()->setMimeData(mime, QClipboard::Clipboard);
+}
+
+bool CircuitScene::tryPasteItems(const TileLocation &tileHint,
+                                 TileLocation &outTopLeft,
+                                 TileLocation &outBottomRight)
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    if(!clipboard)
+        return false;
+
+    const QMimeData *mime = clipboard->mimeData(QClipboard::Clipboard);
+    if(!mime)
+        return false;
+
+    QByteArray value = mime->data(CircuitMimeType);
+    if(value.isEmpty())
+        return false;
+
+    QJsonDocument doc = QJsonDocument::fromJson(value);
+    if(doc.isNull())
+        return false;
+
+
+    const QJsonObject rootObj = doc.object();
+
+    return insertFragment(tileHint, rootObj,
+                          modeMgr()->circuitFactory(),
+                          outTopLeft, outBottomRight);
+}
+
+void CircuitScene::removeSelectedItems()
+{
+    if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
+        return;
+
+    // Copy current selection
+    const auto selectedCablesCopy = mSelectedCablePositions;
+    const auto selectedItemsCopy = mSelectedItemPositions;
+
+    // Clear selection
+    clearSelection();
+    mSelectedCablePositions.clear();
+    mSelectedItemPositions.clear();
+
+    // Remove previously selected items
+    for(auto it : selectedCablesCopy)
+    {
+        CableGraphItem *item = it.first;
+        removeCable(item->cable());
+    }
+
+    for(auto it : selectedItemsCopy)
+    {
+        AbstractNodeGraphItem *item = it.first;
+        removeNode(item);
+    }
+}
+
+void CircuitScene::selectAll()
+{
+    if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
+        return;
+
+    for(const auto& it : mCables)
+    {
+        CableGraphItem *item = it.second;
+        item->setSelected(true);
+    }
+
+    for(const auto& it : mItemMap)
+    {
+        AbstractNodeGraphItem *item = it.second;
+        item->setSelected(true);
+    }
+}
+
+void CircuitScene::invertSelection()
+{
+    if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
+        return;
+
+    const auto oldSelectionCopy = selectedItems();
+
+    selectAll();
+
+    // Now deselect previous items
+    for(auto *item : oldSelectionCopy)
+    {
+        item->setSelected(false);
+    }
+}
+
+bool CircuitScene::insertFragment(const TileLocation &tileHint,
+                                  const QJsonObject &fragmentRoot,
+                                  NodeEditFactory *factory,
+                                  TileLocation &outTopLeft,
+                                  TileLocation &outBottomRight)
+{
+    const QJsonArray nodes = fragmentRoot.value("nodes").toArray();
+    const QJsonArray cables = fragmentRoot.value("cables").toArray();
+
+    // Remove overlapping nodes/cables in fragment to be inserted
+    FragmentData fragment;
+    if(!checkFragment(nodes, cables, fragment))
+        return false;
+
+    // We have now skipped invalid items, check if anything is left
+    if(fragment.validNodes.isEmpty() && fragment.validCables.isEmpty())
+        return false;
+
+    // Find where to inster fragment, near provided tile hint
+    TileLocation fragmentOrigin = TileLocation::invalid;
+    if(!locateSpaceForFragment(fragment, tileHint, fragmentOrigin))
+        return false;
+
+    // Fragment coordinates are still what use to be when copied
+    // So they need to be adjusted
+    // Calculate translation to apply to fragmen
+    const int16_t dx = fragmentOrigin.x - fragment.topLeftLocation.x;
+    const int16_t dy = fragmentOrigin.y - fragment.topLeftLocation.y;
+
+    // Ensure we are default mode (clears previous selection)
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
+
+    // Really paste items
+    QVector<QGraphicsItem *> pastedItems;
+    pastedItems.reserve(fragment.validNodes.size() + fragment.validCables.size());
+
+    for(const QJsonValue& v : fragment.validCables)
+    {
+        const QJsonObject cableObj = v.toObject();
+
+        // Create new cable
+        CircuitCable *cable = new CircuitCable(circuitsModel()->modeMgr(), this);
+        CableGraphItem *item = new CableGraphItem(cable);
+        item->setPos(0, 0);
+
+        if(!item->loadFromJSON(cableObj))
+        {
+            delete item;
+            delete cable;
+            continue;
+        }
+
+        // Translate cable
+        const CableGraphPath translated = item->cablePath().translatedBy(dx, dy);
+        item->setCablePath(translated);
+
+        addCable(item);
+
+        pastedItems.append(item);
+    }
+
+    for(const QJsonValue& v : fragment.validNodes)
+    {
+        QJsonObject obj = v.toObject();
+        const QString nodeType = obj.value("type").toString();
+        if(nodeType.isEmpty())
+            continue;
+
+        TileLocation tile{0, 0};
+        tile.x = obj.value("x").toInt();
+        tile.y = obj.value("y").toInt();
+
+        // Translate node
+        tile = tile.adjusted(dx, dy);
+        obj["x"] = tile.x;
+        obj["y"] = tile.y;
+
+        // Create new node
+        AbstractNodeGraphItem *item = factory->createItem(nodeType, this, tile);
+        if(item)
+        {
+            if(!item->loadFromJSON(obj))
+            {
+                auto *node = item->getAbstractNode();
+                delete item;
+                delete node;
+            }
+
+            // Just to be sure set it again
+            item->setLocation(tile);
+
+            pastedItems.append(item);
+        }
+    }
+
+    // Now select all pasted items so user can move them
+    modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
+
+    for(QGraphicsItem *item : std::as_const(pastedItems))
+    {
+        item->setSelected(true);
+    }
+
+    outTopLeft = fragment.topLeftLocation.adjusted(dx, dy);;
+    outBottomRight = fragment.bottomRightLocation.adjusted(dx, dy);
+
+    return true;
+}
+
+bool CircuitScene::checkFragment(const QJsonArray &nodes, const QJsonArray &cables, FragmentData &fragment)
+{
+    fragment.validNodes.reserve(nodes.size());
+    fragment.pastedNodeTiles.reserve(nodes.size());
+
+    fragment.validCables.reserve(cables.size());
+    fragment.cablePathVec.reserve(cables.size());
+
+    // Check pasted nodes do not overlap each other
+    for(const QJsonValue& v : nodes)
+    {
+        const QJsonObject obj = v.toObject();
+        const QString nodeType = obj.value("type").toString();
+        if(nodeType.isEmpty())
+            continue;
+
+        TileLocation tile{0, 0};
+        tile.x = obj.value("x").toInt();
+        tile.y = obj.value("y").toInt();
+
+        if(fragment.pastedNodeTiles.contains(tile))
+            continue; // Node overlaps another node
+
+        fragment.validNodes.append(obj);
+        fragment.pastedNodeTiles.append(tile);
+
+        fragment.trackFragmentBounds(tile);
+    }
+
+    // Check pasted cables do not overlap each other or nodes
+    typedef std::pair<int, int> PathIdxPair;
+    typedef std::unordered_map<TileLocation, PathIdxPair, TileLocationHash> PathPairMap;
+
+    PathPairMap pathPairMap;
+
+    auto hasPastedNode = [&fragment](const TileLocation& tile) -> bool
+    {
+        return fragment.pastedNodeTiles.contains(tile);
+    };
+
+    auto getPastedCablePairAt = [&pathPairMap, &fragment](const TileLocation& tile) -> TileCablePathPair
+    {
+        // Check if we landed on top of a cable which is being pasted
+        auto it = pathPairMap.find(tile);
+        if(it == pathPairMap.cend())
+            return {};
+
+        const PathIdxPair idxPair = it->second;
+
+        TileCablePathPair pathPair;
+
+        // Do not consider ourselves
+        if(idxPair.first >= 0)
+        {
+            pathPair.first = fragment.cablePathVec.at(idxPair.first);
+        }
+        if(idxPair.second >= 0)
+        {
+            pathPair.second = fragment.cablePathVec.at(idxPair.second);
+        }
+
+        return pathPair;
+    };
+
+    for(const QJsonValue& v : cables)
+    {
+        const QJsonObject obj = v.toObject();
+
+        const QJsonObject pathObj = obj.value("path").toObject();
+        if(pathObj.isEmpty())
+            continue;
+
+        CableGraphPath path = CableGraphPath::loadFromJSON(pathObj);
+        if(path.isEmpty())
+            continue;
+
+        if(!cablePathIsValid_helper(path, hasPastedNode, getPastedCablePairAt))
+            return false;
+
+        fragment.validCables.append(obj);
+
+        int idx = fragment.cablePathVec.size();
+        fragment.cablePathVec.append(path);
+
+        // Add tiles
+        for(const TileLocation& tile : path.tiles())
+        {
+            auto it = pathPairMap.find(tile);
+            if(it == pathPairMap.end())
+            {
+                PathIdxPair pair;
+                pair.first = idx;
+                pair.second = -1;
+                pathPairMap.insert({tile, pair});
+            }
+            else
+            {
+                PathIdxPair &pair = it->second;
+                if(pair.first >= 0)
+                    pair.second = idx;
+                else
+                    pair.first = idx;
+            }
+
+            fragment.trackFragmentBounds(tile);
+        }
+    }
+
+    return true;
+}
+
+bool CircuitScene::locateSpaceForFragment(const FragmentData &fragment, const TileLocation &tileHint, TileLocation &result)
+{
+    if(!fragment.topLeftLocation.isValid())
+        return false;
+
+    auto hasExistingNode = [this](const TileLocation& tile) -> bool
+    {
+        return getItemAt(tile) != nullptr;
+    };
+
+    auto getExistingCablePairAt = [this](const TileLocation& tile) -> TileCablePathPair
+    {
+        const TileCablePair cablePair = getCablesAt(tile);
+
+        TileCablePathPair pathPair;
+
+        // Do not consider ourselves
+        if(cablePair.first)
+            pathPair.first = cablePair.first->cablePath();
+        if(cablePair.second)
+            pathPair.second = cablePair.second->cablePath();
+
+        return pathPair;
+    };
+
+    auto isLocationValid =
+            [this, &fragment, hasExistingNode, getExistingCablePairAt](const TileLocation& origin) -> bool
+    {
+        // Make top left item end on origin
+        const TileLocation topLeft = origin.adjusted(-fragment.topLeftLocation.x,
+                                                     -fragment.topLeftLocation.y);
+
+        // Check if we paste in origin what happens
+        for(const TileLocation& nodeTile : fragment.pastedNodeTiles)
+        {
+            const TileLocation destTile = nodeTile.adjusted(topLeft.x, topLeft.y);
+            if(getNodeAt(destTile))
+                return false; // We overlap existing node
+
+            TileCablePair pair = getCablesAt(destTile);
+            if(pair.first || pair.second)
+                return false; // We overlap an existing cable
+        }
+
+        for(const CableGraphPath& path : fragment.cablePathVec)
+        {
+            const CableGraphPath translated = path.translatedBy(topLeft.x, topLeft.y);
+
+            if(!cablePathIsValid_helper(translated, hasExistingNode, getExistingCablePairAt))
+                return false;
+        }
+
+        return true;
+    };
+
+    return spiral_helper(tileHint, result, isLocationValid);
 }
 
 QString CircuitScene::circuitSheetLongName() const
@@ -1790,27 +2230,52 @@ void CircuitScene::keyReleaseEvent(QKeyEvent *e)
         if(isEditingCable())
             endEditCable(true);
         break;
-    case Qt::Key_Delete:
-    {
-        if(modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
-        {
-            const auto selectionCopy = selectedItems();
-            for(auto *item : selectionCopy)
-            {
-                if(auto *node = qobject_cast<AbstractNodeGraphItem *>(item->toGraphicsObject()))
-                {
-                    removeNode(node);
-                }
-                else if(auto *cable = qobject_cast<CableGraphItem *>(item->toGraphicsObject()))
-                {
-                    removeCable(cable->cable());
-                }
-            }
-        }
-    }
     default:
         consumed = false;
         break;
+    }
+
+    if(!consumed &&
+            modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
+    {
+        consumed = true;
+
+        if(e->matches(QKeySequence::Copy))
+        {
+            copySelectedItems();
+        }
+        else if(e->matches(QKeySequence::Cut))
+        {
+            copySelectedItems();
+            removeSelectedItems();
+        }
+        else if(e->matches(QKeySequence::Paste))
+        {
+            // TODO
+        }
+        else
+        {
+            consumed = false;
+        }
+
+        // TODO: clear selection and invertselection
+    }
+
+    if(!consumed &&
+            modeMgr()->mode() == FileMode::Editing)
+    {
+        consumed = true;
+
+        if(e->matches(QKeySequence::SelectAll))
+        {
+            // Force start selection
+            modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
+            selectAll();
+        }
+        else
+        {
+            consumed = false;
+        }
     }
 
     if(!consumed && isEditingCable() && e->matches(QKeySequence::Undo))
