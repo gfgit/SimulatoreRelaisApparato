@@ -2249,9 +2249,15 @@ void CircuitScene::keyReleaseEvent(QKeyEvent *e)
             copySelectedItems();
             removeSelectedItems();
         }
-        else if(e->matches(QKeySequence::Paste))
+        else if(e->keyCombination() == QKeyCombination(Qt::ControlModifier, Qt::Key_I))
         {
-            // TODO
+            invertSelection();
+        }
+        else if(e->keyCombination() == QKeyCombination(Qt::ControlModifier | Qt::ShiftModifier, Qt::Key_A))
+        {
+            clearSelection();
+            mSelectedItemPositions.clear();
+            mSelectedCablePositions.clear();
         }
         else
         {
