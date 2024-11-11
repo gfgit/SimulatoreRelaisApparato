@@ -42,6 +42,7 @@ class CableGraphPath;
 class QGraphicsPathItem;
 
 class QJsonObject;
+class QJsonArray;
 class NodeEditFactory;
 
 class CircuitListModel;
@@ -55,6 +56,8 @@ public:
     // On a tile there can be 2 cables if they go in squared directions
     // See CableGraphPath::addTile()
     typedef std::pair<CableGraphItem *, CableGraphItem*> TileCablePair;
+    typedef std::pair<std::optional<CableGraphPath>, std::optional<CableGraphPath>> TileCablePathPair;
+    typedef std::unordered_map<TileLocation, TileCablePair, TileLocationHash> CablePairMap;
 
 
     explicit CircuitScene(CircuitListModel *parent);
@@ -70,7 +73,7 @@ public:
     void removeCable(CircuitCable *cable);
     CableGraphItem *graphForCable(CircuitCable *cable) const;
 
-    TileLocation getNewFreeLocation(TileLocation hint = TileLocation::invalid);
+    TileLocation getFreeLocationNear(TileLocation origin = TileLocation::invalid);
 
     static QPointF getConnectorPoint(TileLocation l, Connector::Direction direction);
 
@@ -107,6 +110,15 @@ public:
     bool splitCableAt(CableGraphItem *item, const TileLocation &splitLoc);
 
     ModeManager *modeMgr() const;
+
+    void copySelectedItems();
+    bool tryPasteItems(const TileLocation& tileHint,
+                       TileLocation &outTopLeft,
+                       TileLocation &outBottomRight);
+
+    void removeSelectedItems();
+    void selectAll();
+    void invertSelection();
 
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
@@ -172,6 +184,56 @@ private:
 
     void moveSelectedCableAt(const TileLocation& tile);
 
+    static constexpr QLatin1String CircuitMimeType = QLatin1String("application/x-simulatore-rele-circuits");
+
+    bool insertFragment(const TileLocation& tileHint,
+                        const QJsonObject& fragmentRoot,
+                        NodeEditFactory *factory,
+                        TileLocation &outTopLeft,
+                        TileLocation &outBottomRight);
+
+    struct FragmentData
+    {
+        QVector<QJsonObject> validNodes;
+        QVector<TileLocation> pastedNodeTiles;
+
+        QVector<QJsonObject> validCables;
+        QVector<CableGraphPath> cablePathVec;
+
+        TileLocation topLeftLocation = TileLocation::invalid;
+        TileLocation bottomRightLocation = TileLocation::invalid;
+
+        inline void trackFragmentBounds(const TileLocation& tile)
+        {
+            if(!topLeftLocation.isValid())
+                topLeftLocation = tile;
+            else
+            {
+                if(tile.x < topLeftLocation.x)
+                    topLeftLocation.x = tile.x;
+                if(tile.y < topLeftLocation.y)
+                    topLeftLocation.y = tile.y;
+            }
+
+            if(!bottomRightLocation.isValid())
+                bottomRightLocation = tile;
+            else
+            {
+                if(tile.x > bottomRightLocation.x)
+                    bottomRightLocation.x = tile.x;
+                if(tile.y > bottomRightLocation.y)
+                    bottomRightLocation.y = tile.y;
+            }
+        }
+    };
+
+    bool checkFragment(const QJsonArray& nodes, const QJsonArray& cables,
+                       FragmentData &fragment);
+
+    bool locateSpaceForFragment(const FragmentData &fragment,
+                                const TileLocation& tileHint,
+                                TileLocation& result);
+
 private:
     QString mCircuitSheetName;
     QString mCircuitSheetLongName;
@@ -182,7 +244,7 @@ private:
 
     std::unordered_map<CircuitCable *, CableGraphItem *> mCables;
 
-    std::unordered_map<TileLocation, TileCablePair, TileLocationHash> mCableTiles;
+    CablePairMap mCableTiles;
 
     bool mIsEditingNewCable = false;
     CableGraphItem *mEditingCable = nullptr;

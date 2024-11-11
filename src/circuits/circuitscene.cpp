@@ -47,6 +47,81 @@
 
 #include "edit/nodeeditfactory.h"
 
+template <typename TileHasNode, typename GetCablePairAt>
+bool cablePathIsValid_helper(const CableGraphPath &cablePath,
+                             TileHasNode hasNode, GetCablePairAt getCablePairAt)
+{
+    // Check all tiles are free
+    if(cablePath.isZeroLength())
+        return true;
+
+    std::unordered_set<TileLocation, TileLocationHash> repeatedTiles;
+
+    for(int i = 0; i < cablePath.getTilesCount(); i++)
+    {
+        TileLocation tile = cablePath.at(i);
+
+        if(hasNode(tile))
+        {
+            return false;
+        }
+
+        CircuitScene::TileCablePathPair pair = getCablePairAt(tile);
+
+        if(!pair.first && !pair.second)
+        {
+            // Tile is free, check next one
+            repeatedTiles.insert(tile);
+            continue;
+        }
+
+        if(pair.first && pair.second)
+        {
+            // There are already 2 cables on this tile
+            return false;
+        }
+
+        // At this point tile has 1 cable, either first or second
+        if(repeatedTiles.find(tile) != repeatedTiles.cend())
+        {
+            // Cable passes 2 times on same tile
+            // Then this tile cannot have other cables
+            return false;
+        }
+        repeatedTiles.insert(tile);
+
+        // Check if other cable can co-exist with us in same tile
+        const CableGraphPath& otherPath = pair.first ? pair.first.value() : pair.second.value();
+        int otherIdx = otherPath.tiles().indexOf(tile);
+        Q_ASSERT(otherIdx >= 0);
+
+        const bool isLastTile = i == cablePath.getTilesCount() - 1;
+        const bool canCheckExit = !isLastTile || cablePath.isComplete();
+
+        // Check if first passage was straigh
+        const auto enterDir1 = cablePath.getEnterDirection(i);
+        const auto exitDir1 = cablePath.getExitDirection(i);
+        if(canCheckExit && enterDir1 != ~exitDir1)
+        {
+            // Directions are not opposite, it bends
+            return false;
+        }
+
+        const auto enterDir2 = otherPath.getEnterDirection(otherIdx);
+        const auto exitDir2 = otherPath.getExitDirection(otherIdx);
+        if(enterDir2 != ~exitDir2)
+        {
+            // Directions are not opposite, it bends
+            return false;
+        }
+
+        if(enterDir1 == enterDir2 || enterDir1 == exitDir2)
+            return false; // Both passages have same direction
+    }
+
+    return true;
+}
+
 CircuitScene::CircuitScene(CircuitListModel *parent)
     : QGraphicsScene{parent}
 {
@@ -234,85 +309,6 @@ CircuitScene::TileCablePair CircuitScene::getCablesAt(TileLocation l) const
     if(it == mCableTiles.cend())
         return {nullptr, nullptr};
     return it->second;
-}
-
-template <typename TileHasNode, typename GetCablePairAt>
-bool cablePathIsValid_helper(const CableGraphPath &cablePath, CableGraphItem *item,
-                             TileHasNode hasNode, GetCablePairAt getCablePairAt)
-{
-    // Check all tiles are free
-    if(cablePath.isZeroLength())
-        return true;
-
-    std::unordered_set<TileLocation, TileLocationHash> repeatedTiles;
-
-    for(int i = 0; i < cablePath.getTilesCount(); i++)
-    {
-        TileLocation tile = cablePath.at(i);
-
-        if(hasNode(tile))
-        {
-            return false;
-        }
-
-        CircuitScene::TileCablePair pair = getCablePairAt(tile);
-        if(item)
-        {
-            // Do not consider ourselves
-            if(pair.first == item)
-                pair.first = nullptr;
-            if(pair.second == item)
-                pair.second = nullptr;
-        }
-
-        if(pair.first && pair.second)
-        {
-            // There are already 2 cables on this tile
-            return false;
-        }
-
-        if(repeatedTiles.find(tile) != repeatedTiles.cend())
-        {
-            // Cable passes 2 times on same tile
-            // Then this tile cannot have other cables
-            if(pair.first || pair.second)
-                return false;
-        }
-        repeatedTiles.insert(tile);
-
-        CableGraphItem *otherCable = pair.first ? pair.first : pair.second;
-        if(otherCable)
-        {
-            const auto& otherPath = otherCable->cablePath();
-            int otherIdx = otherPath.tiles().indexOf(tile);
-            Q_ASSERT(otherIdx >= 0);
-
-            const bool isLastTile = i == cablePath.getTilesCount() - 1;
-            const bool canCheckExit = !isLastTile || cablePath.isComplete();
-
-            // Check if first passage was straigh
-            const auto enterDir1 = cablePath.getEnterDirection(i);
-            const auto exitDir1 = cablePath.getExitDirection(i);
-            if(canCheckExit && enterDir1 != ~exitDir1)
-            {
-                // Directions are not opposite, it bends
-                return false;
-            }
-
-            const auto enterDir2 = otherPath.getEnterDirection(otherIdx);
-            const auto exitDir2 = otherPath.getExitDirection(otherIdx);
-            if(enterDir2 != ~exitDir2)
-            {
-                // Directions are not opposite, it bends
-                return false;
-            }
-
-            if(enterDir1 == enterDir2 || enterDir1 == exitDir2)
-                return false; // Both passages have same direction
-        }
-    }
-
-    return true;
 }
 
 bool CircuitScene::cablePathIsValid(const CableGraphPath &cablePath, CableGraphItem *item) const
