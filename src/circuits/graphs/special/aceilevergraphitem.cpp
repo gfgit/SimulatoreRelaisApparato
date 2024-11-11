@@ -48,6 +48,8 @@ ACEILeverGraphItem::ACEILeverGraphItem(OnOffSwitchNode *node_)
 
 void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    AbstractNodeGraphItem::paint(painter, option, widget);
+
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
 

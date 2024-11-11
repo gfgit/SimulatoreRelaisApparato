@@ -37,6 +37,8 @@ RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
 
 void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    AbstractDeviatorGraphItem::paint(painter, option, widget);
+
     bool contactUpOn = node()->isContactOn(AbstractDeviatorNode::UpIdx);
     bool contactDownOn = node()->isContactOn(AbstractDeviatorNode::DownIdx);
 

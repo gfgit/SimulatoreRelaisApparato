@@ -71,12 +71,18 @@ public:
 
     GenericLeverModel *leversModel() const;
 
+    EditingSubMode editingSubMode() const;
+    void setEditingSubMode(EditingSubMode newEditingMode);
+
 signals:
     void modeChanged(FileMode newMode, FileMode oldMode);
     void fileEdited(bool val);
 
+    void editingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode);
+
 private:
     FileMode mMode = FileMode::Editing;
+    EditingSubMode mEditingMode = EditingSubMode::Default;
 
     NodeEditFactory *mCircuitFactory;
     CircuitListModel *mCircuitList;

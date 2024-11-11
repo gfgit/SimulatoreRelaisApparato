@@ -46,6 +46,8 @@ class NodeEditFactory;
 
 class CircuitListModel;
 
+class ModeManager;
+
 class CircuitScene : public QGraphicsScene
 {
     Q_OBJECT
@@ -104,6 +106,8 @@ public:
 
     bool splitCableAt(CableGraphItem *item, const TileLocation &splitLoc);
 
+    ModeManager *modeMgr() const;
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);
@@ -150,10 +154,15 @@ private:
     void startMovingItem(AbstractNodeGraphItem *item);
     void endMovingItem();
 
-    void stopUnfinishedOperations();
-
     void requestEditNode(AbstractNodeGraphItem *item);
     void requestEditCable(CableGraphItem *item);
+
+    friend class CircuitListModel;
+    void onEditingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode);
+
+    void startItemSelection();
+    void endItemSelection();
+    void allowItemSelection(bool enabled);
 
 private:
     QString mCircuitSheetName;

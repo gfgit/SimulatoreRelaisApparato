@@ -35,6 +35,8 @@ CircuitListModel::CircuitListModel(ModeManager *mgr, QObject *parent)
 {
     connect(mModeMgr, &ModeManager::modeChanged,
             this, &CircuitListModel::setMode);
+    connect(mModeMgr, &ModeManager::editingSubModeChanged,
+            this, &CircuitListModel::setEditingSubMode);
 }
 
 CircuitListModel::~CircuitListModel()
@@ -275,6 +277,14 @@ void CircuitListModel::setMode(FileMode newMode, FileMode oldMode)
     for(CircuitScene *scene : std::as_const(mCircuitScenes))
     {
         scene->setMode(newMode, oldMode);
+    }
+}
+
+void CircuitListModel::setEditingSubMode(EditingSubMode oldMode, EditingSubMode newMode)
+{
+    for(CircuitScene *scene : std::as_const(mCircuitScenes))
+    {
+        scene->onEditingSubModeChanged(oldMode, newMode);
     }
 }
 

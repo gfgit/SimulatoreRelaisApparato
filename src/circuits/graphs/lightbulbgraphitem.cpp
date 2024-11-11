@@ -34,6 +34,8 @@ LightBulbGraphItem::LightBulbGraphItem(LightBulbNode *node_)
 
 void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    AbstractNodeGraphItem::paint(painter, option, widget);
+
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
     constexpr double morsettiOffset = 22.0;

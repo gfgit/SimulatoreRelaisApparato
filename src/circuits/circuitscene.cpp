@@ -63,11 +63,17 @@ FileMode CircuitScene::mode() const
     return circuitsModel()->modeMgr()->mode();
 }
 
+ModeManager *CircuitScene::modeMgr() const
+{
+    return circuitsModel()->modeMgr();
+}
+
 void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 {
     if(oldMode == FileMode::Editing)
     {
-        stopUnfinishedOperations();
+        // Reset editing sub mode
+        modeMgr()->setEditingSubMode(EditingSubMode::Default);
         calculateConnections();
     }
 
@@ -83,7 +89,7 @@ void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 
 void CircuitScene::addNode(AbstractNodeGraphItem *item)
 {
-    stopUnfinishedOperations();
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     if(!isLocationFree(item->location()))
     {
@@ -132,7 +138,7 @@ void CircuitScene::removeNode(AbstractNodeGraphItem *item)
 
 void CircuitScene::addCable(CableGraphItem *item)
 {
-    stopUnfinishedOperations();
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     Q_ASSERT(item->cable());
 
@@ -882,7 +888,8 @@ AbstractNodeGraphItem *CircuitScene::itemBeingMoved() const
 
 void CircuitScene::startMovingItem(AbstractNodeGraphItem *item)
 {
-    stopUnfinishedOperations();
+    modeMgr()->setEditingSubMode(EditingSubMode::SingleItemMove);
+
     mItemBeingMoved = item;
     Q_ASSERT(mItemBeingMoved);
 
@@ -909,6 +916,7 @@ void CircuitScene::endMovingItem()
     // calls stopOperations() which calls endMovingItem()
     // we call this after resetting mItemBeingMoved
     // This way we prevent recursion
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
 
     const TileLocation itemLocation = item->location();
@@ -973,15 +981,9 @@ void CircuitScene::endMovingItem()
     refreshItemConnections(item, true);
 }
 
-void CircuitScene::stopUnfinishedOperations()
-{
-    endEditCable(false);
-    endMovingItem();
-}
-
 void CircuitScene::requestEditNode(AbstractNodeGraphItem *item)
 {
-    stopUnfinishedOperations();
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     if(mode() == FileMode::Editing)
         emit circuitsModel()->nodeEditRequested(item);
@@ -989,10 +991,69 @@ void CircuitScene::requestEditNode(AbstractNodeGraphItem *item)
 
 void CircuitScene::requestEditCable(CableGraphItem *item)
 {
-    stopUnfinishedOperations();
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     if(mode() == FileMode::Editing)
         emit circuitsModel()->cableEditRequested(item);
+}
+
+void CircuitScene::onEditingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode)
+{
+    switch (oldMode)
+    {
+    case EditingSubMode::CableEditing:
+        endEditCable(false);
+        break;
+    case EditingSubMode::SingleItemMove:
+        endMovingItem();
+        break;
+    case EditingSubMode::ItemSelection:
+        endItemSelection();
+        break;
+    case EditingSubMode::Default:
+    default:
+        break;
+    }
+
+    switch (newMode)
+    {
+    case EditingSubMode::ItemSelection:
+        startItemSelection();
+        break;
+    default:
+        break;
+    }
+}
+
+void CircuitScene::startItemSelection()
+{
+    modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
+
+    allowItemSelection(true);
+}
+
+void CircuitScene::endItemSelection()
+{
+    clearSelection();
+
+    allowItemSelection(false);
+
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
+}
+
+void CircuitScene::allowItemSelection(bool enabled)
+{
+    for(const auto& it : mCables)
+    {
+        CableGraphItem *item = it.second;
+        item->setFlag(QGraphicsItem::ItemIsSelectable, enabled);
+    }
+
+    for(const auto& it : mItemMap)
+    {
+        AbstractNodeGraphItem *item = it.second;
+        item->setFlag(QGraphicsItem::ItemIsSelectable, enabled);
+    }
 }
 
 QString CircuitScene::circuitSheetLongName() const
@@ -1060,7 +1121,7 @@ void CircuitScene::setHasUnsavedChanges(bool newHasUnsavedChanged)
 
 void CircuitScene::removeAllItems()
 {
-    stopUnfinishedOperations();
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     // Disable all circuits
     for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
@@ -1190,7 +1251,7 @@ QPointF CircuitScene::getConnectorPoint(TileLocation l, Connector::Direction dir
 
 void CircuitScene::startEditNewCable()
 {
-    stopUnfinishedOperations();
+    modeMgr()->setEditingSubMode(EditingSubMode::CableEditing);
 
     // Cable being edited
     mIsEditingNewCable = true;
@@ -1213,7 +1274,7 @@ void CircuitScene::startEditNewCable()
 
 void CircuitScene::startEditCable(CableGraphItem *item)
 {
-    stopUnfinishedOperations();
+    modeMgr()->setEditingSubMode(EditingSubMode::CableEditing);
 
     // Cable being edited
     mEditingCable = item;
@@ -1256,6 +1317,9 @@ void CircuitScene::endEditCable(bool apply)
 
     delete mEditNewCablePath;
     mEditNewCablePath = nullptr;
+
+    // Reset editing sub mode
+    modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     if(!apply)
         return;
@@ -1430,36 +1494,37 @@ void CircuitScene::editCableUndoLast()
 
 void CircuitScene::keyReleaseEvent(QKeyEvent *e)
 {
-    if(isEditingCable())
+    bool consumed = true;
+
+    switch (e->key())
     {
-        bool consumed = true;
-
-        switch (e->key())
-        {
-        case Qt::Key_Escape:
-            endEditCable(false);
-            break;
-        case Qt::Key_Enter:
-        case Qt::Key_Return:
+    case Qt::Key_Escape:
+        modeMgr()->setEditingSubMode(EditingSubMode::Default);
+        break;
+    case Qt::Key_S:
+        modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
+        break;
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
+        if(isEditingCable())
             endEditCable(true);
-            break;
-        default:
-            consumed = false;
-            break;
-        }
+        break;
+    default:
+        consumed = false;
+        break;
+    }
 
-        if(!consumed && e->matches(QKeySequence::Undo))
-        {
-            consumed = true;
+    if(!consumed && isEditingCable() && e->matches(QKeySequence::Undo))
+    {
+        consumed = true;
 
-            editCableUndoLast();
-        }
+        editCableUndoLast();
+    }
 
-        if(consumed)
-        {
-            e->accept();
-            return;
-        }
+    if(consumed)
+    {
+        e->accept();
+        return;
     }
 
     QGraphicsScene::keyReleaseEvent(e);

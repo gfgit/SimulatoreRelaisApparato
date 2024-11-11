@@ -42,6 +42,8 @@ public:
 
     virtual void getConnectors(std::vector<Connector>& /*connectors*/) const {}
 
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
+
     inline AbstractCircuitNode *getAbstractNode() const
     {
         return mAbstractNode;

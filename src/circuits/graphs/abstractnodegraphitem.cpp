@@ -26,6 +26,8 @@
 
 #include "../circuitscene.h"
 
+#include "../../views/modemanager.h"
+
 #include <QPainter>
 #include <QFont>
 
@@ -56,6 +58,17 @@ QRectF AbstractNodeGraphItem::boundingRect() const
     return QRectF(0, 0, TileLocation::Size, TileLocation::Size);
 }
 
+void AbstractNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    CircuitScene *s = circuitScene();
+    if(s && s->modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
+    {
+        // We are in item selection mode
+        if(isSelected())
+            painter->fillRect(boundingRect(), qRgb(180, 255, 255));
+    }
+}
+
 void AbstractNodeGraphItem::triggerUpdate()
 {
     update();
@@ -69,23 +82,28 @@ void AbstractNodeGraphItem::updateName()
 
 void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
+    // Sometimes we receive clicks even if out of node tile
+    // In those cases do not start moving item or rotate it!
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == FileMode::Editing && !s->isEditingCable() && boundingRect().contains(ev->pos()))
+    if(s && s->mode() == FileMode::Editing && boundingRect().contains(ev->pos()))
     {
-        // Sometimes we receive clicks even if out of node tile
-        // In those cases do not start moving item or rotate it!
-        if(ev->button() == Qt::LeftButton)
-        {
-            s->startMovingItem(this);
-        }
-        else if(ev->button() == Qt::RightButton)
-        {
-            // Rotate counter/clockwise 90 (Shift)
-            TileRotate delta = TileRotate::Deg90;
-            if(ev->modifiers() & Qt::ShiftModifier)
-                delta = TileRotate::Deg270; // Opposite direction
+        const EditingSubMode subMode = s->modeMgr()->editingSubMode();
 
-            setRotate(rotate() + delta);
+        if(subMode == EditingSubMode::Default)
+        {
+            if(ev->button() == Qt::LeftButton)
+            {
+                s->startMovingItem(this);
+            }
+            else if(ev->button() == Qt::RightButton)
+            {
+                // Rotate counter/clockwise 90 (Shift)
+                TileRotate delta = TileRotate::Deg90;
+                if(ev->modifiers() & Qt::ShiftModifier)
+                    delta = TileRotate::Deg270; // Opposite direction
+
+                setRotate(rotate() + delta);
+            }
         }
     }
 
@@ -109,9 +127,6 @@ void AbstractNodeGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
     CircuitScene *s = circuitScene();
     if(s && s->mode() == FileMode::Editing)
     {
-        // Prevent accidental move while editing item
-        s->endMovingItem();
-
         if(ev->button() == Qt::LeftButton)
         {
             s->requestEditNode(this);

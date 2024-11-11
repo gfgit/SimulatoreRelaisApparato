@@ -37,6 +37,8 @@ ACEIButtonGraphItem::ACEIButtonGraphItem(ACEIButtonNode *node_)
 
 void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    AbstractDeviatorGraphItem::paint(painter, option, widget);
+
     drawDeviator(painter,
                  node()->isContactOn(AbstractDeviatorNode::UpIdx),
                  node()->isContactOn(AbstractDeviatorNode::DownIdx));

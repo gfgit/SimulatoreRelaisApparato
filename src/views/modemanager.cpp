@@ -153,3 +153,18 @@ GenericLeverModel *ModeManager::leversModel() const
 {
     return mLeversModel;
 }
+
+EditingSubMode ModeManager::editingSubMode() const
+{
+    return mEditingMode;
+}
+
+void ModeManager::setEditingSubMode(EditingSubMode newEditingMode)
+{
+    if(mEditingMode == newEditingMode)
+        return;
+
+    EditingSubMode oldMode = mEditingMode;
+    mEditingMode = newEditingMode;
+    emit editingSubModeChanged(oldMode, mEditingMode);
+}

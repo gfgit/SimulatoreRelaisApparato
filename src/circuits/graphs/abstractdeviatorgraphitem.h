@@ -37,8 +37,6 @@ public:
 public:
     explicit AbstractDeviatorGraphItem(AbstractDeviatorNode *node_);
 
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
-
     void getConnectors(std::vector<Connector>& connectors) const final;
 
     AbstractDeviatorNode *deviatorNode() const;

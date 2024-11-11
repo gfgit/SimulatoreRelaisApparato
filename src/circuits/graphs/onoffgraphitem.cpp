@@ -36,6 +36,8 @@ OnOffGraphItem::OnOffGraphItem(OnOffSwitchNode *node_)
 
 void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    AbstractNodeGraphItem::paint(painter, option, widget);
+
     QLineF commonLine;
     QLineF contact1Line;
     QLineF switchLine;

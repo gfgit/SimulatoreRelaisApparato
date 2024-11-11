@@ -33,11 +33,6 @@ AbstractDeviatorGraphItem::AbstractDeviatorGraphItem(AbstractDeviatorNode *node_
             this, &AbstractDeviatorGraphItem::triggerUpdate);
 }
 
-void AbstractDeviatorGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
-{
-
-}
-
 void AbstractDeviatorGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
     TileRotate centralConnectorRotate = TileRotate::Deg90;

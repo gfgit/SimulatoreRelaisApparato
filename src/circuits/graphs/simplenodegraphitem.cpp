@@ -34,6 +34,8 @@ SimpleNodeGraphItem::SimpleNodeGraphItem(SimpleCircuitNode *node_)
 
 void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    AbstractNodeGraphItem::paint(painter, option, widget);
+
     // We do not draw morsetti on this node
 
     constexpr QPointF center(TileLocation::HalfSize,

@@ -37,6 +37,8 @@ PowerSourceGraphItem::PowerSourceGraphItem(PowerSourceNode *node_)
 
 void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    AbstractNodeGraphItem::paint(painter, option, widget);
+
     painter->setPen(Qt::NoPen);
     painter->setBrush(node()->getEnabled() ? Qt::red : Qt::darkGreen);
 

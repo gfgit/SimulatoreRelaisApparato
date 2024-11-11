@@ -103,6 +103,8 @@ private slots:
 
     void setMode(FileMode newMode, FileMode oldMode);
 
+    void setEditingSubMode(EditingSubMode oldMode, EditingSubMode newMode);
+
 private:
     friend class CircuitScene;
     void onSceneEdited();
