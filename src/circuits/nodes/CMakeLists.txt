@@ -17,6 +17,8 @@ set(PROJECT_SOURCES
     circuits/nodes/lightbulbnode.h
     circuits/nodes/onoffswitchnode.cpp
     circuits/nodes/onoffswitchnode.h
+    circuits/nodes/polarityinversionnode.cpp
+    circuits/nodes/polarityinversionnode.h
     circuits/nodes/powersourcenode.cpp
     circuits/nodes/powersourcenode.h
     circuits/nodes/relaiscontactnode.cpp

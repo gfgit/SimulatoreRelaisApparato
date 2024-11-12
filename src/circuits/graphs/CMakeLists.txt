@@ -17,6 +17,8 @@ set(PROJECT_SOURCES
     circuits/graphs/lightbulbgraphitem.h
     circuits/graphs/onoffgraphitem.cpp
     circuits/graphs/onoffgraphitem.h
+    circuits/graphs/polarityinversiongraphitem.cpp
+    circuits/graphs/polarityinversiongraphitem.h
     circuits/graphs/powersourcegraphitem.cpp
     circuits/graphs/powersourcegraphitem.h
     circuits/graphs/relaiscontactgraphitem.cpp

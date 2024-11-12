@@ -45,6 +45,9 @@
 #include "../graphs/lightbulbgraphitem.h"
 #include "../nodes/lightbulbnode.h"
 
+#include "../graphs/polarityinversiongraphitem.h"
+#include "../nodes/polarityinversionnode.h"
+
 // TODO: special
 #include "../graphs/special/aceilevergraphitem.h"
 
@@ -512,6 +515,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             return w;
         };
+
+        {
+            // Polarity inversion node
+            NodeEditFactory::FactoryItem factory;
+            factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+            factory.nodeType = PolarityInversionGraphItem::Node::NodeType;
+            factory.prettyName = tr("Polarity Inversion");
+            factory.create = &addNewNodeToScene<PolarityInversionGraphItem>;
+            factory.edit = nullptr;
+
+            factoryReg->registerFactory(factory);
+        }
 
         factoryReg->registerFactory(factory);
     }
