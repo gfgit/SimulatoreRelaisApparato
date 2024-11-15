@@ -25,12 +25,10 @@
 
 #include <QWidget>
 
-class QLineEdit;
 class QCheckBox;
 class QComboBox;
 
 class GenericLeverObject;
-class GenericLeverModel;
 
 class LeverPositionModel;
 
@@ -38,23 +36,15 @@ class GenericLeverOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    GenericLeverOptionsWidget(GenericLeverModel *m,
-                              GenericLeverObject *lever,
+    GenericLeverOptionsWidget(GenericLeverObject *lever,
                               QWidget *parent = nullptr);
 
 private slots:
-    void setLeverName();
-    void onNameTextEdited();
     void updatePositionRanges();
 
 private:
-    void setNameValid(bool valid);
-
-private:
-    GenericLeverModel *mModel = nullptr;
     GenericLeverObject *mLever = nullptr;
 
-    QLineEdit *mNameEdit = nullptr;
     QCheckBox *mHasSpringReturn = nullptr;
 
     QComboBox *mMinPosCombo = nullptr;
@@ -64,8 +54,6 @@ private:
     LeverPositionModel *mMinPosModel = nullptr;
     LeverPositionModel *mMaxPosModel = nullptr;
     LeverPositionModel *mNormalPosModel = nullptr;
-
-    QPalette normalEditPalette;
 
     int minPos = -1;
     int maxPos = -1;

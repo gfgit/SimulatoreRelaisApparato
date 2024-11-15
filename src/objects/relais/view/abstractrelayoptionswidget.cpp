@@ -23,31 +23,19 @@
 #include "abstractrelayoptionswidget.h"
 
 #include "../model/abstractrelais.h"
-#include "../model/relaismodel.h"
 
 #include <QFormLayout>
-#include <QLineEdit>
 #include <QCheckBox>
 #include <QComboBox>
 
 #include <QStringListModel>
 
-AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(RelaisModel *m,
-                                                       AbstractRelais *relay,
+AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(AbstractRelais *relay,
                                                        QWidget *parent)
     : QWidget{parent}
-    , mModel(m)
     , mRelay(relay)
 {
     QFormLayout *lay = new QFormLayout(this);
-
-    // Name
-    mNameEdit = new QLineEdit;
-    mNameEdit->setPlaceholderText(tr("Name"));
-    mNameEdit->setText(mRelay->name());
-    lay->addRow(tr("Name:"), mNameEdit);
-
-    normalEditPalette = mNameEdit->palette();
 
     // Normally Up
     mNormallyUp = new QCheckBox(tr("Relay normally Up"));
@@ -59,19 +47,14 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(RelaisModel *m,
     lay->addRow(tr("Type:"), mTypeCombo);
 
     QStringList typeList;
-    typeList.reserve(int(AbstractRelais::Type::NTypes));
-    for(int i = 0; i < int(AbstractRelais::Type::NTypes); i++)
+    typeList.reserve(int(AbstractRelais::RelaisType::NTypes));
+    for(int i = 0; i < int(AbstractRelais::RelaisType::NTypes); i++)
     {
-        typeList.append(AbstractRelais::getTypeName(AbstractRelais::Type(i)));
+        typeList.append(AbstractRelais::getRelaisTypeName(AbstractRelais::RelaisType(i)));
     }
     QStringListModel *typeModel = new QStringListModel(typeList, mTypeCombo);
     mTypeCombo->setModel(typeModel);
-    mTypeCombo->setCurrentIndex(int(mRelay->type()));
-
-    connect(mNameEdit, &QLineEdit::editingFinished,
-            this, &AbstractRelayOptionsWidget::setRelaisName);
-    connect(mNameEdit, &QLineEdit::textEdited,
-            this, &AbstractRelayOptionsWidget::onNameTextEdited);
+    mTypeCombo->setCurrentIndex(int(mRelay->relaisType()));
 
     connect(mNormallyUp, &QCheckBox::toggled,
             this, [this](bool val)
@@ -82,50 +65,6 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(RelaisModel *m,
     connect(mTypeCombo, &QComboBox::activated,
             this, [this](int idx)
     {
-        mRelay->setType(AbstractRelais::Type(idx));
+        mRelay->setRelaisType(AbstractRelais::RelaisType(idx));
     });
-}
-
-void AbstractRelayOptionsWidget::setRelaisName()
-{
-    QString newName = mNameEdit->text().trimmed();
-    if(!newName.isEmpty() && mModel->isNameAvailable(newName))
-    {
-        // Name is valid, set it
-        mRelay->setName(newName);
-        return;
-    }
-
-    // Name is not valid, go back to old name
-    mNameEdit->setText(mRelay->name());
-    setNameValid(true);
-}
-
-void AbstractRelayOptionsWidget::onNameTextEdited()
-{
-    QString newName = mNameEdit->text().trimmed();
-
-    bool valid = true;
-    if(newName != mRelay->name())
-        valid = mModel->isNameAvailable(newName);
-
-    setNameValid(valid);
-}
-
-void AbstractRelayOptionsWidget::setNameValid(bool valid)
-{
-    if(valid)
-    {
-        mNameEdit->setPalette(normalEditPalette);
-        mNameEdit->setToolTip(QString());
-    }
-    else
-    {
-        // Red text
-        QPalette p = mNameEdit->palette();
-        p.setColor(QPalette::Text, Qt::red);
-        mNameEdit->setPalette(p);
-
-        mNameEdit->setToolTip(tr("Name already exists"));
-    }
 }

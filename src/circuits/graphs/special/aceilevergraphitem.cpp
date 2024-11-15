@@ -27,7 +27,7 @@
 #include <QJsonObject>
 
 #include "../../../objects/lever/model/genericleverobject.h"
-#include "../../../objects/lever/model/genericlevermodel.h"
+#include "../../../objects/abstractsimulationobjectmodel.h"
 
 #include "../../../objects/lever/acei/aceileverobject.h"
 
@@ -182,11 +182,9 @@ void ACEILeverGraphItem::setLever(GenericLeverObject *newLever)
         disconnect(mLever, &GenericLeverObject::destroyed,
                    this, &ACEILeverGraphItem::onLeverDestroyed);
 
-        disconnect(mLever, &GenericLeverObject::angleChanged,
+        disconnect(mLever, &GenericLeverObject::stateChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
-        disconnect(mLever, &GenericLeverObject::pressedChanged,
-                   this, &ACEILeverGraphItem::triggerUpdate);
-        disconnect(mLever, &GenericLeverObject::nameChanged,
+        disconnect(mLever, &GenericLeverObject::settingsChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
     }
 
@@ -197,11 +195,9 @@ void ACEILeverGraphItem::setLever(GenericLeverObject *newLever)
         connect(mLever, &GenericLeverObject::destroyed,
                 this, &ACEILeverGraphItem::onLeverDestroyed);
 
-        connect(mLever, &GenericLeverObject::angleChanged,
+        connect(mLever, &GenericLeverObject::stateChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
-        connect(mLever, &GenericLeverObject::pressedChanged,
-                this, &ACEILeverGraphItem::triggerUpdate);
-        connect(mLever, &GenericLeverObject::nameChanged,
+        connect(mLever, &GenericLeverObject::settingsChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
     }
 
@@ -214,9 +210,17 @@ bool ACEILeverGraphItem::loadFromJSON(const QJsonObject &obj)
 
     // Restore fake node type
     objCopy["type"] = Node::NodeType;
-    QString leverName = obj.value("lever").toString();
-    setLever(getAbstractNode()->modeMgr()->leversModel()->getLever(leverName));
 
+    // TODO: don't hardcode ACEILeverObject type
+    auto model = getAbstractNode()->modeMgr()->modelForType(ACEILeverObject::Type);
+    if(model)
+    {
+        const QString leverName = obj.value("lever").toString();
+        AbstractSimulationObject *leverObj = model->getObjectByName(leverName);
+        setLever(static_cast<GenericLeverObject *>(leverObj));
+    }
+    else
+        setLever(nullptr);
     return AbstractNodeGraphItem::loadFromJSON(objCopy);
 }
 

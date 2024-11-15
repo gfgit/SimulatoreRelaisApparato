@@ -39,7 +39,10 @@ class ACEILeverObject : public GenericLeverObject
 {
     Q_OBJECT
 public:
-    explicit ACEILeverObject(QObject *parent = nullptr);
+    explicit ACEILeverObject(AbstractSimulationObjectModel *m);
+
+    static constexpr QLatin1String Type = QLatin1String("acei_lever");
+    QString getType() const override;
 };
 
 #endif // ACEILEVEROBJECT_H

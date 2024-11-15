@@ -29,27 +29,27 @@
 
 #include <QJsonObject>
 
-QString AbstractRelais::getTypeName(Type t)
+QString AbstractRelais::getRelaisTypeName(RelaisType t)
 {
     switch(t)
     {
-    case Type::Normal:
+    case RelaisType::Normal:
         return tr("Normal");
-    case Type::Polarized:
+    case RelaisType::Polarized:
         return tr("Polarized");
-    case Type::PolarizedInverted:
+    case RelaisType::PolarizedInverted:
         return tr("Polarized Inverted");
-    case Type::Stabilized:
+    case RelaisType::Stabilized:
         return tr("Stabilized");
-    case Type::Combinator:
+    case RelaisType::Combinator:
         return tr("Combinator");
     }
 
     return QString();
 }
 
-AbstractRelais::AbstractRelais(QObject *parent)
-    : QObject{parent}
+AbstractRelais::AbstractRelais(AbstractSimulationObjectModel *m)
+    : AbstractSimulationObject{m}
 {
 
 }
@@ -72,61 +72,56 @@ AbstractRelais::~AbstractRelais()
     mTimerId = 0;
 }
 
+QString AbstractRelais::getType() const
+{
+    return Type;
+}
+
 bool AbstractRelais::loadFromJSON(const QJsonObject &obj)
 {
-    setName(obj.value("name").toString());
+    if(!AbstractSimulationObject::loadFromJSON(obj))
+        return false;
+
     setUpSpeed(obj.value("speed_up").toDouble());
     setDownSpeed(obj.value("speed_down").toDouble());
     setNormallyUp(obj.value("normally_up").toBool());
-    setType(Type(obj.value("relay_type").toInt(int(Type::Normal))));
+    setRelaisType(RelaisType(obj.value("relay_type").toInt(int(RelaisType::Normal))));
     return true;
 }
 
 void AbstractRelais::saveToJSON(QJsonObject &obj) const
 {
-    obj["name"] = mName;
+    AbstractSimulationObject::saveToJSON(obj);
+
     obj["speed_up"] = mUpSpeed;
     obj["speed_down"] = mDownSpeed;
     obj["normally_up"] = normallyUp();
-    obj["relay_type"] = int(type());
+    obj["relay_type"] = int(relaisType());
 }
 
-bool AbstractRelais::isStateIndependent(Type t)
+QVector<AbstractCircuitNode *> AbstractRelais::nodes() const
+{
+    QVector<AbstractCircuitNode *> result;
+    result.reserve(mPowerNodes.size() + mContactNodes.size());
+    for(auto item : mPowerNodes)
+        result.append(item);
+    for(auto item : mContactNodes)
+        result.append(item);
+    return result;
+}
+
+bool AbstractRelais::isStateIndependent(RelaisType t)
 {
     switch(t)
     {
-    case AbstractRelais::Type::Stabilized:
-    case AbstractRelais::Type::Combinator:
+    case AbstractRelais::RelaisType::Stabilized:
+    case AbstractRelais::RelaisType::Combinator:
         return true;
     default:
         break;
     }
 
     return false;
-}
-
-QString AbstractRelais::name() const
-{
-    return mName;
-}
-
-void AbstractRelais::setName(const QString &newName)
-{
-    if (mName == newName)
-        return;
-    mName = newName;
-    emit nameChanged(this, mName);
-    emit settingsChanged(this);
-
-    for(RelaisPowerNode *p : mPowerNodes)
-    {
-        p->setObjectName(mName);
-    }
-
-    for(RelaisContactNode *c : mContactNodes)
-    {
-        c->setObjectName(mName);
-    }
 }
 
 double AbstractRelais::upSpeed() const
@@ -155,7 +150,8 @@ void AbstractRelais::addPowerNode(RelaisPowerNode *p)
                "addPowerNode", "already added");
 
     mPowerNodes.append(p);
-    p->setObjectName(mName);
+
+    emit nodesChanged();
 }
 
 void AbstractRelais::removePowerNode(RelaisPowerNode *p)
@@ -166,6 +162,8 @@ void AbstractRelais::removePowerNode(RelaisPowerNode *p)
                "removePowerNode", "relay does not match");
 
     mPowerNodes.removeOne(p);
+
+    emit nodesChanged();
 }
 
 void AbstractRelais::addContactNode(RelaisContactNode *c)
@@ -174,7 +172,8 @@ void AbstractRelais::addContactNode(RelaisContactNode *c)
                "addContactNode", "already added");
 
     mContactNodes.append(c);
-    c->setObjectName(mName);
+
+    emit nodesChanged();
 }
 
 void AbstractRelais::removeContactNode(RelaisContactNode *c)
@@ -185,6 +184,8 @@ void AbstractRelais::removeContactNode(RelaisContactNode *c)
                "removeContactNode", "relay does not match");
 
     mContactNodes.removeOne(c);
+
+    emit nodesChanged();
 }
 
 void AbstractRelais::timerEvent(QTimerEvent *e)
@@ -255,7 +256,7 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
         startMove(true);
     }
 
-    emit powerChanged(this);
+    emit stateChanged(this);
 }
 
 void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact)
@@ -302,7 +303,7 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
         startMove(false);
     }
 
-    emit powerChanged(this);
+    emit stateChanged(this);
 }
 
 void AbstractRelais::setPosition(double newPosition)
@@ -333,12 +334,12 @@ void AbstractRelais::startMove(bool up)
     mTimerId = startTimer(250);
 }
 
-AbstractRelais::Type AbstractRelais::type() const
+AbstractRelais::RelaisType AbstractRelais::relaisType() const
 {
     return mType;
 }
 
-void AbstractRelais::setType(Type newType)
+void AbstractRelais::setRelaisType(RelaisType newType)
 {
     if(mType == newType)
         return;
@@ -383,5 +384,5 @@ void AbstractRelais::setState(State newState)
     if (mState == newState)
         return;
     mState = newState;
-    emit stateChanged(this, mState);
+    emit stateChanged(this);
 }

@@ -46,8 +46,13 @@ static const LeverPositionDesc aceiLeverDesc(aceiLeverItems,
                                              int(ACEILeverPosition::Normal),
                                              &ACEILeverPosition_translate);
 
-ACEILeverObject::ACEILeverObject(QObject *parent)
-    : GenericLeverObject(aceiLeverDesc, parent)
+ACEILeverObject::ACEILeverObject(AbstractSimulationObjectModel *m)
+    : GenericLeverObject(m, aceiLeverDesc)
 {
 
+}
+
+QString ACEILeverObject::getType() const
+{
+    return Type;
 }

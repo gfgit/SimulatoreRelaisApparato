@@ -3,9 +3,6 @@
 set(PROJECT_SOURCES
     ${PROJECT_SOURCES}
 
-    objects/lever/model/genericlevermodel.cpp
-    objects/lever/model/genericlevermodel.h
-
     objects/lever/model/genericleverobject.cpp
     objects/lever/model/genericleverobject.h
 

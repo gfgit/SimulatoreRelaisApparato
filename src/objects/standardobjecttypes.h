@@ -1,5 +1,5 @@
 /**
- * src/objects/relais/view/relaylineedit.h
+ * src/objects/standardobjecttypes.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,40 +20,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef RELAYLINEEDIT_H
-#define RELAYLINEEDIT_H
+#ifndef STANDARDOBJECTTYPES_H
+#define STANDARDOBJECTTYPES_H
 
-#include <QLineEdit>
 
-class RelaisModel;
-class AbstractRelais;
+#include <QCoreApplication>
 
-class RelayLineEdit : public QLineEdit
+
+class SimulationObjectFactory;
+
+class StandardObjectTypes
 {
-    Q_OBJECT
+    Q_DECLARE_TR_FUNCTIONS(StandardObjectTypes)
 public:
-    RelayLineEdit(RelaisModel *m, QWidget *parent = nullptr);
-
-    AbstractRelais *relais() const
-    {
-        return mRelais;
-    }
-
-public slots:
-    void setRelais(AbstractRelais *newRelais);
-
-signals:
-    void relayChanged(AbstractRelais *r);
-
-private:
-    RelaisModel *mRelaisModel = nullptr;
-    AbstractRelais *mRelais = nullptr;
+    static void registerTypes(SimulationObjectFactory *factory);
 };
 
-
-
-
-
-
-
-#endif // RELAYLINEEDIT_H
+#endif // STANDARDOBJECTTYPES_H

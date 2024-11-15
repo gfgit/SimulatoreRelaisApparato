@@ -1,5 +1,5 @@
 /**
- * src/objects/lever/view/genericleverlistwidget.h
+ * src/objects/simulationobjectlistwidget.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,14 +20,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef GENERIC_LEVER_LISTWIDGET_H
-#define GENERIC_LEVER_LISTWIDGET_H
+#ifndef SIMUALTION_OBJECT_LIST_WIDGET_H
+#define SIMUALTION_OBJECT_LIST_WIDGET_H
 
 #include <QWidget>
 
-#include "../../../enums/filemodes.h"
+#include "../enums/filemodes.h"
 
-class GenericLeverModel;
+class AbstractSimulationObjectModel;
 class QSortFilterProxyModel;
 
 class QPushButton;
@@ -35,20 +35,21 @@ class QTableView;
 
 class ViewManager;
 
-class GenericLeverListWidget : public QWidget
+class SimulationObjectListWidget : public QWidget
 {
     Q_OBJECT
 public:
-    GenericLeverListWidget(ViewManager *mgr, GenericLeverModel *model, QWidget *parent = nullptr);
+    SimulationObjectListWidget(ViewManager *mgr,
+                               AbstractSimulationObjectModel *model,
+                               QWidget *parent = nullptr);
 
-    GenericLeverModel *model() const;
+    AbstractSimulationObjectModel *model() const;
 
 private slots:
     void onFileModeChanged(FileMode mode);
 
-    void addLever();
-    void removeCurrentLever();
-
+    void addObject();
+    void removeCurrentObject();
     void showViewContextMenu(const QPoint &pos);
 
 private:
@@ -58,9 +59,9 @@ private:
     QPushButton *remBut;
 
     ViewManager *mViewMgr;
-    GenericLeverModel *mModel;
+    AbstractSimulationObjectModel *mModel;
 
     QSortFilterProxyModel *mProxyModel;
 };
 
-#endif // GENERIC_LEVER_LISTWIDGET_H
+#endif // SIMUALTION_OBJECT_LIST_WIDGET_H

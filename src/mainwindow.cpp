@@ -41,6 +41,7 @@
 #include "views/modemanager.h"
 
 #include "circuits/edit/nodeeditfactory.h"
+#include "objects/simulationobjectfactory.h"
 
 MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
@@ -131,15 +132,21 @@ void MainWindow::buildMenuBar()
     connect(showCircuitList, &QAction::triggered,
             mViewMgr, &ViewManager::showCircuitListView);
 
-    QAction *showRelayList = menuView->addAction(tr("Relay list"));
+    QMenu *menuViewObject = menuView->addMenu(tr("Object List"));
 
-    connect(showRelayList, &QAction::triggered,
-            mViewMgr, &ViewManager::showRelayListView);
+    SimulationObjectFactory *factory = modeMgr()->objectFactory();
+    for(const QString& objType : factory->getRegisteredTypes())
+    {
+        const QString prettyName = factory->prettyName(objType);
 
-    QAction *showLeverList = menuView->addAction(tr("Lever list"));
+        QAction *listAction = menuViewObject->addAction(prettyName);
 
-    connect(showLeverList, &QAction::triggered,
-            mViewMgr, &ViewManager::showLeverListView);
+        connect(listAction, &QAction::triggered,
+                mViewMgr, [this, objType]()
+        {
+            mViewMgr->showObjectListView(objType);
+        });
+    }
 
     actionEditMode = menuView->addAction(tr("Edit mode"));
     actionEditMode->setCheckable(true);

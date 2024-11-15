@@ -1,5 +1,5 @@
 /**
- * src/objects/lever/view/genericleverlineedit.h
+ * src/objects/simulationobjectlineedit.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,35 +20,34 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef GENERIC_LEVER_LINEEDIT_H
-#define GENERIC_LEVER_LINEEDIT_H
+#ifndef SIMULATION_OBJECT_LINEEDIT_H
+#define SIMULATION_OBJECT_LINEEDIT_H
 
 #include <QLineEdit>
 
-class GenericLeverModel;
-class GenericLeverObject;
+class AbstractSimulationObjectModel;
+class AbstractSimulationObject;
 
-class GenericLeverLineEdit : public QLineEdit
+class SimulationObjectLineEdit : public QLineEdit
 {
     Q_OBJECT
 public:
-    GenericLeverLineEdit(GenericLeverModel *m, QWidget *parent = nullptr);
+    SimulationObjectLineEdit(AbstractSimulationObjectModel *m, QWidget *parent = nullptr);
 
-    GenericLeverObject *relais() const
+    AbstractSimulationObject *getObject() const
     {
-        return mLever;
+        return mObject;
     }
 
 public slots:
-    void setLever(GenericLeverObject *newLever);
+    void setObject(AbstractSimulationObject *newObject);
 
 signals:
-    void leverChanged(GenericLeverObject *r);
+    void objectChanged(AbstractSimulationObject *obj);
 
 private:
-    GenericLeverModel *mLeverModel = nullptr;
-    GenericLeverObject *mLever = nullptr;
+    AbstractSimulationObjectModel *mModel = nullptr;
+    AbstractSimulationObject *mObject = nullptr;
 };
 
-
-#endif // GENERIC_LEVER_LINEEDIT_H
+#endif // SIMULATION_OBJECT_LINEEDIT_H

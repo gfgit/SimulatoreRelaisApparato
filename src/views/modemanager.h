@@ -25,13 +25,15 @@
 
 #include <QObject>
 
+#include <QHash>
+
 #include "../enums/filemodes.h"
 
 class NodeEditFactory;
 class CircuitListModel;
 
-class RelaisModel;
-class GenericLeverModel;
+class SimulationObjectFactory;
+class AbstractSimulationObjectModel;
 
 class QJsonObject;
 
@@ -40,6 +42,7 @@ class ModeManager : public QObject
     Q_OBJECT
 public:
     explicit ModeManager(QObject *parent = nullptr);
+    ~ModeManager();
 
     inline FileMode mode() const
     {
@@ -67,12 +70,12 @@ public:
     void saveToJSON(QJsonObject &obj) const;
     void clearAll();
 
-    RelaisModel *relaisModel() const;
-
-    GenericLeverModel *leversModel() const;
-
     EditingSubMode editingSubMode() const;
     void setEditingSubMode(EditingSubMode newEditingMode);
+
+    SimulationObjectFactory *objectFactory() const;
+
+    AbstractSimulationObjectModel *modelForType(const QString& objType) const;
 
 signals:
     void modeChanged(FileMode newMode, FileMode oldMode);
@@ -87,8 +90,9 @@ private:
     NodeEditFactory *mCircuitFactory;
     CircuitListModel *mCircuitList;
 
-    RelaisModel *mRelaisModel;
-    GenericLeverModel *mLeversModel;
+    QHash<QString, AbstractSimulationObjectModel*> mObjectModels;
+
+    SimulationObjectFactory *mObjectFactory;
 
     bool mFileWasEdited = false;
 };

@@ -1,5 +1,5 @@
 /**
- * src/objects/relais/view/relaislistwidget.h
+ * src/objects/simulationobjectoptionswidget.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,46 +20,45 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef RELAISLISTWIDGET_H
-#define RELAISLISTWIDGET_H
+#ifndef SIMULATIONOBJECTOPTIONSWIDGET_H
+#define SIMULATIONOBJECTOPTIONSWIDGET_H
 
 #include <QWidget>
 
-#include "../../../enums/filemodes.h"
+class QLineEdit;
 
-class RelaisModel;
-class QSortFilterProxyModel;
+class AbstractSimulationObjectModel;
+class AbstractSimulationObject;
 
-class QPushButton;
-class QTableView;
-
-class ViewManager;
-
-class RelaisListWidget : public QWidget
+class SimulationObjectOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    RelaisListWidget(ViewManager *mgr, RelaisModel *model, QWidget *parent = nullptr);
+    explicit SimulationObjectOptionsWidget(AbstractSimulationObject *object,
+                                           QWidget *parent = nullptr);
 
-    RelaisModel *model() const;
+    void addCustomWidget(QWidget *w);
+
+    QString uniqueId() const;
+
+signals:
+    void uniqueIdChanged(const QString& uniqueId);
 
 private slots:
-    void onFileModeChanged(FileMode mode);
-
-    void addRelay();
-    void removeCurrentRelay();
-    void showViewContextMenu(const QPoint &pos);
+    void setName();
+    void onNameTextEdited();
+    void onNameChanged();
 
 private:
-    QTableView *mView;
+    void setNameValid(bool valid);
 
-    QPushButton *addBut;
-    QPushButton *remBut;
+private:
+    AbstractSimulationObject *mObject = nullptr;
 
-    ViewManager *mViewMgr;
-    RelaisModel *mModel;
+    QLineEdit *mNameEdit = nullptr;
+    QLineEdit *mDescriptionEdit = nullptr;
 
-    QSortFilterProxyModel *mProxyModel;
+    QPalette normalEditPalette;
 };
 
-#endif // RELAISLISTWIDGET_H
+#endif // SIMULATIONOBJECTOPTIONSWIDGET_H

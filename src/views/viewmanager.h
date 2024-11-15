@@ -37,9 +37,7 @@ class CircuitScene;
 class AbstractNodeGraphItem;
 class CableGraphItem;
 
-class GenericLeverObject;
-
-class AbstractRelais;
+class AbstractSimulationObject;
 
 namespace KDDockWidgets::QtWidgets
 {
@@ -61,8 +59,7 @@ public:
                                   bool forceNew = false);
 
     void showCircuitSceneEdit(CircuitScene *scene);
-    void showLeverEdit(GenericLeverObject *lever);
-    void showRelayEdit(AbstractRelais *relay);
+    void showObjectEdit(AbstractSimulationObject *item);
 
     void closeAllEditDocks();
     void closeAllFileSpecificDocks();
@@ -72,8 +69,7 @@ public slots:
     void startEditNEwCableOnActiveView();
     void addNodeToActiveView(const QString& nodeType);
     void showCircuitListView();
-    void showRelayListView();
-    void showLeverListView();
+    void showObjectListView(const QString &objType);
 
 private slots:
     void onCircuitViewDestroyed(QObject *obj);
@@ -101,13 +97,13 @@ private:
 
     // Edit views
     QHash<CircuitScene *, DockWidget *> mCircuitEdits;
-    QHash<GenericLeverObject *, DockWidget *> mLeverEdits;
-    QHash<AbstractRelais *, DockWidget *> mRelayEdits;
+
+    QHash<AbstractSimulationObject *, DockWidget *> mObjectEdits;
 
     // General views
+    QHash<QString, DockWidget *> mObjectListDocks;
+
     QPointer<DockWidget> mCircuitListViewDock;
-    QPointer<DockWidget> mRelaisListViewDock;
-    QPointer<DockWidget> mLeverListViewDock;
 };
 
 #endif // VIEWMANAGER_H

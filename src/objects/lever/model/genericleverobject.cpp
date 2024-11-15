@@ -29,8 +29,8 @@
 #include <QJsonObject>
 
 
-GenericLeverObject::GenericLeverObject(const LeverPositionDesc &desc, QObject *parent)
-    : QObject{parent}
+GenericLeverObject::GenericLeverObject(AbstractSimulationObjectModel *m, const LeverPositionDesc &desc)
+    : AbstractSimulationObject{m}
     , mPositionDesc(desc)
 {
     // Recalculate range
@@ -55,7 +55,9 @@ GenericLeverObject::~GenericLeverObject()
 
 bool GenericLeverObject::loadFromJSON(const QJsonObject &obj)
 {
-    setName(obj.value("name").toString());
+    if(!AbstractSimulationObject::loadFromJSON(obj))
+        return false;
+
     setHasSpringReturn(obj.value("spring_return").toBool());
 
     // Range
@@ -77,7 +79,8 @@ bool GenericLeverObject::loadFromJSON(const QJsonObject &obj)
 
 void GenericLeverObject::saveToJSON(QJsonObject &obj) const
 {
-    obj["name"] = mName;
+    AbstractSimulationObject::saveToJSON(obj);
+
     obj["spring_return"] = hasSpringReturn();
 
     // Range
@@ -87,22 +90,13 @@ void GenericLeverObject::saveToJSON(QJsonObject &obj) const
     obj["normal_position"] = normalPosition();
 }
 
-QString GenericLeverObject::name() const
+QVector<AbstractCircuitNode *> GenericLeverObject::nodes() const
 {
-    return mName;
-}
-
-void GenericLeverObject::setName(const QString &newName)
-{
-    if (mName == newName)
-        return;
-    mName = newName;
-    emit nameChanged(this, mName);
-
-    for(LeverContactNode *c : mContactNodes)
-    {
-        c->setObjectName(mName);
-    }
+    QVector<AbstractCircuitNode *> result;
+    result.reserve(mContactNodes.size());
+    for(auto item : mContactNodes)
+        result.append(item);
+    return result;
 }
 
 int GenericLeverObject::angle() const
@@ -124,6 +118,7 @@ void GenericLeverObject::setAngle(int newAngle)
     setPosition(closestPosition(mAngle, true));
 
     emit angleChanged(this, mAngle);
+    emit stateChanged(this);
 }
 
 void GenericLeverObject::setAngleTrySnap(int newAngle)
@@ -163,6 +158,7 @@ void GenericLeverObject::setPosition(int newPosition)
 
         mPosition = p;
         emit positionChanged(this, mPosition);
+        emit stateChanged(this);
     }
 }
 
@@ -177,7 +173,7 @@ void GenericLeverObject::setHasSpringReturn(bool newHasSpringReturn)
         return;
 
     mHasSpringReturn = newHasSpringReturn;
-    emit changed(this);
+    emit settingsChanged(this);
 
     if(mHasSpringReturn && !mIsPressed)
         startSpringTimer();
@@ -195,6 +191,7 @@ void GenericLeverObject::setPressed(bool newIsPressed)
 
     mIsPressed = newIsPressed;
     emit pressedChanged(mIsPressed);
+    emit stateChanged(this);
 
     if(mIsPressed)
     {
@@ -304,7 +301,7 @@ void GenericLeverObject::setAbsoluteRange(int newMin, int newMax)
 
 
     if(rangeChanged)
-        emit changed(this);
+        emit settingsChanged(this);
 
     // Recalculate angle and normal position
     setAngle(mAngle);
@@ -342,7 +339,7 @@ void GenericLeverObject::setNormalPosition(int newNormalPosition)
         return;
 
     mNormalPosition = newNormalPosition;
-    emit changed(this);
+    emit settingsChanged(this);
 }
 
 const LeverPositionDesc& GenericLeverObject::positionDesc() const

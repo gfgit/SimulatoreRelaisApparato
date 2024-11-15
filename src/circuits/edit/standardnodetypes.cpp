@@ -65,14 +65,14 @@
 
 #include "../../views/modemanager.h"
 
-#include "../../objects/relais/model/abstractrelais.h"
-#include "../../objects/relais/view/relaylineedit.h"
+#include "../../objects/simulationobjectlineedit.h"
 
-#include "../../objects/lever/model/genericlevermodel.h"
+#include "../../objects/relais/model/abstractrelais.h"
+
+#include "../../objects/lever/acei/aceileverobject.h" // TODO: remove
 #include "../../objects/lever/model/genericleverobject.h"
 #include "../../objects/lever/model/levercontactconditionsmodel.h"
 
-#include "../../objects/lever/view/genericleverlineedit.h"
 #include "../../objects/lever/view/levercontactconditionsview.h"
 
 template <typename Graph>
@@ -255,12 +255,16 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            RelayLineEdit *relayEdit = new RelayLineEdit(mgr->relaisModel());
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr->modelForType(AbstractRelais::Type));
             QObject::connect(node, &RelaisPowerNode::relayChanged,
-                             relayEdit, &RelayLineEdit::setRelais);
-            QObject::connect(relayEdit, &RelayLineEdit::relayChanged,
-                             node, &RelaisPowerNode::setRelais);
-            relayEdit->setRelais(node->relais());
+                             relayEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
+                             node, [node](AbstractSimulationObject *obj)
+            {
+                node->setRelais(static_cast<AbstractRelais *>(obj));
+            });
+
+            relayEdit->setObject(node->relais());
             lay->addRow(tr("Relay:"), relayEdit);
 
             // Delayed up/down
@@ -338,12 +342,16 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            RelayLineEdit *relayEdit = new RelayLineEdit(mgr->relaisModel());
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr->modelForType(AbstractRelais::Type));
             QObject::connect(node, &RelaisContactNode::relayChanged,
-                             relayEdit, &RelayLineEdit::setRelais);
-            QObject::connect(relayEdit, &RelayLineEdit::relayChanged,
-                             node, &RelaisContactNode::setRelais);
-            relayEdit->setRelais(node->relais());
+                             relayEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
+                             node, [node](AbstractSimulationObject *obj)
+            {
+                node->setRelais(static_cast<AbstractRelais *>(obj));
+            });
+
+            relayEdit->setObject(node->relais());
             lay->addRow(tr("Relay:"), relayEdit);
 
             // Deviator
@@ -426,12 +434,16 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            GenericLeverLineEdit *leverEdit = new GenericLeverLineEdit(mgr->leversModel());
+            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr->modelForType(ACEILeverObject::Type));
             QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
-                             leverEdit, &GenericLeverLineEdit::setLever);
-            QObject::connect(leverEdit, &GenericLeverLineEdit::leverChanged,
-                             specialItem, &ACEILeverGraphItem::setLever);
-            leverEdit->setLever(specialItem->lever());
+                             leverEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setLever(static_cast<GenericLeverObject *>(obj));
+            });
+            leverEdit->setObject(specialItem->lever());
+
             lay->addRow(tr("Lever:"), leverEdit);
 
             return w;
@@ -455,10 +467,13 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            GenericLeverLineEdit *leverEdit = new GenericLeverLineEdit(mgr->leversModel());
-            QObject::connect(leverEdit, &GenericLeverLineEdit::leverChanged,
-                             node, &LeverContactNode::setLever);
-            leverEdit->setLever(node->lever());
+            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr->modelForType(ACEILeverObject::Type));
+            QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
+                             node, [node](AbstractSimulationObject *obj)
+            {
+                node->setLever(static_cast<GenericLeverObject *>(obj));
+            });
+            leverEdit->setObject(node->lever());
             lay->addRow(tr("Lever:"), leverEdit);
 
             // Deviator
@@ -481,7 +496,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                              [leverEdit, conditionsModel,
                              node, conditionsView]()
             {
-                leverEdit->setLever(node->lever());
+                leverEdit->setObject(node->lever());
 
                 if(node->lever())
                 {

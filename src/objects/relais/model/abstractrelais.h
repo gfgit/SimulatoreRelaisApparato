@@ -23,14 +23,14 @@
 #ifndef ABSTRACTRELAIS_H
 #define ABSTRACTRELAIS_H
 
-#include <QObject>
+#include "../../abstractsimulationobject.h"
 
 class RelaisPowerNode;
 class RelaisContactNode;
 
 class QJsonObject;
 
-class AbstractRelais : public QObject
+class AbstractRelais : public AbstractSimulationObject
 {
     Q_OBJECT
 public:
@@ -43,7 +43,7 @@ public:
         GoingDown = 3
     };
 
-    enum class Type
+    enum class RelaisType
     {
         Normal = 0,
         Polarized,
@@ -53,41 +53,42 @@ public:
         NTypes
     };
 
-    static QString getTypeName(Type t);
+    static QString getRelaisTypeName(RelaisType t);
 
-    explicit AbstractRelais(QObject *parent = nullptr);
+    explicit AbstractRelais(AbstractSimulationObjectModel *m);
     ~AbstractRelais();
 
-    virtual bool loadFromJSON(const QJsonObject& obj);
-    virtual void saveToJSON(QJsonObject& obj) const;
+    static constexpr QLatin1String Type = QLatin1String("abstract_relais");
+    QString getType() const override;
 
-    static bool isStateIndependent(Type t);
+    bool loadFromJSON(const QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) const override;
+
+    QVector<AbstractCircuitNode*> nodes() const override;
+
+    static bool isStateIndependent(RelaisType t);
 
     inline bool stateIndependent() const
     {
-        return isStateIndependent(type());
+        return isStateIndependent(relaisType());
     }
 
     inline bool canHaveTwoConnectors() const
     {
-        if(type() == Type::Combinator)
+        if(relaisType() == RelaisType::Combinator)
             return false; // We use 2 different tiles for it
         return true;
     }
 
     inline bool mustHaveTwoConnectors() const
     {
-        if(type() == Type::Stabilized)
+        if(relaisType() == RelaisType::Stabilized)
             return true;
         return false;
     }
 
     State state() const;
     void setState(State newState);
-
-    QString name() const;
-
-    void setName(const QString &newName);
 
     double upSpeed() const;
     void setUpSpeed(double newUpSpeed);
@@ -100,8 +101,8 @@ public:
     bool normallyUp() const;
     void setNormallyUp(bool newNormallyUp);
 
-    Type type() const;
-    void setType(Type newType);
+    RelaisType relaisType() const;
+    void setRelaisType(RelaisType newType);
 
     inline int hasActivePowerUp() const
     {
@@ -114,11 +115,7 @@ public:
     }
 
 signals:
-    void nameChanged(AbstractRelais *self, const QString& name);
-    void settingsChanged(AbstractRelais *self);
-    void stateChanged(AbstractRelais *self, State s);
-    void powerChanged(AbstractRelais *self);
-    void typeChanged(AbstractRelais *self, Type s);
+    void typeChanged(AbstractRelais *self, RelaisType s);
 
 private:
     friend class RelaisPowerNode;
@@ -136,9 +133,7 @@ private:
     void startMove(bool up);
 
 private:
-    QString mName;
-
-    Type mType = Type::Normal;
+    RelaisType mType = RelaisType::Normal;
 
     State mState = State::Down;
     State mInternalState = State::Down;

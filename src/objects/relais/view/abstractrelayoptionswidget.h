@@ -25,38 +25,23 @@
 
 #include <QWidget>
 
-class QLineEdit;
+class AbstractRelais;
+
 class QCheckBox;
 class QComboBox;
-
-class AbstractRelais;
-class RelaisModel;
 
 class AbstractRelayOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    AbstractRelayOptionsWidget(RelaisModel *m,
-                              AbstractRelais *lever,
-                              QWidget *parent = nullptr);
-
-private slots:
-    void setRelaisName();
-    void onNameTextEdited();
+    AbstractRelayOptionsWidget(AbstractRelais *relay,
+                               QWidget *parent = nullptr);
 
 private:
-    void setNameValid(bool valid);
-
-private:
-    RelaisModel *mModel = nullptr;
     AbstractRelais *mRelay = nullptr;
 
-    QLineEdit *mNameEdit = nullptr;
     QCheckBox *mNormallyUp = nullptr;
-
     QComboBox *mTypeCombo = nullptr;
-
-    QPalette normalEditPalette;
 };
 
 #endif // ABSTRACT_RELAY_OPTIONSWIDGET_H

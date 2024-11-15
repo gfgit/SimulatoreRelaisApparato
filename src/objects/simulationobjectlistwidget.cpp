@@ -1,5 +1,5 @@
 /**
- * src/objects/relais/view/relaislistwidget.cpp
+ * src/objects/simulationobjectlistwidget.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,13 +20,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "relaislistwidget.h"
+#include "simulationobjectlistwidget.h"
 
-#include "../model/relaismodel.h"
-#include "../model/abstractrelais.h"
+#include "abstractsimulationobjectmodel.h"
+#include "abstractsimulationobject.h"
 
-#include "../../../views/viewmanager.h"
-#include "../../../views/modemanager.h"
+#include "simulationobjectfactory.h"
+
+#include "../views/viewmanager.h"
+#include "../views/modemanager.h"
 
 #include <QVBoxLayout>
 #include <QTableView>
@@ -40,7 +42,7 @@
 #include <QMenu>
 #include <QAction>
 
-RelaisListWidget::RelaisListWidget(ViewManager *mgr, RelaisModel *model, QWidget *parent)
+SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, AbstractSimulationObjectModel *model, QWidget *parent)
     : QWidget{parent}
     , mViewMgr(mgr)
     , mModel(model)
@@ -50,8 +52,10 @@ RelaisListWidget::RelaisListWidget(ViewManager *mgr, RelaisModel *model, QWidget
     QHBoxLayout *butLay = new QHBoxLayout;
     lay->addLayout(butLay);
 
-    addBut = new QPushButton(tr("Add Relay"));
-    remBut = new QPushButton(tr("Remove Relay"));
+    const QString prettyName = mModel->getObjectPrettyName();
+
+    addBut = new QPushButton(tr("Add %1").arg(prettyName));
+    remBut = new QPushButton(tr("Remove %1").arg(prettyName));
 
     butLay->addWidget(addBut);
     butLay->addWidget(remBut);
@@ -68,25 +72,25 @@ RelaisListWidget::RelaisListWidget(ViewManager *mgr, RelaisModel *model, QWidget
     mView->setContextMenuPolicy(Qt::CustomContextMenu);
 
     connect(mModel->modeMgr(), &ModeManager::modeChanged,
-            this, &RelaisListWidget::onFileModeChanged);
+            this, &SimulationObjectListWidget::onFileModeChanged);
 
     connect(addBut, &QPushButton::clicked,
-            this, &RelaisListWidget::addRelay);
+            this, &SimulationObjectListWidget::addObject);
     connect(remBut, &QPushButton::clicked,
-            this, &RelaisListWidget::removeCurrentRelay);
+            this, &SimulationObjectListWidget::removeCurrentObject);
 
     connect(mView, &QTableView::customContextMenuRequested,
-            this, &RelaisListWidget::showViewContextMenu);
+            this, &SimulationObjectListWidget::showViewContextMenu);
 
     onFileModeChanged(mModel->modeMgr()->mode());
 }
 
-RelaisModel *RelaisListWidget::model() const
+AbstractSimulationObjectModel *SimulationObjectListWidget::model() const
 {
     return mModel;
 }
 
-void RelaisListWidget::onFileModeChanged(FileMode mode)
+void SimulationObjectListWidget::onFileModeChanged(FileMode mode)
 {
     const bool canEdit = mode == FileMode::Editing;
     addBut->setEnabled(canEdit);
@@ -95,10 +99,12 @@ void RelaisListWidget::onFileModeChanged(FileMode mode)
     remBut->setVisible(canEdit);
 }
 
-void RelaisListWidget::addRelay()
+void SimulationObjectListWidget::addObject()
 {
     if(mModel->modeMgr()->mode() != FileMode::Editing)
         return;
+
+    const QString prettyName = mModel->getObjectPrettyName();
 
     QString name;
 
@@ -106,7 +112,7 @@ void RelaisListWidget::addRelay()
     while(true)
     {
         name = QInputDialog::getText(this,
-                                     tr("New Relay"),
+                                     tr("New %1").arg(prettyName),
                                      first ?
                                          tr("Choose name:") :
                                          tr("Name is not available.\n"
@@ -122,12 +128,14 @@ void RelaisListWidget::addRelay()
         first = false;
     }
 
-    AbstractRelais *r = new AbstractRelais(mModel);
-    r->setName(name);
-    mModel->addRelay(r);
+    SimulationObjectFactory *factory = mModel->modeMgr()->objectFactory();
+    AbstractSimulationObject *item = factory->createItem(mModel);
+
+    item->setName(name);
+    mModel->addObject(item);
 }
 
-void RelaisListWidget::removeCurrentRelay()
+void SimulationObjectListWidget::removeCurrentObject()
 {
     if(mModel->modeMgr()->mode() != FileMode::Editing)
         return;
@@ -137,21 +145,23 @@ void RelaisListWidget::removeCurrentRelay()
     if(!idx.isValid())
         return;
 
-    AbstractRelais *r = mModel->relayAt(idx.row());
-    if(!r)
+    AbstractSimulationObject *item = mModel->objectAt(idx.row());
+    if(!item)
         return;
 
+    const QString prettyName = mModel->getObjectPrettyName();
+
     int ret = QMessageBox::question(this,
-                                    tr("Delete Relais?"),
+                                    tr("Delete %1?").arg(prettyName),
                                     tr("Are you sure to delete <b>%1</b>?")
-                                    .arg(r->name()));
+                                    .arg(item->name()));
     if(ret == QMessageBox::Yes)
     {
-        mModel->removeRelay(r);
+        mModel->removeObject(item);
     }
 }
 
-void RelaisListWidget::showViewContextMenu(const QPoint &pos)
+void SimulationObjectListWidget::showViewContextMenu(const QPoint &pos)
 {
     if(mModel->modeMgr()->mode() != FileMode::Editing)
         return;
@@ -160,12 +170,13 @@ void RelaisListWidget::showViewContextMenu(const QPoint &pos)
 
     QModelIndex idx = mView->indexAt(pos);
     idx = mProxyModel->mapToSource(idx);
-    AbstractRelais *relay = mModel->relayAt(idx.row());
-    if(!relay)
+
+    AbstractSimulationObject *item = mModel->objectAt(idx.row());
+    if(!item)
         return;
 
     QAction *actionEdit = menu->addAction(tr("Edit"));
     QAction *ret = menu->exec(mView->viewport()->mapToGlobal(pos));
     if(ret == actionEdit)
-        mViewMgr->showRelayEdit(relay);
+        mViewMgr->showObjectEdit(item);
 }

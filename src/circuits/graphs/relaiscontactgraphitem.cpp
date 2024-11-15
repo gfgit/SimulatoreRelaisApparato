@@ -91,7 +91,7 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
         QRectF textBr;
         drawName(painter,
-                 node()->relais() ? node()->objectName() : tr("REL!"),
+                 node()->relais() ? node()->relais()->name() : tr("REL!"),
                  nameRotate, &textBr);
 
         if(!node()->hideRelayNormalState())

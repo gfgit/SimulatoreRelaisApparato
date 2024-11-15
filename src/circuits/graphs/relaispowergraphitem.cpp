@@ -168,9 +168,9 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     if(node()->relais())
     {
-        switch (node()->relais()->type())
+        switch (node()->relais()->relaisType())
         {
-        case AbstractRelais::Type::Stabilized:
+        case AbstractRelais::RelaisType::Stabilized:
         {
             // Stabilized relais have a slice
             // The slice represent the permanent magnet
@@ -210,8 +210,8 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
                              180 * 16);
             break;
         }
-        case AbstractRelais::Type::Polarized:
-        case AbstractRelais::Type::PolarizedInverted:
+        case AbstractRelais::RelaisType::Polarized:
+        case AbstractRelais::RelaisType::PolarizedInverted:
         {
             // Draw a diode symbol inside relay circle
             const double halfHeight = relayRadius * 0.6;
@@ -222,7 +222,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
                 {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize + halfHeight}
             };
 
-            if(node()->relais()->type() == AbstractRelais::Type::PolarizedInverted)
+            if(node()->relais()->relaisType() == AbstractRelais::RelaisType::PolarizedInverted)
             {
                 // Invert diode
                 std::swap(triangle[0].rx(), triangle[1].rx());
@@ -297,7 +297,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
     drawName(painter,
-             node()->relais() ? node()->objectName() : tr("REL!"),
+             node()->relais() ? node()->relais()->name() : tr("REL!"),
              textRotate);
 }
 
@@ -325,8 +325,6 @@ void RelaisPowerGraphItem::updateRelay()
     {
         disconnect(mRelay, &AbstractRelais::stateChanged,
                    this, &RelaisPowerGraphItem::triggerUpdate);
-        disconnect(mRelay, &AbstractRelais::powerChanged,
-                   this, &RelaisPowerGraphItem::triggerUpdate);
     }
 
     mRelay = node()->relais();
@@ -334,8 +332,6 @@ void RelaisPowerGraphItem::updateRelay()
     if(mRelay)
     {
         connect(mRelay, &AbstractRelais::stateChanged,
-                this, &RelaisPowerGraphItem::triggerUpdate);
-        connect(mRelay, &AbstractRelais::powerChanged,
                 this, &RelaisPowerGraphItem::triggerUpdate);
     }
 

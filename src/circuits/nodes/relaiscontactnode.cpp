@@ -23,7 +23,7 @@
 #include "relaiscontactnode.h"
 
 #include "../../objects/relais/model/abstractrelais.h"
-#include "../../objects/relais/model/relaismodel.h"
+#include "../../objects/abstractsimulationobjectmodel.h"
 
 #include "../../views/modemanager.h"
 
@@ -45,8 +45,15 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
     if(!AbstractDeviatorNode::loadFromJSON(obj))
         return false;
 
-    QString relaisName = obj.value("relais").toString();
-    setRelais(modeMgr()->relaisModel()->getRelay(relaisName));
+    auto model = modeMgr()->modelForType(AbstractRelais::Type);
+    if(model)
+    {
+        const QString relaisName = obj.value("relais").toString();
+        AbstractSimulationObject *relayObj = model->getObjectByName(relaisName);
+        setRelais(static_cast<AbstractRelais *>(relayObj));
+    }
+    else
+        setRelais(nullptr);
 
     setHideRelayNormalState(obj.value("hide_relay_normal").toBool());
 

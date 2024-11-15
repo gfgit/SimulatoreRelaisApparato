@@ -23,30 +23,18 @@
 #include "genericleveroptionswidget.h"
 
 #include "../model/genericleverobject.h"
-#include "../model/genericlevermodel.h"
 #include "../model/leverpositionmodel.h"
 
 #include <QFormLayout>
-#include <QLineEdit>
 #include <QCheckBox>
 #include <QComboBox>
 
-GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverModel *m,
-                                                     GenericLeverObject *lever,
+GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverObject *lever,
                                                      QWidget *parent)
     : QWidget{parent}
-    , mModel(m)
     , mLever(lever)
 {
     QFormLayout *lay = new QFormLayout(this);
-
-    // Name
-    mNameEdit = new QLineEdit;
-    mNameEdit->setPlaceholderText(tr("Name"));
-    mNameEdit->setText(mLever->name());
-    lay->addRow(tr("Name:"), mNameEdit);
-
-    normalEditPalette = mNameEdit->palette();
 
     // Spring return
     mHasSpringReturn = new QCheckBox(tr("Spring return to normal"));
@@ -74,18 +62,13 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverModel *m,
                                    " lever will be in this position."));
     lay->addRow(tr("Normal Position:"), mNormalPosCombo);
 
-    connect(mNameEdit, &QLineEdit::editingFinished,
-            this, &GenericLeverOptionsWidget::setLeverName);
-    connect(mNameEdit, &QLineEdit::textEdited,
-            this, &GenericLeverOptionsWidget::onNameTextEdited);
-
     connect(mHasSpringReturn, &QCheckBox::toggled,
             this, [this](bool val)
     {
         mLever->setHasSpringReturn(val);
     });
 
-    connect(mLever, &GenericLeverObject::changed,
+    connect(mLever, &GenericLeverObject::settingsChanged,
             this, &GenericLeverOptionsWidget::updatePositionRanges);
 
     updatePositionRanges();
@@ -112,32 +95,6 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverModel *m,
         // Change normal position
         mLever->setNormalPosition(mNormalPosModel->positionAt(idx));
     });
-}
-
-void GenericLeverOptionsWidget::setLeverName()
-{
-    QString newName = mNameEdit->text().trimmed();
-    if(!newName.isEmpty() && mModel->isNameAvailable(newName))
-    {
-        // Name is valid, set it
-        mLever->setName(newName);
-        return;
-    }
-
-    // Name is not valid, go back to old name
-    mNameEdit->setText(mLever->name());
-    setNameValid(true);
-}
-
-void GenericLeverOptionsWidget::onNameTextEdited()
-{
-    QString newName = mNameEdit->text().trimmed();
-
-    bool valid = true;
-    if(newName != mLever->name())
-        valid = mModel->isNameAvailable(newName);
-
-    setNameValid(valid);
 }
 
 void GenericLeverOptionsWidget::updatePositionRanges()
@@ -185,22 +142,4 @@ void GenericLeverOptionsWidget::updatePositionRanges()
     const int normalPosIdx = mNormalPosModel->rowForPosition(mLever->normalPosition());
     if(normalPosIdx != -1 && mNormalPosCombo->currentIndex() != normalPosIdx)
         mNormalPosCombo->setCurrentIndex(normalPosIdx);
-}
-
-void GenericLeverOptionsWidget::setNameValid(bool valid)
-{
-    if(valid)
-    {
-        mNameEdit->setPalette(normalEditPalette);
-        mNameEdit->setToolTip(QString());
-    }
-    else
-    {
-        // Red text
-        QPalette p = mNameEdit->palette();
-        p.setColor(QPalette::Text, Qt::red);
-        mNameEdit->setPalette(p);
-
-        mNameEdit->setToolTip(tr("Name already exists"));
-    }
 }

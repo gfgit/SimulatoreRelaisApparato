@@ -74,7 +74,7 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
         // Draw lever name
         QColor color = Qt::black;
         painter->setPen(color);
-        drawName(painter, node()->objectName(), nameRotate);
+        drawName(painter, node()->lever()->name(), nameRotate);
     }
     else
     {

@@ -33,13 +33,11 @@
 #include "../circuits/view/circuitlistmodel.h"
 #include "../circuits/circuitscene.h"
 
-#include "../objects/relais/model/abstractrelais.h"
-#include "../objects/relais/view/relaislistwidget.h"
-#include "../objects/relais/view/abstractrelayoptionswidget.h"
-
-#include "../objects/lever/model/genericleverobject.h"
-#include "../objects/lever/view/genericleverlistwidget.h"
-#include "../objects/lever/view/genericleveroptionswidget.h"
+#include "../objects/simulationobjectfactory.h"
+#include "../objects/abstractsimulationobject.h"
+#include "../objects/abstractsimulationobjectmodel.h"
+#include "../objects/simulationobjectoptionswidget.h"
+#include "../objects/simulationobjectlistwidget.h"
 
 #include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
 #include <kddockwidgets-qt6/kddockwidgets/core/DockWidget.h>
@@ -222,92 +220,53 @@ void ViewManager::showCircuitSceneEdit(CircuitScene *scene)
     mCircuitEdits.insert(scene, dock);
 }
 
-void ViewManager::showLeverEdit(GenericLeverObject *lever)
+void ViewManager::showObjectEdit(AbstractSimulationObject *item)
 {
     // Raise existing edit window if present
-    for(auto it : mLeverEdits.asKeyValueRange())
+    for(auto it : mObjectEdits.asKeyValueRange())
     {
-        if(it.first == lever)
+        if(it.first == item)
         {
             it.second->raise();
             return;
         }
     }
 
+    SimulationObjectFactory *factory = mainWin()->modeMgr()->objectFactory();
+
     // Create new edit window
-    GenericLeverOptionsWidget *w = new GenericLeverOptionsWidget(mainWin()->modeMgr()->leversModel(),
-                                                                 lever);
-    DockWidget *dock = new DockWidget(lever->name(),
+    SimulationObjectOptionsWidget *w = factory->createEditWidget(nullptr, item);
+
+    DockWidget *dock = new DockWidget(item->name(),
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
 
-    auto updateDock = [dock, lever]()
+    auto updateDock = [dock, item, w, factory]()
     {
-        QString name = tr("Edit Lever %1").arg(lever->name());
+        QString name = tr("Edit %1 %2")
+                .arg(factory->prettyName(item->getType()),
+                     item->name());
         dock->setTitle(name);
-        dock->dockWidget()->setUniqueName(name);
+        dock->dockWidget()->setUniqueName(w->uniqueId());
     };
 
-    connect(lever, &GenericLeverObject::nameChanged,
+    connect(w, &SimulationObjectOptionsWidget::uniqueIdChanged,
             dock, updateDock);
-    connect(lever, &GenericLeverObject::destroyed,
+    connect(item, &AbstractSimulationObject::destroyed,
             dock, &QWidget::close);
     connect(dock, &QObject::destroyed,
-            this, [this, lever]()
+            this, [this, item]()
     {
-        mLeverEdits.remove(lever);
+        mObjectEdits.remove(item);
     });
 
+    // Set initial title
     updateDock();
+
+    mObjectEdits.insert(item, dock);
 
     // By default open as floating window
     dock->open();
-
-    mLeverEdits.insert(lever, dock);
-}
-
-void ViewManager::showRelayEdit(AbstractRelais *relay)
-{
-    // Raise existing edit window if present
-    for(auto it : mRelayEdits.asKeyValueRange())
-    {
-        if(it.first == relay)
-        {
-            it.second->raise();
-            return;
-        }
-    }
-
-    // Create new edit window
-    AbstractRelayOptionsWidget *w = new AbstractRelayOptionsWidget(mainWin()->modeMgr()->relaisModel(),
-                                                                   relay);
-    DockWidget *dock = new DockWidget(relay->name(),
-                                      KDDockWidgets::DockWidgetOption_DeleteOnClose);
-    dock->setWidget(w);
-
-    auto updateDock = [dock, relay]()
-    {
-        QString name = tr("Edit Relay %1").arg(relay->name());
-        dock->setTitle(name);
-        dock->dockWidget()->setUniqueName(name);
-    };
-
-    connect(relay, &AbstractRelais::nameChanged,
-            dock, updateDock);
-    connect(relay, &AbstractRelais::destroyed,
-            dock, &QWidget::close);
-    connect(dock, &QObject::destroyed,
-            this, [this, relay]()
-    {
-        mRelayEdits.remove(relay);
-    });
-
-    updateDock();
-
-    // By default open as floating window
-    dock->open();
-
-    mRelayEdits.insert(relay, dock);
 }
 
 void ViewManager::closeAllEditDocks()
@@ -316,13 +275,9 @@ void ViewManager::closeAllEditDocks()
     qDeleteAll(circuitEditsCopy);
     mCircuitEdits.clear();
 
-    auto leverEditsCopy = mLeverEdits;
-    qDeleteAll(leverEditsCopy);
-    mLeverEdits.clear();
-
-    auto relayEditsCopy = mRelayEdits;
-    qDeleteAll(relayEditsCopy);
-    mRelayEdits.clear();
+    auto objectEditsCopy = mObjectEdits;
+    qDeleteAll(objectEditsCopy);
+    mObjectEdits.clear();
 }
 
 void ViewManager::closeAllFileSpecificDocks()
@@ -339,7 +294,9 @@ void ViewManager::closeAll()
     closeAllFileSpecificDocks();
 
     delete mCircuitListViewDock;
-    delete mRelaisListViewDock;
+
+    qDeleteAll(mObjectListDocks);
+    mObjectListDocks.clear();
 }
 
 void ViewManager::showCircuitListView()
@@ -362,44 +319,43 @@ void ViewManager::showCircuitListView()
     mainWin()->addDockWidget(mCircuitListViewDock, KDDockWidgets::Location_OnLeft);
 }
 
-void ViewManager::showRelayListView()
+void ViewManager::showObjectListView(const QString &objType)
 {
-    if(mRelaisListViewDock)
+    // Raise existing edit window if present
+    DockWidget *dock = mObjectListDocks.value(objType, nullptr);
+    if(dock)
     {
-        mRelaisListViewDock->raise();
-        mRelaisListViewDock->activateWindow();
+        dock->raise();
+        dock->activateWindow();
         return;
     }
 
-    RelaisModel *relaisList = mainWin()->modeMgr()->relaisModel();
-    RelaisListWidget *relaisListView = new RelaisListWidget(this, relaisList);
-
-    mRelaisListViewDock = new DockWidget(QLatin1String("relais_list"),
-                                          KDDockWidgets::DockWidgetOption_DeleteOnClose);
-    mRelaisListViewDock->setWidget(relaisListView);
-    mRelaisListViewDock->setTitle(tr("Relais List"));
-
-    mainWin()->addDockWidget(mRelaisListViewDock, KDDockWidgets::Location_OnLeft);
-}
-
-void ViewManager::showLeverListView()
-{
-    if(mLeverListViewDock)
-    {
-        mLeverListViewDock->raise();
-        mLeverListViewDock->activateWindow();
+    AbstractSimulationObjectModel *model = mainWin()->modeMgr()->modelForType(objType);
+    if(!model)
         return;
-    }
 
-    GenericLeverModel *leversList = mainWin()->modeMgr()->leversModel();
-    GenericLeverListWidget *leversListView = new GenericLeverListWidget(this, leversList);
+    // Create new list widget
+    SimulationObjectListWidget *w =
+            new SimulationObjectListWidget(this, model);
 
-    mLeverListViewDock = new DockWidget(QLatin1String("levers_list"),
-                                          KDDockWidgets::DockWidgetOption_DeleteOnClose);
-    mLeverListViewDock->setWidget(leversListView);
-    mLeverListViewDock->setTitle(tr("Levers List"));
+    dock = new DockWidget(QLatin1String("list_%1").arg(model->getObjectType()),
+                          KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    dock->setWidget(w);
 
-    mainWin()->addDockWidget(mLeverListViewDock, KDDockWidgets::Location_OnLeft);
+    SimulationObjectFactory *factory = mainWin()->modeMgr()->objectFactory();
+    dock->setTitle(tr("%1 List").arg(factory->prettyName(objType)));
+
+    connect(dock, &QObject::destroyed,
+            this, [this, objType]()
+    {
+        mObjectListDocks.remove(objType);
+    });
+
+    mObjectListDocks.insert(objType, dock);
+
+    // By default add to Main Window
+    mainWin()->addDockWidget(dock,
+                             KDDockWidgets::Location_OnLeft);
 }
 
 void ViewManager::startEditNEwCableOnActiveView()

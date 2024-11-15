@@ -1,5 +1,5 @@
 /**
- * src/objects/relais/view/relaylineedit.cpp
+ * src/objects/simulationobjectlineedit.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,29 +20,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "relaylineedit.h"
+#include "simulationobjectlineedit.h"
+
+#include "abstractsimulationobject.h"
+#include "abstractsimulationobjectmodel.h"
 
 #include <QCompleter>
 #include <QAbstractProxyModel>
 
-#include "../model/abstractrelais.h"
-#include "../model/relaismodel.h"
-
-RelayLineEdit::RelayLineEdit(RelaisModel *m, QWidget *parent)
+SimulationObjectLineEdit::SimulationObjectLineEdit(AbstractSimulationObjectModel *m, QWidget *parent)
     : QLineEdit(parent)
-    , mRelaisModel(m)
+    , mModel(m)
 {
     QCompleter *c = new QCompleter;
     c->setCompletionMode(QCompleter::PopupCompletion);
     c->setFilterMode(Qt::MatchContains);
     c->setCaseSensitivity(Qt::CaseInsensitive);
-    c->setModel(mRelaisModel);
+    c->setModel(mModel);
     setCompleter(c);
 
     connect(c, qOverload<const QModelIndex&>(&QCompleter::activated),
             this, [this](const QModelIndex& idx)
     {
-        setRelais(mRelaisModel->relayAt(idx.row()));
+        setObject(mModel->objectAt(idx.row()));
     });
 
     connect(c, qOverload<const QModelIndex&>(&QCompleter::activated),
@@ -51,18 +51,18 @@ RelayLineEdit::RelayLineEdit(RelaisModel *m, QWidget *parent)
         QAbstractProxyModel *m = static_cast<QAbstractProxyModel *>(c->completionModel());
         const QModelIndex sourceIdx = m->mapToSource(idx);
 
-        setRelais(mRelaisModel->relayAt(sourceIdx.row()));
+        setObject(mModel->objectAt(sourceIdx.row()));
     });
 }
 
-void RelayLineEdit::setRelais(AbstractRelais *newRelais)
+void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
 {
-    if(mRelais == newRelais)
+    if(mObject == newObject)
         return;
-    mRelais = newRelais;
+    mObject = newObject;
 
-    if(text() != mRelais->name())
-        setText(mRelais->name());
+    if(text() != mObject->name())
+        setText(mObject->name());
 
-    emit relayChanged(mRelais);
+    emit objectChanged(mObject);
 }

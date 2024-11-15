@@ -23,7 +23,7 @@
 #include "relaispowernode.h"
 
 #include "../../objects/relais/model/abstractrelais.h"
-#include "../../objects/relais/model/relaismodel.h"
+#include "../../objects/abstractsimulationobjectmodel.h"
 
 #include "../../views/modemanager.h"
 
@@ -55,13 +55,13 @@ QVector<CableItem> RelaisPowerNode::getActiveConnections(CableItem source, bool 
     if(!relais())
         return{};
 
-    if(relais()->type() == AbstractRelais::Type::Polarized)
+    if(relais()->relaisType() == AbstractRelais::RelaisType::Polarized)
     {
         // Polarized must have positive on first pole
         if((source.cable.pole != CircuitPole::First) != invertDir)
             return {};
     }
-    else if(relais()->type() == AbstractRelais::Type::PolarizedInverted)
+    else if(relais()->relaisType() == AbstractRelais::RelaisType::PolarizedInverted)
     {
         // Polarized inverted must have positive on second pole
         if((source.cable.pole != CircuitPole::Second) != invertDir)
@@ -128,9 +128,15 @@ bool RelaisPowerNode::loadFromJSON(const QJsonObject &obj)
     if(!AbstractCircuitNode::loadFromJSON(obj))
         return false;
 
-    QString relaisName = obj.value("relais").toString();
-
-    setRelais(modeMgr()->relaisModel()->getRelay(relaisName));
+    auto model = modeMgr()->modelForType(AbstractRelais::Type);
+    if(model)
+    {
+        const QString relaisName = obj.value("relais").toString();
+        AbstractSimulationObject *relayObj = model->getObjectByName(relaisName);
+        setRelais(static_cast<AbstractRelais *>(relayObj));
+    }
+    else
+        setRelais(nullptr);
 
     mDelayUpSeconds = obj.value("delay_up_sec").toInt();
     mDelayDownSeconds = obj.value("delay_down_sec").toInt();

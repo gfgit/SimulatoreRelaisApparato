@@ -23,7 +23,7 @@
 #ifndef GENERIC_LEVER_OBJECT_H
 #define GENERIC_LEVER_OBJECT_H
 
-#include <QObject>
+#include "../../abstractsimulationobject.h"
 
 #include "../../../enums/genericleverposition.h"
 
@@ -31,7 +31,7 @@ class LeverContactNode;
 
 class QJsonObject;
 
-class GenericLeverObject : public QObject
+class GenericLeverObject : public AbstractSimulationObject
 {
     Q_OBJECT
 private:
@@ -39,13 +39,15 @@ private:
     static constexpr int SpringTimerAngleDelta = 15;
 
 protected:
-    GenericLeverObject(const LeverPositionDesc& desc, QObject *parent = nullptr);
+    GenericLeverObject(AbstractSimulationObjectModel *m, const LeverPositionDesc& desc);
 
 public:
     ~GenericLeverObject();
 
-    virtual bool loadFromJSON(const QJsonObject& obj);
-    virtual void saveToJSON(QJsonObject& obj) const;
+    bool loadFromJSON(const QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) const override;
+
+    QVector<AbstractCircuitNode*> nodes() const override;
 
     // State
     int angle() const;
@@ -59,10 +61,6 @@ public:
     void setPressed(bool newIsPressed);
 
     // Options
-
-    QString name() const;
-    void setName(const QString &newName);
-
     bool hasSpringReturn() const;
     void setHasSpringReturn(bool newHasSpringReturn);
 
@@ -104,11 +102,9 @@ public:
     }
 
 signals:
-    void nameChanged(GenericLeverObject *self, const QString& newName);
     void angleChanged(GenericLeverObject *self, int newAngle);
     void positionChanged(GenericLeverObject *self, int newPosition);
     void pressedChanged(bool pressed);
-    void changed(GenericLeverObject *self);
 
 private:
     void timerEvent(QTimerEvent *e) override;

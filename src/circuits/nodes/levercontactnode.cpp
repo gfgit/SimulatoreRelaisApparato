@@ -24,8 +24,10 @@
 
 #include "../../views/modemanager.h"
 
+//TODO: remove
+#include "../../objects/lever/acei/aceileverobject.h"
 #include "../../objects/lever/model/genericleverobject.h"
-#include "../../objects/lever/model/genericlevermodel.h"
+#include "../../objects/abstractsimulationobjectmodel.h"
 
 #include <QJsonObject>
 #include "../../utils/genericleverutils.h"
@@ -46,8 +48,15 @@ bool LeverContactNode::loadFromJSON(const QJsonObject &obj)
     if(!AbstractDeviatorNode::loadFromJSON(obj))
         return false;
 
-    QString leverName = obj.value("lever").toString();
-    setLever(modeMgr()->leversModel()->getLever(leverName));
+    auto model = modeMgr()->modelForType(ACEILeverObject::Type);
+    if(model)
+    {
+        const QString leverName = obj.value("lever").toString();
+        AbstractSimulationObject *leverObj = model->getObjectByName(leverName);
+        setLever(static_cast<GenericLeverObject *>(leverObj));
+    }
+    else
+        setLever(nullptr);
 
     auto conditions = GenericLeverUtils::fromJSON(obj.value("conditions").toObject());
     setConditionSet(conditions);

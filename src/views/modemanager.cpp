@@ -27,21 +27,37 @@
 
 #include "../circuits/view/circuitlistmodel.h"
 
-#include "../objects/relais/model/relaismodel.h"
-#include "../objects/lever/model/genericlevermodel.h"
+#include "../objects/simulationobjectfactory.h"
+#include "../objects/standardobjecttypes.h"
+#include "../objects/abstractsimulationobjectmodel.h"
 
 #include <QJsonObject>
 
 ModeManager::ModeManager(QObject *parent)
     : QObject{parent}
 {
-    mRelaisModel = new RelaisModel(this, this);
-    mLeversModel = new GenericLeverModel(this, this);
-
     mCircuitFactory = new NodeEditFactory(this);
     StandardNodeTypes::registerTypes(mCircuitFactory);
 
     mCircuitList = new CircuitListModel(this, this);
+
+    mObjectFactory = new SimulationObjectFactory;
+    StandardObjectTypes::registerTypes(mObjectFactory);
+
+    for(const QString& objType : mObjectFactory->getRegisteredTypes())
+    {
+        AbstractSimulationObjectModel *model =
+                mObjectFactory->createModel(this, objType);
+
+        model->setParent(this); // Ownership for cleanup
+        mObjectModels.insert(objType, model);
+    }
+}
+
+ModeManager::~ModeManager()
+{
+    delete mObjectFactory;
+    mObjectFactory = nullptr;
 }
 
 void ModeManager::setMode(FileMode newMode)
@@ -83,8 +99,9 @@ void ModeManager::resetFileEdited()
     mFileWasEdited = false;
 
     mCircuitList->resetHasUnsavedChanges();
-    mRelaisModel->resetHasUnsavedChanges();
-    mLeversModel->resetHasUnsavedChanges();
+
+    for(auto model : mObjectModels)
+        model->resetHasUnsavedChanges();
 
     emit fileEdited(false);
 }
@@ -104,11 +121,12 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
     // Temporarily ignore modified scenes
     setMode(FileMode::LoadingFile);
 
-    QJsonObject relais = obj.value("relais").toObject();
-    mRelaisModel->loadFromJSON(relais);
-
-    QJsonObject levers = obj.value("levers").toObject();
-    mLeversModel->loadFromJSON(levers);
+    const QJsonObject pool = obj.value("objects").toObject();
+    for(auto model : mObjectModels)
+    {
+        const QJsonObject modelObj = pool.value(model->getObjectType()).toObject();
+        model->loadFromJSON(modelObj);
+    }
 
     QJsonObject circuits = obj.value("circuits").toObject();
     mCircuitList->loadFromJSON(circuits);
@@ -126,15 +144,17 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
     QJsonObject circuits;
     mCircuitList->saveToJSON(circuits);
 
-    QJsonObject relais;
-    mRelaisModel->saveToJSON(relais);
+    QJsonObject pool;
+    for(auto model : mObjectModels)
+    {
+        QJsonObject modelObj;
+        model->saveToJSON(modelObj);
+        pool[model->getObjectType()] = modelObj;
+    }
 
-    QJsonObject levers;
-    mLeversModel->saveToJSON(levers);
+    obj["objects"] = pool;
 
     obj["circuits"] = circuits;
-    obj["relais"] = relais;
-    obj["levers"] = levers;
 }
 
 void ModeManager::clearAll()
@@ -142,23 +162,14 @@ void ModeManager::clearAll()
     setMode(FileMode::LoadingFile);
 
     mCircuitList->clear();
-    mRelaisModel->clear();
-    mLeversModel->clear();
+
+    for(auto model : mObjectModels)
+        model->clear();
 
     resetFileEdited();
 
     // Wait for new items
     setMode(FileMode::Editing);
-}
-
-RelaisModel *ModeManager::relaisModel() const
-{
-    return mRelaisModel;
-}
-
-GenericLeverModel *ModeManager::leversModel() const
-{
-    return mLeversModel;
 }
 
 EditingSubMode ModeManager::editingSubMode() const
@@ -174,4 +185,14 @@ void ModeManager::setEditingSubMode(EditingSubMode newEditingMode)
     EditingSubMode oldMode = mEditingMode;
     mEditingMode = newEditingMode;
     emit editingSubModeChanged(oldMode, mEditingMode);
+}
+
+SimulationObjectFactory *ModeManager::objectFactory() const
+{
+    return mObjectFactory;
+}
+
+AbstractSimulationObjectModel *ModeManager::modelForType(const QString &objType) const
+{
+    return mObjectModels.value(objType, nullptr);
 }

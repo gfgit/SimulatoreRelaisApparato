@@ -23,81 +23,17 @@
 #ifndef RELAISMODEL_H
 #define RELAISMODEL_H
 
-#include <QAbstractListModel>
+#include "../../abstractsimulationobjectmodel.h"
 
-#include <QVector>
-
-class AbstractRelais;
-
-class ModeManager;
-
-class QJsonObject;
-
-class RelaisModel : public QAbstractListModel
+class RelaisModel : public AbstractSimulationObjectModel
 {
     Q_OBJECT
 
 public:
     RelaisModel(ModeManager *mgr, QObject *parent = nullptr);
-    ~RelaisModel();
 
-    // Header:
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
-
-    // Basic functionality:
-    int rowCount(const QModelIndex &p = QModelIndex()) const override;
-
+    // Custom relay specific data:
     QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
-    bool setData(const QModelIndex &idx, const QVariant &value, int role) override;
-
-    Qt::ItemFlags flags(const QModelIndex &idx) const override;
-
-    void addRelay(AbstractRelais *r);
-    void removeRelay(AbstractRelais *r);
-
-    AbstractRelais *relayAt(int row) const;
-
-    AbstractRelais *getRelay(const QString& name);
-
-    void clear();
-
-    inline ModeManager *modeMgr() const
-    {
-        return mModeMgr;
-    }
-
-    bool loadFromJSON(const QJsonObject& obj);
-    void saveToJSON(QJsonObject& obj) const;
-
-    bool isNameAvailable(const QString& name) const;
-
-    inline bool hasUnsavedChanges() const
-    {
-        return mHasUnsavedChanges;
-    }
-
-    void resetHasUnsavedChanges();
-
-signals:
-    void modelEdited(bool val);
-
-private slots:
-    void onRelayChanged(AbstractRelais *r);
-    void onRelayStateChanged(AbstractRelais *r);
-    void onRelayDestroyed(QObject *obj);
-
-private:
-    void updateRelayRow(AbstractRelais *r);
-    void onRelayEdited();
-
-    void clearInternal();
-
-private:
-    QVector<AbstractRelais *> mRelais;
-
-    ModeManager *mModeMgr;
-
-    bool mHasUnsavedChanges = false;
 };
 
 #endif // RELAISMODEL_H
