@@ -31,6 +31,8 @@
 #include "lever/acei/aceileverobject.h"
 #include "lever/view/genericleveroptionswidget.h"
 
+#include "simple_activable/lightbulbobject.h"
+
 template <typename T>
 AbstractSimulationObjectModel *createModel(ModeManager *mgr)
 {
@@ -52,6 +54,7 @@ QWidget *createEditWidget(AbstractSimulationObject *item)
 void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
 {
     {
+        // Relais
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = &createModel<RelaisModel>;
         item.create = &createObject<AbstractRelais>;
@@ -63,12 +66,25 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     }
 
     {
+        // ACEI Lever
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = nullptr;
         item.create = &createObject<ACEILeverObject>;
         item.edit = &createEditWidget<ACEILeverObject, GenericLeverOptionsWidget>;
         item.objectType = ACEILeverObject::Type;
         item.prettyName = tr("ACEI Lever");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Ligth bulb
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<LightBulbObject>;
+        item.edit = nullptr;
+        item.objectType = LightBulbObject::Type;
+        item.prettyName = tr("Ligth bulb");
 
         factory->registerFactory(item);
     }

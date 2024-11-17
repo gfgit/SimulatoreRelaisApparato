@@ -27,6 +27,8 @@ set(PROJECT_SOURCES
     circuits/nodes/relaispowernode.h
     circuits/nodes/simplecircuitnode.cpp
     circuits/nodes/simplecircuitnode.h
+    circuits/nodes/simpleactivationnode.cpp
+    circuits/nodes/simpleactivationnode.h
 
     PARENT_SCOPE
 )

@@ -24,17 +24,19 @@
 
 #include "../nodes/lightbulbnode.h"
 
+#include "../../objects/simple_activable/abstractsimpleactivableobject.h"
+
 #include <QPainter>
 
 LightBulbGraphItem::LightBulbGraphItem(LightBulbNode *node_)
-    : AbstractNodeGraphItem(node_)
+    : SimpleActivationGraphItem(node_)
 {
 
 }
 
 void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    AbstractNodeGraphItem::paint(painter, option, widget);
+    SimpleActivationGraphItem::paint(painter, option, widget);
 
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
@@ -109,7 +111,8 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     pen.setWidthF(3.0);
     painter->setPen(pen);
 
-    if(node()->hasCircuits())
+    if(node()->object() &&
+            node()->object()->state() == AbstractSimpleActivableObject::State::On)
         painter->setBrush(Qt::yellow);
     else
         painter->setBrush(Qt::NoBrush);
@@ -125,12 +128,9 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     if(rotate() == TileRotate::Deg0)
         textRotate = TileRotate::Deg270;
 
-    drawName(painter, node()->objectName(), textRotate);
-}
-
-void LightBulbGraphItem::getConnectors(std::vector<Connector> &connectors) const
-{
-    connectors.emplace_back(location(), rotate(), 0);
+    drawName(painter,
+             node()->object() ? node()->object()->name() : tr("OBJ?"),
+             textRotate);
 }
 
 LightBulbNode *LightBulbGraphItem::node() const

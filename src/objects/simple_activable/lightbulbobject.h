@@ -1,5 +1,5 @@
 /**
- * src/circuits/nodes/lightbulbnode.cpp
+ * src/objects/simple_activable/lightbulbobject.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,20 +20,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "lightbulbnode.h"
+#ifndef LIGHTBULBOBJECT_H
+#define LIGHTBULBOBJECT_H
 
-LightBulbNode::LightBulbNode(ModeManager *mgr, QObject *parent)
-    : SimpleActivationNode{mgr, parent}
+#include "abstractsimpleactivableobject.h"
+
+class LightBulbObject : public AbstractSimpleActivableObject
 {
+    Q_OBJECT
+public:
+    explicit LightBulbObject(AbstractSimulationObjectModel *m);
 
-}
+    static constexpr QLatin1String Type = QLatin1String("light_bulb");
+    QString getType() const override;
+};
 
-QString LightBulbNode::nodeType() const
-{
-    return NodeType;
-}
-
-QString LightBulbNode::allowedObjectType() const
-{
-    return AllowedType;
-}
+#endif // LIGHTBULBOBJECT_H

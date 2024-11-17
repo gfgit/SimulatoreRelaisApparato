@@ -1,5 +1,5 @@
 /**
- * src/circuits/nodes/lightbulbnode.cpp
+ * src/circuits/graphs/simpleactivationgraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,20 +20,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "lightbulbnode.h"
+#ifndef SIMPLEACTIVATIONGRAPHITEM_H
+#define SIMPLEACTIVATIONGRAPHITEM_H
 
-LightBulbNode::LightBulbNode(ModeManager *mgr, QObject *parent)
-    : SimpleActivationNode{mgr, parent}
+#include "abstractnodegraphitem.h"
+
+class SimpleActivationNode;
+
+class SimpleActivationGraphItem : public AbstractNodeGraphItem
 {
+    Q_OBJECT
+public:
+    explicit SimpleActivationGraphItem(SimpleActivationNode *node_);
 
-}
+    void getConnectors(std::vector<Connector>& connectors) const final;
 
-QString LightBulbNode::nodeType() const
-{
-    return NodeType;
-}
+    SimpleActivationNode *activationNode() const;
+};
 
-QString LightBulbNode::allowedObjectType() const
-{
-    return AllowedType;
-}
+#endif // SIMPLEACTIVATIONGRAPHITEM_H

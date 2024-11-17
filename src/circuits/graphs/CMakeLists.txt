@@ -27,6 +27,8 @@ set(PROJECT_SOURCES
     circuits/graphs/relaispowergraphitem.h
     circuits/graphs/simplenodegraphitem.cpp
     circuits/graphs/simplenodegraphitem.h
+    circuits/graphs/simpleactivationgraphitem.cpp
+    circuits/graphs/simpleactivationgraphitem.h
 
     circuits/graphs/special/aceilevergraphitem.cpp
     circuits/graphs/special/aceilevergraphitem.h

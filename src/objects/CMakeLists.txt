@@ -2,6 +2,7 @@
 
 add_subdirectory(lever)
 add_subdirectory(relais)
+add_subdirectory(simple_activable)
 
 set(PROJECT_SOURCES
 

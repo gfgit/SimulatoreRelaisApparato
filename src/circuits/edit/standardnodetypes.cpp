@@ -67,6 +67,8 @@
 
 #include "../../objects/simulationobjectlineedit.h"
 
+#include "../../objects/simple_activable/abstractsimpleactivableobject.h"
+
 #include "../../objects/relais/model/abstractrelais.h"
 
 #include "../../objects/lever/acei/aceileverobject.h" // TODO: remove
@@ -145,6 +147,30 @@ QWidget *defaultDeviatorEdit(AbstractDeviatorGraphItem *item, ModeManager *mgr)
     QObject::connect(node, &AbstractDeviatorNode::shapeChanged,
                      w, updLambda);
     updLambda();
+
+    return w;
+}
+
+QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ModeManager *mgr,
+                                     const QString& objFieldName)
+{
+    SimpleActivationNode *node = static_cast<SimpleActivationNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Activation Object
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(mgr->modelForType(node->allowedObjectType()));
+    QObject::connect(node, &SimpleActivationNode::objectChanged,
+                     objectEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+    {
+        node->setObject(static_cast<AbstractSimpleActivableObject *>(obj));
+    });
+
+    objectEdit->setObject(node->object());
+    lay->addRow(objFieldName, objectEdit);
 
     return w;
 }
@@ -410,11 +436,15 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // Light Bulb node
         NodeEditFactory::FactoryItem factory;
-        factory.needsName = NodeEditFactory::NeedsName::Always;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = LightBulbGraphItem::Node::NodeType;
         factory.prettyName = tr("Light Bulb");
         factory.create = &addNewNodeToScene<LightBulbGraphItem>;
-        factory.edit = nullptr;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
+                                               mgr, tr("Light:"));
+        };
 
         factoryReg->registerFactory(factory);
     }
