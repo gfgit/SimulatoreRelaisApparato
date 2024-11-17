@@ -22,12 +22,6 @@
 
 #include "aceileverobject.h"
 
-#include "../../../circuits/nodes/levercontactnode.h"
-
-#include <QTimerEvent>
-
-#include <QJsonObject>
-
 static QString ACEILeverPosition_translate(const char *nameId)
 {
     return ACEILeverObject::tr(nameId);
