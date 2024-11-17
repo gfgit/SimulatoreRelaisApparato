@@ -33,6 +33,8 @@
 
 #include "simple_activable/lightbulbobject.h"
 
+#include "simple_activable/electromagnet.h"
+
 template <typename T>
 AbstractSimulationObjectModel *createModel(ModeManager *mgr)
 {
@@ -85,6 +87,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = nullptr;
         item.objectType = LightBulbObject::Type;
         item.prettyName = tr("Ligth bulb");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Electromagnet
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<ElectroMagnetObject>;
+        item.edit = nullptr;
+        item.objectType = ElectroMagnetObject::Type;
+        item.prettyName = tr("Electromagnet");
 
         factory->registerFactory(item);
     }

@@ -48,6 +48,9 @@
 #include "../graphs/polarityinversiongraphitem.h"
 #include "../nodes/polarityinversionnode.h"
 
+#include "../graphs/electromagnetgraphitem.h"
+#include "../nodes/electromagnetnode.h"
+
 // TODO: special
 #include "../graphs/special/aceilevergraphitem.h"
 
@@ -444,6 +447,22 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         {
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
                                                mgr, tr("Light:"));
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Electromagnet node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = ElectroMagnetGraphItem::Node::NodeType;
+        factory.prettyName = tr("Electromagnet");
+        factory.create = &addNewNodeToScene<ElectroMagnetGraphItem>;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
+                                               mgr, tr("Magnet:"));
         };
 
         factoryReg->registerFactory(factory);
