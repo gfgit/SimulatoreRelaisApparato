@@ -518,7 +518,8 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            const QStringList sasibTypes = {QLatin1String("sasib_lever")};
+            const QStringList sasibTypes = mgr->objectFactory()
+                    ->typesForInterface(QLatin1String("sasib_lever"));
 
             SimulationObjectLineEdit *leverEdit =
                     new SimulationObjectLineEdit(
@@ -557,8 +558,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            const QStringList leverTypes =
-                    mgr->objectFactory()
+            const QStringList leverTypes = mgr->objectFactory()
                     ->typesForInterface(LeverInterface::IfaceType);
 
             SimulationObjectLineEdit *leverEdit =
