@@ -22,14 +22,16 @@
 
 #include "genericleveroptionswidget.h"
 
-#include "../model/genericleverobject.h"
+#include "../../abstractsimulationobject.h"
+#include "../../interfaces/leverinterface.h"
+
 #include "../model/leverpositionmodel.h"
 
 #include <QFormLayout>
 #include <QCheckBox>
 #include <QComboBox>
 
-GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverObject *lever,
+GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
                                                      QWidget *parent)
     : QWidget{parent}
     , mLever(lever)
@@ -41,12 +43,18 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverObject *lever,
     mHasSpringReturn->setChecked(mLever->hasSpringReturn());
     mHasSpringReturn->setToolTip(tr("When released lever will return"
                                     " to its normal position."));
+    mHasSpringReturn->setVisible(mLever->canChangeSpring());
     lay->addWidget(mHasSpringReturn);
 
     // Normal position and range
-    mMinPosModel = new LeverPositionModel(mLever->positionDesc(), this);
-    mMaxPosModel = new LeverPositionModel(mLever->positionDesc(), this);
-    mNormalPosModel = new LeverPositionModel(mLever->positionDesc(), this);
+    mMinPosModel = new EnumValuesModel(mLever->positionDesc(), this);
+    mMinPosModel->setSkipMiddleValues(true);
+
+    mMaxPosModel = new EnumValuesModel(mLever->positionDesc(), this);
+    mMaxPosModel->setSkipMiddleValues(true);
+
+    mNormalPosModel = new EnumValuesModel(mLever->positionDesc(), this);
+    mNormalPosModel->setSkipMiddleValues(true);
 
     mMinPosCombo = new QComboBox;
     mMinPosCombo->setModel(mMinPosModel);
@@ -55,6 +63,9 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverObject *lever,
     mMaxPosCombo = new QComboBox;
     mMaxPosCombo->setModel(mMaxPosModel);
     lay->addRow(tr("Maximum Position:"), mMaxPosCombo);
+
+    mMinPosCombo->setVisible(mLever->canChangeRange());
+    mMaxPosCombo->setVisible(mLever->canChangeRange());
 
     mNormalPosCombo = new QComboBox;
     mNormalPosCombo->setModel(mNormalPosModel);
@@ -68,7 +79,7 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverObject *lever,
         mLever->setHasSpringReturn(val);
     });
 
-    connect(mLever, &GenericLeverObject::settingsChanged,
+    connect(mLever->object(), &AbstractSimulationObject::settingsChanged,
             this, &GenericLeverOptionsWidget::updatePositionRanges);
 
     updatePositionRanges();
@@ -77,7 +88,7 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverObject *lever,
             this, [this](int idx)
     {
         // Change min
-        mLever->setAbsoluteRange(mMinPosModel->positionAt(idx),
+        mLever->setAbsoluteRange(mMinPosModel->valueAt(idx),
                                  mLever->absoluteMax());
     });
 
@@ -86,14 +97,14 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(GenericLeverObject *lever,
     {
         // Change max
         mLever->setAbsoluteRange(mLever->absoluteMin(),
-                                 mMaxPosModel->positionAt(idx));
+                                 mMaxPosModel->valueAt(idx));
     });
 
     connect(mNormalPosCombo, &QComboBox::activated,
             this, [this](int idx)
     {
         // Change normal position
-        mLever->setNormalPosition(mNormalPosModel->positionAt(idx));
+        mLever->setNormalPosition(mNormalPosModel->valueAt(idx));
     });
 }
 
@@ -119,27 +130,27 @@ void GenericLeverOptionsWidget::updatePositionRanges()
 
     if(updateMin)
     {
-        const int posIdx = mMinPosModel->rowForPosition(minPos);
+        const int posIdx = mMinPosModel->rowForValue(minPos);
         if(mMinPosCombo->currentIndex() != posIdx)
             mMinPosCombo->setCurrentIndex(posIdx);
 
         // Allow setting Max to at least Min position
-        mMaxPosModel->setPositionRange(minPos,
-                                       mLever->positionDesc().maxPosition());
+        mMaxPosModel->setValueRange(minPos,
+                                    mLever->positionDesc().maxValue);
     }
 
     if(updateMin || updateMax)
     {
         // Max positions could have changed index, update it
-        const int maxPosIdx = mMaxPosModel->rowForPosition(maxPos);
+        const int maxPosIdx = mMaxPosModel->rowForValue(maxPos);
         if(mMaxPosCombo->currentIndex() != maxPosIdx)
             mMaxPosCombo->setCurrentIndex(maxPosIdx);
 
         // Normal position must be in range min/max
-        mNormalPosModel->setPositionRange(minPos, maxPos);
+        mNormalPosModel->setValueRange(minPos, maxPos);
     }
 
-    const int normalPosIdx = mNormalPosModel->rowForPosition(mLever->normalPosition());
+    const int normalPosIdx = mNormalPosModel->rowForValue(mLever->normalPosition());
     if(normalPosIdx != -1 && mNormalPosCombo->currentIndex() != normalPosIdx)
         mNormalPosCombo->setCurrentIndex(normalPosIdx);
 }

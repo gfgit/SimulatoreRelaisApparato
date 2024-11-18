@@ -28,22 +28,22 @@
 class QCheckBox;
 class QComboBox;
 
-class GenericLeverObject;
+class LeverInterface;
 
-class LeverPositionModel;
+class EnumValuesModel;
 
 class GenericLeverOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    GenericLeverOptionsWidget(GenericLeverObject *lever,
+    GenericLeverOptionsWidget(LeverInterface *lever,
                               QWidget *parent = nullptr);
 
 private slots:
     void updatePositionRanges();
 
 private:
-    GenericLeverObject *mLever = nullptr;
+    LeverInterface *mLever = nullptr;
 
     QCheckBox *mHasSpringReturn = nullptr;
 
@@ -51,9 +51,9 @@ private:
     QComboBox *mMaxPosCombo = nullptr;
     QComboBox *mNormalPosCombo = nullptr;
 
-    LeverPositionModel *mMinPosModel = nullptr;
-    LeverPositionModel *mMaxPosModel = nullptr;
-    LeverPositionModel *mNormalPosModel = nullptr;
+    EnumValuesModel *mMinPosModel = nullptr;
+    EnumValuesModel *mMaxPosModel = nullptr;
+    EnumValuesModel *mNormalPosModel = nullptr;
 
     int minPos = -1;
     int maxPos = -1;
