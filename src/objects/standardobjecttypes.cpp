@@ -69,6 +69,10 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
     QWidget *w = new QWidget;
     QFormLayout *lay = new QFormLayout(w);
 
+    // Generic lever options
+    GenericLeverOptionsWidget *genericW = new GenericLeverOptionsWidget(lever);
+    lay->addRow(genericW);
+
     // Electro Magnet
     SimulationObjectLineEdit *magnetEdit
             = new SimulationObjectLineEdit(
@@ -78,7 +82,10 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
                 });
 
     QObject::connect(lever, &ACESasibLeverCommonObject::settingsChanged,
-                     magnetEdit, &SimulationObjectLineEdit::setObject);
+                     magnetEdit, [lever, magnetEdit]()
+    {
+        magnetEdit->setObject(lever->magnet());
+    });
     QObject::connect(magnetEdit, &SimulationObjectLineEdit::objectChanged,
                      lever, [lever](AbstractSimulationObject *obj)
     {
