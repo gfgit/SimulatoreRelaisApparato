@@ -44,7 +44,7 @@ protected:
 public:
     ~GenericLeverObject();
 
-    bool loadFromJSON(const QJsonObject& obj) override;
+    bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject& obj) const override;
 
     QVector<AbstractCircuitNode*> nodes() const override;

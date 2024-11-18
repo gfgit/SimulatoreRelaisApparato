@@ -53,10 +53,13 @@ GenericLeverObject::~GenericLeverObject()
     stopSpringTimer();
 }
 
-bool GenericLeverObject::loadFromJSON(const QJsonObject &obj)
+bool GenericLeverObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
-    if(!AbstractSimulationObject::loadFromJSON(obj))
+    if(!AbstractSimulationObject::loadFromJSON(obj, phase))
         return false;
+
+    if(phase != LoadPhase::Creation)
+        return true; // Alredy created, nothing to do
 
     setHasSpringReturn(obj.value("spring_return").toBool());
 

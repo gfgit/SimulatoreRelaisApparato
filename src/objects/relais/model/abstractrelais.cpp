@@ -77,10 +77,13 @@ QString AbstractRelais::getType() const
     return Type;
 }
 
-bool AbstractRelais::loadFromJSON(const QJsonObject &obj)
+bool AbstractRelais::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
-    if(!AbstractSimulationObject::loadFromJSON(obj))
+    if(!AbstractSimulationObject::loadFromJSON(obj, phase))
         return false;
+
+    if(phase != LoadPhase::Creation)
+        return true; // Alredy created, nothing to do
 
     setUpSpeed(obj.value("speed_up").toDouble());
     setDownSpeed(obj.value("speed_down").toDouble());

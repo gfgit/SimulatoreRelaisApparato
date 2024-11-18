@@ -40,8 +40,11 @@ AbstractObjectInterface *AbstractSimulationObject::getInterface(const QString &i
     return nullptr;
 }
 
-bool AbstractSimulationObject::loadFromJSON(const QJsonObject &obj)
+bool AbstractSimulationObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
+    if(phase != LoadPhase::Creation)
+        return true; // Alredy created, nothing to do
+
     if(obj.value("type") != getType())
         return false;
 

@@ -37,13 +37,19 @@ class AbstractSimulationObject : public QObject
 {
     Q_OBJECT
 public:
+    enum class LoadPhase
+    {
+        Creation = 0,
+        AllCreated = 1
+    };
+
     explicit AbstractSimulationObject(AbstractSimulationObjectModel *m);
 
     virtual QString getType() const = 0;
 
     virtual AbstractObjectInterface *getInterface(const QString& ifaceName);
 
-    virtual bool loadFromJSON(const QJsonObject& obj);
+    virtual bool loadFromJSON(const QJsonObject& obj, LoadPhase phase);
     virtual void saveToJSON(QJsonObject& obj) const;
 
     QString name() const;

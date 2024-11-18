@@ -35,7 +35,7 @@ public:
     explicit ACESasibLeverCommonObject(AbstractSimulationObjectModel *m,
                                        const LeverPositionDesc& desc);
 
-    bool loadFromJSON(const QJsonObject& obj) override;
+    bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject& obj) const override;
 
     AbstractObjectInterface *getInterface(const QString &ifaceName) override;

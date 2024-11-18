@@ -39,20 +39,25 @@ ACESasibLeverCommonObject::ACESasibLeverCommonObject(AbstractSimulationObjectMod
     mechanicalIface = new MechanicalInterface(this);
 }
 
-bool ACESasibLeverCommonObject::loadFromJSON(const QJsonObject &obj)
+bool ACESasibLeverCommonObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
-    if(!GenericLeverObject::loadFromJSON(obj))
+    if(!GenericLeverObject::loadFromJSON(obj, phase))
         return false;
 
-    auto model_ = model()->modeMgr()->modelForType(ElectroMagnetObject::Type);
-    if(model_)
+    ElectroMagnetObject *magnet_ = nullptr;
+
+    if(phase == LoadPhase::AllCreated)
     {
-        const QString magnetName = obj.value("electromagnet").toString();
-        AbstractSimulationObject *magnetObj = model_->getObjectByName(magnetName);
-        setMagnet(static_cast<ElectroMagnetObject *>(magnetObj));
+        auto model_ = model()->modeMgr()->modelForType(ElectroMagnetObject::Type);
+        if(model_)
+        {
+            const QString magnetName = obj.value("electromagnet").toString();
+            AbstractSimulationObject *magnetObj = model_->getObjectByName(magnetName);
+            magnet_ = static_cast<ElectroMagnetObject *>(magnetObj);
+        }
     }
-    else
-        setMagnet(nullptr);
+
+    setMagnet(magnet_);
 
     return true;
 }
