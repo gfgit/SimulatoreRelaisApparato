@@ -48,10 +48,11 @@ bool LeverContactNode::loadFromJSON(const QJsonObject &obj)
     if(!AbstractDeviatorNode::loadFromJSON(obj))
         return false;
 
-    auto model = modeMgr()->modelForType(ACEILeverObject::Type);
+    const QString leverName = obj.value("lever").toString();
+    const QString leverType = obj.value("lever_type").toString();
+    auto model = modeMgr()->modelForType(leverType);
     if(model)
     {
-        const QString leverName = obj.value("lever").toString();
         AbstractSimulationObject *leverObj = model->getObjectByName(leverName);
         setLever(static_cast<GenericLeverObject *>(leverObj));
     }
@@ -69,6 +70,8 @@ void LeverContactNode::saveToJSON(QJsonObject &obj) const
     AbstractDeviatorNode::saveToJSON(obj);
 
     obj["lever"] = mLever ? mLever->name() : QString();
+    obj["lever_type"] = mLever ? mLever->getType() : QString();
+
     obj["conditions"] = GenericLeverUtils::toJSON(mConditionSet);
 }
 
