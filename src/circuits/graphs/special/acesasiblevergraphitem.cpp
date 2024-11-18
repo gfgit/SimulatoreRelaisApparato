@@ -30,6 +30,7 @@
 #include "../../../objects/abstractsimulationobjectmodel.h"
 
 #include "../../../objects/interfaces/leverinterface.h"
+#include "../../../objects/interfaces/sasibaceleverextrainterface.h"
 
 #include "../../../views/modemanager.h"
 
@@ -174,7 +175,7 @@ AbstractSimulationObject *ACESasibLeverGraphItem::lever() const
 
 void ACESasibLeverGraphItem::setLever(AbstractSimulationObject *newLever)
 {
-    if(newLever && !newLever->getAbstractInterface(QLatin1String("sasib_lever")))
+    if(newLever && !newLever->getInterface<SasibACELeverExtraInterface>())
         return;
 
     if(mLever)

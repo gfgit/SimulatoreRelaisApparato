@@ -41,6 +41,7 @@
 // TODO: extract names in separate header
 #include "interfaces/leverinterface.h"
 #include "interfaces/mechanicalinterface.h"
+#include "interfaces/sasibaceleverextrainterface.h"
 
 #include "../views/modemanager.h"
 
@@ -171,7 +172,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.interfaces = {
             LeverInterface::IfaceType,
             MechanicalInterface::IfaceType,
-            QLatin1String("sasib_lever")
+            SasibACELeverExtraInterface::IfaceType
         };
         item.prettyName = tr("ACE Sasib 5 Lever");
         item.edit = &defaultSasibLeverEdit;
@@ -188,7 +189,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.interfaces = {
             LeverInterface::IfaceType,
             MechanicalInterface::IfaceType,
-            QLatin1String("sasib_lever")
+            SasibACELeverExtraInterface::IfaceType
         };
         item.prettyName = tr("ACE Sasib 7 Lever");
         item.edit = [](AbstractSimulationObject *obj) -> QWidget*

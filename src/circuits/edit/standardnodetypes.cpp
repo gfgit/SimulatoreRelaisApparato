@@ -71,7 +71,9 @@
 
 #include "../../objects/simulationobjectlineedit.h"
 #include "../../objects/simulationobjectfactory.h"
+
 #include "../../objects/interfaces/leverinterface.h"
+#include "../../objects/interfaces/sasibaceleverextrainterface.h"
 
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 
@@ -519,7 +521,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Lever
             const QStringList sasibTypes = mgr->objectFactory()
-                    ->typesForInterface(QLatin1String("sasib_lever"));
+                    ->typesForInterface(SasibACELeverExtraInterface::IfaceType);
 
             SimulationObjectLineEdit *leverEdit =
                     new SimulationObjectLineEdit(

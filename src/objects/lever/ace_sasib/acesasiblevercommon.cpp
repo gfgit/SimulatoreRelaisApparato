@@ -24,6 +24,7 @@
 
 #include "../../interfaces/mechanicalinterface.h"
 #include "../../interfaces/leverinterface.h"
+#include "../../interfaces/sasibaceleverextrainterface.h"
 
 #include "../../simple_activable/electromagnet.h"
 
@@ -43,6 +44,8 @@ ACESasibLeverCommonObject::ACESasibLeverCommonObject(AbstractSimulationObjectMod
     leverInterface = new LeverInterface(positionDesc,
                                         angleDesc,
                                         this);
+
+    sasibInterface = new SasibACELeverExtraInterface(this);
 
     // After all interfaces are constructed
     mechanicalIface->init();
@@ -135,30 +138,49 @@ void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *ifac
 {
     if(iface == mechanicalIface)
     {
-        if(propName == MechanicalInterface::LockRangePropName ||
-                propName == MechanicalInterface::AbsoluteRangePropName)
+        if(propName == MechanicalInterface::AbsoluteRangePropName)
         {
+            // Sync ranges
+            leverInterface->setAbsoluteRange(mechanicalIface->absoluteMin(),
+                                             mechanicalIface->absoluteMax());
+            setNewLockRange();
+            return;
+        }
+        else if(propName == MechanicalInterface::LockRangePropName)
+        {
+            // Just set lock range
             setNewLockRange();
             return;
         }
         else if(propName == MechanicalInterface::PositionPropName)
         {
             // Mirror positions, let lever update locked range
-            const int newLeverAngle = leverInterface->angleForPosition(mechanicalIface->position());
+            const int pos = mechanicalIface->position();
+            int newLeverAngle = leverInterface->angleForPosition(pos);
+            if(leverInterface->isPositionMiddle(pos))
+            {
+                // Set an angle halfway between 2 positions
+                const int prevAngle = leverInterface->angleForPosition(pos - 1);
+                const int nextAngle = leverInterface->angleForPosition(pos + 1);
+
+                newLeverAngle = (prevAngle + nextAngle) / 2;
+            }
+
             leverInterface->setAngle(newLeverAngle);
 
             // Check if position change was rejected
             if(mechanicalIface->position() != leverInterface->position())
                 mechanicalIface->setPosition(leverInterface->position());
-            return;
         }
     }
     else if(iface == leverInterface)
     {
         if(propName == LeverInterface::AbsoluteRangePropName)
         {
+            // Sync ranges
+            mechanicalIface->setAbsoluteRange(leverInterface->absoluteMin(),
+                                              leverInterface->absoluteMax());
             setNewLockRange();
-            return;
         }
         else if(propName == LeverInterface::PositionPropName)
         {
@@ -167,9 +189,10 @@ void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *ifac
 
             // Recalculate lock range
             recalculateLockedRange();
-            return;
         }
     }
+
+    AbstractSimulationObject::onInterfaceChanged(iface, propName, value);
 }
 
 void ACESasibLeverCommonObject::removeElectromagnetLock()

@@ -27,6 +27,7 @@
 
 class MechanicalInterface;
 class LeverInterface;
+class SasibACELeverExtraInterface;
 
 struct EnumDesc;
 class LeverAngleDesc;
@@ -65,6 +66,7 @@ protected:
 protected:
     MechanicalInterface *mechanicalIface = nullptr;
     LeverInterface *leverInterface = nullptr;
+    SasibACELeverExtraInterface *sasibInterface = nullptr;
 
     ElectroMagnetObject *mMagnet = nullptr;
 };

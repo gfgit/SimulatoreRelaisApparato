@@ -11,6 +11,9 @@ set(PROJECT_SOURCES
     objects/interfaces/mechanicalinterface.cpp
     objects/interfaces/mechanicalinterface.h
 
+    objects/interfaces/sasibaceleverextrainterface.cpp
+    objects/interfaces/sasibaceleverextrainterface.h
+
     ${PROJECT_SOURCES}
     PARENT_SCOPE
 )
