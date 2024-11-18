@@ -42,12 +42,19 @@ QVector<AbstractCircuitNode *> AbstractObjectInterface::nodes() const
 
 bool AbstractObjectInterface::loadFromJSON(const QJsonObject &obj)
 {
+    Q_UNUSED(obj)
     return true;
 }
 
 void AbstractObjectInterface::saveToJSON(QJsonObject &obj) const
 {
+    Q_UNUSED(obj)
+}
 
+bool AbstractObjectInterface::timerEvent(const int timerId)
+{
+    Q_UNUSED(timerId)
+    return false;
 }
 
 void AbstractObjectInterface::emitChanged(const QString &propName, const QVariant &value)
