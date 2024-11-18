@@ -23,40 +23,52 @@
 #include "acesasiblever5positions.h"
 
 #include "../../interfaces/mechanicalinterface.h"
+#include "../../interfaces/leverinterface.h"
 
 #include "../../simple_activable/electromagnet.h"
 
-static QString ACESasibLever5PosObject_translate(const char *nameId)
+static const EnumDesc ace_sasib_5_posDesc =
 {
-    return ACESasibLever5PosObject::tr(nameId);
-}
+    int(ACESasibLeverPosition5::Reverse),
+    int(ACESasibLeverPosition5::Normal),
+    int(ACESasibLeverPosition5::Normal),
+    "ACESasibLever5PosObject",
+    {
+        QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Reverse"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Check circuits R"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Wait control R"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Wait control N"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Check circuits N"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Normal")
+    }
+};
 
-static const LeverPositionDesc::Item ace_sasib_5_LeverItems[] =
+static const LeverAngleDesc ace_sasib_5_angleDesc =
 {
-    {-70, -135, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Reverse")},
+    {-70, -135}, // Reverse
     {}, // Middle1
-    {-50, -90, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Check circuits R")},
+    {-50, -90}, // Check circuits R
     {}, // Middle2
-    {-30, -45, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Wait control R")},
+    {-30, -45}, // Wait control R
 
     {}, // Middle3
 
-    {+30, +45, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Wait control N")},
+    {+30, +45}, // Wait control N
     {}, // Middle4
-    {+50, +90, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Check circuits N")},
+    {+50, +90}, // Check circuits N
     {}, // Middle5
-    {+70, +135, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Normal")}
+    {+70, +135}, // Normal
 };
 
-static const LeverPositionDesc aceSasib5LeverDesc(ace_sasib_5_LeverItems,
-                                                  int(ACESasibLeverPosition5::Normal),
-                                                  &ACESasibLever5PosObject_translate);
-
-
 ACESasibLever5PosObject::ACESasibLever5PosObject(AbstractSimulationObjectModel *m)
-    : ACESasibLeverCommonObject(m, aceSasib5LeverDesc)
+    : ACESasibLeverCommonObject(m, ace_sasib_5_posDesc, ace_sasib_5_angleDesc)
 {
-
+    leverInterface->setChangeRangeAllowed(false);
 }
 
 QString ACESasibLever5PosObject::getType() const

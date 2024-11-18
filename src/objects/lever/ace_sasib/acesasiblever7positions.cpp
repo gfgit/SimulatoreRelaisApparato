@@ -26,35 +26,48 @@
 
 #include "../../simple_activable/electromagnet.h"
 
-static QString ACESasibLever7PosObject_translate(const char *nameId)
+static const EnumDesc ace_sasib_7_posDesc =
 {
-    return ACESasibLever7PosObject::tr(nameId);
-}
-
-static const LeverPositionDesc::Item ace_sasib_7_LeverItems[] =
-{
-    {-70, -135, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Backwards")},
-    {}, // Middle1
-    {-50, -90, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation B")},
-    {}, // Middle2
-    {-30, -45, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization B")},
-    {}, // Middle3
-    {  0,   0, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Normal")},
-    {}, // Middle4
-    {+30, +45, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization F")},
-    {}, // Middle5
-    {+50, +90, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation F")},
-    {}, // Middle6
-    {+70, +135, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Forward")}
+    int(ACESasibLeverPosition7::TurnedBackwards),
+    int(ACESasibLeverPosition7::TurnedForward),
+    int(ACESasibLeverPosition7::Normal),
+    "ACESasibLever7PosObject",
+    {
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Backwards"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation B"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization B"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Normal"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization F"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation F"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Forward")
+    }
 };
 
-static const LeverPositionDesc aceSasib7LeverDesc(ace_sasib_7_LeverItems,
-                                                  int(ACESasibLeverPosition7::Normal),
-                                                  &ACESasibLever7PosObject_translate);
-
+static const LeverAngleDesc ace_sasib_7_angleDesc =
+{
+    {-70, -135}, // Backwards
+    {}, // Middle1
+    {-50, -90}, // Wait Liberation B
+    {}, // Middle2
+    {-30, -45}, // Wait Immobilization B
+    {}, // Middle3
+    {  0,   0}, // Normal
+    {}, // Middle4
+    {+30, +45}, // Wait Immobilization F
+    {}, // Middle5
+    {+50, +90}, // Wait Liberation F
+    {}, // Middle6
+    {+70, +135}, // Forward
+};
 
 ACESasibLever7PosObject::ACESasibLever7PosObject(AbstractSimulationObjectModel *m)
-    : ACESasibLeverCommonObject(m, aceSasib7LeverDesc)
+    : ACESasibLeverCommonObject(m, ace_sasib_7_posDesc, ace_sasib_7_angleDesc)
 {
 
 }
