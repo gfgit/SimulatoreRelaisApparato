@@ -23,6 +23,7 @@
 #include "acesasiblevercommon.h"
 
 #include "../../interfaces/mechanicalinterface.h"
+#include "../../interfaces/leverinterface.h"
 
 #include "../../simple_activable/electromagnet.h"
 
@@ -33,15 +34,33 @@
 #include <QJsonObject>
 
 ACESasibLeverCommonObject::ACESasibLeverCommonObject(AbstractSimulationObjectModel *m,
-                                                     const LeverPositionDesc &desc)
-    : GenericLeverObject(m, desc)
+                                                     const EnumDesc &positionDesc,
+                                                     const LeverAngleDesc &angleDesc)
+    : AbstractSimulationObject(m)
 {
-    mechanicalIface = new MechanicalInterface(this);
+    mechanicalIface = new MechanicalInterface(positionDesc,
+                                              this);
+    leverInterface = new LeverInterface(positionDesc,
+                                        angleDesc,
+                                        this);
+
+    // After all interfaces are constructed
+    mechanicalIface->init();
+    leverInterface->init();
+}
+
+ACESasibLeverCommonObject::~ACESasibLeverCommonObject()
+{
+    delete mechanicalIface;
+    mechanicalIface = nullptr;
+
+    delete leverInterface;
+    leverInterface = nullptr;
 }
 
 bool ACESasibLeverCommonObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
-    if(!GenericLeverObject::loadFromJSON(obj, phase))
+    if(!AbstractSimulationObject::loadFromJSON(obj, phase))
         return false;
 
     ElectroMagnetObject *magnet_ = nullptr;
@@ -64,7 +83,7 @@ bool ACESasibLeverCommonObject::loadFromJSON(const QJsonObject &obj, LoadPhase p
 
 void ACESasibLeverCommonObject::saveToJSON(QJsonObject &obj) const
 {
-    GenericLeverObject::saveToJSON(obj);
+    AbstractSimulationObject::saveToJSON(obj);
 
     obj["electromagnet"] = mMagnet ? mMagnet->name() : QString();
 }
@@ -112,30 +131,50 @@ void ACESasibLeverCommonObject::updateElectroMagnetState()
         removeElectromagnetLock();
 }
 
+void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *iface, const QString &propName, const QVariant &value)
+{
+    if(iface == mechanicalIface)
+    {
+        if(propName == MechanicalInterface::LockRangePropName ||
+                propName == MechanicalInterface::AbsoluteRangePropName)
+        {
+            setNewLockRange();
+            return;
+        }
+        else if(propName == MechanicalInterface::PositionPropName)
+        {
+            // Mirror positions, let lever update locked range
+            const int newLeverAngle = leverInterface->angleForPosition(mechanicalIface->position());
+            leverInterface->setAngle(newLeverAngle);
+
+            // Check if position change was rejected
+            if(mechanicalIface->position() != leverInterface->position())
+                mechanicalIface->setPosition(leverInterface->position());
+            return;
+        }
+    }
+    else if(iface == leverInterface)
+    {
+        if(propName == LeverInterface::AbsoluteRangePropName)
+        {
+            setNewLockRange();
+            return;
+        }
+        else if(propName == LeverInterface::PositionPropName)
+        {
+            // Mirror positions
+            mechanicalIface->setPosition(leverInterface->position());
+
+            // Recalculate lock range
+            recalculateLockedRange();
+            return;
+        }
+    }
+}
+
 void ACESasibLeverCommonObject::removeElectromagnetLock()
 {
     mechanicalIface->setObjectLockConstraints(mMagnet, {});
-}
-
-AbstractObjectInterface *ACESasibLeverCommonObject::getInterface(const QString &ifaceName)
-{
-    if(ifaceName == MechanicalInterface::IfaceType)
-        return mechanicalIface;
-
-    return GenericLeverObject::getInterface(ifaceName);
-}
-
-void ACESasibLeverCommonObject::onInterfaceChanged(const QString &ifaceName)
-{
-    if(ifaceName == MechanicalInterface::IfaceType)
-    {
-        // Set new locked range
-        auto r = mechanicalIface->getLockRangeForPos(position(),
-                                                     absoluteMin(),
-                                                     absoluteMax());
-        setLockedRange(r.first, r.second);
-        return;
-    }
 }
 
 void ACESasibLeverCommonObject::recalculateLockedRange()
@@ -143,4 +182,17 @@ void ACESasibLeverCommonObject::recalculateLockedRange()
     // Off magnet locks lever, On magnet frees lever
     if(mMagnet && mMagnet->state() == ElectroMagnetObject::State::Off)
         addElectromagnetLock();
+}
+
+void ACESasibLeverCommonObject::setNewLockRange()
+{
+    // Set new locked range
+    auto r = mechanicalIface->getLockRangeForPos(leverInterface->position(),
+                                                 leverInterface->absoluteMin(),
+                                                 leverInterface->absoluteMax());
+    leverInterface->setLockedRange(r.first, r.second);
+    mechanicalIface->setLockedRange(r.first, r.second);
+
+    // Check current position
+    leverInterface->checkPositionValidForLock();
 }

@@ -23,22 +23,27 @@
 #ifndef ACE_SASIB_LEVER_COMMON_H
 #define ACE_SASIB_LEVER_COMMON_H
 
-#include "../model/genericleverobject.h"
+#include "../../abstractsimulationobject.h"
 
 class MechanicalInterface;
+class LeverInterface;
+
+struct EnumDesc;
+class LeverAngleDesc;
+
 class ElectroMagnetObject;
 
-class ACESasibLeverCommonObject : public GenericLeverObject
+class ACESasibLeverCommonObject : public AbstractSimulationObject
 {
     Q_OBJECT
 public:
     explicit ACESasibLeverCommonObject(AbstractSimulationObjectModel *m,
-                                       const LeverPositionDesc& desc);
+                                       const EnumDesc& positionDesc,
+                                       const LeverAngleDesc& angleDesc);
+    ~ACESasibLeverCommonObject();
 
     bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject& obj) const override;
-
-    AbstractObjectInterface *getInterface(const QString &ifaceName) override;
 
     ElectroMagnetObject *magnet() const;
     void setMagnet(ElectroMagnetObject *newMagnet);
@@ -47,14 +52,20 @@ private slots:
     void updateElectroMagnetState();
 
 protected:
+    void onInterfaceChanged(AbstractObjectInterface *iface,
+                            const QString &propName,
+                            const QVariant& value) override;
+
     virtual void addElectromagnetLock() = 0;
     void removeElectromagnetLock();
 
-    void onInterfaceChanged(const QString &ifaceName) override;
-    void recalculateLockedRange() override;
+    void recalculateLockedRange();
+    void setNewLockRange();
 
 protected:
     MechanicalInterface *mechanicalIface = nullptr;
+    LeverInterface *leverInterface = nullptr;
+
     ElectroMagnetObject *mMagnet = nullptr;
 };
 
