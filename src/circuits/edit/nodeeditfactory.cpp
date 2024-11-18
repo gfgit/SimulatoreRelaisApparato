@@ -79,9 +79,12 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
 
     dlg->setWindowTitle(tr("Edit %1").arg(node->objectName()));
 
+    // Type
+    lay->addRow(tr("Type"), new QLabel(prettyName(node->nodeType())));
+
+    // Name
     if(factory->needsName != NeedsName::Never)
     {
-        // Name
         QLineEdit *nameEdit = new QLineEdit(dlg);
         connect(node, &QObject::objectNameChanged,
                 nameEdit, [nameEdit](const QString& name)
@@ -100,9 +103,6 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
 
         lay->addRow(tr("Name"), nameEdit);
     }
-
-    // Type
-    lay->addRow(tr("Type"), new QLabel(node->nodeType()));
 
     if(factory->edit)
     {
