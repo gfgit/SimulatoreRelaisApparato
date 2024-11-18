@@ -35,5 +35,8 @@ set(PROJECT_SOURCES
     circuits/graphs/special/aceilevergraphitem.cpp
     circuits/graphs/special/aceilevergraphitem.h
 
+    circuits/graphs/special/acesasiblevergraphitem.cpp
+    circuits/graphs/special/acesasiblevergraphitem.h
+
     PARENT_SCOPE
 )

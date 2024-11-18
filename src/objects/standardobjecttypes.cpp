@@ -31,9 +31,18 @@
 #include "lever/acei/aceileverobject.h"
 #include "lever/view/genericleveroptionswidget.h"
 
+#include "lever/ace_sasib/acesasiblever5positions.h"
+#include "lever/ace_sasib/acesasiblever7positions.h"
+
 #include "simple_activable/lightbulbobject.h"
 
 #include "simple_activable/electromagnet.h"
+
+#include "../views/modemanager.h"
+
+#include "simulationobjectoptionswidget.h"
+#include "simulationobjectlineedit.h"
+#include <QFormLayout>
 
 template <typename T>
 AbstractSimulationObjectModel *createModel(ModeManager *mgr)
@@ -51,6 +60,35 @@ template <typename T, typename W>
 QWidget *createEditWidget(AbstractSimulationObject *item)
 {
     return new W(static_cast<T*>(item));
+}
+
+QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
+{
+    ACESasibLeverCommonObject *lever = static_cast<ACESasibLeverCommonObject *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Electro Magnet
+    SimulationObjectLineEdit *magnetEdit
+            = new SimulationObjectLineEdit(
+                item->model()->modeMgr(),
+                {
+                    ElectroMagnetObject::Type
+                });
+
+    QObject::connect(lever, &ACESasibLeverCommonObject::settingsChanged,
+                     magnetEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(magnetEdit, &SimulationObjectLineEdit::objectChanged,
+                     lever, [lever](AbstractSimulationObject *obj)
+    {
+        lever->setMagnet(static_cast<ElectroMagnetObject *>(obj));
+    });
+
+    magnetEdit->setObject(lever);
+    lay->addRow(StandardObjectTypes::tr("Magnet"), magnetEdit);
+
+    return w;
 }
 
 void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
@@ -99,6 +137,36 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = nullptr;
         item.objectType = ElectroMagnetObject::Type;
         item.prettyName = tr("Electromagnet");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Sasib ACE Lever 5 positions
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<ACESasibLever5PosObject>;
+        item.objectType = ElectroMagnetObject::Type;
+        item.prettyName = tr("ACE Sasib 5 Lever");
+        item.edit = [](AbstractSimulationObject *obj) -> QWidget*
+        {
+            return defaultSasibLeverEdit(obj);
+        };
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Sasib ACE Lever 7 positions
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<ACESasibLever7PosObject>;
+        item.objectType = ElectroMagnetObject::Type;
+        item.prettyName = tr("ACE Sasib 7 Lever");
+        item.edit = [](AbstractSimulationObject *obj) -> QWidget*
+        {
+            return defaultSasibLeverEdit(obj);
+        };
 
         factory->registerFactory(item);
     }

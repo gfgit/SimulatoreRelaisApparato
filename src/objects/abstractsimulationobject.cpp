@@ -34,7 +34,7 @@ AbstractSimulationObject::AbstractSimulationObject(AbstractSimulationObjectModel
 
 }
 
-QObject *AbstractSimulationObject::getInterface(const QString &ifaceName)
+AbstractObjectInterface *AbstractSimulationObject::getInterface(const QString &ifaceName)
 {
     Q_UNUSED(ifaceName)
     return nullptr;
@@ -111,4 +111,9 @@ void AbstractSimulationObject::setDescription(const QString &newDescription)
 QVector<AbstractCircuitNode *> AbstractSimulationObject::nodes() const
 {
     return {};
+}
+
+void AbstractSimulationObject::onInterfaceChanged(const QString &ifaceName)
+{
+    Q_UNUSED(ifaceName)
 }

@@ -68,6 +68,9 @@ public:
     int absoluteMax() const;
     void setAbsoluteRange(int newMin, int newMax);
 
+    int lockedMin() const;
+    int lockedMax() const;
+
     int normalPosition() const;
     void setNormalPosition(int newNormalPosition);
 
@@ -106,6 +109,9 @@ signals:
     void positionChanged(GenericLeverObject *self, int newPosition);
     void pressedChanged(bool pressed);
 
+protected:
+    virtual void recalculateLockedRange();
+
 private:
     void timerEvent(QTimerEvent *e) override;
 
@@ -115,6 +121,10 @@ private:
     friend class LeverContactNode;
     void addContactNode(LeverContactNode *c);
     void removeContactNode(LeverContactNode *c);
+
+protected:
+    int mLockedMin = 0;
+    int mLockedMax = 0;
 
 private:
     QString mName;

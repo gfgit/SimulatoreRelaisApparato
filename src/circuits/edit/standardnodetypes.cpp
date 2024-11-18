@@ -53,6 +53,12 @@
 
 // TODO: special
 #include "../graphs/special/aceilevergraphitem.h"
+#include "../graphs/special/acesasiblevergraphitem.h"
+
+// TODO: don't hardcode, remove includes, we only need type names
+#include "../../objects/lever/acei/aceileverobject.h"
+#include "../../objects/lever/ace_sasib/acesasiblever5positions.h"
+#include "../../objects/lever/ace_sasib/acesasiblever7positions.h"
 
 #include "../graphs/levercontactgraphitem.h"
 #include "../nodes/levercontactnode.h"
@@ -74,7 +80,6 @@
 
 #include "../../objects/relais/model/abstractrelais.h"
 
-#include "../../objects/lever/acei/aceileverobject.h" // TODO: remove
 #include "../../objects/lever/model/genericleverobject.h"
 #include "../../objects/lever/model/levercontactconditionsmodel.h"
 
@@ -163,7 +168,7 @@ QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ModeManage
     QFormLayout *lay = new QFormLayout(w);
 
     // Activation Object
-    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(mgr->modelForType(node->allowedObjectType()));
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(mgr, {node->allowedObjectType()});
     QObject::connect(node, &SimpleActivationNode::objectChanged,
                      objectEdit, &SimulationObjectLineEdit::setObject);
     QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
@@ -284,7 +289,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr->modelForType(AbstractRelais::Type));
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
             QObject::connect(node, &RelaisPowerNode::relayChanged,
                              relayEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
@@ -371,7 +376,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr->modelForType(AbstractRelais::Type));
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
             QObject::connect(node, &RelaisContactNode::relayChanged,
                              relayEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
@@ -483,7 +488,46 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr->modelForType(ACEILeverObject::Type));
+            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr, {ACEILeverObject::Type});
+            QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
+                             leverEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setLever(static_cast<GenericLeverObject *>(obj));
+            });
+            leverEdit->setObject(specialItem->lever());
+
+            lay->addRow(tr("Lever:"), leverEdit);
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // ACE Sasib Lever
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = ACESasibLeverGraphItem::CustomNodeType;
+        factory.prettyName = tr("ACE Sasib Lever");
+        factory.create = &addNewNodeToScene<ACESasibLeverGraphItem>;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            ACESasibLeverGraphItem *specialItem = static_cast<ACESasibLeverGraphItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Lever
+            SimulationObjectLineEdit *leverEdit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        {
+                            ACESasibLever5PosObject::Type,
+                            ACESasibLever7PosObject::Type
+                        });
             QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
@@ -516,7 +560,15 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr->modelForType(ACEILeverObject::Type));
+            SimulationObjectLineEdit *leverEdit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        {
+                            ACEILeverObject::Type,
+                            ACESasibLever5PosObject::Type,
+                            ACESasibLever7PosObject::Type
+                        });
+
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
                              node, [node](AbstractSimulationObject *obj)
             {

@@ -23,16 +23,26 @@
 #ifndef SIMULATION_OBJECT_LINEEDIT_H
 #define SIMULATION_OBJECT_LINEEDIT_H
 
-#include <QLineEdit>
+#include <QWidget>
+#include <QStringList>
+
+class QStringListModel;
+class QComboBox;
+class QLineEdit;
+class QCompleter;
 
 class AbstractSimulationObjectModel;
 class AbstractSimulationObject;
 
-class SimulationObjectLineEdit : public QLineEdit
+class ModeManager;
+
+class SimulationObjectLineEdit : public QWidget
 {
     Q_OBJECT
 public:
-    SimulationObjectLineEdit(AbstractSimulationObjectModel *m, QWidget *parent = nullptr);
+    SimulationObjectLineEdit(ModeManager *mgr,
+                             const QStringList& types,
+                             QWidget *parent = nullptr);
 
     AbstractSimulationObject *getObject() const
     {
@@ -45,9 +55,20 @@ public slots:
 signals:
     void objectChanged(AbstractSimulationObject *obj);
 
+private slots:
+    void setType(int idx);
+
 private:
+    ModeManager *modeMgr = nullptr;
+
     AbstractSimulationObjectModel *mModel = nullptr;
     AbstractSimulationObject *mObject = nullptr;
+
+    QStringListModel *typesModel;
+    QComboBox *mTypesCombo = nullptr;
+
+    QLineEdit *mLineEdit = nullptr;
+    QCompleter *mCompleter = nullptr;
 };
 
 #endif // SIMULATION_OBJECT_LINEEDIT_H

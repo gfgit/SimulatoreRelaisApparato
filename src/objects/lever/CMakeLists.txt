@@ -4,6 +4,7 @@ add_subdirectory(model)
 add_subdirectory(view)
 
 add_subdirectory(acei)
+add_subdirectory(ace_sasib)
 
 
 set(PROJECT_SOURCES

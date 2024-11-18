@@ -25,30 +25,54 @@
 #include "abstractsimulationobject.h"
 #include "abstractsimulationobjectmodel.h"
 
+#include "../views/modemanager.h"
+
 #include <QCompleter>
 #include <QAbstractProxyModel>
+#include <QStringListModel>
 
-SimulationObjectLineEdit::SimulationObjectLineEdit(AbstractSimulationObjectModel *m, QWidget *parent)
-    : QLineEdit(parent)
-    , mModel(m)
+#include <QHBoxLayout>
+#include <QLineEdit>
+#include <QComboBox>
+
+SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStringList &types, QWidget *parent)
+    : QWidget(parent)
+    , modeMgr(mgr)
 {
-    QCompleter *c = new QCompleter;
-    c->setCompletionMode(QCompleter::PopupCompletion);
-    c->setFilterMode(Qt::MatchContains);
-    c->setCaseSensitivity(Qt::CaseInsensitive);
-    c->setModel(mModel);
-    setCompleter(c);
+    QHBoxLayout *lay = new QHBoxLayout;
+    lay->setContentsMargins(QMargins());
 
-    connect(c, qOverload<const QModelIndex&>(&QCompleter::activated),
+    typesModel = new QStringListModel(types, this);
+
+    mTypesCombo = new QComboBox;
+    mTypesCombo->setModel(typesModel);
+    lay->addWidget(mTypesCombo);
+
+    mCompleter = new QCompleter;
+    mCompleter->setCompletionMode(QCompleter::PopupCompletion);
+    mCompleter->setFilterMode(Qt::MatchContains);
+    mCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+
+    mLineEdit = new QLineEdit;
+    mLineEdit->setCompleter(mCompleter);
+    lay->addWidget(mLineEdit);
+
+    // Default to first type
+    setType(0);
+
+    connect(mTypesCombo, &QComboBox::activated,
+            this, &SimulationObjectLineEdit::setType);
+
+    connect(mCompleter, qOverload<const QModelIndex&>(&QCompleter::activated),
             this, [this](const QModelIndex& idx)
     {
         setObject(mModel->objectAt(idx.row()));
     });
 
-    connect(c, qOverload<const QModelIndex&>(&QCompleter::activated),
-            this, [this, c](const QModelIndex& idx)
+    connect(mCompleter, qOverload<const QModelIndex&>(&QCompleter::activated),
+            this, [this](const QModelIndex& idx)
     {
-        QAbstractProxyModel *m = static_cast<QAbstractProxyModel *>(c->completionModel());
+        QAbstractProxyModel *m = static_cast<QAbstractProxyModel *>(mCompleter->completionModel());
         const QModelIndex sourceIdx = m->mapToSource(idx);
 
         setObject(mModel->objectAt(sourceIdx.row()));
@@ -59,10 +83,42 @@ void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
 {
     if(mObject == newObject)
         return;
+
     mObject = newObject;
 
-    if(text() != mObject->name())
-        setText(mObject->name());
+    if(mObject)
+    {
+        setType(typesModel->stringList().indexOf(mObject->getType()));
+
+        if(mLineEdit->text() != mObject->name())
+            mLineEdit->setText(mObject->name());
+    }
+    else
+    {
+        setType(0);
+
+        if(!mLineEdit->text().isEmpty())
+            mLineEdit->setText(QString());
+    }
 
     emit objectChanged(mObject);
+}
+
+void SimulationObjectLineEdit::setType(int idx)
+{
+    if(idx < 0)
+        idx = 0; // Default to first
+
+    const QString type = typesModel->stringList().at(idx);
+
+    if(mObject && mObject->getType() != type)
+    {
+        // Reset old object
+        setObject(nullptr); // Recursion
+    }
+
+    mTypesCombo->setCurrentIndex(idx);
+
+    mModel = modeMgr->modelForType(type);
+    mCompleter->setModel(mModel);
 }

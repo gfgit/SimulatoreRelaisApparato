@@ -28,6 +28,8 @@
 
 class AbstractSimulationObjectModel;
 
+class AbstractObjectInterface;
+
 class AbstractCircuitNode;
 class QJsonObject;
 
@@ -39,7 +41,7 @@ public:
 
     virtual QString getType() const = 0;
 
-    virtual QObject *getInterface(const QString& ifaceName);
+    virtual AbstractObjectInterface *getInterface(const QString& ifaceName);
 
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
@@ -71,6 +73,10 @@ signals:
     void stateChanged(AbstractSimulationObject *self);
 
     void nodesChanged();
+
+protected:
+    friend class AbstractObjectInterface;
+    virtual void onInterfaceChanged(const QString& ifaceName);
 
 private:
     AbstractSimulationObjectModel *mModel;

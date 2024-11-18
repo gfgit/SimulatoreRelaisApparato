@@ -106,8 +106,8 @@ int GenericLeverObject::angle() const
 
 void GenericLeverObject::setAngle(int newAngle)
 {
-    const int MinAngleAbs= angleForPosition(mAbsoluteMin);
-    const int MaxAngleAbs = angleForPosition(mAbsoluteMax);
+    const int MinAngleAbs= angleForPosition(mLockedMin);
+    const int MaxAngleAbs = angleForPosition(mLockedMax);
 
     newAngle = qBound(MinAngleAbs, newAngle, MaxAngleAbs);
 
@@ -160,6 +160,8 @@ void GenericLeverObject::setPosition(int newPosition)
         emit positionChanged(this, mPosition);
         emit stateChanged(this);
     }
+
+    recalculateLockedRange();
 }
 
 bool GenericLeverObject::hasSpringReturn() const
@@ -207,7 +209,7 @@ void GenericLeverObject::setPressed(bool newIsPressed)
 
 int GenericLeverObject::closestPosition(int angle, bool allowMiddle) const
 {
-    for(int i = mAbsoluteMin; i <= mAbsoluteMax; i++)
+    for(int i = mLockedMin; i <= mLockedMax; i++)
     {
         if(mPositionDesc.isMiddle(i))
         {
@@ -232,6 +234,13 @@ int GenericLeverObject::closestPosition(int angle, bool allowMiddle) const
 
     // Invalid
     return LeverPositionDesc::InvalidPosition;
+}
+
+void GenericLeverObject::recalculateLockedRange()
+{
+    // Default to no locking
+    mLockedMin = mAbsoluteMin;
+    mLockedMax = mAbsoluteMax;
 }
 
 void GenericLeverObject::timerEvent(QTimerEvent *e)
@@ -299,13 +308,13 @@ void GenericLeverObject::setAbsoluteRange(int newMin, int newMax)
     mAbsoluteMin = newMin;
     mAbsoluteMax = newMax;
 
+    // Recalculate range, angle and normal position
+    recalculateLockedRange();
+    setAngle(mAngle);
+    setNormalPosition(mNormalPosition);
 
     if(rangeChanged)
         emit settingsChanged(this);
-
-    // Recalculate angle and normal position
-    setAngle(mAngle);
-    setNormalPosition(mNormalPosition);
 }
 
 void GenericLeverObject::addContactNode(LeverContactNode *c)
