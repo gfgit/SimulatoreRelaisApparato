@@ -23,7 +23,11 @@
 #include "abstractsimulationobject.h"
 #include "abstractsimulationobjectmodel.h"
 
+#include "interfaces/abstractobjectinterface.h"
+
 #include "../circuits/nodes/abstractcircuitnode.h"
+
+#include <QTimerEvent>
 
 #include <QJsonObject>
 
@@ -34,9 +38,21 @@ AbstractSimulationObject::AbstractSimulationObject(AbstractSimulationObjectModel
 
 }
 
-AbstractObjectInterface *AbstractSimulationObject::getInterface(const QString &ifaceName)
+AbstractSimulationObject::~AbstractSimulationObject()
 {
-    Q_UNUSED(ifaceName)
+    const auto ifaceListCopy = mInterfaces;
+    for(AbstractObjectInterface *iface : ifaceListCopy)
+        delete iface;
+    Q_ASSERT(mInterfaces.isEmpty());
+}
+
+AbstractObjectInterface *AbstractSimulationObject::getAbstractInterface(const QString &ifaceType) const
+{
+    for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
+    {
+        if(iface->ifaceType() == ifaceType)
+            return iface;
+    }
     return nullptr;
 }
 
@@ -50,6 +66,15 @@ bool AbstractSimulationObject::loadFromJSON(const QJsonObject &obj, LoadPhase ph
 
     setName(obj.value("name").toString());
     setDescription(obj.value("description").toString());
+
+    const QJsonObject ifaceListObj = obj.value("interfaces").toObject();
+    for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
+    {
+        const QJsonObject ifaceObj = ifaceListObj.value(iface->ifaceType()).toObject();
+        if(!iface->loadFromJSON(ifaceObj))
+            return false;
+    }
+
     return true;
 }
 
@@ -58,6 +83,17 @@ void AbstractSimulationObject::saveToJSON(QJsonObject &obj) const
     obj["type"] = getType();
     obj["name"] = mName;
     obj["description"] = mDescription;
+
+    QJsonObject ifaceListObj;
+    for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
+    {
+        QJsonObject ifaceObj;
+        iface->saveToJSON(ifaceObj);
+
+        ifaceListObj[iface->ifaceType()] = ifaceObj;
+    }
+
+    obj["interfaces"] = ifaceListObj;
 }
 
 QString AbstractSimulationObject::name() const
@@ -113,10 +149,40 @@ void AbstractSimulationObject::setDescription(const QString &newDescription)
 
 QVector<AbstractCircuitNode *> AbstractSimulationObject::nodes() const
 {
-    return {};
+    QVector<AbstractCircuitNode *> result;
+
+    for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
+    {
+        result.append(iface->nodes());
+    }
+
+    return result;
 }
 
-void AbstractSimulationObject::onInterfaceChanged(const QString &ifaceName)
+void AbstractSimulationObject::timerEvent(QTimerEvent *e)
 {
-    Q_UNUSED(ifaceName)
+    for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
+    {
+        if(iface->timerEvent(e->timerId()))
+            return;
+    }
+
+    QObject::timerEvent(e);
+}
+
+void AbstractSimulationObject::addInterface(AbstractObjectInterface *iface)
+{
+    mInterfaces.append(iface);
+}
+
+void AbstractSimulationObject::removeInterface(AbstractObjectInterface *iface)
+{
+    mInterfaces.removeOne(iface);
+}
+
+void AbstractSimulationObject::onInterfaceChanged(AbstractObjectInterface *iface, const QString &propName, const QVariant &value)
+{
+    emit interfacePropertyChanged(iface->ifaceType(),
+                                  propName,
+                                  value);
 }

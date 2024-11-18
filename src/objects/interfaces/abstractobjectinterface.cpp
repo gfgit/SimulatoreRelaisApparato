@@ -27,15 +27,30 @@
 AbstractObjectInterface::AbstractObjectInterface(AbstractSimulationObject *obj)
     : mObject(obj)
 {
-
+    mObject->addInterface(this);
 }
 
 AbstractObjectInterface::~AbstractObjectInterface()
 {
+    mObject->removeInterface(this);
+}
+
+QVector<AbstractCircuitNode *> AbstractObjectInterface::nodes() const
+{
+    return {};
+}
+
+bool AbstractObjectInterface::loadFromJSON(const QJsonObject &obj)
+{
+    return true;
+}
+
+void AbstractObjectInterface::saveToJSON(QJsonObject &obj) const
+{
 
 }
 
-void AbstractObjectInterface::notifyObject()
+void AbstractObjectInterface::emitChanged(const QString &propName, const QVariant &value)
 {
-    mObject->onInterfaceChanged(ifaceType());
+    mObject->onInterfaceChanged(this, propName, value);
 }

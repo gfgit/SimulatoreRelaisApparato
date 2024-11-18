@@ -44,10 +44,22 @@ public:
     };
 
     explicit AbstractSimulationObject(AbstractSimulationObjectModel *m);
+    ~AbstractSimulationObject();
 
     virtual QString getType() const = 0;
 
-    virtual AbstractObjectInterface *getInterface(const QString& ifaceName);
+    AbstractObjectInterface *getAbstractInterface(const QString& ifaceType) const;
+
+    template <typename Iface>
+    inline Iface *getInterface() const
+    {
+        return static_cast<Iface *>(getAbstractInterface(Iface::IfaceType));
+    }
+
+    const QVector<AbstractObjectInterface *>& getAllInterfaces() const
+    {
+        return mInterfaces;
+    }
 
     virtual bool loadFromJSON(const QJsonObject& obj, LoadPhase phase);
     virtual void saveToJSON(QJsonObject& obj) const;
@@ -78,17 +90,30 @@ signals:
     void settingsChanged(AbstractSimulationObject *self);
     void stateChanged(AbstractSimulationObject *self);
 
+    void interfacePropertyChanged(const QString& ifaceName,
+                                  const QString& propName,
+                                  const QVariant& value);
+
     void nodesChanged();
 
 protected:
+    void timerEvent(QTimerEvent *e) override;
+
+    void addInterface(AbstractObjectInterface *iface);
+    void removeInterface(AbstractObjectInterface *iface);
+
     friend class AbstractObjectInterface;
-    virtual void onInterfaceChanged(const QString& ifaceName);
+    virtual void onInterfaceChanged(AbstractObjectInterface *iface,
+                                    const QString &propName,
+                                    const QVariant &value);
 
 private:
     AbstractSimulationObjectModel *mModel;
 
     QString mName;
     QString mDescription;
+
+    QVector<AbstractObjectInterface *> mInterfaces;
 };
 
 #endif // ABSTRACTSIMULATIONOBJECT_H

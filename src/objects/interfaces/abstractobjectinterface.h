@@ -25,7 +25,12 @@
 
 #include <QString>
 
+class QVariant;
+
 class AbstractSimulationObject;
+class AbstractCircuitNode;
+
+class QJsonObject;
 
 class AbstractObjectInterface
 {
@@ -35,13 +40,21 @@ public:
 
     virtual QString ifaceType() = 0;
 
+    virtual QVector<AbstractCircuitNode*> nodes() const;
+
+    virtual bool loadFromJSON(const QJsonObject &obj);
+    virtual void saveToJSON(QJsonObject &obj) const;
+
     inline AbstractSimulationObject *object() const
     {
         return mObject;
     }
 
 protected:
-    void notifyObject();
+    friend class AbstractSimulationObject;
+    virtual bool timerEvent(const int timerId);
+
+    void emitChanged(const QString& propName, const QVariant& value);
 
 protected:
     AbstractSimulationObject * const mObject;
