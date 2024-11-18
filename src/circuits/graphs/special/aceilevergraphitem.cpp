@@ -26,8 +26,10 @@
 #include "../../nodes/onoffswitchnode.h"
 #include <QJsonObject>
 
-#include "../../../objects/lever/model/genericleverobject.h"
+#include "../../../objects/abstractsimulationobject.h"
 #include "../../../objects/abstractsimulationobjectmodel.h"
+
+#include "../../../objects/interfaces/leverinterface.h"
 
 #include "../../../objects/lever/acei/aceileverobject.h"
 
@@ -63,7 +65,7 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     // Zero is vertical up, so cos/sin are swapped
     // Also returned angle must be inverted to be clockwise
-    const double angleRadiants = -qDegreesToRadians(mLever ? mLever->angle() : 0);
+    const double angleRadiants = -qDegreesToRadians(mLeverIface ? mLeverIface->angle() : 0);
 
     QPointF endPt(qSin(angleRadiants),
                   qCos(angleRadiants));
@@ -71,7 +73,7 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     endPt += center;
 
     QColor color = Qt::darkCyan;
-    if(!mLever || mLever->isPressed())
+    if(!mLeverIface || mLeverIface->isPressed())
         color = Qt::blue;
 
     QPen pen;
@@ -101,12 +103,12 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
-            && mLever)
+            && mLeverIface)
     {
         if(ev->button() == Qt::LeftButton)
         {
             ev->accept();
-            mLever->setPressed(true);
+            mLeverIface->setPressed(true);
             mLastMousePos = ev->pos();
             return;
         }
@@ -121,7 +123,7 @@ void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
                              TileLocation::HalfSize);
 
     if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
-            && mLever)
+            && mLeverIface)
     {
         if(ev->buttons() & Qt::LeftButton)
         {
@@ -139,9 +141,9 @@ void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 
                 // Disable snap with shift
                 if(ev->modifiers() == Qt::ShiftModifier)
-                    mLever->setAngle(newAngle);
+                    mLeverIface->setAngle(newAngle);
                 else
-                    mLever->setAngleTrySnap(newAngle);
+                    mLeverIface->setAngleTrySnap(newAngle);
 
                 mLastMousePos = ev->pos();
 
@@ -160,45 +162,46 @@ void ACEILeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     {
         // We don't care about button
         // Also sometimes there are already no buttons
-        if(mLever)
-            mLever->setPressed(false);
+        if(mLeverIface)
+            mLeverIface->setPressed(false);
     }
 
     AbstractNodeGraphItem::mouseReleaseEvent(ev);
 }
 
-GenericLeverObject *ACEILeverGraphItem::lever() const
+AbstractSimulationObject *ACEILeverGraphItem::lever() const
 {
     return mLever;
 }
 
-void ACEILeverGraphItem::setLever(GenericLeverObject *newLever)
+void ACEILeverGraphItem::setLever(AbstractSimulationObject *newLever)
 {
-    if (mLever == newLever)
+    if(newLever && newLever->getType() != ACEILeverObject::Type)
         return;
 
     if(mLever)
     {
-        disconnect(mLever, &GenericLeverObject::destroyed,
+        disconnect(mLever, &AbstractSimulationObject::destroyed,
                    this, &ACEILeverGraphItem::onLeverDestroyed);
-
-        disconnect(mLever, &GenericLeverObject::stateChanged,
+        disconnect(mLever, &AbstractSimulationObject::stateChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
-        disconnect(mLever, &GenericLeverObject::settingsChanged,
+        disconnect(mLever, &AbstractSimulationObject::settingsChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
+        mLeverIface = nullptr;
     }
 
     mLever = newLever;
 
     if(mLever)
     {
-        connect(mLever, &GenericLeverObject::destroyed,
+        connect(mLever, &AbstractSimulationObject::destroyed,
                 this, &ACEILeverGraphItem::onLeverDestroyed);
+        connect(mLever, &AbstractSimulationObject::stateChanged,
+                this, &ACEILeverGraphItem::triggerUpdate);
+        connect(mLever, &AbstractSimulationObject::settingsChanged,
+                this, &ACEILeverGraphItem::triggerUpdate);
 
-        connect(mLever, &GenericLeverObject::stateChanged,
-                this, &ACEILeverGraphItem::triggerUpdate);
-        connect(mLever, &GenericLeverObject::settingsChanged,
-                this, &ACEILeverGraphItem::triggerUpdate);
+        mLeverIface = mLever->getInterface<LeverInterface>();
     }
 
     emit leverChanged(mLever);
@@ -211,16 +214,15 @@ bool ACEILeverGraphItem::loadFromJSON(const QJsonObject &obj)
     // Restore fake node type
     objCopy["type"] = Node::NodeType;
 
-    // TODO: don't hardcode ACEILeverObject type
-    auto model = getAbstractNode()->modeMgr()->modelForType(ACEILeverObject::Type);
+    const QString leverName = obj.value("lever").toString();
+    const QString leverType = obj.value("lever_type").toString();
+    auto model = getAbstractNode()->modeMgr()->modelForType(leverType);
+
     if(model)
-    {
-        const QString leverName = obj.value("lever").toString();
-        AbstractSimulationObject *leverObj = model->getObjectByName(leverName);
-        setLever(static_cast<GenericLeverObject *>(leverObj));
-    }
+        setLever(model->getObjectByName(leverName));
     else
         setLever(nullptr);
+
     return AbstractNodeGraphItem::loadFromJSON(objCopy);
 }
 
@@ -230,12 +232,15 @@ void ACEILeverGraphItem::saveToJSON(QJsonObject &obj) const
 
     // Replace fake node type with ours
     obj["type"] = CustomNodeType;
+
     obj["lever"] = mLever ? mLever->name() : QString();
+    obj["lever_type"] = mLever ? mLever->getType() : QString();
 }
 
 void ACEILeverGraphItem::onLeverDestroyed()
 {
     mLever = nullptr;
+    mLeverIface = nullptr;
     emit leverChanged(mLever);
 }
 

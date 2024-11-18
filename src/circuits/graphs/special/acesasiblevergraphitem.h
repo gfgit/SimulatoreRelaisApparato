@@ -27,7 +27,8 @@
 
 #include "../../nodes/onoffswitchnode.h"
 
-class GenericLeverObject;
+class AbstractSimulationObject;
+class LeverInterface;
 
 // TODO: this is a fake node
 class FakeLeverNode2 : public OnOffSwitchNode
@@ -54,14 +55,14 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    GenericLeverObject *lever() const;
-    void setLever(GenericLeverObject *newLever);
+    AbstractSimulationObject *lever() const;
+    void setLever(AbstractSimulationObject *newLever);
 
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
 signals:
-    void leverChanged(GenericLeverObject *newLever);
+    void leverChanged(AbstractSimulationObject *newLever);
 
 private slots:
     void onLeverDestroyed();
@@ -72,7 +73,8 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
 
 private:
-    GenericLeverObject *mLever = nullptr;
+    AbstractSimulationObject *mLever = nullptr;
+    LeverInterface *mLeverIface = nullptr;
 
     QPointF mLastMousePos;
 };
