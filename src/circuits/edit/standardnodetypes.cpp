@@ -51,17 +51,12 @@
 #include "../graphs/electromagnetgraphitem.h"
 #include "../nodes/electromagnetnode.h"
 
+#include "../graphs/levercontactgraphitem.h"
+#include "../nodes/levercontactnode.h"
+
 // TODO: special
 #include "../graphs/special/aceilevergraphitem.h"
 #include "../graphs/special/acesasiblevergraphitem.h"
-
-// TODO: don't hardcode, remove includes, we only need type names
-#include "../../objects/lever/acei/aceileverobject.h"
-#include "../../objects/lever/ace_sasib/acesasiblever5positions.h"
-#include "../../objects/lever/ace_sasib/acesasiblever7positions.h"
-
-#include "../graphs/levercontactgraphitem.h"
-#include "../nodes/levercontactnode.h"
 
 #include <QWidget>
 #include <QFormLayout>
@@ -75,12 +70,14 @@
 #include "../../views/modemanager.h"
 
 #include "../../objects/simulationobjectlineedit.h"
+#include "../../objects/simulationobjectfactory.h"
+#include "../../objects/interfaces/leverinterface.h"
 
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 
 #include "../../objects/relais/model/abstractrelais.h"
+#include "../../objects/lever/acei/aceileverobject.h"
 
-#include "../../objects/lever/model/genericleverobject.h"
 #include "../../objects/lever/model/levercontactconditionsmodel.h"
 
 #include "../../objects/lever/view/levercontactconditionsview.h"
@@ -494,7 +491,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
             {
-                specialItem->setLever(static_cast<GenericLeverObject *>(obj));
+                specialItem->setLever(obj);
             });
             leverEdit->setObject(specialItem->lever());
 
@@ -521,19 +518,19 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
+            const QStringList sasibTypes = {QLatin1String("sasib_lever")};
+
             SimulationObjectLineEdit *leverEdit =
                     new SimulationObjectLineEdit(
                         mgr,
-                        {
-                            ACESasibLever5PosObject::Type,
-                            ACESasibLever7PosObject::Type
-                        });
+                        sasibTypes);
+
             QObject::connect(specialItem, &ACESasibLeverGraphItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
             {
-                specialItem->setLever(static_cast<GenericLeverObject *>(obj));
+                specialItem->setLever(obj);
             });
             leverEdit->setObject(specialItem->lever());
 
@@ -560,19 +557,19 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
+            const QStringList leverTypes =
+                    mgr->objectFactory()
+                    ->typesForInterface(LeverInterface::IfaceType);
+
             SimulationObjectLineEdit *leverEdit =
                     new SimulationObjectLineEdit(
                         mgr,
-                        {
-                            ACEILeverObject::Type,
-                            ACESasibLever5PosObject::Type,
-                            ACESasibLever7PosObject::Type
-                        });
+                        leverTypes);
 
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
                              node, [node](AbstractSimulationObject *obj)
             {
-                node->setLever(static_cast<GenericLeverObject *>(obj));
+                node->setLever(obj);
             });
             leverEdit->setObject(node->lever());
             lay->addRow(tr("Lever:"), leverEdit);
@@ -601,26 +598,30 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
                 if(node->lever())
                 {
+                    LeverInterface *leverIface = node->lever()->getInterface<LeverInterface>();
+
                     auto conditions = conditionsModel->conditions();
-                    conditionsModel->setConditions(&node->lever()->positionDesc(),
+                    conditionsModel->setConditions(leverIface->positionDesc(),
                                                    conditions);
-                    conditionsModel->setPositionRange(node->lever()->absoluteMin(),
-                                                      node->lever()->absoluteMax());
+                    conditionsModel->setPositionRange(leverIface->absoluteMin(),
+                                                      leverIface->absoluteMax());
                 }
 
                 conditionsView->setVisible(node->lever());
             });
 
-            const LeverPositionDesc *desc = nullptr;
             if(node->lever())
             {
-                desc = &node->lever()->positionDesc();
-                conditionsModel->setPositionRange(node->lever()->absoluteMin(),
-                                                  node->lever()->absoluteMax());
+                LeverInterface *leverIface = node->lever()->getInterface<LeverInterface>();
+
+                auto conditions = node->conditionSet();
+                conditionsModel->setConditions(leverIface->positionDesc(),
+                                               conditions);
+                conditionsModel->setPositionRange(leverIface->absoluteMin(),
+                                                  leverIface->absoluteMax());
             }
 
             conditionsView->setVisible(node->lever());
-            conditionsModel->setConditions(desc, node->conditionSet());
 
             QObject::connect(conditionsModel, &LeverContactConditionsModel::changed,
                              node, [node, conditionsModel]()

@@ -38,6 +38,10 @@
 
 #include "simple_activable/electromagnet.h"
 
+// TODO: extract names in separate header
+#include "interfaces/leverinterface.h"
+#include "interfaces/mechanicalinterface.h"
+
 #include "../views/modemanager.h"
 
 #include "simulationobjectoptionswidget.h"
@@ -62,6 +66,14 @@ QWidget *createEditWidget(AbstractSimulationObject *item)
     return new W(static_cast<T*>(item));
 }
 
+QWidget *defaultLeverEdit(AbstractSimulationObject *item)
+{
+    // Generic lever options
+    GenericLeverOptionsWidget *genericW
+            = new GenericLeverOptionsWidget(item->getInterface<LeverInterface>());
+    return genericW;
+}
+
 QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
 {
     ACESasibLeverCommonObject *lever = static_cast<ACESasibLeverCommonObject *>(item);
@@ -70,8 +82,7 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
     QFormLayout *lay = new QFormLayout(w);
 
     // Generic lever options
-    GenericLeverOptionsWidget *genericW = new GenericLeverOptionsWidget(lever);
-    lay->addRow(genericW);
+    lay->addRow(defaultLeverEdit(item));
 
     // Electro Magnet
     SimulationObjectLineEdit *magnetEdit
@@ -117,8 +128,11 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = nullptr;
         item.create = &createObject<ACEILeverObject>;
-        item.edit = &createEditWidget<ACEILeverObject, GenericLeverOptionsWidget>;
+        item.edit = &defaultLeverEdit;
         item.objectType = ACEILeverObject::Type;
+        item.interfaces = {
+            LeverInterface::IfaceType
+        };
         item.prettyName = tr("ACEI Lever");
 
         factory->registerFactory(item);
@@ -154,11 +168,13 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.customModelFunc = nullptr;
         item.create = &createObject<ACESasibLever5PosObject>;
         item.objectType = ACESasibLever5PosObject::Type;
-        item.prettyName = tr("ACE Sasib 5 Lever");
-        item.edit = [](AbstractSimulationObject *obj) -> QWidget*
-        {
-            return defaultSasibLeverEdit(obj);
+        item.interfaces = {
+            LeverInterface::IfaceType,
+            MechanicalInterface::IfaceType,
+            QLatin1String("sasib_lever")
         };
+        item.prettyName = tr("ACE Sasib 5 Lever");
+        item.edit = &defaultSasibLeverEdit;
 
         factory->registerFactory(item);
     }
@@ -169,6 +185,11 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.customModelFunc = nullptr;
         item.create = &createObject<ACESasibLever7PosObject>;
         item.objectType = ACESasibLever7PosObject::Type;
+        item.interfaces = {
+            LeverInterface::IfaceType,
+            MechanicalInterface::IfaceType,
+            QLatin1String("sasib_lever")
+        };
         item.prettyName = tr("ACE Sasib 7 Lever");
         item.edit = [](AbstractSimulationObject *obj) -> QWidget*
         {
