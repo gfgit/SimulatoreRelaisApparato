@@ -23,26 +23,32 @@
 #ifndef ACEILEVEROBJECT_H
 #define ACEILEVEROBJECT_H
 
-#include "../model/genericleverobject.h"
+#include "../../abstractsimulationobject.h"
 
 enum class ACEILeverPosition
 {
     Left = 0,
     Middle1,
-    Normal,
+    Vertical,
     Middle2,
     Right,
     NPositions
 };
 
-class ACEILeverObject : public GenericLeverObject
+class LeverInterface;
+
+class ACEILeverObject : public AbstractSimulationObject
 {
     Q_OBJECT
 public:
     explicit ACEILeverObject(AbstractSimulationObjectModel *m);
+    ~ACEILeverObject();
 
     static constexpr QLatin1String Type = QLatin1String("acei_lever");
     QString getType() const override;
+
+private:
+    LeverInterface *leverInterface = nullptr;
 };
 
 #endif // ACEILEVEROBJECT_H

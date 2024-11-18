@@ -22,28 +22,47 @@
 
 #include "aceileverobject.h"
 
-static QString ACEILeverPosition_translate(const char *nameId)
-{
-    return ACEILeverObject::tr(nameId);
-}
+#include "../../interfaces/leverinterface.h"
 
-static const LeverPositionDesc::Item aceiLeverItems[] =
+static const EnumDesc acei_lever_posDesc =
 {
-    {-90, -90, QT_TRANSLATE_NOOP("ACEILeverObject", "Left")},
-    {}, // Middle1
-    {  0,   0, QT_TRANSLATE_NOOP("ACEILeverObject", "Normal")},
-    {}, // Middle2
-    {+90, +90, QT_TRANSLATE_NOOP("ACEILeverObject", "Right")}
+    int(ACEILeverPosition::Left),
+    int(ACEILeverPosition::Right),
+    int(ACEILeverPosition::Vertical),
+    "ACEILeverObject",
+    {
+        QT_TRANSLATE_NOOP("ACEILeverObject", "Left"),
+        {},
+        QT_TRANSLATE_NOOP("ACEILeverObject", "Vertical"),
+        {},
+        QT_TRANSLATE_NOOP("ACEILeverObject", "Right")
+    }
 };
 
-static const LeverPositionDesc aceiLeverDesc(aceiLeverItems,
-                                             int(ACEILeverPosition::Normal),
-                                             &ACEILeverPosition_translate);
+static const LeverAngleDesc acei_lever_angleDesc =
+{
+    {-90, -90}, // Left
+    {}, // Middle1
+    {  0,   0}, // Vertical
+    {}, // Middle2
+    {+90, +90}  // Right
+};
 
 ACEILeverObject::ACEILeverObject(AbstractSimulationObjectModel *m)
-    : GenericLeverObject(m, aceiLeverDesc)
+    : AbstractSimulationObject(m)
 {
+    leverInterface = new LeverInterface(acei_lever_posDesc,
+                                        acei_lever_angleDesc,
+                                        this);
 
+    // Allow adding spring return
+    leverInterface->setChangeSpringAllowed(true);
+}
+
+ACEILeverObject::~ACEILeverObject()
+{
+    delete leverInterface;
+    leverInterface = nullptr;
 }
 
 QString ACEILeverObject::getType() const
