@@ -87,14 +87,14 @@ public:
     // Helpers
     LockRange getLockRangeForPos(int pos, int min, int max) const;
 
+    void setLockedRange(int newMin, int newMax);
+    void checkPositionValidForLock();
+
 protected:
     inline bool isPositionValidForLock(int pos) const
     {
         return pos >= mLockedMin && pos <= mLockedMax;
     }
-
-    void setLockedRange(int newMin, int newMax);
-    void checkPositionValidForLock();
 
 private:
     const EnumDesc mPositionDesc;

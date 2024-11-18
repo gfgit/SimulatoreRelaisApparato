@@ -50,6 +50,11 @@ struct LeverAngleDesc
     };
 
     QVector<Item> items;
+
+    LeverAngleDesc(std::initializer_list<Item> args)
+    {
+        items = args;
+    }
 };
 
 class LeverInterface : public AbstractObjectInterface
@@ -162,6 +167,9 @@ public:
         return mCanChangeSpring;
     }
 
+    void setLockedRange(int newMin, int newMax);
+    void checkPositionValidForLock();
+
 protected:
     bool timerEvent(const int timerId) override;
 
@@ -169,9 +177,6 @@ protected:
     {
         return pos >= mLockedMin && pos <= mLockedMax;
     }
-
-    void setLockedRange(int newMin, int newMax);
-    void checkPositionValidForLock();
 
 private:
     void stopSpringTimer();
