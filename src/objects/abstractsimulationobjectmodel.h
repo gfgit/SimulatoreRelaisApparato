@@ -27,6 +27,8 @@
 
 #include <QVector>
 
+#include "../enums/loadphase.h"
+
 class AbstractSimulationObject;
 
 class ModeManager;
@@ -75,7 +77,7 @@ public:
     QString getObjectPrettyName() const;
 
     void clear();
-    bool loadFromJSON(const QJsonObject& modelObj);
+    bool loadFromJSON(const QJsonObject& modelObj, LoadPhase phase);
     void saveToJSON(QJsonObject& modelObj) const;
 
     bool isNameAvailable(const QString& name) const;

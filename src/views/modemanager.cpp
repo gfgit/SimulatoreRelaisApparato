@@ -125,7 +125,13 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
     for(auto model : mObjectModels)
     {
         const QJsonObject modelObj = pool.value(model->getObjectType()).toObject();
-        model->loadFromJSON(modelObj);
+        model->loadFromJSON(modelObj, LoadPhase::Creation);
+    }
+
+    for(auto model : mObjectModels)
+    {
+        const QJsonObject modelObj = pool.value(model->getObjectType()).toObject();
+        model->loadFromJSON(modelObj, LoadPhase::AllCreated);
     }
 
     QJsonObject circuits = obj.value("circuits").toObject();

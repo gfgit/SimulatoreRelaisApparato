@@ -10,5 +10,7 @@ set(PROJECT_SOURCES
 
     enums/filemodes.h
 
+    enums/loadphase.h
+
     PARENT_SCOPE
 )

@@ -26,6 +26,8 @@
 #include <QObject>
 #include <QVector>
 
+#include "../enums/loadphase.h"
+
 class AbstractSimulationObjectModel;
 
 class AbstractObjectInterface;
@@ -37,12 +39,6 @@ class AbstractSimulationObject : public QObject
 {
     Q_OBJECT
 public:
-    enum class LoadPhase
-    {
-        Creation = 0,
-        AllCreated = 1
-    };
-
     explicit AbstractSimulationObject(AbstractSimulationObjectModel *m);
     ~AbstractSimulationObject();
 

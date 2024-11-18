@@ -150,61 +150,76 @@ void AbstractSimulationObjectModel::clear()
     endResetModel();
 }
 
-bool AbstractSimulationObjectModel::loadFromJSON(const QJsonObject &modelObj)
+bool AbstractSimulationObjectModel::loadFromJSON(const QJsonObject &modelObj, LoadPhase phase)
 {
     if(modelObj.value("model_type") != mObjectType)
         return false;
 
-    beginResetModel();
+    if(phase == LoadPhase::Creation)
+    {
+        beginResetModel();
 
-    clearInternal();
-
-    SimulationObjectFactory *factory = modeMgr()->objectFactory();
+        clearInternal();
+    }
 
     const QJsonArray arr = modelObj.value("objects").toArray();
 
-    QVector<QJsonObject> validObjs;
-
-    // Create all objects
-    for(const QJsonValue& v : arr)
+    if(phase == LoadPhase::Creation)
     {
-        QJsonObject obj = v.toObject();
-        if(getObjectByName(obj.value("name").toString()))
-            continue; // Skip duplicates
-
-        AbstractSimulationObject *item = factory->createItem(this);
-        if(!item->loadFromJSON(obj, AbstractSimulationObject::LoadPhase::Creation))
+        // Create all objects
+        SimulationObjectFactory *factory = modeMgr()->objectFactory();
+        for(const QJsonValue& v : arr)
         {
-            delete item;
-            continue;
+            QJsonObject obj = v.toObject();
+            if(getObjectByName(obj.value("name").toString()))
+                continue; // Skip duplicates
+
+            AbstractSimulationObject *item = factory->createItem(this);
+            if(!item->loadFromJSON(obj, LoadPhase::Creation))
+            {
+                delete item;
+                continue;
+            }
+
+            addObjectInternal(item);
+            mObjects.append(item);
         }
+    }
+    else
+    {
+        // Now that all objects are created,
+        // let objects connect to each other
 
-        addObjectInternal(item);
-        mObjects.append(item);
-        validObjs.append(obj);
+        QSet<QString> loadedObjs;
+
+        for(const QJsonValue& v : arr)
+        {
+            QJsonObject obj = v.toObject();
+            const QString name = obj.value("name").toString();
+            if(loadedObjs.contains(name))
+                continue; // Duplicate
+
+            AbstractSimulationObject *item = getObjectByName(name);
+
+            // In this second phase we ignore the result
+            item->loadFromJSON(obj, LoadPhase::AllCreated);
+
+            loadedObjs.insert(name);
+        }
     }
 
-    // Now that all objects are created,
-    // let objects connect to each other
-    for(const QJsonObject& obj : validObjs)
+    if(phase == LoadPhase::Creation)
     {
-        AbstractSimulationObject *item =
-                getObjectByName(obj.value("name").toString());
+        std::sort(mObjects.begin(),
+                  mObjects.end(),
+                  [](const AbstractSimulationObject *a,
+                  const AbstractSimulationObject *b) -> bool
+        {
+            return a->name() < b->name();
+        });
 
-        // In this second phase we ignore the result
-        item->loadFromJSON(obj,
-                           AbstractSimulationObject::LoadPhase::AllCreated);
+        endResetModel();
     }
-
-    std::sort(mObjects.begin(),
-              mObjects.end(),
-              [](const AbstractSimulationObject *a,
-              const AbstractSimulationObject *b) -> bool
-    {
-        return a->name() < b->name();
-    });
-
-    endResetModel();
 
     return true;
 }
