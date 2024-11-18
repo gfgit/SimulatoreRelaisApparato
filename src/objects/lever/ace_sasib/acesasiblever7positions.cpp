@@ -23,6 +23,7 @@
 #include "acesasiblever7positions.h"
 
 #include "../../interfaces/mechanicalinterface.h"
+#include "../../interfaces/leverinterface.h"
 
 #include "../../simple_activable/electromagnet.h"
 
@@ -80,7 +81,7 @@ QString ACESasibLever7PosObject::getType() const
 void ACESasibLever7PosObject::addElectromagnetLock()
 {
     // Lock depends on current position
-    ACESasibLeverPosition7 pos = ACESasibLeverPosition7(position());
+    ACESasibLeverPosition7 pos = ACESasibLeverPosition7(leverInterface->position());
 
     std::pair<ACESasibLeverPosition7, ACESasibLeverPosition7> range;
     bool empty = false;

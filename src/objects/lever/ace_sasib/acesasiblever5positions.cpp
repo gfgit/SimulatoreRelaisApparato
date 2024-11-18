@@ -79,7 +79,7 @@ QString ACESasibLever5PosObject::getType() const
 void ACESasibLever5PosObject::addElectromagnetLock()
 {
     // Lock depends on current position
-    ACESasibLeverPosition5 pos = ACESasibLeverPosition5(position());
+    ACESasibLeverPosition5 pos = ACESasibLeverPosition5(leverInterface->position());
 
     std::pair<ACESasibLeverPosition5, ACESasibLeverPosition5> range;
     bool empty = false;
