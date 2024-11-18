@@ -9,8 +9,5 @@ set(PROJECT_SOURCES
     objects/lever/model/levercontactconditionsmodel.cpp
     objects/lever/model/levercontactconditionsmodel.h
 
-    objects/lever/model/leverpositionmodel.cpp
-    objects/lever/model/leverpositionmodel.h
-
     PARENT_SCOPE
 )

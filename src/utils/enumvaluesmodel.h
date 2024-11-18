@@ -1,5 +1,5 @@
 /**
- * src/objects/lever/model/leverpositionmodel.h
+ * src/utils/enumvaluesmodel.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -25,7 +25,7 @@
 
 #include <QAbstractListModel>
 
-#include "../../../utils/enum_desc.h"
+#include "enum_desc.h"
 
 class EnumValuesModel : public QAbstractListModel
 {

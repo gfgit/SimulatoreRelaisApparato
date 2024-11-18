@@ -22,7 +22,7 @@
 
 #include "leverconditionsitemdelegate.h"
 
-#include "../model/leverpositionmodel.h"
+#include "../../../utils/enumvaluesmodel.h"
 #include "../model/levercontactconditionsmodel.h"
 
 #include <QComboBox>

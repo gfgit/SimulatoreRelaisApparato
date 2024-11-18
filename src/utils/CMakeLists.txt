@@ -6,6 +6,9 @@ set(PROJECT_SOURCES
     utils/enum_desc.cpp
     utils/enum_desc.h
 
+    utils/enumvaluesmodel.cpp
+    utils/enumvaluesmodel.h
+
     utils/genericleverutils.cpp
     utils/genericleverutils.h
 

@@ -25,7 +25,7 @@
 #include "../../abstractsimulationobject.h"
 #include "../../interfaces/leverinterface.h"
 
-#include "../model/leverpositionmodel.h"
+#include "../../../utils/enumvaluesmodel.h"
 
 #include <QFormLayout>
 #include <QCheckBox>

@@ -1,5 +1,5 @@
 /**
- * src/objects/lever/model/leverpositionmodel.cpp
+ * src/utils/enumvaluesmodel.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,9 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "leverpositionmodel.h"
-
-#include "../../../utils/genericleverutils.h"
+#include "enumvaluesmodel.h"
 
 EnumValuesModel::EnumValuesModel(const EnumDesc &desc, QObject *parent)
     : QAbstractListModel(parent)
