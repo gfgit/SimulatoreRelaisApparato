@@ -23,7 +23,9 @@
 #include "levercontactgraphitem.h"
 
 #include "../nodes/levercontactnode.h"
-#include "../../objects/lever/model/genericleverobject.h"
+
+#include "../../objects/abstractsimulationobject.h"
+#include "../../objects/interfaces/leverinterface.h"
 
 #include "../../views/modemanager.h"
 
@@ -39,6 +41,8 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
 {
     AbstractDeviatorGraphItem::paint(painter, option, widget);
 
+    const LeverInterface *leverIface = node()->leverIface();
+
     bool contactUpOn = node()->isContactOn(AbstractDeviatorNode::UpIdx);
     bool contactDownOn = node()->isContactOn(AbstractDeviatorNode::DownIdx);
 
@@ -47,11 +51,9 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
     {
         // In static or editing mode,
         // draw contact with lever in its normal state
-        const int leverNormalPos = node()->lever()->normalPosition();
+        const int leverNormalPos = leverIface->normalPosition();
 
-        LeverContactNode::State state = LeverContactNode::State::Up;
-        if(node()->isPositionOn(leverNormalPos))
-            state = LeverContactNode::State::Down;
+        auto state = node()->stateForPosition(leverNormalPos);
 
         contactUpOn = state == LeverContactNode::State::Up;
         contactDownOn = state == LeverContactNode::State::Down;
@@ -169,7 +171,7 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
     QPointF endPt;
     const auto conditions = node()->conditionSet();
 
-    const auto& positionDesc = node()->lever()->positionDesc();
+    const LeverInterface *leverIface = node()->leverIface();
 
     QRectF arcRect(QPointF(),
                    QSizeF(leverLength * 2, leverLength * 2));
@@ -177,7 +179,7 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
 
     for(const LeverPositionCondition& item : conditions)
     {
-        const double fromAngle = positionDesc.previewAngleFor(item.positionFrom);
+        const double fromAngle = leverIface->angleForPosition(item.positionFrom, true);
 
         // Zero is vertical up, so cos/sin are swapped
         // Also returned angle must be inverted to be clockwise
@@ -193,7 +195,7 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
         {
             // Draw end position line and
             // Draw arc from start position to end position
-            const double toAngle = positionDesc.previewAngleFor(item.positionTo);
+            const double toAngle = leverIface->angleForPosition(item.positionTo, true);
             const double toRadiants = -qDegreesToRadians(toAngle);
 
             endPt = QPointF(qSin(toRadiants), qCos(toRadiants));
@@ -226,17 +228,17 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
 
         double leverAngle = 0;
 
-        const int leverPos = node()->lever()->position();
-        if(positionDesc.isMiddle(leverPos))
+        const int leverPos = leverIface->position();
+        if(leverIface->isPositionMiddle(leverPos))
         {
             // Average prev/next angles
-            const double prev = positionDesc.previewAngleFor(leverPos - 1);
-            const double next = positionDesc.previewAngleFor(leverPos + 1);
+            const double prev = leverIface->angleForPosition(leverPos - 1, true);
+            const double next = leverIface->angleForPosition(leverPos + 1, true);
             leverAngle = (prev + next) / 2.0;
         }
         else
         {
-            leverAngle = positionDesc.previewAngleFor(leverPos);
+            leverAngle = leverIface->angleForPosition(leverPos, true);
         }
 
         const double leverAngleRadiants = -qDegreesToRadians(leverAngle);

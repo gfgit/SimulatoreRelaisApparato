@@ -27,7 +27,8 @@
 
 #include "../../enums/genericleverposition.h"
 
-class GenericLeverObject;
+class AbstractSimulationObject;
+class LeverInterface;
 
 class LeverContactNode : public AbstractDeviatorNode
 {
@@ -49,8 +50,10 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("lever_contact");
     QString nodeType() const override;
 
-    GenericLeverObject *lever() const;
-    void setLever(GenericLeverObject *newLever);
+    AbstractSimulationObject *lever() const;
+    void setLever(AbstractSimulationObject *newLever);
+
+    LeverInterface *leverIface() const;
 
     State state() const;
     void setState(State newState);
@@ -58,16 +61,21 @@ public:
     LeverPositionConditionSet conditionSet() const;
     void setConditionSet(const LeverPositionConditionSet &newConditionSet);
 
-    bool isPositionOn(int pos) const;
+    State stateForPosition(int pos) const;
 
 signals:
-    void leverChanged(GenericLeverObject *l);
+    void leverChanged(AbstractSimulationObject *l);
 
 private slots:
-    void onLeverPositionChanged();
+    void onInterfacePropertyChanged(const QString &ifaceName,
+                                const QString &propName);
 
 private:
-    GenericLeverObject *mLever = nullptr;
+    void refreshContactState();
+
+private:
+    AbstractSimulationObject *mLever = nullptr;
+    LeverInterface *mLeverIface = nullptr;
 
     LeverPositionConditionSet mConditionSet;
 

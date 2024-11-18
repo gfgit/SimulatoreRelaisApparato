@@ -24,10 +24,10 @@
 
 #include "../../views/modemanager.h"
 
-//TODO: remove
-#include "../../objects/lever/acei/aceileverobject.h"
-#include "../../objects/lever/model/genericleverobject.h"
+#include "../../objects/abstractsimulationobject.h"
 #include "../../objects/abstractsimulationobjectmodel.h"
+
+#include "../../objects/interfaces/leverinterface.h"
 
 #include <QJsonObject>
 #include "../../utils/genericleverutils.h"
@@ -51,11 +51,9 @@ bool LeverContactNode::loadFromJSON(const QJsonObject &obj)
     const QString leverName = obj.value("lever").toString();
     const QString leverType = obj.value("lever_type").toString();
     auto model = modeMgr()->modelForType(leverType);
+
     if(model)
-    {
-        AbstractSimulationObject *leverObj = model->getObjectByName(leverName);
-        setLever(static_cast<GenericLeverObject *>(leverObj));
-    }
+        setLever(model->getObjectByName(leverName));
     else
         setLever(nullptr);
 
@@ -80,49 +78,65 @@ QString LeverContactNode::nodeType() const
     return NodeType;
 }
 
-GenericLeverObject *LeverContactNode::lever() const
+AbstractSimulationObject *LeverContactNode::lever() const
 {
     return mLever;
 }
 
-void LeverContactNode::setLever(GenericLeverObject *newLever)
+void LeverContactNode::setLever(AbstractSimulationObject *newLever)
 {
     if (mLever == newLever)
         return;
 
+    if(newLever && !newLever->getInterface<LeverInterface>())
+        return;
+
     if(mLever)
     {
-        disconnect(mLever, &GenericLeverObject::positionChanged,
-                   this, &LeverContactNode::onLeverPositionChanged);
+        disconnect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
+                   this, &LeverContactNode::onInterfacePropertyChanged);
 
-        mLever->removeContactNode(this);
+        mLeverIface->removeContactNode(this);
+        mLeverIface = nullptr;
     }
 
     mLever = newLever;
 
     if(mLever)
     {
-        connect(mLever, &GenericLeverObject::positionChanged,
-                this, &LeverContactNode::onLeverPositionChanged);
+        connect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
+                this, &LeverContactNode::onInterfacePropertyChanged);
 
-        mLever->addContactNode(this);
+        mLeverIface = mLever->getInterface<LeverInterface>();
+        mLeverIface->addContactNode(this);
     }
 
     emit leverChanged(mLever);
-    onLeverPositionChanged();
+    refreshContactState();
 }
 
-void LeverContactNode::onLeverPositionChanged()
+LeverInterface *LeverContactNode::leverIface() const
+{
+    return mLeverIface;
+}
+
+void LeverContactNode::onInterfacePropertyChanged(const QString& ifaceName,
+                                              const QString& propName)
+{
+    if(ifaceName == LeverInterface::IfaceType &&
+            propName == LeverInterface::PositionPropName)
+    {
+        refreshContactState();
+    }
+}
+
+void LeverContactNode::refreshContactState()
 {
     State s = State::Middle;
 
     if(mLever)
     {
-        s = State::Up;
-
-        // TODO: there is no middle transitions
-        if(isPositionOn(int(mLever->position())))
-            s = State::Down;
+        s = stateForPosition(mLeverIface->position());
     }
 
     setState(s);
@@ -131,23 +145,24 @@ void LeverContactNode::onLeverPositionChanged()
     emit deviatorStateChanged();
 }
 
-bool LeverContactNode::isPositionOn(int pos) const
+LeverContactNode::State LeverContactNode::stateForPosition(int pos) const
 {
+    // When conditions match, we are in Down state
     for(const LeverPositionCondition& item : std::as_const(mConditionSet))
     {
         if(item.type == LeverPositionConditionType::Exact)
         {
             if(item.positionFrom == pos)
-                return true;
+                return State::Down;
             continue;
         }
 
         // From/To
         if(item.positionFrom <= pos && pos <= item.positionTo)
-            return true;
+            return State::Down;
     }
 
-    return false;
+    return State::Up;
 }
 
 LeverContactNode::State LeverContactNode::state() const
@@ -229,5 +244,5 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
     modeMgr()->setFileEdited();
 
     // Refresh state based on new conditions
-    onLeverPositionChanged();
+    refreshContactState();
 }
