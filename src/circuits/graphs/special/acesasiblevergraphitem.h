@@ -48,7 +48,7 @@ class ACESasibLeverGraphItem : public AbstractNodeGraphItem
     Q_OBJECT
 public:
     typedef FakeLeverNode2 Node;
-    static constexpr QLatin1String CustomNodeType = QLatin1String("acei_lever");
+    static constexpr QLatin1String CustomNodeType = QLatin1String("ace_sasib_lever");
 
     explicit ACESasibLeverGraphItem(OnOffSwitchNode *node_);
 
