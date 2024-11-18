@@ -88,11 +88,13 @@ void ACESasibLeverCommonObject::setMagnet(ElectroMagnetObject *newMagnet)
 
     mMagnet = newMagnet;
 
-    if(mMagnet && mMagnet->state() == ElectroMagnetObject::State::Off)
+    if(mMagnet)
     {
         connect(mMagnet, &AbstractSimpleActivableObject::stateChanged,
                 this, &ACESasibLeverCommonObject::updateElectroMagnetState);
-        addElectromagnetLock();
+
+        if(mMagnet->state() == ElectroMagnetObject::State::Off)
+            addElectromagnetLock();
     }
 
     emit settingsChanged(this);
@@ -126,52 +128,19 @@ AbstractObjectInterface *ACESasibLeverCommonObject::getInterface(const QString &
 void ACESasibLeverCommonObject::onInterfaceChanged(const QString &ifaceName)
 {
     if(ifaceName == MechanicalInterface::IfaceType)
-        recalculateLockedRange();
+    {
+        // Set new locked range
+        auto r = mechanicalIface->getLockRangeForPos(position(),
+                                                     absoluteMin(),
+                                                     absoluteMax());
+        setLockedRange(r.first, r.second);
+        return;
+    }
 }
 
 void ACESasibLeverCommonObject::recalculateLockedRange()
 {
     // Off magnet locks lever, On magnet frees lever
-    if(mMagnet->state() == ElectroMagnetObject::State::Off)
+    if(mMagnet && mMagnet->state() == ElectroMagnetObject::State::Off)
         addElectromagnetLock();
-
-    if(!mechanicalIface->isPositionValid(position()))
-    {
-        // Current position is not valid anymore,
-        // move lever to closest valid position.
-
-        // Iterate from current position, up and down
-        int diff = 1;
-        while(true)
-        {
-            const int prevPos = position() - diff;
-            const int nextPos = position() + diff;
-
-            if(prevPos < absoluteMin() && nextPos > absoluteMax())
-                break;
-
-            if(prevPos >= absoluteMin() && mechanicalIface->isPositionValid(prevPos))
-            {
-                setAngle(angleForPosition(prevPos));
-                setPosition(prevPos);
-                return; // Avoid recursion in setPosition()
-            }
-
-            if(nextPos <= absoluteMax() && mechanicalIface->isPositionValid(nextPos))
-            {
-                setAngle(angleForPosition(nextPos));
-                setPosition(nextPos);
-                return; // Avoid recursion in setPosition()
-            }
-
-            diff++;
-        }
-    }
-
-    // Get current lock range
-    auto r = mechanicalIface->getLockRangeForPos(position(),
-                                                 absoluteMin(),
-                                                 absoluteMax());
-    mLockedMin = r.first;
-    mLockedMax = r.second;
 }

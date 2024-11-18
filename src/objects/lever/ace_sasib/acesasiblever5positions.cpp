@@ -33,19 +33,19 @@ static QString ACESasibLever5PosObject_translate(const char *nameId)
 
 static const LeverPositionDesc::Item ace_sasib_5_LeverItems[] =
 {
-    {-60, -135, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Normal")},
+    {-70, -135, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Reverse")},
     {}, // Middle1
-    {-45, -90, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Check circuits R")},
+    {-50, -90, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Check circuits R")},
     {}, // Middle2
-    {-30, -45, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Wait control N")},
+    {-30, -45, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Wait control R")},
 
     {}, // Middle3
 
-    {+30, +45, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Wait control R")},
+    {+30, +45, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Wait control N")},
     {}, // Middle4
-    {+45, +90, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Check circuits N")},
+    {+50, +90, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Check circuits N")},
     {}, // Middle5
-    {+60, +135, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Reverse")}
+    {+70, +135, QT_TRANSLATE_NOOP("ACESasibLever5PosObject", "Normal")}
 };
 
 static const LeverPositionDesc aceSasib5LeverDesc(ace_sasib_5_LeverItems,
@@ -72,29 +72,31 @@ void ACESasibLever5PosObject::addElectromagnetLock()
     std::pair<ACESasibLeverPosition5, ACESasibLeverPosition5> range;
     bool empty = false;
 
-    if(pos <= ACESasibLeverPosition5::CheckCircuitForward)
+    if(pos <= ACESasibLeverPosition5::CheckCircuitReverse)
     {
-        range = {ACESasibLeverPosition5::Normal,
-                 ACESasibLeverPosition5::CheckCircuitForward};
+        range = {ACESasibLeverPosition5::Reverse,
+                 ACESasibLeverPosition5::CheckCircuitReverse};
     }
-    else if(pos < ACESasibLeverPosition5::WaitSwitchNormal)
+    else if(pos > ACESasibLeverPosition5::CheckCircuitReverse &&
+            pos < ACESasibLeverPosition5::WaitSwitchReverse)
     {
         empty = true; // Magnet is sliding on top of lever
     }
-    else if(pos >= ACESasibLeverPosition5::WaitSwitchNormal &&
-            pos <= ACESasibLeverPosition5::WaitSwitchReverse)
+    else if(pos >= ACESasibLeverPosition5::WaitSwitchReverse &&
+            pos <= ACESasibLeverPosition5::WaitSwitchNormal)
     {
-        range = {ACESasibLeverPosition5::WaitSwitchNormal,
-                 ACESasibLeverPosition5::WaitSwitchReverse};
+        range = {ACESasibLeverPosition5::WaitSwitchReverse,
+                 ACESasibLeverPosition5::WaitSwitchNormal};
     }
-    else if(pos >= ACESasibLeverPosition5::CheckCircuitReverse)
-    {
-        range = {ACESasibLeverPosition5::CheckCircuitReverse,
-                 ACESasibLeverPosition5::Reverse};
-    }
-    else if(pos > ACESasibLeverPosition5::WaitSwitchReverse)
+    else if(pos > ACESasibLeverPosition5::WaitSwitchNormal &&
+            pos < ACESasibLeverPosition5::CheckCircuitNormal)
     {
         empty = true; // Magnet is sliding on top of lever
+    }
+    else if(pos >= ACESasibLeverPosition5::CheckCircuitNormal)
+    {
+        range = {ACESasibLeverPosition5::CheckCircuitNormal,
+                 ACESasibLeverPosition5::Normal};
     }
 
     MechanicalInterface::LockRanges ranges;

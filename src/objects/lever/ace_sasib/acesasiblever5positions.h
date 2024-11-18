@@ -28,25 +28,19 @@
 class MechanicalInterface;
 class ElectroMagnetObject;
 
-// enum class ACESasibLeverPosition7
-// {
-//     TurnedForward = 0,
-//     WaitLiberationForward,
-//     WaitImmobilizationForward,
-//     Normal,
-//     WaitImmobilizationBackwards,
-//     WaitLiberationBackwards,
-//     TurnedBackwards
-// };
-
 enum class ACESasibLeverPosition5
 {
-    Normal = 0,
-    CheckCircuitForward,
-    WaitSwitchNormal,
-    WaitSwitchReverse,
+    Reverse = 0,
+    Middle1,
     CheckCircuitReverse,
-    Reverse
+    Middle2,
+    WaitSwitchReverse,
+    Middle3,
+    WaitSwitchNormal,
+    Middle4,
+    CheckCircuitNormal,
+    Middle5,
+    Normal
 };
 
 class ACESasibLever5PosObject : public ACESasibLeverCommonObject

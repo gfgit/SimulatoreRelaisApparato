@@ -33,19 +33,19 @@ static QString ACESasibLever7PosObject_translate(const char *nameId)
 
 static const LeverPositionDesc::Item ace_sasib_7_LeverItems[] =
 {
-    {-60, -135, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Forward")},
+    {-70, -135, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Backwards")},
     {}, // Middle1
-    {-45, -90, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation F")},
+    {-50, -90, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation B")},
     {}, // Middle2
-    {-30, -45, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization F")},
+    {-30, -45, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization B")},
     {}, // Middle3
     {  0,   0, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Normal")},
     {}, // Middle4
-    {+30, +45, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization B")},
+    {+30, +45, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization F")},
     {}, // Middle5
-    {+45, +90, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation B")},
+    {+50, +90, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation F")},
     {}, // Middle6
-    {+60, +135, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Backwards")}
+    {+70, +135, QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Forward")}
 };
 
 static const LeverPositionDesc aceSasib7LeverDesc(ace_sasib_7_LeverItems,
@@ -72,29 +72,32 @@ void ACESasibLever7PosObject::addElectromagnetLock()
     std::pair<ACESasibLeverPosition7, ACESasibLeverPosition7> range;
     bool empty = false;
 
-    if(pos <= ACESasibLeverPosition7::WaitLiberationForward)
+    if(pos <= ACESasibLeverPosition7::WaitLiberationBackwards)
     {
-        range = {ACESasibLeverPosition7::TurnedForward,
-                 ACESasibLeverPosition7::WaitLiberationForward};
+        range = {ACESasibLeverPosition7::TurnedBackwards,
+                 ACESasibLeverPosition7::WaitLiberationBackwards};
     }
-    else if(pos < ACESasibLeverPosition7::WaitImmobilizationForward)
+    else if(pos > ACESasibLeverPosition7::WaitLiberationBackwards &&
+            pos < ACESasibLeverPosition7::WaitImmobilizationBackwards)
     {
         empty = true; // Magnet is sliding on top of lever
     }
-    else if(pos >= ACESasibLeverPosition7::WaitImmobilizationForward &&
-            pos <= ACESasibLeverPosition7::WaitImmobilizationBackwards)
+    else if(pos >= ACESasibLeverPosition7::WaitImmobilizationBackwards &&
+            pos <= ACESasibLeverPosition7::WaitImmobilizationForward)
     {
-        range = {ACESasibLeverPosition7::WaitImmobilizationForward,
-                 ACESasibLeverPosition7::WaitImmobilizationBackwards};
+        // There is Normal position inside this range
+        range = {ACESasibLeverPosition7::WaitImmobilizationBackwards,
+                 ACESasibLeverPosition7::WaitImmobilizationForward};
     }
-    else if(pos >= ACESasibLeverPosition7::WaitLiberationBackwards)
-    {
-        range = {ACESasibLeverPosition7::WaitLiberationBackwards,
-                 ACESasibLeverPosition7::TurnedBackwards};
-    }
-    else if(pos > ACESasibLeverPosition7::WaitImmobilizationBackwards)
+    else if(pos > ACESasibLeverPosition7::WaitImmobilizationForward &&
+            pos < ACESasibLeverPosition7::WaitLiberationForward)
     {
         empty = true; // Magnet is sliding on top of lever
+    }
+    else if(pos >= ACESasibLeverPosition7::WaitLiberationForward)
+    {
+        range = {ACESasibLeverPosition7::WaitLiberationForward,
+                 ACESasibLeverPosition7::TurnedForward};
     }
 
     MechanicalInterface::LockRanges ranges;

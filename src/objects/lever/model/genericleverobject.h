@@ -110,7 +110,13 @@ signals:
     void pressedChanged(bool pressed);
 
 protected:
+    inline bool isPositionValidForLock(int pos) const
+    {
+        return pos >= mLockedMin && pos <= mLockedMax;
+    }
+
     virtual void recalculateLockedRange();
+    void setLockedRange(int newMin, int newMax);
 
 private:
     void timerEvent(QTimerEvent *e) override;
@@ -121,10 +127,6 @@ private:
     friend class LeverContactNode;
     void addContactNode(LeverContactNode *c);
     void removeContactNode(LeverContactNode *c);
-
-protected:
-    int mLockedMin = 0;
-    int mLockedMax = 0;
 
 private:
     QString mName;
@@ -142,6 +144,8 @@ private:
 
     int mAbsoluteMin = 0;
     int mAbsoluteMax = 0;
+    int mLockedMin = 0;
+    int mLockedMax = 0;
 
     QVector<LeverContactNode *> mContactNodes;
 };

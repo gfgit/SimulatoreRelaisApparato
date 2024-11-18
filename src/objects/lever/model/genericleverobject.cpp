@@ -160,11 +160,12 @@ void GenericLeverObject::setPosition(int newPosition)
         p += increment;
 
         mPosition = p;
+
+        recalculateLockedRange();
+
         emit positionChanged(this, mPosition);
         emit stateChanged(this);
     }
-
-    recalculateLockedRange();
 }
 
 bool GenericLeverObject::hasSpringReturn() const
@@ -244,6 +245,51 @@ void GenericLeverObject::recalculateLockedRange()
     // Default to no locking
     mLockedMin = mAbsoluteMin;
     mLockedMax = mAbsoluteMax;
+}
+
+void GenericLeverObject::setLockedRange(int newMin, int newMax)
+{
+    newMin = qMax(newMin, mAbsoluteMin);
+    newMax = qMin(newMax, mAbsoluteMax);
+
+    if(newMax < newMin)
+        newMax = newMin;
+
+    mLockedMin = newMin;
+    mLockedMax = newMax;
+
+    if(!isPositionValidForLock(position()))
+    {
+        // Current position is not valid anymore,
+        // move lever to closest valid position.
+
+        // Iterate from current position, up and down
+        int diff = 1;
+        while(true)
+        {
+            const int prevPos = position() - diff;
+            const int nextPos = position() + diff;
+
+            if(prevPos < absoluteMin() && nextPos > absoluteMax())
+                break;
+
+            if(prevPos >= absoluteMin() && isPositionValidForLock(prevPos))
+            {
+                setAngle(angleForPosition(prevPos));
+                setPosition(prevPos);
+                break;
+            }
+
+            if(nextPos <= absoluteMax() && isPositionValidForLock(nextPos))
+            {
+                setAngle(angleForPosition(nextPos));
+                setPosition(nextPos);
+                break;
+            }
+
+            diff++;
+        }
+    }
 }
 
 void GenericLeverObject::timerEvent(QTimerEvent *e)

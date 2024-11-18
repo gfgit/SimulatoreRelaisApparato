@@ -53,8 +53,6 @@ public:
     void setObjectLockConstraints(AbstractSimulationObject *obj,
                                   const LockRanges& ranges);
 
-    bool isPositionValid(int pos) const;
-
     LockRange getLockRangeForPos(int pos, int min, int max) const;
 
 private:

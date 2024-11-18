@@ -55,35 +55,14 @@ void MechanicalInterface::setObjectLockConstraints(AbstractSimulationObject *obj
     }
 
     if(ranges.isEmpty())
+    {
+        notifyObject();
         return; // Do not add empty constraint
+    }
 
     // Add new ranges
     mConstraints.append(LockConstraint{obj, ranges});
     notifyObject();
-}
-
-bool MechanicalInterface::isPositionValid(int pos) const
-{
-    for(const LockConstraint &c : mConstraints)
-    {
-        bool allowed = false;
-
-        // Do an OR on constraint's ranges
-        for(const LockRange &r : c.ranges)
-        {
-            if(r.first <= pos && r.second >= pos)
-            {
-                allowed = true;
-                break;
-            }
-        }
-
-        // Do an AND on all constraints
-        if(!allowed)
-            return false;
-    }
-
-    return true;
 }
 
 MechanicalInterface::LockRange MechanicalInterface::getLockRangeForPos(int pos, int min, int max) const
@@ -92,7 +71,7 @@ MechanicalInterface::LockRange MechanicalInterface::getLockRangeForPos(int pos, 
 
     for(const LockConstraint &c : mConstraints)
     {
-        LockRange specific = {min, max};
+        LockRange specific = {max, min}; // Reversed on purpose
 
         // Do an UNION on constraint's ranges
         for(const LockRange &r : c.ranges)
@@ -106,6 +85,11 @@ MechanicalInterface::LockRange MechanicalInterface::getLockRangeForPos(int pos, 
                 break;
             }
         }
+
+        // Now ensure max is greater or equal to min
+        // since it was reversed above
+        specific.second = std::max(specific.first,
+                                   specific.second);
 
         // Do an INTERSECTION on all constraints
         total.first = std::max(specific.first,

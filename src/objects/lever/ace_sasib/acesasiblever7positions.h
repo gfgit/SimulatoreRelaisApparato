@@ -30,13 +30,19 @@ class ElectroMagnetObject;
 
 enum class ACESasibLeverPosition7
 {
-    TurnedForward = 0,
-    WaitLiberationForward,
-    WaitImmobilizationForward,
-    Normal,
-    WaitImmobilizationBackwards,
+    TurnedBackwards = 0,
+    Middle1,
     WaitLiberationBackwards,
-    TurnedBackwards
+    Middle2,
+    WaitImmobilizationBackwards,
+    Middle3,
+    Normal,
+    Middle4,
+    WaitImmobilizationForward,
+    Middle5,
+    WaitLiberationForward,
+    Middle6,
+    TurnedForward
 };
 
 class ACESasibLever7PosObject : public ACESasibLeverCommonObject
@@ -49,7 +55,7 @@ public:
     QString getType() const override;
 
 protected:
-    virtual void addElectromagnetLock() override;
+    void addElectromagnetLock() override;
 };
 
 #endif // ACE_SASIB_LEVER_7_POSITIONS_H
