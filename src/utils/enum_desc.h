@@ -1,5 +1,5 @@
 /**
- * src/objects/lever/model/leverpositionmodel.h
+ * src/utils/enum_desc.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,39 +20,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ENUM_VALUES_MODEL_H
-#define ENUM_VALUES_MODEL_H
+#ifndef ENUM_DESC_H
+#define ENUM_DESC_H
 
-#include <QAbstractListModel>
+#include <QByteArray>
+#include <QByteArrayList>
 
-#include "../../../utils/enum_desc.h"
-
-class EnumValuesModel : public QAbstractListModel
+struct EnumDesc
 {
-    Q_OBJECT
+    int minValue = 0;
+    int maxValue = 0;
+    int defaultValue = 0;
 
-public:
-    EnumValuesModel(const EnumDesc& desc, QObject *parent = nullptr);
+    QByteArray translationContext;
+    QByteArrayList valueNamesFromMin;
 
-    // Basic functionality:
-    int rowCount(const QModelIndex &p = QModelIndex()) const override;
+    inline QByteArray untranslatedName(int value) const
+    {
+        if(value < minValue || value > maxValue)
+            return QByteArray();
 
-    QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
+        return valueNamesFromMin.at(value - minValue);
+    }
 
-    void setValueRange(int min, int max);
-
-    int valueAt(int row) const;
-    int rowForValue(int position) const;
-
-    bool skipMiddleValues() const;
-    void setSkipMiddleValues(bool newSkipMiddleValues);
-
-private:
-    EnumDesc mEnumDesc;
-
-    int mMinValue = 0;
-    int mMaxValue = 0;
-    bool mSkipMiddleValues = false;
+    QString name(int value) const;
 };
 
-#endif // ENUM_VALUES_MODEL_H
+#endif // ENUM_DESC_H

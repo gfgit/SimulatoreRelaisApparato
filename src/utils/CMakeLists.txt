@@ -3,6 +3,9 @@
 set(PROJECT_SOURCES
     ${PROJECT_SOURCES}
 
+    utils/enum_desc.cpp
+    utils/enum_desc.h
+
     utils/genericleverutils.cpp
     utils/genericleverutils.h
 

@@ -24,63 +24,90 @@
 
 #include "../../../utils/genericleverutils.h"
 
-LeverPositionModel::LeverPositionModel(const LeverPositionDesc &desc, QObject *parent)
+EnumValuesModel::EnumValuesModel(const EnumDesc &desc, QObject *parent)
     : QAbstractListModel(parent)
-    , mPositionDesc(desc)
+    , mEnumDesc(desc)
 {
-    mPositionMin = 0;
-    mPositionMax = mPositionDesc.maxPosition();
+    mMinValue = mEnumDesc.minValue;
+    mMaxValue = mEnumDesc.maxValue;
 }
 
-int LeverPositionModel::rowCount(const QModelIndex &p) const
+int EnumValuesModel::rowCount(const QModelIndex &p) const
 {
     if(p.isValid())
         return 0;
 
-    // Calculate exact position count (skipping middle positions)
-    int count = (mPositionMax - mPositionMin) + 1;
+    int count = (mMaxValue - mMinValue) + 1;
 
-    return (((count - 1) / 2) + 1);
+    if(mSkipMiddleValues)
+    {
+        // Calculate exact position count (skipping middle positions)
+        return (((count - 1) / 2) + 1);
+    }
+
+    return count;
 }
 
-QVariant LeverPositionModel::data(const QModelIndex &idx, int role) const
+QVariant EnumValuesModel::data(const QModelIndex &idx, int role) const
 {
     if (!idx.isValid() ||
             idx.column() > 0 ||
-            idx.row() >= mPositionDesc.exactPositionsCount())
+            idx.row() >= rowCount())
         return QVariant();
 
-    const int position = positionAt(idx.row());
-    if(position > mPositionMax)
+    const int value = valueAt(idx.row());
+    if(value > mMaxValue)
         return QVariant();
 
     if(role == Qt::DisplayRole)
-        return mPositionDesc.nameFor(position);
+        return mEnumDesc.name(value);
     else if(role == Qt::EditRole)
-        return position;
+        return value;
 
     return QVariant();
 }
 
-void LeverPositionModel::setPositionRange(int min, int max)
+void EnumValuesModel::setValueRange(int min, int max)
 {
     beginResetModel();
-    mPositionMin = min;
-    mPositionMax = max;
+    mMinValue = min;
+    mMaxValue = max;
     endResetModel();
 }
 
-int LeverPositionModel::positionAt(int row) const
+int EnumValuesModel::valueAt(int row) const
 {
-    // Count middle positions in between
-    return mPositionMin + row * 2;
+    if(mSkipMiddleValues)
+    {
+        // Count middle positions in between
+        return mMinValue + row * 2;
+    }
+
+    return mMinValue + row;
 }
 
-int LeverPositionModel::rowForPosition(int position) const
+int EnumValuesModel::rowForValue(int position) const
 {
-    if(position < mPositionMin || position > mPositionMax)
+    if(position < mMinValue || position > mMaxValue)
         return -1;
 
-    // We skip middle positions
-    return (position - mPositionMin) / 2;
+    if(mSkipMiddleValues)
+    {
+        // We skip middle positions
+        return (position - mMinValue) / 2;
+    }
+
+    return position - mMinValue;
+}
+
+bool EnumValuesModel::skipMiddleValues() const
+{
+    return mSkipMiddleValues;
+}
+
+void EnumValuesModel::setSkipMiddleValues(bool newSkipMiddleValues)
+{
+    beginResetModel();
+    mSkipMiddleValues = newSkipMiddleValues;
+    endResetModel();
 }
