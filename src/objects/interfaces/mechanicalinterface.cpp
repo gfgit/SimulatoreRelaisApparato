@@ -21,9 +21,14 @@
  */
 
 #include "mechanicalinterface.h"
+#include "../abstractsimulationobject.h"
 
-MechanicalInterface::MechanicalInterface(AbstractSimulationObject *obj)
+#include <QJsonObject>
+
+MechanicalInterface::MechanicalInterface(const EnumDesc &posDesc,
+                                         AbstractSimulationObject *obj)
     : AbstractObjectInterface(obj)
+    , mPositionDesc(posDesc)
 {
 
 }
@@ -31,6 +36,35 @@ MechanicalInterface::MechanicalInterface(AbstractSimulationObject *obj)
 QString MechanicalInterface::ifaceType()
 {
     return IfaceType;
+}
+
+bool MechanicalInterface::loadFromJSON(const QJsonObject &obj)
+{
+    if(!AbstractObjectInterface::loadFromJSON(obj))
+        return false;
+
+    // Range
+    int pos_min = obj.value("pos_min").toInt();
+    int pos_max = obj.value("pos_max").toInt();
+    setAbsoluteRange(pos_min, pos_max);
+
+    return true;
+}
+
+void MechanicalInterface::saveToJSON(QJsonObject &obj) const
+{
+    AbstractObjectInterface::saveToJSON(obj);
+
+    // Range
+    obj["pos_min"] = mAbsoluteMin;
+    obj["pos_max"] = mAbsoluteMax;
+}
+
+void MechanicalInterface::init()
+{
+    // Recalculate range
+    setAbsoluteRange(mPositionDesc.minValue, mPositionDesc.maxValue);
+    setPosition(mPositionDesc.defaultValue);
 }
 
 void MechanicalInterface::setObjectLockConstraints(AbstractSimulationObject *obj, const LockRanges &ranges)
@@ -56,13 +90,13 @@ void MechanicalInterface::setObjectLockConstraints(AbstractSimulationObject *obj
 
     if(ranges.isEmpty())
     {
-        notifyObject();
+        emitChanged(LockRangePropName, QVariant());
         return; // Do not add empty constraint
     }
 
     // Add new ranges
     mConstraints.append(LockConstraint{obj, ranges});
-    notifyObject();
+    emitChanged(LockRangePropName, QVariant());
 }
 
 MechanicalInterface::LockRange MechanicalInterface::getLockRangeForPos(int pos, int min, int max) const
@@ -99,4 +133,115 @@ MechanicalInterface::LockRange MechanicalInterface::getLockRangeForPos(int pos, 
     }
 
     return total;
+}
+
+int MechanicalInterface::position() const
+{
+    return mPosition;
+}
+
+void MechanicalInterface::setPosition(int newPosition)
+{
+    if(mPosition == newPosition)
+        return;
+
+    // Always ensure all positions are passed
+    const int increment = (newPosition > mPosition) ? +1 : -1;
+
+    int p = mPosition;
+    while(p != newPosition)
+    {
+        p += increment;
+
+        mPosition = p;
+
+        emitChanged(PositionPropName, mPosition);
+        emit mObject->stateChanged(mObject);
+    }
+}
+
+int MechanicalInterface::absoluteMin() const
+{
+    return mAbsoluteMin;
+}
+
+int MechanicalInterface::absoluteMax() const
+{
+    return mAbsoluteMax;
+}
+
+void MechanicalInterface::setAbsoluteRange(int newMin, int newMax)
+{
+    newMin = qMax(newMin, 0);
+    newMax = qMin(newMax, mPositionDesc.maxValue);
+
+    if(newMax < newMin)
+        newMax = newMin;
+
+    const bool rangeChanged = (mAbsoluteMin != newMin) || (mAbsoluteMax != newMax);
+    mAbsoluteMin = newMin;
+    mAbsoluteMax = newMax;
+
+    if(rangeChanged)
+    {
+        // Recalculate angle and normal position
+        emitChanged(AbsoluteRangePropName, QVariant());
+        emit mObject->settingsChanged(mObject);
+    }
+}
+
+int MechanicalInterface::lockedMin() const
+{
+    return mLockedMin;
+}
+
+int MechanicalInterface::lockedMax() const
+{
+    return mLockedMax;
+}
+
+void MechanicalInterface::setLockedRange(int newMin, int newMax)
+{
+    newMin = qMax(newMin, mAbsoluteMin);
+    newMax = qMin(newMax, mAbsoluteMax);
+
+    if(newMax < newMin)
+        newMax = newMin;
+
+    mLockedMin = newMin;
+    mLockedMax = newMax;
+}
+
+void MechanicalInterface::checkPositionValidForLock()
+{
+    if(!isPositionValidForLock(position()))
+    {
+        // Current position is not valid anymore,
+        // move lever to closest valid position.
+
+        // Iterate from current position, up and down
+        int diff = 1;
+        while(true)
+        {
+            const int prevPos = position() - diff;
+            const int nextPos = position() + diff;
+
+            if(prevPos < absoluteMin() && nextPos > absoluteMax())
+                break;
+
+            if(prevPos >= absoluteMin() && isPositionValidForLock(prevPos))
+            {
+                setPosition(prevPos);
+                break;
+            }
+
+            if(nextPos <= absoluteMax() && isPositionValidForLock(nextPos))
+            {
+                setPosition(nextPos);
+                break;
+            }
+
+            diff++;
+        }
+    }
 }

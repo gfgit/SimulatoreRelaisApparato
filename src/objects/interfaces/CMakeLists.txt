@@ -5,6 +5,9 @@ set(PROJECT_SOURCES
     objects/interfaces/abstractobjectinterface.cpp
     objects/interfaces/abstractobjectinterface.h
 
+    objects/interfaces/leverinterface.cpp
+    objects/interfaces/leverinterface.h
+
     objects/interfaces/mechanicalinterface.cpp
     objects/interfaces/mechanicalinterface.h
 

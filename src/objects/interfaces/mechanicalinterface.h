@@ -25,6 +25,8 @@
 
 #include "abstractobjectinterface.h"
 
+#include "../../utils/enum_desc.h"
+
 #include <QVector>
 
 class MechanicalInterface : public AbstractObjectInterface
@@ -40,10 +42,39 @@ public:
     };
     typedef QVector<LockConstraint> LockConstraints;
 
-    MechanicalInterface(AbstractSimulationObject *obj);
+    // Property names
+    static constexpr QLatin1String LockRangePropName = QLatin1String("lock_range");
+    static constexpr QLatin1String PositionPropName = QLatin1String("position");
+    static constexpr QLatin1String AbsoluteRangePropName = QLatin1String("abs_range");
+
+
+    MechanicalInterface(const EnumDesc &posDesc,
+                        AbstractSimulationObject *obj);
 
     static constexpr QLatin1String IfaceType = QLatin1String("mechanical");
     QString ifaceType() override;
+
+    bool loadFromJSON(const QJsonObject &obj) override;
+    void saveToJSON(QJsonObject &obj) const override;
+
+    void init();
+
+    // State
+    int position() const;
+    void setPosition(int newPosition);
+
+    inline const EnumDesc& positionDesc() const
+    {
+        return mPositionDesc;
+    }
+
+    int lockedMin() const;
+    int lockedMax() const;
+
+    // Options
+    int absoluteMin() const;
+    int absoluteMax() const;
+    void setAbsoluteRange(int newMin, int newMax);
 
     inline LockConstraints constraints() const
     {
@@ -53,10 +84,28 @@ public:
     void setObjectLockConstraints(AbstractSimulationObject *obj,
                                   const LockRanges& ranges);
 
+    // Helpers
     LockRange getLockRangeForPos(int pos, int min, int max) const;
 
+protected:
+    inline bool isPositionValidForLock(int pos) const
+    {
+        return pos >= mLockedMin && pos <= mLockedMax;
+    }
+
+    void setLockedRange(int newMin, int newMax);
+    void checkPositionValidForLock();
+
 private:
+    const EnumDesc mPositionDesc;
     LockConstraints mConstraints;
+
+    int mPosition = 0;
+
+    int mAbsoluteMin = 0;
+    int mAbsoluteMax = 0;
+    int mLockedMin = 0;
+    int mLockedMax = 0;
 };
 
 #endif // MECHANICALINTERFACE_H
