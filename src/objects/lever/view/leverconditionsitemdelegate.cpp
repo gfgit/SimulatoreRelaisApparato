@@ -55,11 +55,11 @@ QWidget *LeverConditionsItemDelegate::createEditor(QWidget *parent,
 
         auto range = sourceModel->positionRangeFor(index);
 
-        LeverPositionModel *positionModel =
-                new LeverPositionModel(*sourceModel->positionDesc(),
-                                       combo);
+        EnumValuesModel *positionModel =
+                new EnumValuesModel(sourceModel->positionDesc(),
+                                    combo);
 
-        positionModel->setPositionRange(range.first, range.second);
+        positionModel->setValueRange(range.first, range.second);
         combo->setModel(positionModel);
     }
 
@@ -75,9 +75,9 @@ void LeverConditionsItemDelegate::setEditorData(QWidget *editor, const QModelInd
         combo->setCurrentIndex(value);
     else
     {
-        LeverPositionModel *positionModel =
-                static_cast<LeverPositionModel *>(combo->model());
-        combo->setCurrentIndex(positionModel->rowForPosition(value));
+        EnumValuesModel *positionModel =
+                static_cast<EnumValuesModel *>(combo->model());
+        combo->setCurrentIndex(positionModel->rowForValue(value));
     }
 
     // connect(combo, &QComboBox::activated,
@@ -94,9 +94,9 @@ void LeverConditionsItemDelegate::setModelData(QWidget *editor, QAbstractItemMod
 
     if(index.column() != LeverContactConditionsModel::TypeCol)
     {
-        LeverPositionModel *positionModel =
-                static_cast<LeverPositionModel *>(combo->model());
-        value = positionModel->positionAt(value);
+        EnumValuesModel *positionModel =
+                static_cast<EnumValuesModel *>(combo->model());
+        value = positionModel->valueAt(value);
     }
 
     model->setData(index, value, Qt::EditRole);

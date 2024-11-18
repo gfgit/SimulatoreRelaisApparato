@@ -26,6 +26,7 @@
 #include <QAbstractTableModel>
 
 #include "../../../utils/genericleverutils.h"
+#include "../../../utils/enum_desc.h"
 
 class LeverContactConditionsModel : public QAbstractTableModel
 {
@@ -58,7 +59,8 @@ public:
     Qt::ItemFlags flags(const QModelIndex& idx) const override;
 
     LeverPositionConditionSet conditions() const;
-    void setConditions(const LeverPositionDesc *desc, const LeverPositionConditionSet &newConditions);
+    void setConditions(const EnumDesc desc,
+                       const LeverPositionConditionSet &newConditions);
 
     void instertConditionAt(int row);
     void removeConditionAt(int row);
@@ -67,13 +69,13 @@ public:
 
     std::pair<int, int> positionRangeFor(const QModelIndex& idx) const;
 
-    const LeverPositionDesc *positionDesc() const;
+    const EnumDesc &positionDesc() const;
 
 signals:
     void changed();
 
 private:
-    const LeverPositionDesc *mPositionDesc = nullptr;
+    EnumDesc mPositionDesc;
     LeverPositionConditionSet mConditions;
 
     int mPositionMin = 0;

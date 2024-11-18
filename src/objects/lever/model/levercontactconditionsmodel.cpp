@@ -74,15 +74,11 @@ QVariant LeverContactConditionsModel::data(const QModelIndex &idx, int role) con
         case TypeCol:
             return GenericLeverUtils::getTypeName(item.type);
         case FromCol:
-            if(!mPositionDesc)
-                return QString();
-            return mPositionDesc->nameFor(item.positionFrom);
+            return mPositionDesc.name(item.positionFrom);
         case ToCol:
-            if(!mPositionDesc)
-                return QString();
             if(item.type != LeverPositionConditionType::FromTo)
                 return QString();
-            return mPositionDesc->nameFor(item.positionTo);
+            return mPositionDesc.name(item.positionTo);
         default:
             break;
         }
@@ -166,20 +162,17 @@ bool LeverContactConditionsModel::setData(const QModelIndex &idx, const QVariant
                                item.positionTo);
     }
 
-    if(mPositionDesc)
-    {
-        item.positionFrom = qBound(mPositionMin,
-                                   item.positionFrom,
-                                   mPositionMax);
+    item.positionFrom = qBound(mPositionMin,
+                               item.positionFrom,
+                               mPositionMax);
 
-        item.positionTo = qBound(item.positionFrom,
-                                 item.positionTo,
-                                 mPositionMax);
+    item.positionTo = qBound(item.positionFrom,
+                             item.positionTo,
+                             mPositionMax);
 
-        // Reset to Exact if positions are equal
-        if(item.positionFrom == item.positionTo)
-            item.type = LeverPositionConditionType::Exact;
-    }
+    // Reset to Exact if positions are equal
+    if(item.positionFrom == item.positionTo)
+        item.type = LeverPositionConditionType::Exact;
 
     emit changed();
 
@@ -196,7 +189,7 @@ Qt::ItemFlags LeverContactConditionsModel::flags(const QModelIndex &idx) const
     Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
     const LeverPositionCondition& item = mConditions.at(idx.row());
-    if(mPositionDesc && (idx.column() != ToCol || item.type == LeverPositionConditionType::FromTo))
+    if(idx.column() != ToCol || item.type == LeverPositionConditionType::FromTo)
         f.setFlag(Qt::ItemIsEditable);
 
     return f;
@@ -207,23 +200,15 @@ LeverPositionConditionSet LeverContactConditionsModel::conditions() const
     return mConditions;
 }
 
-void LeverContactConditionsModel::setConditions(const LeverPositionDesc *desc, const LeverPositionConditionSet &newConditions)
+void LeverContactConditionsModel::setConditions(const EnumDesc desc, const LeverPositionConditionSet &newConditions)
 {
     beginResetModel();
 
     mPositionDesc = desc;
     mConditions = newConditions;
 
-    if(mPositionDesc)
-    {
-        // Recalculate range
-        setPositionRange(qBound(0,
-                                mPositionMin,
-                                mPositionDesc->maxPosition()),
-                         qBound(mPositionMin,
-                                mPositionMax,
-                                mPositionDesc->maxPosition()));
-    }
+    // Recalculate range
+    setPositionRange(mPositionMin, mPositionMax);
 
     endResetModel();
 }
@@ -252,6 +237,13 @@ void LeverContactConditionsModel::removeConditionAt(int row)
 
 void LeverContactConditionsModel::setPositionRange(int min, int max)
 {
+    min = qBound(mPositionDesc.minValue,
+                 min,
+                 mPositionDesc.maxValue);
+    max = qBound(min,
+                 max,
+                 mPositionDesc.maxValue);
+
     mPositionMin = min;
     mPositionMax = max;
 
@@ -295,7 +287,7 @@ std::pair<int, int> LeverContactConditionsModel::positionRangeFor(const QModelIn
     return {-1, -1};
 }
 
-const LeverPositionDesc *LeverContactConditionsModel::positionDesc() const
+const EnumDesc &LeverContactConditionsModel::positionDesc() const
 {
     return mPositionDesc;
 }
