@@ -58,6 +58,7 @@ QWidget *LeverConditionsItemDelegate::createEditor(QWidget *parent,
         EnumValuesModel *positionModel =
                 new EnumValuesModel(sourceModel->positionDesc(),
                                     combo);
+        positionModel->setSkipMiddleValues(true);
 
         positionModel->setValueRange(range.first, range.second);
         combo->setModel(positionModel);
