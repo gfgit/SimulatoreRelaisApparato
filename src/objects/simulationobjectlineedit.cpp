@@ -25,6 +25,8 @@
 #include "abstractsimulationobject.h"
 #include "abstractsimulationobjectmodel.h"
 
+#include "simulationobjectfactory.h"
+
 #include "../views/modemanager.h"
 
 #include <QCompleter>
@@ -38,14 +40,24 @@
 SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStringList &types, QWidget *parent)
     : QWidget(parent)
     , modeMgr(mgr)
+    , mTypes(types)
 {
     QHBoxLayout *lay = new QHBoxLayout(this);
     lay->setContentsMargins(QMargins());
 
-    typesModel = new QStringListModel(types, this);
+    SimulationObjectFactory *factory = modeMgr->objectFactory();
+
+    // Fill combo with pretty names
+    QStringList prettyTypes;
+    prettyTypes.reserve(mTypes.size());
+    for(const QString& type : std::as_const(mTypes))
+    {
+        prettyTypes.append(factory->prettyName(type));
+    }
+    mTypesModel = new QStringListModel(prettyTypes, this);
 
     mTypesCombo = new QComboBox;
-    mTypesCombo->setModel(typesModel);
+    mTypesCombo->setModel(mTypesModel);
     lay->addWidget(mTypesCombo);
 
     mCompleter = new QCompleter;
@@ -77,6 +89,9 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
 
         setObject(mModel->objectAt(sourceIdx.row()));
     });
+
+    if(mTypes.size() == 1)
+        mTypesCombo->hide(); // No need to show if type cannot be changed
 }
 
 void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
@@ -88,7 +103,7 @@ void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
 
     if(mObject)
     {
-        setType(typesModel->stringList().indexOf(mObject->getType()));
+        setType(mTypes.indexOf(mObject->getType()));
 
         if(mLineEdit->text() != mObject->name())
             mLineEdit->setText(mObject->name());
@@ -109,7 +124,7 @@ void SimulationObjectLineEdit::setType(int idx)
     if(idx < 0)
         idx = 0; // Default to first
 
-    const QString type = typesModel->stringList().at(idx);
+    const QString type = mTypes.at(idx);
 
     if(mObject && mObject->getType() != type)
     {

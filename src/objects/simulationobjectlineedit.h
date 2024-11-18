@@ -64,11 +64,13 @@ private:
     AbstractSimulationObjectModel *mModel = nullptr;
     AbstractSimulationObject *mObject = nullptr;
 
-    QStringListModel *typesModel;
+    QStringListModel *mTypesModel;
     QComboBox *mTypesCombo = nullptr;
 
     QLineEdit *mLineEdit = nullptr;
     QCompleter *mCompleter = nullptr;
+
+    QStringList mTypes;
 };
 
 #endif // SIMULATION_OBJECT_LINEEDIT_H
