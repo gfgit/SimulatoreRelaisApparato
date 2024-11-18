@@ -39,7 +39,7 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
     : QWidget(parent)
     , modeMgr(mgr)
 {
-    QHBoxLayout *lay = new QHBoxLayout;
+    QHBoxLayout *lay = new QHBoxLayout(this);
     lay->setContentsMargins(QMargins());
 
     typesModel = new QStringListModel(types, this);

@@ -85,7 +85,7 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
         lever->setMagnet(static_cast<ElectroMagnetObject *>(obj));
     });
 
-    magnetEdit->setObject(lever);
+    magnetEdit->setObject(lever->magnet());
     lay->addRow(StandardObjectTypes::tr("Magnet"), magnetEdit);
 
     return w;
@@ -146,7 +146,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = nullptr;
         item.create = &createObject<ACESasibLever5PosObject>;
-        item.objectType = ElectroMagnetObject::Type;
+        item.objectType = ACESasibLever5PosObject::Type;
         item.prettyName = tr("ACE Sasib 5 Lever");
         item.edit = [](AbstractSimulationObject *obj) -> QWidget*
         {
@@ -161,7 +161,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = nullptr;
         item.create = &createObject<ACESasibLever7PosObject>;
-        item.objectType = ElectroMagnetObject::Type;
+        item.objectType = ACESasibLever7PosObject::Type;
         item.prettyName = tr("ACE Sasib 7 Lever");
         item.edit = [](AbstractSimulationObject *obj) -> QWidget*
         {

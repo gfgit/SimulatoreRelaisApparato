@@ -528,7 +528,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                             ACESasibLever5PosObject::Type,
                             ACESasibLever7PosObject::Type
                         });
-            QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
+            QObject::connect(specialItem, &ACESasibLeverGraphItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)

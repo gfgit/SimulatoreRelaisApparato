@@ -53,6 +53,8 @@ bool ACESasibLeverCommonObject::loadFromJSON(const QJsonObject &obj)
     }
     else
         setMagnet(nullptr);
+
+    return true;
 }
 
 void ACESasibLeverCommonObject::saveToJSON(QJsonObject &obj) const
