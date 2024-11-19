@@ -37,6 +37,20 @@ else()
 endif()
 endif()
 
+
+if (WIN32)
+    # Fix KDAB::kddockwidgets include path
+    # It is originally set to "${_IMPORT_PREFIX}/include/kddockwidgets-qt6"
+    # But to be compatible with Linux we want just "${_IMPORT_PREFIX}/include"
+
+    get_target_property(kddockwidgets_incl_old KDAB::kddockwidgets INTERFACE_INCLUDE_DIRECTORIES)
+    cmake_path(GET kddockwidgets_incl_old PARENT_PATH kddockwidgets_incl_fix)
+
+    target_include_directories(SimulatoreRelaisApparato PRIVATE ${kddockwidgets_incl_fix})
+    message("Fixed KDAB::kddockwidgets include path: ${kddockwidgets_incl_fix}")
+endif (WIN32)
+
+
 add_subdirectory(src)
 
 target_link_libraries(SimulatoreRelaisApparato
