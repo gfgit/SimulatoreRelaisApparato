@@ -1,7 +1,7 @@
 # src/circuits/graphs
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     circuits/graphs/abstractnodegraphitem.cpp
     circuits/graphs/abstractnodegraphitem.h

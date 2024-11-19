@@ -1,7 +1,7 @@
 # src/objects/lever/model
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     objects/lever/model/genericleverobject.cpp
     objects/lever/model/genericleverobject.h

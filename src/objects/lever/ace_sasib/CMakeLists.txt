@@ -1,7 +1,7 @@
 # src/objects/lever/ace_sasib
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     objects/lever/ace_sasib/acesasiblevercommon.cpp
     objects/lever/ace_sasib/acesasiblevercommon.h

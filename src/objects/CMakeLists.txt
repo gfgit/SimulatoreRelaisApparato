@@ -5,7 +5,7 @@ add_subdirectory(lever)
 add_subdirectory(relais)
 add_subdirectory(simple_activable)
 
-set(PROJECT_SOURCES
+set(SIMULATORE_RELAIS_SOURCES
 
     objects/abstractsimulationobject.cpp
     objects/abstractsimulationobject.h
@@ -28,6 +28,6 @@ set(PROJECT_SOURCES
     objects/simulationobjectlineedit.cpp
     objects/simulationobjectlineedit.h
 
-    ${PROJECT_SOURCES}
+    ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE
 )

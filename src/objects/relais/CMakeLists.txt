@@ -3,7 +3,7 @@
 add_subdirectory(model)
 add_subdirectory(view)
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE
 )

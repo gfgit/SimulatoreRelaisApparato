@@ -1,7 +1,7 @@
 # src/utils
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     utils/enum_desc.cpp
     utils/enum_desc.h

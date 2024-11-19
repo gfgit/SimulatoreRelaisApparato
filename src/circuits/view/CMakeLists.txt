@@ -1,7 +1,7 @@
 # src/circuits/view
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     circuits/view/circuitlistmodel.cpp
     circuits/view/circuitlistmodel.h

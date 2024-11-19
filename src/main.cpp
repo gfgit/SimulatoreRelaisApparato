@@ -27,13 +27,21 @@
 #include <kddockwidgets-qt6/kddockwidgets/Config.h>
 #include <kddockwidgets-qt6/kddockwidgets/MainWindow.h>
 
+#include "info.h"
+
 int main(int argc, char *argv[])
 {
-    QApplication::setApplicationName("SimulatoreACEI");
-    QApplication::setApplicationDisplayName("Simulatore ACEI");
-    QApplication::setApplicationVersion("0.2");
+    QApplication app(argc, argv);
+    QApplication::setOrganizationName(AppCompany);
+    QApplication::setApplicationName(AppProduct);
+    QApplication::setApplicationDisplayName(AppDisplayName);
+    QApplication::setApplicationVersion(AppVersion);
 
-    QApplication a(argc, argv);
+    qDebug() << QApplication::applicationDisplayName()
+             << "Version:" << QApplication::applicationVersion() << "Built:" << AppBuildDate
+             << "Website: " << AppProjectWebSite;
+    qDebug() << "Qt:" << QT_VERSION_STR;
+    qDebug() << QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm");
 
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
 
@@ -45,5 +53,5 @@ int main(int argc, char *argv[])
 
     MainWindow w(QLatin1String("mainwindow1"));
     w.show();
-    return a.exec();
+    return app.exec();
 }

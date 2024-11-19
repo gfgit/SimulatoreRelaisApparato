@@ -1,7 +1,7 @@
 # src/objects/lever/view
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     objects/lever/view/genericleveroptionswidget.cpp
     objects/lever/view/genericleveroptionswidget.h

@@ -1,7 +1,7 @@
 # src/views
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     views/modemanager.cpp
     views/modemanager.h

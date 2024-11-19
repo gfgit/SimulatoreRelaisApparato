@@ -7,7 +7,7 @@ add_subdirectory(acei)
 add_subdirectory(ace_sasib)
 
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE
 )

@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Simulatore Relais Apparato
+Comment=Simulator for relais of Italian railways interlockings
+Comment[it]=Simulatore di relè di Apparati Centrali nelle ferrovie Italiane
+Keywords=Train;Trains;Railway;Interlocking;Relais;Apparatus
+Keywords[it]=Treno;Treni;Ferrovia;Interlocking;Relais;Relè;Apparato
+Exec=/opt/simulatoreapparato/bin/simulatoreapparato %f
+Icon=simulatoreapparato
+Terminal=false
+X-MultipleArgs=false
+Type=Application
+Categories=Development;Utility;
+#MimeType=application/x-simulatoreapparato-session-json
+StartupWMClass=simulatoreapparato

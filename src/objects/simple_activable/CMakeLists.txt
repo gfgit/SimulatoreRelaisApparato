@@ -1,6 +1,6 @@
 # src/objects/simple_activable
 
-set(PROJECT_SOURCES
+set(SIMULATORE_RELAIS_SOURCES
 
     objects/simple_activable/abstractsimpleactivableobject.cpp
     objects/simple_activable/abstractsimpleactivableobject.h
@@ -11,6 +11,6 @@ set(PROJECT_SOURCES
     objects/simple_activable/electromagnet.cpp
     objects/simple_activable/electromagnet.h
 
-    ${PROJECT_SOURCES}
+    ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE
 )

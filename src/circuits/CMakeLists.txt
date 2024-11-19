@@ -5,8 +5,8 @@ add_subdirectory(graphs)
 add_subdirectory(nodes)
 add_subdirectory(view)
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     circuits/circuitscene.cpp
     circuits/circuitscene.h

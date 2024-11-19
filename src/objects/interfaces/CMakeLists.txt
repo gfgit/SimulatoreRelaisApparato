@@ -1,6 +1,6 @@
 # src/objects/interfaces
 
-set(PROJECT_SOURCES
+set(SIMULATORE_RELAIS_SOURCES
 
     objects/interfaces/abstractobjectinterface.cpp
     objects/interfaces/abstractobjectinterface.h
@@ -14,6 +14,6 @@ set(PROJECT_SOURCES
     objects/interfaces/sasibaceleverextrainterface.cpp
     objects/interfaces/sasibaceleverextrainterface.h
 
-    ${PROJECT_SOURCES}
+    ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE
 )

@@ -1,7 +1,7 @@
 # src/enums
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     enums/cabletypes.h
     enums/circuittypes.h

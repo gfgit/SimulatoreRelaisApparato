@@ -1,7 +1,7 @@
 # src/circuits/nodes
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     circuits/nodes/abstractcircuitnode.cpp
     circuits/nodes/abstractcircuitnode.h

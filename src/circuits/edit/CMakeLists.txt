@@ -1,7 +1,7 @@
 # src/circuits/edit
 
-set(PROJECT_SOURCES
-    ${PROJECT_SOURCES}
+set(SIMULATORE_RELAIS_SOURCES
+    ${SIMULATORE_RELAIS_SOURCES}
 
     circuits/edit/nodeeditfactory.cpp
     circuits/edit/nodeeditfactory.h
