@@ -753,8 +753,8 @@ void CircuitScene::checkItem(AbstractNodeGraphItem *item, QVector<CircuitCable *
             // Detach our cable if zero length
             if(cableA && !verifiedCables.contains(cableA))
             {
-                auto item = graphForCable(cableA);
-                if(!item || item->cableZeroLength())
+                auto cableGraphA = graphForCable(cableA);
+                if(!cableGraphA || cableGraphA->cableZeroLength())
                 {
                     node1->detachCable(c1.nodeContact);
                     removeCable(cableA);
@@ -1594,9 +1594,8 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
     QVector<CableGraphItem *> pastedCables;
     pastedCables.reserve(fragment.validCables.size());
 
-    for(const QJsonValue& v : fragment.validNodes)
+    for(const QJsonObject& obj : fragment.validNodes)
     {
-        QJsonObject obj = v.toObject();
         const QString nodeType = obj.value("type").toString();
         if(nodeType.isEmpty())
             continue;
@@ -1624,10 +1623,8 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
         }
     }
 
-    for(const QJsonValue& v : fragment.validCables)
+    for(const QJsonObject& cableObj : fragment.validCables)
     {
-        const QJsonObject cableObj = v.toObject();
-
         // Create new cable
         CircuitCable *cable = new CircuitCable(circuitsModel()->modeMgr(), this);
         CableGraphItem *item = new CableGraphItem(cable);
@@ -1977,8 +1974,8 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
 
     for(const QJsonValue& v : nodes)
     {
-        const QJsonObject obj = v.toObject();
-        const QString nodeType = obj.value("type").toString();
+        const QJsonObject nodeObj = v.toObject();
+        const QString nodeType = nodeObj.value("type").toString();
         if(nodeType.isEmpty())
             continue;
 
@@ -1986,7 +1983,7 @@ bool CircuitScene::loadFromJSON(const QJsonObject &obj, NodeEditFactory *factory
         AbstractNodeGraphItem *item = factory->createItem(nodeType, this);
         if(item)
         {
-            if(!item->loadFromJSON(obj))
+            if(!item->loadFromJSON(nodeObj))
             {
                 auto *node = item->getAbstractNode();
                 delete item;
@@ -2016,9 +2013,9 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
     {
         CableGraphItem *item = it.second;
 
-        QJsonObject obj;
-        item->saveToJSON(obj);
-        cables.append(obj);
+        QJsonObject cableObj;
+        item->saveToJSON(cableObj);
+        cables.append(cableObj);
     }
 
     obj["cables"] = cables;
@@ -2027,9 +2024,9 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
     for(const auto& it : mItemMap)
     {
         AbstractNodeGraphItem *item = it.second;
-        QJsonObject obj;
-        item->saveToJSON(obj);
-        nodes.append(obj);
+        QJsonObject nodeObj;
+        item->saveToJSON(nodeObj);
+        nodes.append(nodeObj);
     }
 
     obj["nodes"] = nodes;

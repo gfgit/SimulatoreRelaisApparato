@@ -43,6 +43,8 @@ QString AbstractRelais::getRelaisTypeName(RelaisType t)
         return tr("Stabilized");
     case RelaisType::Combinator:
         return tr("Combinator");
+    case RelaisType::NTypes:
+        break;
     }
 
     return QString();

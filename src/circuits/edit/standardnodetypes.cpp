@@ -425,7 +425,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.create = &addNewNodeToScene<ACEIButtonGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
         {
-            ACEIButtonNode *node = static_cast<ACEIButtonNode *>(item->getAbstractNode());
+            //ACEIButtonNode *node = static_cast<ACEIButtonNode *>(item->getAbstractNode());
 
             QWidget *w = new QWidget;
             QFormLayout *lay = new QFormLayout(w);
@@ -635,17 +635,17 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             return w;
         };
 
-        {
-            // Polarity inversion node
-            NodeEditFactory::FactoryItem factory;
-            factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
-            factory.nodeType = PolarityInversionGraphItem::Node::NodeType;
-            factory.prettyName = tr("Polarity Inversion");
-            factory.create = &addNewNodeToScene<PolarityInversionGraphItem>;
-            factory.edit = nullptr;
+        factoryReg->registerFactory(factory);
+    }
 
-            factoryReg->registerFactory(factory);
-        }
+    {
+        // Polarity inversion node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+        factory.nodeType = PolarityInversionGraphItem::Node::NodeType;
+        factory.prettyName = tr("Polarity Inversion");
+        factory.create = &addNewNodeToScene<PolarityInversionGraphItem>;
+        factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
     }

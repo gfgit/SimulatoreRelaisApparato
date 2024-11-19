@@ -183,7 +183,6 @@ QVariant AbstractNodeGraphItem::itemChange(GraphicsItemChange change, const QVar
         if(newPos != pos() && s && s->modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
         {
             // For item selection mode we bypass normal logic
-            CircuitScene *s = circuitScene();
             TileLocation newLocation = TileLocation::fromPoint(newPos);
             if(!s->updateItemLocation(newLocation, this))
             {
