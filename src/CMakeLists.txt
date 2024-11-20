@@ -200,7 +200,7 @@ if(UNIX AND NOT APPLE)
 
         install(FILES ${CMAKE_SOURCE_DIR}/files/icons/relais/relais_${ICON_SIZE}.png
             DESTINATION ${LINUX_ICON_DIR_BASE}/${ICON_SIZE}x${ICON_SIZE}/mimetypes/
-            RENAME application-x-${SIMULATORE_RELAIS_TARGET}-json.png)
+            RENAME application-vnd.${APP_COMPANY_NAME_LOWER}-${SIMULATORE_RELAIS_TARGET}-circuits-json.svg)
     endforeach()
 
     # Install SVG icon
@@ -210,7 +210,7 @@ if(UNIX AND NOT APPLE)
 
     install(FILES ${CMAKE_SOURCE_DIR}/files/icons/relais/relais.svg
         DESTINATION ${LINUX_ICON_DIR_BASE}/scalable/mimetypes/
-        RENAME application-vnd.${APP_COMPANY_NAME_LOWER}-${SIMULATORE_RELAIS_TARGET}-json.svg)
+        RENAME application-vnd.${APP_COMPANY_NAME_LOWER}-${SIMULATORE_RELAIS_TARGET}-circuits-json.svg)
 
     # Install desktop file
     install(FILES ${CMAKE_SOURCE_DIR}/packaging/linux/${SIMULATORE_RELAIS_TARGET}.desktop
