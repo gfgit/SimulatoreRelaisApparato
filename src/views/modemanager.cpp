@@ -32,6 +32,126 @@
 #include "../objects/abstractsimulationobjectmodel.h"
 
 #include <QJsonObject>
+#include <QJsonArray>
+
+QJsonObject convertOldFileFormat(const QJsonObject& origFile)
+{
+
+    QJsonObject objects;
+
+    // Port Relais
+    QJsonObject oldRelais = origFile.value("relais").toObject();
+    const QJsonArray relaisArr = oldRelais.value("relais").toArray();
+    QJsonArray newRelaisArr;
+
+    for(const QJsonValue& v : relaisArr)
+    {
+        QJsonObject relay = v.toObject();
+        relay["type"] = "abstract_relais";
+        relay["description"] = QString();
+        relay["interfaces"] = QJsonObject();
+        newRelaisArr.append(relay);
+    }
+
+    QJsonObject newRelaisModel;
+    newRelaisModel["model_type"] = "abstract_relais";
+    newRelaisModel["objects"] = newRelaisArr;
+
+    objects["abstract_relais"] = newRelaisModel;
+
+    // Port levers
+    QJsonObject oldLevers = origFile.value("levers").toObject();
+    const QJsonArray leversArr = oldLevers.value("levers").toArray();
+    QJsonArray newLeversArr;
+
+    for(const QJsonValue& v : leversArr)
+    {
+        QJsonObject oldLever = v.toObject();
+
+        QJsonObject lever;
+        lever["type"] = "acei_lever";
+        lever["description"] = QString();
+        lever["name"] = oldLever.value("name");
+
+        QJsonObject leverInterface = oldLever;
+        leverInterface.remove("name");
+
+        QJsonObject interfaces;
+        interfaces["lever"] = leverInterface;
+
+        lever["interfaces"] = interfaces;
+        newLeversArr.append(lever);
+    }
+
+    QJsonObject newLeversModel;
+    newLeversModel["model_type"] = "acei_lever";
+    newLeversModel["objects"] = newLeversArr;
+
+    objects["acei_lever"] = newLeversModel;
+
+    // Light Bulbs need to be created
+    QStringList lightBulbNames;
+
+    QJsonObject circuits = origFile["circuits"].toObject();
+    QJsonArray newScenes;
+
+    QJsonArray scenes = QJsonValueRef(circuits["scenes"]).toArray();
+    for(const QJsonValue v : scenes)
+    {
+        QJsonObject scene = v.toObject();
+        QJsonArray nodes;
+        for(QJsonValueRef nodeVal : scene["nodes"].toArray())
+        {
+            QJsonObject node = nodeVal.toObject();
+            if(node.value("type") == "lever_contact" || node.value("type") == "acei_lever")
+            {
+                node["lever_type"] = "acei_lever";
+            }
+            else if(node.value("type") == "light_bulb")
+            {
+                node["type"] = "light_bulb_activation";
+                node["object"] = node.value("name").toString();
+                lightBulbNames.append(node.value("name").toString());
+            }
+            nodes.append(node);
+        }
+        scene["nodes"] = nodes;
+        newScenes.append(scene);
+    }
+
+    // Create light bulbs
+    QJsonArray newLightArr;
+
+    for(const QString& name : lightBulbNames)
+    {
+        QJsonObject light;
+        light["type"] = "light_bulb";
+        light["description"] = QString();
+        light["name"] = name;
+
+        QJsonObject interfaces;
+        light["interfaces"] = interfaces;
+        newLightArr.append(light);
+    }
+
+    QJsonObject newLightModel;
+    newLightModel["model_type"] = "light_bulb";
+    newLightModel["objects"] = newLightArr;
+
+    objects["light_bulb"] = newLightModel;
+
+    // Save new file
+    QJsonObject newFile;
+    newFile["file_version"] = ModeManager::FileVersion::V1;
+    newFile["objects"] = objects;
+
+
+    QJsonObject newCircuits;
+    newCircuits["scenes"] = newScenes;
+    newFile["circuits"] = newCircuits;
+
+    return newFile;
+}
 
 ModeManager::ModeManager(QObject *parent)
     : QObject{parent}
@@ -121,7 +241,14 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
     // Temporarily ignore modified scenes
     setMode(FileMode::LoadingFile);
 
-    const QJsonObject pool = obj.value("objects").toObject();
+    QJsonObject rootObj = obj;
+    if(obj.value("file_version") != FileVersion::V1)
+    {
+        // Old file, try to convert it
+        rootObj = convertOldFileFormat(obj);
+    }
+
+    const QJsonObject pool = rootObj.value("objects").toObject();
     for(auto model : mObjectModels)
     {
         const QJsonObject modelObj = pool.value(model->getObjectType()).toObject();
@@ -134,7 +261,7 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
         model->loadFromJSON(modelObj, LoadPhase::AllCreated);
     }
 
-    QJsonObject circuits = obj.value("circuits").toObject();
+    QJsonObject circuits = rootObj.value("circuits").toObject();
     mCircuitList->loadFromJSON(circuits);
 
     resetFileEdited();
@@ -157,6 +284,8 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
         model->saveToJSON(modelObj);
         pool[model->getObjectType()] = modelObj;
     }
+
+    obj["file_version"] = FileVersion::V1;
 
     obj["objects"] = pool;
 

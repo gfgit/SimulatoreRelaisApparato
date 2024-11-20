@@ -41,6 +41,13 @@ class ModeManager : public QObject
 {
     Q_OBJECT
 public:
+    enum FileVersion
+    {
+        Beta = 0,
+        V1 = 1,
+        Current = V1
+    };
+
     explicit ModeManager(QObject *parent = nullptr);
     ~ModeManager();
 
