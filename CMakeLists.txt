@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SimulatoreRelaisApparato VERSION 0.2 LANGUAGES CXX)
+project(SimulatoreRelaisApparato VERSION 0.2.0 LANGUAGES CXX)
 
 option(UPDATE_TS_KEEP_OBSOLETE "Keep obsolete entries when updating translations" ON)
 option(BUILD_DOXYGEN "Build Doxygen documentation" OFF)
@@ -25,7 +25,7 @@ string(CONCAT PROJECT_DESCRIPTION "${APP_DISPLAY_NAME} is a cross-platform C++\n
 
 set(PROJECT_DESCRIPTION_SHORT "Simulator for relais of Italian railways interlockings")
 
-set(APP_ICON ${CMAKE_SOURCE_DIR}/files/icons/relais.ico)
+set(APP_ICON ${CMAKE_SOURCE_DIR}/files/icons/relais/relais.ico)
 
 # Create main application target
 set(SIMULATORE_RELAIS_TARGET "simulatoreapparato")
@@ -60,19 +60,6 @@ endif()
 if (WIN32)
     include(LocateWinDeployQt)
 endif()
-
-
-if (WIN32)
-    # Fix KDAB::kddockwidgets include path
-    # It is originally set to "${_IMPORT_PREFIX}/include/kddockwidgets-qt6"
-    # But to be compatible with Linux we want just "${_IMPORT_PREFIX}/include"
-
-    get_target_property(kddockwidgets_incl_old KDAB::kddockwidgets INTERFACE_INCLUDE_DIRECTORIES)
-    cmake_path(GET kddockwidgets_incl_old PARENT_PATH kddockwidgets_incl_fix)
-
-    target_include_directories(${SIMULATORE_RELAIS_TARGET} PRIVATE ${kddockwidgets_incl_fix})
-    message("Fixed KDAB::kddockwidgets include path: ${kddockwidgets_incl_fix}")
-endif (WIN32)
 
 
 add_subdirectory(src)
