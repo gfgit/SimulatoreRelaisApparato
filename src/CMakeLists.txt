@@ -42,6 +42,18 @@ qt_add_executable(${SIMULATORE_RELAIS_TARGET} WIN32
     ${SIMULATORE_RELAIS_RESOURCES}
 )
 
+if (WIN32)
+    # Fix KDAB::kddockwidgets include path
+    # It is originally set to "${_IMPORT_PREFIX}/include/kddockwidgets-qt6"
+    # But to be compatible with Linux we want just "${_IMPORT_PREFIX}/include"
+
+    get_target_property(kddockwidgets_incl_old KDAB::kddockwidgets INTERFACE_INCLUDE_DIRECTORIES)
+    cmake_path(GET kddockwidgets_incl_old PARENT_PATH kddockwidgets_incl_fix)
+
+    target_include_directories(${SIMULATORE_RELAIS_TARGET} PRIVATE ${kddockwidgets_incl_fix})
+    message("Fixed KDAB::kddockwidgets include path: ${kddockwidgets_incl_fix}")
+endif (WIN32)
+
 # Set compiler options
 if(MSVC)
     target_compile_options(
@@ -166,8 +178,8 @@ endforeach()
 
 if(WIN32)
     # Copy KDDockWidgets-qt6 DLL
-    get_dll_library_from_import_library(${KDDockWidgets-qt6_LIBRARIES} KDDockWidgets-qt6_LIBRARY_TO_INSTALL)
-    install(PROGRAMS ${KDDockWidgets} DESTINATION ${CMAKE_INSTALL_BINDIR})
+    get_target_property(KDDockWidgets_LIBRARY_TO_INSTALL KDAB::kddockwidgets LOCATION)
+    install(PROGRAMS ${KDDockWidgets_LIBRARY_TO_INSTALL} DESTINATION ${CMAKE_INSTALL_BINDIR})
 
     if(RUN_WINDEPLOYQT)
         if(NOT TARGET windeployqt_exe)

@@ -152,7 +152,7 @@ Section "Application" main_program
 	SetOutPath $INSTDIR
 
         File ${SIMULATORE_RELAIS_PATH}\${SIMULATORE_RELAIS_EXE}
-        File ${SIMULATORE_RELAIS_EXTRA}\icons\relais.ico
+        File ${SIMULATORE_RELAIS_EXTRA}\icons\relais\relais.ico
 
         File ${SIMULATORE_RELAIS_PATH}\*.dll
 
