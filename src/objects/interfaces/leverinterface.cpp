@@ -374,6 +374,10 @@ void LeverInterface::setAbsoluteRange(int newMin, int newMax)
         setAngle(mAngle);
         setNormalPosition(mNormalPosition);
 
+        // Set fake locked range to allow every position
+        // It will be recalculated by object if needed
+        setLockedRange(absoluteMin(), absoluteMax());
+
         emitChanged(AbsoluteRangePropName, QVariant());
         emit mObject->settingsChanged(mObject);
     }
