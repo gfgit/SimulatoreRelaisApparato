@@ -43,6 +43,13 @@
 #include "circuits/edit/nodeeditfactory.h"
 #include "objects/simulationobjectfactory.h"
 
+static constexpr const char *allFiles =
+        QT_TRANSLATE_NOOP("MainWindow", "All Files (*.*)");
+static constexpr const char *jsonFiles =
+        QT_TRANSLATE_NOOP("MainWindow", "JSON Files (*.json)");
+static constexpr const char *simraFormat =
+  QT_TRANSLATE_NOOP("MainWindow", "Simulatore Relais Circuits (*.simrelaisc)");
+
 MainWindow::MainWindow(const QString& uniqueName_, const QString& settingsFile_, QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
     , settingsFile(settingsFile_)
@@ -312,8 +319,11 @@ void MainWindow::onOpen()
     if(!maybeSave())
         return;
 
+    QStringList filters = {simraFormat, jsonFiles, allFiles};
     QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("Open Circuit"));
+                                                    tr("Open Circuit"),
+                                                    QString(),
+                                                    filters.join(QLatin1String(";;")));
     if(fileName.isEmpty())
         return;
 
@@ -419,9 +429,11 @@ bool MainWindow::onSave()
 
 bool MainWindow::onSaveAs()
 {
+    QStringList filters = {simraFormat, jsonFiles, allFiles};
     QString fileName = QFileDialog::getSaveFileName(this,
                                                     tr("Save Circuit"),
-                                                    windowFilePath());
+                                                    windowFilePath(),
+                                                    filters.join(QLatin1String(";;")));
     if(fileName.isEmpty())
         return false;
 
