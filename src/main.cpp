@@ -29,6 +29,89 @@
 
 #include "info.h"
 
+#include <QDateTime>
+#include <QStandardPaths>
+#include <QDir>
+
+#include <QLibraryInfo>
+#include <QTranslator>
+
+#include <QSettings>
+
+QString locateAppDataPath()
+{
+    QString appDataPath = QStringLiteral("%1/%2/%3")
+            .arg(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation),
+                 AppCompany, AppProductShort);
+    appDataPath = QDir::cleanPath(appDataPath);
+    qDebug() << appDataPath;
+    return appDataPath;
+}
+
+QString locateAppSettings()
+{
+    return locateAppDataPath() + "/simra_settings.ini";
+}
+
+constexpr const char *simraTranslationName     = "simra";
+static const QLatin1String translationsFolder = QLatin1String("/translations");
+
+static inline QTranslator *loadTranslatorInternal(const QLocale &loc, const QString &path,
+                                                  const QString &prefix)
+{
+    QTranslator *translator = new QTranslator(qApp);
+    if (!translator->load(loc, prefix, QStringLiteral("_"), path))
+    {
+        qDebug() << "Cannot load translations for:" << prefix.toUpper() << loc.name()
+                 << loc.uiLanguages();
+        delete translator;
+        return nullptr;
+    }
+    return translator;
+}
+
+QTranslator *loadAppTranslator(const QLocale &loc)
+{
+    const QString path = qApp->applicationDirPath() + translationsFolder;
+    return loadTranslatorInternal(loc, path, QString::fromLatin1(simraTranslationName));
+}
+
+bool loadTranslationsFromSettings()
+{
+    const QString localPath = QCoreApplication::applicationDirPath() + translationsFolder;
+    const QString qtLibPath = QLibraryInfo::path(QLibraryInfo::TranslationsPath);
+    QLocale loc = QLocale::English;
+
+    QSettings settings(locateAppSettings(), QSettings::IniFormat);
+    QString lang = settings.value("language", QLatin1String("it")).toString();
+    if(lang == QLatin1String("it"))
+        loc = QLocale::Italian;
+
+    // Sync settings with default value
+    settings.setValue("language", lang);
+
+    // NOTE: If locale is English with default country we do not need translations
+    // because they are already embedded in the executable strings so skip it
+    if (loc == QLocale::English)
+        return true;
+
+    QTranslator *qtTransl = ::loadTranslatorInternal(loc, qtLibPath, QLatin1String("qt"));
+    if (qtTransl)
+    {
+        QCoreApplication::installTranslator(qtTransl);
+    }
+
+    QTranslator *simraTransl =
+            ::loadTranslatorInternal(loc, localPath, QString::fromLatin1(simraTranslationName));
+    if (simraTransl)
+    {
+        QCoreApplication::installTranslator(simraTransl);
+        return true;
+    }
+
+    return false;
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -36,6 +119,8 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName(AppProduct);
     QApplication::setApplicationDisplayName(AppDisplayName);
     QApplication::setApplicationVersion(AppVersion);
+
+    loadTranslationsFromSettings();
 
     qDebug() << QApplication::applicationDisplayName()
              << "Version:" << QApplication::applicationVersion() << "Built:" << AppBuildDate
@@ -51,7 +136,18 @@ int main(int argc, char *argv[])
     flags.setFlag(KDDockWidgets::Config::Flag_AllowReorderTabs);
     config.setFlags(flags);
 
-    MainWindow w(QLatin1String("mainwindow1"));
+    MainWindow w(QLatin1String("mainwindow1"), locateAppSettings());
+
+    if (argc > 1) // FIXME: better handling if there are extra arguments
+    {
+        QString fileName = app.arguments().at(1);
+        qDebug() << "Trying to load:" << fileName;
+        if (QFile(fileName).exists())
+        {
+            w.loadFile(app.arguments().at(1));
+        }
+    }
+
     w.show();
     return app.exec();
 }

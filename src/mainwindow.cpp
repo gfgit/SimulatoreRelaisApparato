@@ -43,11 +43,10 @@
 #include "circuits/edit/nodeeditfactory.h"
 #include "objects/simulationobjectfactory.h"
 
-MainWindow::MainWindow(const QString& uniqueName_, QWidget *parent)
+MainWindow::MainWindow(const QString& uniqueName_, const QString& settingsFile_, QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
+    , settingsFile(settingsFile_)
 {
-    locateAppSettings();
-
     mModeMgr = new ModeManager(this);
 
     mViewMgr = new ViewManager(this);
@@ -358,13 +357,6 @@ void MainWindow::loadFile(const QString& fileName)
 
     // Show circuit list view for opened files
     mViewMgr->showCircuitListView();
-}
-
-void MainWindow::locateAppSettings()
-{
-    QString p = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-    p.append("/settings.ini");
-    settingsFile = QDir::cleanPath(p);
 }
 
 bool MainWindow::maybeSave()

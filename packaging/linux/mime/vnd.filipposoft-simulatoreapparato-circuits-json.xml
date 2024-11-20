@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mime-info xmlns='http://www.freedesktop.org/standards/shared-mime-info'>
-  <mime-type type="application/vnd.filipposoft-simulatoreapparato-json">
+  <mime-type type="application/vnd.filipposoft-simulatoreapparato-circuits-json">
     <comment>Simulatore Relais circuits</comment>
     <comment xml:lang="it">Circuiti Simulatore Relais</comment>
     <sub-class-of type="application/json"/>
     <glob pattern="*.simrelaisc"/>
-    <alias type="application/x-simulatoreapparato-json"/>
+    <alias type="application/x-simulatoreapparato-circuits-json"/>
   </mime-type>
 </mime-info>

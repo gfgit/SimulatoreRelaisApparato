@@ -14,7 +14,7 @@ endif()
 set(APP_PRODUCT_NAME "SimulatoreRelais")
 set(APP_DISPLAY_NAME "Simulatore Relais Apparato")
 set(APP_COMPANY_NAME "FiliPPoSoft")
-set(APP_COMPANY_NAME_LOWER "filippposoft")
+set(APP_COMPANY_NAME_LOWER "filipposoft")
 
 set(PROJECT_HOMEPAGE_URL "https://github.com/gfgit/SimulatoreRelaisApparato")
 set(APP_HELP_URL ${PROJECT_HOMEPAGE_URL})

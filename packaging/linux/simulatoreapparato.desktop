@@ -10,5 +10,5 @@ Terminal=false
 X-MultipleArgs=false
 Type=Application
 Categories=Development;Utility;
-#MimeType=application/x-simulatoreapparato-session-json
+MimeType=application/x-simulatoreapparato-circuits-json
 StartupWMClass=simulatoreapparato

@@ -123,8 +123,8 @@ endif()
 ## Update/Release translations ##
 
 #(Run this target before installing and every time you update translations)
-add_custom_target(RELEASE_TRANSLATIONS ALL
-    COMMENT "Running translations it_IT...")
+# add_custom_target(RELEASE_TRANSLATIONS ALL
+#     COMMENT "Running translations it_IT...")
 
 
 # Run 'lupdate' to parse C++ and UI files and extract translatable strings
@@ -133,6 +133,9 @@ if(UPDATE_TS_KEEP_OBSOLETE)
 else()
     set(LUPDATE_OPTIONS_STR "-no-obsolete")
 endif()
+
+set_source_files_properties(${SIMULATORE_RELAIS_TS_FILES}
+    PROPERTIES OUTPUT_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/translations")
 
 qt_add_translations(${SIMULATORE_RELAIS_TARGET}
     TS_FILES ${SIMULATORE_RELAIS_TS_FILES}
@@ -156,7 +159,7 @@ install(TARGETS ${SIMULATORE_RELAIS_TARGET})
 foreach(TS_FILE ${SIMULATORE_RELAIS_TS_FILES})
     get_filename_component(QM_FILE_NAME ${TS_FILE} NAME_WLE)
     install(FILES
-        "${CMAKE_BINARY_DIR}/src/translations/${QM_FILE_NAME}.qm"
+        "${CMAKE_BINARY_DIR}/src/${QM_FILE_NAME}.qm"
         DESTINATION ${CMAKE_INSTALL_BINDIR}/translations OPTIONAL)
 endforeach()
 
@@ -214,8 +217,8 @@ if(UNIX AND NOT APPLE)
         DESTINATION /usr/share/applications/)
 
     # Install mime type association
-    #vnd.filipposoft-simulatoreapparato.xml
-    install(FILES ${CMAKE_SOURCE_DIR}/packaging/linux/mime/vnd.${APP_COMPANY_NAME_LOWER}-${SIMULATORE_RELAIS_TARGET}-json.xml
+    #vnd.filipposoft-simulatoreapparato-circuits-json.xml
+    install(FILES ${CMAKE_SOURCE_DIR}/packaging/linux/mime/vnd.${APP_COMPANY_NAME_LOWER}-${SIMULATORE_RELAIS_TARGET}-circuits-json.xml
         DESTINATION /usr/share/mime/packages)
 endif(UNIX AND NOT APPLE)
 

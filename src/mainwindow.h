@@ -35,10 +35,14 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow
     Q_OBJECT
 
 public:
-    MainWindow(const QString &uniqueName_, QWidget *parent = nullptr);
+    MainWindow(const QString &uniqueName_,
+               const QString &settingsFile_,
+               QWidget *parent = nullptr);
     ~MainWindow();
 
     ModeManager *modeMgr() const;
+
+    void loadFile(const QString &fileName);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
@@ -47,8 +51,6 @@ private:
     void buildMenuBar();
     void updateRecentFileActions();
     void addFileToRecents(const QString& fileName);
-
-    void loadFile(const QString &fileName);
 
     void locateAppSettings();
 
