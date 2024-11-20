@@ -320,6 +320,8 @@ void MainWindow::onOpen()
         return;
 
     QStringList filters = {simraFormat, jsonFiles, allFiles};
+    for(auto &s : filters)
+        s = tr(s.toLatin1());
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Open Circuit"),
                                                     QString(),
@@ -430,6 +432,8 @@ bool MainWindow::onSave()
 bool MainWindow::onSaveAs()
 {
     QStringList filters = {simraFormat, jsonFiles, allFiles};
+    for(auto &s : filters)
+        s = tr(s.toLatin1());
     QString fileName = QFileDialog::getSaveFileName(this,
                                                     tr("Save Circuit"),
                                                     windowFilePath(),
