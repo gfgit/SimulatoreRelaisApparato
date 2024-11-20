@@ -159,9 +159,6 @@ Section "Application" main_program
 	SetOutPath $INSTDIR\platforms
         File ${SIMULATORE_RELAIS_PATH}\platforms\*.dll
 
-	SetOutPath $INSTDIR\printsupport
-        File ${SIMULATORE_RELAIS_PATH}\printsupport\*.dll
-
 	SetOutPath $INSTDIR\styles
         File ${SIMULATORE_RELAIS_PATH}\styles\*.dll
 
@@ -351,9 +348,6 @@ delete_settings:
 
 	Delete $INSTDIR\platforms\*.dll
 	RMDir /r $INSTDIR\platforms
-
-	Delete $INSTDIR\printsupport\*.dll
-	RMDir /r $INSTDIR\printsupport
 
 	Delete $INSTDIR\styles\*.dll
 	RMDir /r $INSTDIR\styles
