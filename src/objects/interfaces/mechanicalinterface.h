@@ -29,9 +29,19 @@
 
 #include <QVector>
 
-class MechanicalInterface : public AbstractObjectInterface
+class MechanicalInterface;
+
+struct MechanicalCondition
 {
-public:
+    enum class Type
+    {
+        ExactPos = 0,
+        RangePos,
+        NotPos,
+        Or,
+        And
+    };
+
     typedef std::pair<int, int> LockRange;
     typedef QVector<LockRange> LockRanges;
 
@@ -41,6 +51,42 @@ public:
         LockRanges ranges;
     };
     typedef QVector<LockConstraint> LockConstraints;
+
+    MechanicalInterface *otherIface = nullptr;
+    LockRange requiredPositions;
+    Type type;
+
+    // For OR and AND
+    QVector<MechanicalCondition> subConditions;
+
+    bool isSatisfied() const;
+
+    void getAllObjects(QVector<MechanicalInterface *>& result) const;
+
+    void getLockConstraints(LockConstraints &result) const;
+};
+
+struct MechanicalConditionSet
+{
+    MechanicalCondition::LockRange allowedRangeWhenLocked;
+    MechanicalCondition rootCondition;
+
+    bool isSatisfied() const;
+};
+
+class MechanicalInterface : public AbstractObjectInterface
+{
+public:
+    typedef MechanicalCondition::LockRange LockRange;
+    typedef MechanicalCondition::LockRanges LockRanges;
+    typedef MechanicalCondition::LockConstraint LockConstraint;
+    typedef MechanicalCondition::LockConstraints LockConstraints;
+
+    struct ConditionItem
+    {
+        MechanicalConditionSet conditions;
+        QVector<LockConstraint> lockedObjects;
+    };
 
     // Property names
     static constexpr QLatin1String LockRangePropName = QLatin1String("lock_range");
@@ -85,10 +131,14 @@ public:
                                   const LockRanges& ranges);
 
     // Helpers
-    LockRange getLockRangeForPos(int pos, int min, int max) const;
+    LockRange getCurrentLockRange() const;
 
     void setLockedRange(int newMin, int newMax);
     void checkPositionValidForLock();
+
+    void addConditionSet(const MechanicalConditionSet& cond);
+
+    void recalculateWantedConditionState();
 
 protected:
     inline bool isPositionValidForLock(int pos) const
@@ -96,9 +146,18 @@ protected:
         return pos >= mLockedMin && pos <= mLockedMax;
     }
 
+    void recalculateObjectRelationship();
+
+    void updateWantsLocks();
+
+private:
+    void registerRelationship(MechanicalInterface *other);
+    void unregisterRelationship(MechanicalInterface *other);
+
 private:
     const EnumDesc mPositionDesc;
     LockConstraints mConstraints;
+    LockRange mAllowedRangeByWanted;
 
     int mPosition = 0;
 
@@ -106,6 +165,10 @@ private:
     int mAbsoluteMax = 0;
     int mLockedMin = 0;
     int mLockedMax = 0;
+
+    QVector<ConditionItem> mConditionSets;
+    QVector<MechanicalInterface *> mWantsObjects;
+    QVector<MechanicalInterface *> mWantedByObjects;
 };
 
 #endif // MECHANICALINTERFACE_H

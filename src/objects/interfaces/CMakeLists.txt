@@ -1,5 +1,7 @@
 # src/objects/interfaces
 
+add_subdirectory(mechanical)
+
 set(SIMULATORE_RELAIS_SOURCES
 
     objects/interfaces/abstractobjectinterface.cpp

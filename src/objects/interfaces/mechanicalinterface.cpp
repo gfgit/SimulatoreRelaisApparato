@@ -25,6 +25,11 @@
 
 #include <QJsonObject>
 
+static inline bool contains(const MechanicalCondition::LockRange &range, int position)
+{
+    return range.first <= position && range.second >= position;
+}
+
 MechanicalInterface::MechanicalInterface(const EnumDesc &posDesc,
                                          AbstractSimulationObject *obj)
     : AbstractObjectInterface(obj)
@@ -99,26 +104,32 @@ void MechanicalInterface::setObjectLockConstraints(AbstractSimulationObject *obj
     emitChanged(LockRangePropName, QVariant());
 }
 
-MechanicalInterface::LockRange MechanicalInterface::getLockRangeForPos(int pos, int min, int max) const
+MechanicalInterface::LockRange MechanicalInterface::getCurrentLockRange() const
 {
-    LockRange total = {min, max};
+    LockRange total = {absoluteMin(), absoluteMax()};
 
     for(const LockConstraint &c : mConstraints)
     {
-        LockRange specific = {max, min}; // Reversed on purpose
+        LockRange specific = {absoluteMax(), absoluteMin()}; // Reversed on purpose
 
         // Do an UNION on constraint's ranges
+        bool found = false;
         for(const LockRange &r : c.ranges)
         {
-            if(r.first <= pos && r.second >= pos)
+            if(contains(r, position()))
             {
+                // Current position is inside range
                 specific.first = std::min(specific.first,
                                           r.first);
                 specific.second = std::max(specific.second,
                                            r.second);
-                break;
+                // TODO: ranges should not overlap so here we would end loop
+                found = true;
             }
         }
+
+        if(!found)
+            continue;
 
         // Now ensure max is greater or equal to min
         // since it was reversed above
@@ -131,6 +142,12 @@ MechanicalInterface::LockRange MechanicalInterface::getLockRangeForPos(int pos, 
         total.second = std::min(specific.second,
                                 total.second);
     }
+
+    // Do an INTERSECTION on unsatisfied wanted conditions
+    total.first = std::max(mAllowedRangeByWanted.first,
+                           total.first);
+    total.second = std::min(mAllowedRangeByWanted.second,
+                            total.second);
 
     return total;
 }
@@ -154,6 +171,8 @@ void MechanicalInterface::setPosition(int newPosition)
         p += increment;
 
         mPosition = p;
+
+        updateWantsLocks();
 
         emitChanged(PositionPropName, mPosition);
         emit mObject->stateChanged(mObject);
@@ -184,6 +203,11 @@ void MechanicalInterface::setAbsoluteRange(int newMin, int newMax)
 
     if(rangeChanged)
     {
+        // Set fake locked range to allow every position
+        // It will be recalculated by object if needed
+        setLockedRange(absoluteMin(), absoluteMax());
+        mAllowedRangeByWanted = {absoluteMin(), absoluteMax()};
+
         // Recalculate angle and normal position
         emitChanged(AbsoluteRangePropName, QVariant());
         emit mObject->settingsChanged(mObject);
@@ -207,6 +231,9 @@ void MechanicalInterface::setLockedRange(int newMin, int newMax)
 
     if(newMax < newMin)
         newMax = newMin;
+
+    if(mLockedMin == newMin && mLockedMax == newMax)
+        return;
 
     mLockedMin = newMin;
     mLockedMax = newMax;
@@ -244,4 +271,260 @@ void MechanicalInterface::checkPositionValidForLock()
             diff++;
         }
     }
+}
+
+void MechanicalInterface::addConditionSet(const MechanicalConditionSet &cond)
+{
+    ConditionItem item;
+    item.conditions = cond;
+    mConditionSets.append(item);
+
+    recalculateObjectRelationship();
+    recalculateWantedConditionState();
+    updateWantsLocks();
+}
+
+void MechanicalInterface::recalculateWantedConditionState()
+{
+    LockRange allowedRange = {absoluteMin(), absoluteMax()};
+
+    // Intersect all conditions' allowed ranges
+    for(const ConditionItem& item : std::as_const(mConditionSets))
+    {
+        if(!item.conditions.isSatisfied())
+        {
+            // Condition's range applies only when it is not satisfied
+            const LockRange subRange = item.conditions.allowedRangeWhenLocked;
+            if(subRange.first > allowedRange.first)
+                allowedRange.first = subRange.first;
+            if(subRange.second < allowedRange.second)
+                allowedRange.second = subRange.second;
+        }
+    }
+
+    if(mAllowedRangeByWanted == allowedRange)
+        return; // No change
+
+    mAllowedRangeByWanted = allowedRange;
+    emitChanged(LockRangePropName, QVariant());
+}
+
+void MechanicalInterface::recalculateObjectRelationship()
+{
+    QVector<MechanicalInterface *> newWants;
+
+    for(const ConditionItem& item : std::as_const(mConditionSets))
+    {
+        item.conditions.rootCondition.getAllObjects(newWants);
+    }
+
+    for(auto iface : newWants)
+    {
+        if(mWantsObjects.contains(iface))
+            continue;
+
+        // Add relationship to other object
+        registerRelationship(iface);
+    }
+
+    for(auto iface : mWantsObjects)
+    {
+        if(newWants.contains(iface))
+            continue;
+
+        // Remove relationship to other object
+        unregisterRelationship(iface);
+    }
+
+    // TODO: is this correct?
+    //emitChanged(LockRangePropName, QVariant());
+}
+
+void MechanicalInterface::updateWantsLocks()
+{
+    // Notify all related objects want us in specific position to unlock
+    for(MechanicalInterface *other : std::as_const(mWantedByObjects))
+    {
+        other->recalculateWantedConditionState();
+    }
+
+    for(ConditionItem& item : mConditionSets)
+    {
+        if(item.conditions.isSatisfied() &&
+                !contains(item.conditions.allowedRangeWhenLocked, position()))
+        {
+            // We movede this object positions in a way that is allowed when this
+            // condition is satisfied and locked. So now lock other objets.
+            if(!item.lockedObjects.isEmpty())
+                continue; // Already locked
+
+            // Lock wanted objects
+            item.conditions.rootCondition.getLockConstraints(item.lockedObjects);
+            for(const LockConstraint& c : std::as_const(item.lockedObjects))
+            {
+                auto otherIface = c.obj->getInterface<MechanicalInterface>();
+                Q_ASSERT(otherIface);
+
+                // Lock other object
+                otherIface->setObjectLockConstraints(object(), c.ranges);
+            }
+        }
+        else
+        {
+            // We are inside allowed range so we can unlock other objects
+            if(item.lockedObjects.isEmpty())
+                continue; // Already unlocked
+
+            // Unlock
+            for(const LockConstraint& c : std::as_const(item.lockedObjects))
+            {
+                auto otherIface = c.obj->getInterface<MechanicalInterface>();
+                Q_ASSERT(otherIface);
+
+                // Reset our lock on other object
+                otherIface->setObjectLockConstraints(object(), {});
+            }
+            item.lockedObjects.clear();
+        }
+    }
+}
+
+void MechanicalInterface::registerRelationship(MechanicalInterface *other)
+{
+    Q_ASSERT(!mWantsObjects.contains(other));
+    Q_ASSERT(!other->mWantedByObjects.contains(this));
+
+    mWantsObjects.append(other);
+    other->mWantedByObjects.append(this);
+}
+
+void MechanicalInterface::unregisterRelationship(MechanicalInterface *other)
+{
+    Q_ASSERT(mWantsObjects.contains(other));
+    Q_ASSERT(other->mWantedByObjects.contains(this));
+
+    mWantsObjects.removeOne(other);
+    other->mWantedByObjects.removeOne(this);
+}
+
+bool MechanicalCondition::isSatisfied() const
+{
+    if(type == Type::Or)
+    {
+        return std::any_of(subConditions.constBegin(),
+                           subConditions.constEnd(),
+                           [](const MechanicalCondition& sub) -> bool
+        {
+            return sub.isSatisfied();
+        });
+    }
+    else if(type == Type::And)
+    {
+        return std::all_of(subConditions.constBegin(),
+                           subConditions.constEnd(),
+                           [](const MechanicalCondition& sub) -> bool
+        {
+            return sub.isSatisfied();
+        });
+    }
+
+    // Now check our lever
+    if(!otherIface)
+        return false;
+
+    const int otherPosition = otherIface->position();
+
+    if(type == Type::ExactPos)
+        return otherPosition == requiredPositions.first;
+
+    if(type == Type::RangePos)
+        return contains(requiredPositions, otherPosition);
+
+    if(type == Type::NotPos)
+    {
+        // This in reality is a range
+        // The lever must not be on this side respect to its central position.
+        // We use first position to deduce not allowed side
+        const int centralPos = otherIface->positionDesc().defaultValue;
+        const int notInPos = requiredPositions.first;
+        if(notInPos < centralPos)
+            return otherPosition >= centralPos;
+        if(notInPos > centralPos)
+            return otherPosition <= centralPos;
+    }
+
+    return false;
+}
+
+void MechanicalCondition::getAllObjects(QVector<MechanicalInterface *> &result) const
+{
+    if(type == Type::Or || type == Type::And)
+    {
+        for(auto sub : subConditions)
+            sub.getAllObjects(result);
+        return;
+    }
+
+    if(otherIface)
+        result.append(otherIface);
+}
+
+void MechanicalCondition::getLockConstraints(LockConstraints &result) const
+{
+    if(!isSatisfied())
+        return; // Only lock when satisfied
+
+    if(type == Type::Or || type == Type::And)
+    {
+        for(auto sub : subConditions)
+            sub.getLockConstraints(result);
+        return;
+    }
+
+    // Now check our lever
+    if(!otherIface)
+        return;
+
+    LockConstraint constraint;
+    constraint.obj = otherIface->object();
+
+    if(type == Type::ExactPos)
+    {
+        const int exactPos = requiredPositions.first;
+        constraint.ranges.append({exactPos, exactPos});
+    }
+    else if(type == Type::RangePos)
+    {
+        constraint.ranges.append(requiredPositions);
+    }
+    else if(type == Type::NotPos)
+    {
+        // This in reality is a range
+        // The lever must not be on this side respect to its central position.
+        // We use first position to deduce not allowed side
+        const int centralPos = otherIface->positionDesc().defaultValue;
+        const int notInPos = requiredPositions.first;
+
+        LockRange allowedRange = {otherIface->absoluteMin(),
+                                  otherIface->absoluteMax()};
+        if(notInPos < centralPos)
+            allowedRange.first = centralPos;
+        if(notInPos > centralPos)
+            allowedRange.second = centralPos;
+
+        constraint.ranges.append(allowedRange);
+    }
+
+    result.append(constraint);
+}
+
+bool MechanicalConditionSet::isSatisfied() const
+{
+    if(rootCondition.type == MechanicalCondition::Type::ExactPos && !rootCondition.otherIface)
+    {
+        // Empty condition, do not block
+        return true;
+    }
+
+    return rootCondition.isSatisfied();
 }
