@@ -183,13 +183,13 @@ void ACEILeverGraphItem::updateLeverTooltip()
     QString posStr;
     if(mLeverIface->isPositionMiddle(leverPos))
     {
-        // Position index increases going upwards
-        // so we say between above position (+1) and below position (-1)
+        // Position index increases going from left to right
+        // so we say between left position (-1) and right position (+1)
         posStr = tr("Between<br>"
                  "<b>%1</b><br>"
                  "and<br>"
                  "<b>%2</b>")
-                .arg(desc.name(leverPos + 1), desc.name(leverPos - 1));
+                .arg(desc.name(leverPos - 1), desc.name(leverPos + 1));
     }
     else
     {
