@@ -30,19 +30,19 @@ class ElectroMagnetObject;
 
 enum class ACESasibLeverPosition7
 {
-    TurnedBackwards = 0,
+    TurnedForward = 0,
     Middle1,
-    WaitLiberationBackwards,
+    WaitLiberationForward,
     Middle2,
-    WaitImmobilizationBackwards,
+    WaitImmobilizationForward,
     Middle3,
     Normal,
     Middle4,
-    WaitImmobilizationForward,
+    WaitImmobilizationBackwards,
     Middle5,
-    WaitLiberationForward,
+    WaitLiberationBackwards,
     Middle6,
-    TurnedForward
+    TurnedBackwards
 };
 
 class ACESasibLever7PosObject : public ACESasibLeverCommonObject

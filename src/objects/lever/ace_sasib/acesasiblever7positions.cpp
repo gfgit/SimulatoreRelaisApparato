@@ -29,42 +29,42 @@
 
 static const EnumDesc ace_sasib_7_posDesc =
 {
-    int(ACESasibLeverPosition7::TurnedBackwards),
     int(ACESasibLeverPosition7::TurnedForward),
+    int(ACESasibLeverPosition7::TurnedBackwards),
     int(ACESasibLeverPosition7::Normal),
     "ACESasibLever7PosObject",
     {
-        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Backwards"),
-        {},
-        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation B"),
-        {},
-        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization B"),
-        {},
-        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Normal"),
-        {},
-        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization F"),
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Forward"),
         {},
         QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation F"),
         {},
-        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Forward")
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization F"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Normal"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Immobilization B"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Wait Liberation B"),
+        {},
+        QT_TRANSLATE_NOOP("ACESasibLever7PosObject", "Backwards")
     }
 };
 
 static const LeverAngleDesc ace_sasib_7_angleDesc =
 {
-    {-70, -135}, // Backwards
+    {-70, -135}, // Forward
     {}, // Middle1
-    {-50, -90}, // Wait Liberation B
+    {-50, -90}, // Wait Liberation F
     {}, // Middle2
-    {-30, -45}, // Wait Immobilization B
+    {-30, -45}, // Wait Immobilization F
     {}, // Middle3
     {  0,   0}, // Normal
     {}, // Middle4
-    {+30, +45}, // Wait Immobilization F
+    {+30, +45}, // Wait Immobilization B
     {}, // Middle5
-    {+50, +90}, // Wait Liberation F
+    {+50, +90}, // Wait Liberation B
     {}, // Middle6
-    {+70, +135}, // Forward
+    {+70, +135}, // Backwards
 };
 
 ACESasibLever7PosObject::ACESasibLever7PosObject(AbstractSimulationObjectModel *m)
@@ -86,32 +86,32 @@ void ACESasibLever7PosObject::addElectromagnetLock()
     std::pair<ACESasibLeverPosition7, ACESasibLeverPosition7> range;
     bool empty = false;
 
-    if(pos <= ACESasibLeverPosition7::WaitLiberationBackwards)
+    if(pos <= ACESasibLeverPosition7::WaitLiberationForward)
     {
-        range = {ACESasibLeverPosition7::TurnedBackwards,
-                 ACESasibLeverPosition7::WaitLiberationBackwards};
+        range = {ACESasibLeverPosition7::TurnedForward,
+                 ACESasibLeverPosition7::WaitLiberationForward};
     }
-    else if(pos > ACESasibLeverPosition7::WaitLiberationBackwards &&
-            pos < ACESasibLeverPosition7::WaitImmobilizationBackwards)
+    else if(pos > ACESasibLeverPosition7::WaitLiberationForward &&
+            pos < ACESasibLeverPosition7::WaitImmobilizationForward)
     {
         empty = true; // Magnet is sliding on top of lever
     }
-    else if(pos >= ACESasibLeverPosition7::WaitImmobilizationBackwards &&
-            pos <= ACESasibLeverPosition7::WaitImmobilizationForward)
+    else if(pos >= ACESasibLeverPosition7::WaitImmobilizationForward &&
+            pos <= ACESasibLeverPosition7::WaitImmobilizationBackwards)
     {
         // There is Normal position inside this range
-        range = {ACESasibLeverPosition7::WaitImmobilizationBackwards,
-                 ACESasibLeverPosition7::WaitImmobilizationForward};
+        range = {ACESasibLeverPosition7::WaitImmobilizationForward,
+                 ACESasibLeverPosition7::WaitImmobilizationBackwards};
     }
-    else if(pos > ACESasibLeverPosition7::WaitImmobilizationForward &&
-            pos < ACESasibLeverPosition7::WaitLiberationForward)
+    else if(pos > ACESasibLeverPosition7::WaitImmobilizationBackwards &&
+            pos < ACESasibLeverPosition7::WaitLiberationBackwards)
     {
         empty = true; // Magnet is sliding on top of lever
     }
-    else if(pos >= ACESasibLeverPosition7::WaitLiberationForward)
+    else if(pos >= ACESasibLeverPosition7::WaitLiberationBackwards)
     {
-        range = {ACESasibLeverPosition7::WaitLiberationForward,
-                 ACESasibLeverPosition7::TurnedForward};
+        range = {ACESasibLeverPosition7::WaitLiberationBackwards,
+                 ACESasibLeverPosition7::TurnedBackwards};
     }
 
     MechanicalInterface::LockRanges ranges;
