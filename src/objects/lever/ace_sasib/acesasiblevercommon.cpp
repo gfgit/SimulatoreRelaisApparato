@@ -156,21 +156,24 @@ void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *ifac
         {
             // Mirror positions, let lever update locked range
             const int pos = mechanicalIface->position();
-            int newLeverAngle = leverInterface->angleForPosition(pos);
-            if(leverInterface->isPositionMiddle(pos))
+            if(pos != leverInterface->position())
             {
-                // Set an angle halfway between 2 positions
-                const int prevAngle = leverInterface->angleForPosition(pos - 1);
-                const int nextAngle = leverInterface->angleForPosition(pos + 1);
+                int newLeverAngle = leverInterface->angleForPosition(pos);
+                if(leverInterface->isPositionMiddle(pos))
+                {
+                    // Set an angle halfway between 2 positions
+                    const int prevAngle = leverInterface->angleForPosition(pos - 1);
+                    const int nextAngle = leverInterface->angleForPosition(pos + 1);
 
-                newLeverAngle = (prevAngle + nextAngle) / 2;
+                    newLeverAngle = (prevAngle + nextAngle) / 2;
+                }
+
+                leverInterface->setAngle(newLeverAngle);
+
+                // Check if position change was rejected
+                if(pos != leverInterface->position())
+                    mechanicalIface->setPosition(leverInterface->position());
             }
-
-            leverInterface->setAngle(newLeverAngle);
-
-            // Check if position change was rejected
-            if(mechanicalIface->position() != leverInterface->position())
-                mechanicalIface->setPosition(leverInterface->position());
         }
     }
     else if(iface == leverInterface)
@@ -210,9 +213,7 @@ void ACESasibLeverCommonObject::recalculateLockedRange()
 void ACESasibLeverCommonObject::setNewLockRange()
 {
     // Set new locked range
-    auto r = mechanicalIface->getLockRangeForPos(leverInterface->position(),
-                                                 leverInterface->absoluteMin(),
-                                                 leverInterface->absoluteMax());
+    auto r = mechanicalIface->getCurrentLockRange();
     leverInterface->setLockedRange(r.first, r.second);
     mechanicalIface->setLockedRange(r.first, r.second);
 
