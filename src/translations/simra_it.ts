@@ -8,6 +8,26 @@
         <source>NULL</source>
         <translation></translation>
     </message>
+    <message>
+        <location filename="../circuits/graphs/special/aceilevergraphitem.cpp" line="176"/>
+        <source>NO LEVER SET!!!</source>
+        <translation>NESSUNA LEVA IMPOSTATA!!!</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/special/aceilevergraphitem.cpp" line="188"/>
+        <source>Between&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;and&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</source>
+        <translation>Tra&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;e&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/special/aceilevergraphitem.cpp" line="196"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/special/aceilevergraphitem.cpp" line="200"/>
+        <source>ACEI Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
+        <translation>Leva ACEI: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
+    </message>
 </context>
 <context>
     <name>ACEILeverObject</name>
@@ -63,37 +83,37 @@
 <context>
     <name>ACESasibLever7PosObject</name>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="37"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="56"/>
         <source>Backwards</source>
         <translation>Indietro</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="39"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="54"/>
         <source>Wait Liberation B</source>
         <translation>Attesa Liberazione I</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="41"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="52"/>
         <source>Wait Immobilization B</source>
         <translation>Attesa Immobilizzazione I</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="43"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="50"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="45"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="48"/>
         <source>Wait Immobilization F</source>
         <translation>Attesa Immobilizzazione A</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="47"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="46"/>
         <source>Wait Liberation F</source>
         <translation>Attesa Liberazione A</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="49"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="44"/>
         <source>Forward</source>
         <translation>Avanti</translation>
     </message>
@@ -101,9 +121,29 @@
 <context>
     <name>ACESasibLeverGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/special/acesasiblevergraphitem.cpp" line="98"/>
+        <location filename="../circuits/graphs/special/acesasiblevergraphitem.cpp" line="102"/>
         <source>NULL</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/special/acesasiblevergraphitem.cpp" line="193"/>
+        <source>NO LEVER SET!!!</source>
+        <translation>NESSUNA LEVA IMPOSTATA!!!</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/special/acesasiblevergraphitem.cpp" line="205"/>
+        <source>Between&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;and&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</source>
+        <translation>Tra&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;e&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/special/acesasiblevergraphitem.cpp" line="213"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/special/acesasiblevergraphitem.cpp" line="217"/>
+        <source>ACE Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
+        <translation>Leva ACE: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
     </message>
 </context>
 <context>
@@ -375,7 +415,7 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../mainwindow.cpp" line="51"/>
         <source>Simulatore Relais Circuits (*.simrelaisc)</source>
-        <translation type="unfinished">Circuiti Simulatore Relè (*.simrelaisc)</translation>
+        <translation>Circuiti Simulatore Relè (*.simrelaisc)</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="97"/>
