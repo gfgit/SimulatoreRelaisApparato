@@ -67,10 +67,17 @@ signals:
 private slots:
     void onLeverDestroyed();
 
+    void onInterfacePropertyChanged(const QString &ifaceName,
+                                    const QString &propName,
+                                    const QVariant &value);
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
+
+private:
+    void updateLeverTooltip();
 
 private:
     AbstractSimulationObject *mLever = nullptr;

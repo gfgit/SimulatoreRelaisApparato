@@ -45,7 +45,7 @@
 ACEILeverGraphItem::ACEILeverGraphItem(OnOffSwitchNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-
+    updateLeverTooltip();
 }
 
 void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -169,6 +169,41 @@ void ACEILeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     AbstractNodeGraphItem::mouseReleaseEvent(ev);
 }
 
+void ACEILeverGraphItem::updateLeverTooltip()
+{
+    if(!mLeverIface)
+    {
+        setToolTip(tr("NO LEVER SET!!!"));
+        return;
+    }
+
+    const int leverPos = mLeverIface->position();
+    const auto& desc = mLeverIface->positionDesc();
+
+    QString posStr;
+    if(mLeverIface->isPositionMiddle(leverPos))
+    {
+        // Position index increases going upwards
+        // so we say between above position (+1) and below position (-1)
+        posStr = tr("Between<br>"
+                 "<b>%1</b><br>"
+                 "and<br>"
+                 "<b>%2</b>")
+                .arg(desc.name(leverPos + 1), desc.name(leverPos - 1));
+    }
+    else
+    {
+        posStr = tr("<b>%1</b>")
+                .arg(desc.name(leverPos));
+    }
+
+    QString tipText = tr("ACEI Lever: <b>%1</b><br>"
+                         "%2")
+            .arg(mLever->name(), posStr);
+
+    setToolTip(tipText);
+}
+
 AbstractSimulationObject *ACEILeverGraphItem::lever() const
 {
     return mLever;
@@ -185,6 +220,8 @@ void ACEILeverGraphItem::setLever(AbstractSimulationObject *newLever)
                    this, &ACEILeverGraphItem::onLeverDestroyed);
         disconnect(mLever, &AbstractSimulationObject::stateChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
+        disconnect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
+                   this, &ACEILeverGraphItem::onInterfacePropertyChanged);
         disconnect(mLever, &AbstractSimulationObject::settingsChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
         mLeverIface = nullptr;
@@ -198,11 +235,15 @@ void ACEILeverGraphItem::setLever(AbstractSimulationObject *newLever)
                 this, &ACEILeverGraphItem::onLeverDestroyed);
         connect(mLever, &AbstractSimulationObject::stateChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
+        connect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
+                this, &ACEILeverGraphItem::onInterfacePropertyChanged);
         connect(mLever, &AbstractSimulationObject::settingsChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
 
         mLeverIface = mLever->getInterface<LeverInterface>();
     }
+
+    updateLeverTooltip();
 
     emit leverChanged(mLever);
 }
@@ -241,7 +282,22 @@ void ACEILeverGraphItem::onLeverDestroyed()
 {
     mLever = nullptr;
     mLeverIface = nullptr;
+    updateLeverTooltip();
     emit leverChanged(mLever);
+}
+
+void ACEILeverGraphItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
+{
+    if(ifaceName == LeverInterface::IfaceType)
+    {
+        if(!mLeverIface)
+            return;
+
+        if(propName == LeverInterface::PositionPropName)
+        {
+            updateLeverTooltip();
+        }
+    }
 }
 
 QString FakeLeverNode::nodeType() const
