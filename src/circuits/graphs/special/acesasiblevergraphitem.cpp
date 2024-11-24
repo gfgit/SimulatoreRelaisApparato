@@ -44,7 +44,7 @@
 ACESasibLeverGraphItem::ACESasibLeverGraphItem(OnOffSwitchNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-
+    updateLeverTooltip();
 }
 
 void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -54,12 +54,12 @@ void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
 
-    QRectF hole(QPointF(), QSizeF(20, 80));
-    hole.moveCenter(center);
+    QRectF hole(QPointF(), holeSize);
+    hole.moveCenter(QPointF(center.x(), center.y() + holeCenterOffsetY));
 
     painter->fillRect(hole, Qt::darkGray);
 
-    constexpr double circleRadius = 10;
+    constexpr double circleRadius = 8;
 
     QRectF circle;
     circle.setSize(QSizeF(circleRadius * 2,
@@ -72,7 +72,7 @@ void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     // This is inverted because Y axis increases from top to bottom (goes downwards)
     const double leverY = qCos(angleRadiants) * hole.height() / 2.0;
 
-    const QPointF leverTip(center.x(), leverY + center.y());
+    const QPointF leverTip(center.x(), leverY + hole.center().y());
     circle.moveCenter(leverTip);
 
     QColor color = Qt::darkCyan;
@@ -87,7 +87,7 @@ void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     // Draw lever line
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
-    painter->drawLine(center, leverTip);
+    painter->drawLine(hole.center(), leverTip);
 
     // Draw circle
     painter->setBrush(color);
@@ -133,11 +133,11 @@ void ACESasibLeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
             QPointF delta = ev->pos() - mLastMousePos;
             if(delta.manhattanLength() > 2)
             {
-                QRectF hole(QPointF(), QSizeF(20, 80));
-                hole.moveCenter(center);
+                QRectF hole(QPointF(), holeSize);
+                hole.moveCenter(QPointF(center.x(), center.y() + holeCenterOffsetY));
 
                 // Calculate angle
-                const double leverY = ev->pos().y() - center.y();
+                const double leverY = ev->pos().y() - hole.center().y();
 
                 int newAngle = 0;
 
@@ -186,6 +186,41 @@ void ACESasibLeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     AbstractNodeGraphItem::mouseReleaseEvent(ev);
 }
 
+void ACESasibLeverGraphItem::updateLeverTooltip()
+{
+    if(!mLeverIface)
+    {
+        setToolTip(tr("NO LEVER SET!!!"));
+        return;
+    }
+
+    const int leverPos = mLeverIface->position();
+    const auto& desc = mLeverIface->positionDesc();
+
+    QString posStr;
+    if(mLeverIface->isPositionMiddle(leverPos))
+    {
+        // Position index increases going upwards
+        // so we say between above position (+1) and below position (-1)
+        posStr = tr("Between<br>"
+                 "<b>%1</b><br>"
+                 "and<br>"
+                 "<b>%2</b>")
+                .arg(desc.name(leverPos + 1), desc.name(leverPos - 1));
+    }
+    else
+    {
+        posStr = tr("<b>%1</b>")
+                .arg(desc.name(leverPos));
+    }
+
+    QString tipText = tr("ACE Lever: <b>%1</b><br>"
+                         "%2")
+            .arg(mLever->name(), posStr);
+
+    setToolTip(tipText);
+}
+
 AbstractSimulationObject *ACESasibLeverGraphItem::lever() const
 {
     return mLever;
@@ -202,6 +237,8 @@ void ACESasibLeverGraphItem::setLever(AbstractSimulationObject *newLever)
                    this, &ACESasibLeverGraphItem::onLeverDestroyed);
         disconnect(mLever, &AbstractSimulationObject::stateChanged,
                    this, &ACESasibLeverGraphItem::triggerUpdate);
+        disconnect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
+                   this, &ACESasibLeverGraphItem::onInterfacePropertyChanged);
         disconnect(mLever, &AbstractSimulationObject::settingsChanged,
                    this, &ACESasibLeverGraphItem::triggerUpdate);
         mLeverIface = nullptr;
@@ -215,11 +252,15 @@ void ACESasibLeverGraphItem::setLever(AbstractSimulationObject *newLever)
                 this, &ACESasibLeverGraphItem::onLeverDestroyed);
         connect(mLever, &AbstractSimulationObject::stateChanged,
                 this, &ACESasibLeverGraphItem::triggerUpdate);
+        connect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
+                this, &ACESasibLeverGraphItem::onInterfacePropertyChanged);
         connect(mLever, &AbstractSimulationObject::settingsChanged,
                 this, &ACESasibLeverGraphItem::triggerUpdate);
 
         mLeverIface = mLever->getInterface<LeverInterface>();
     }
+
+    updateLeverTooltip();
 
     emit leverChanged(mLever);
 }
@@ -258,7 +299,22 @@ void ACESasibLeverGraphItem::onLeverDestroyed()
 {
     mLever = nullptr;
     mLeverIface = nullptr;
+    updateLeverTooltip();
     emit leverChanged(mLever);
+}
+
+void ACESasibLeverGraphItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
+{
+    if(ifaceName == LeverInterface::IfaceType)
+    {
+        if(!mLeverIface)
+            return;
+
+        if(propName == LeverInterface::PositionPropName)
+        {
+            updateLeverTooltip();
+        }
+    }
 }
 
 QString FakeLeverNode2::nodeType() const

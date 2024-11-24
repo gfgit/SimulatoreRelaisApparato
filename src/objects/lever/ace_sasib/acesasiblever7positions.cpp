@@ -27,6 +27,13 @@
 
 #include "../../simple_activable/electromagnet.h"
 
+
+
+#include "../../abstractsimulationobjectmodel.h"
+#include "acesasiblever5positions.h"
+
+#include "../../../views/modemanager.h"
+
 static const EnumDesc ace_sasib_7_posDesc =
 {
     int(ACESasibLeverPosition7::TurnedForward),
@@ -52,7 +59,7 @@ static const EnumDesc ace_sasib_7_posDesc =
 
 static const LeverAngleDesc ace_sasib_7_angleDesc =
 {
-    {-70, -135}, // Forward
+    {-80, -135}, // Forward
     {}, // Middle1
     {-50, -90}, // Wait Liberation F
     {}, // Middle2
@@ -64,7 +71,7 @@ static const LeverAngleDesc ace_sasib_7_angleDesc =
     {}, // Middle5
     {+50, +90}, // Wait Liberation B
     {}, // Middle6
-    {+70, +135}, // Backwards
+    {+80, +135}, // Backwards
 };
 
 ACESasibLever7PosObject::ACESasibLever7PosObject(AbstractSimulationObjectModel *m)
@@ -76,6 +83,86 @@ ACESasibLever7PosObject::ACESasibLever7PosObject(AbstractSimulationObjectModel *
 QString ACESasibLever7PosObject::getType() const
 {
     return Type;
+}
+
+bool ACESasibLever7PosObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
+{
+    ACESasibLeverCommonObject::loadFromJSON(obj, phase);
+
+    if(phase == LoadPhase::AllCreated)
+    {
+        // Conditions to go backwards
+        MechanicalConditionSet set1;
+        set1.allowedRangeWhenLocked = {int(ACESasibLeverPosition7::TurnedForward),
+                                       int(ACESasibLeverPosition7::Normal)};
+
+        // Conditions to go forward
+        MechanicalConditionSet set2;
+        set2.allowedRangeWhenLocked = {int(ACESasibLeverPosition7::Normal),
+                                       int(ACESasibLeverPosition7::TurnedBackwards)};
+
+        MechanicalCondition c;
+        c.type = MechanicalCondition::Type::ExactPos;
+
+        if(name() == "S32")
+        {
+            MechanicalCondition and_;
+            and_.type = MechanicalCondition::Type::And;
+
+            // Lock I24
+            auto other = model()->getObjectByName("I24");
+            if(other)
+            {
+                auto otherIface = other->getInterface<MechanicalInterface>();
+                //c.type = MechanicalCondition::Type::ExactPos;
+                c.type = MechanicalCondition::Type::RangePos;
+                c.requiredPositions.first = int(ACESasibLeverPosition7::TurnedBackwards);
+                c.requiredPositions.first = int(ACESasibLeverPosition7::WaitLiberationBackwards);
+                c.otherIface = otherIface;
+                and_.subConditions.append(c);
+            }
+
+            auto other2 = model()->getObjectByName("I25");
+            if(other2)
+            {
+                MechanicalCondition c2;
+                c2.type = MechanicalCondition::Type::NotPos;
+                c2.requiredPositions.first = int(ACESasibLeverPosition7::TurnedBackwards);
+                c2.otherIface = other2->getInterface<MechanicalInterface>();
+                and_.subConditions.append(c2);
+            }
+
+            set1.rootCondition = and_;
+
+            c.requiredPositions.first = int(ACESasibLeverPosition7::TurnedForward);
+            set2.rootCondition = c;
+
+            mechanicalIface->addConditionSet(set1);
+            //mechanicalIface->addConditionSet(set2);
+
+        }
+        else if(name() == "I24")
+        {
+            auto other = model()->modeMgr()->modelForType(ACESasibLever5PosObject::Type)->getObjectByName("D13");
+
+            if(other)
+            {
+                auto otherIface = other->getInterface<MechanicalInterface>();
+                c.requiredPositions.first = int(ACESasibLeverPosition5::Normal);
+                c.otherIface = otherIface;
+
+                set1.rootCondition = c;
+
+                c.requiredPositions.first = int(ACESasibLeverPosition5::Reverse);
+                set2.rootCondition = c;
+
+                mechanicalIface->addConditionSet(set1);
+                mechanicalIface->addConditionSet(set2);
+            }
+        }
+    }
+
+    return true;
 }
 
 void ACESasibLever7PosObject::addElectromagnetLock()

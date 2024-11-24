@@ -50,7 +50,7 @@ static const EnumDesc ace_sasib_5_posDesc =
 
 static const LeverAngleDesc ace_sasib_5_angleDesc =
 {
-    {-70, -135}, // Reverse
+    {-80, -135}, // Reverse
     {}, // Middle1
     {-50, -90}, // Check circuits R
     {}, // Middle2
@@ -62,7 +62,7 @@ static const LeverAngleDesc ace_sasib_5_angleDesc =
     {}, // Middle4
     {+50, +90}, // Check circuits N
     {}, // Middle5
-    {+70, +135}, // Normal
+    {+80, +135}, // Normal
 };
 
 ACESasibLever5PosObject::ACESasibLever5PosObject(AbstractSimulationObjectModel *m)
