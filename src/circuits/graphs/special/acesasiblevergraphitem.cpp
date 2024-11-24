@@ -54,22 +54,26 @@ void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
 
+    QRectF hole(QPointF(), QSizeF(20, 80));
+    hole.moveCenter(center);
+
+    painter->fillRect(hole, Qt::darkGray);
+
     constexpr double circleRadius = 10;
-    constexpr double leverLength = 40;
 
     QRectF circle;
     circle.setSize(QSizeF(circleRadius * 2,
                           circleRadius * 2));
-    circle.moveCenter(center);
 
-    // Zero is vertical up, so cos/sin are swapped
-    // Also returned angle must be inverted to be clockwise
-    const double angleRadiants = -qDegreesToRadians(mLeverIface ? mLeverIface->angle() : 0);
+    // Angle is vertical (+/- 90) -> cos is null
+    // We get 0 for vertical lever and we want it to be 90, so add +90
+    const double angleRadiants = qDegreesToRadians(mLeverIface ? mLeverIface->angle() + 90: 0);
 
-    QPointF endPt(qSin(angleRadiants),
-                  qCos(angleRadiants));
-    endPt *= -leverLength; // Negative to go upwards
-    endPt += center;
+    // This is inverted because Y axis increases from top to bottom (goes downwards)
+    const double leverY = qCos(angleRadiants) * hole.height() / 2.0;
+
+    const QPointF leverTip(center.x(), leverY + center.y());
+    circle.moveCenter(leverTip);
 
     QColor color = Qt::darkCyan;
     if(!mLeverIface || mLeverIface->isPressed())
@@ -78,12 +82,12 @@ void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
     pen.setColor(color);
-    pen.setWidth(5);
+    pen.setWidth(8);
 
     // Draw lever line
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
-    painter->drawLine(center, endPt);
+    painter->drawLine(center, leverTip);
 
     // Draw circle
     painter->setBrush(color);
@@ -101,7 +105,7 @@ void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
 void ACESasibLeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
+    if(getAbstractNode()->modeMgr()->mode() == FileMode::Simulation
             && mLeverIface)
     {
         if(ev->button() == Qt::LeftButton)
@@ -129,14 +133,28 @@ void ACESasibLeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
             QPointF delta = ev->pos() - mLastMousePos;
             if(delta.manhattanLength() > 2)
             {
+                QRectF hole(QPointF(), QSizeF(20, 80));
+                hole.moveCenter(center);
+
                 // Calculate angle
-                delta = center - ev->pos();
+                const double leverY = ev->pos().y() - center.y();
 
-                // Zero is vertical up, so x/y are swapped
-                // Also returned angle must be inverted to be clockwise
-                const double angleRadiants = -qAtan2(delta.x(), delta.y());
+                int newAngle = 0;
 
-                int newAngle = qRound(qRadiansToDegrees(angleRadiants));
+                // Bound qAcos argument to (0, 1) interval
+                if(ev->pos().y() > hole.bottom() || qFuzzyCompare(ev->pos().y(), hole.bottom()))
+                    newAngle = -90; // Below bottom
+                else if(ev->pos().y() < hole.top() || qFuzzyCompare(ev->pos().y(), hole.top()))
+                    newAngle = 90; // Above top
+                else
+                {
+                    // This is inverted because Y axis increases from top to bottom (goes downwards)
+                    const double angleRadiants = qAcos(2.0 * leverY / hole.height());
+
+                    // Angle is vertical (+/- 90)-> cos is null
+                    // We get 90 for vertical but we want it to be zero for lever position, so add +90
+                    newAngle = qRound(qRadiansToDegrees(angleRadiants)) - 90;
+                }
 
                 // Disable snap with shift
                 if(ev->modifiers() == Qt::ShiftModifier)
