@@ -256,6 +256,9 @@ void LeverInterface::setLockedRange(int newMin, int newMax)
     if(newMax < newMin)
         newMax = newMin;
 
+    if(mLockedMin == newMin && mLockedMax == newMax)
+        return;
+
     mLockedMin = newMin;
     mLockedMax = newMax;
 }
