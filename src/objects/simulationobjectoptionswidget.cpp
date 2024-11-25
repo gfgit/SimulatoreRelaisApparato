@@ -25,14 +25,24 @@
 #include "abstractsimulationobjectmodel.h"
 #include "abstractsimulationobject.h"
 
+#include <QVBoxLayout>
 #include <QFormLayout>
+#include <QScrollArea>
 #include <QLineEdit>
 
 SimulationObjectOptionsWidget::SimulationObjectOptionsWidget(AbstractSimulationObject *object, QWidget *parent)
     : QWidget{parent}
     , mObject(object)
 {
-    QFormLayout *lay = new QFormLayout(this);
+    QVBoxLayout *mainLay = new QVBoxLayout(this);
+    scrollArea = new QScrollArea;
+    scrollArea->setWidgetResizable(true);
+    mainLay->addWidget(scrollArea);
+
+    QWidget *viewport = new QWidget;
+    scrollArea->setWidget(viewport);
+
+    QFormLayout *lay = new QFormLayout(viewport);
 
     // Name
     mNameEdit = new QLineEdit;
@@ -78,7 +88,7 @@ SimulationObjectOptionsWidget::SimulationObjectOptionsWidget(AbstractSimulationO
 
 void SimulationObjectOptionsWidget::addCustomWidget(QWidget *w)
 {
-    static_cast<QFormLayout *>(layout())->addRow(w);
+    static_cast<QFormLayout *>(scrollArea->widget()->layout())->addRow(w);
 }
 
 QString SimulationObjectOptionsWidget::uniqueId() const

@@ -30,6 +30,8 @@ class QLineEdit;
 class AbstractSimulationObjectModel;
 class AbstractSimulationObject;
 
+class QScrollArea;
+
 class SimulationObjectOptionsWidget : public QWidget
 {
     Q_OBJECT
@@ -59,6 +61,8 @@ private:
     QLineEdit *mDescriptionEdit = nullptr;
 
     QPalette normalEditPalette;
+
+    QScrollArea *scrollArea = nullptr;
 };
 
 #endif // SIMULATIONOBJECTOPTIONSWIDGET_H
