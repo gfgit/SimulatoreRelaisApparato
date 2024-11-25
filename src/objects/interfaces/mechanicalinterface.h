@@ -29,6 +29,7 @@
 #include "../../utils/enum_desc.h"
 
 #include <QVector>
+#include <QVarLengthArray>
 
 class MechanicalInterface : public AbstractObjectInterface
 {
@@ -37,21 +38,43 @@ public:
     typedef MechanicalCondition::LockRanges LockRanges;
     typedef MechanicalCondition::LockConstraint LockConstraint;
     typedef MechanicalCondition::LockConstraints LockConstraints;
+    typedef QVarLengthArray<MechanicalCondition::Type, 3> AllowedConditions;
+    typedef QVarLengthArray<int, 3> LockablePositions;
 
     struct ConditionItem
     {
         MechanicalConditionSet conditions;
         QVector<LockConstraint> lockedObjects;
+        QString title;
+
+        inline bool isLocked() const
+        {
+            return !lockedObjects.isEmpty();
+        }
+
+        void setLocked(bool lock, AbstractSimulationObject *self);
+
+        inline bool isSatisfied() const
+        {
+            return conditions.isSatisfied();
+        }
+
+        inline bool shouldLock(int position) const
+        {
+            return conditions.shouldLock(position);
+        }
     };
 
     // Property names
     static constexpr QLatin1String LockRangePropName = QLatin1String("lock_range");
     static constexpr QLatin1String PositionPropName = QLatin1String("position");
     static constexpr QLatin1String AbsoluteRangePropName = QLatin1String("abs_range");
+    static constexpr QLatin1String MecConditionsPropName = QLatin1String("mec_conditions");
 
 
     MechanicalInterface(const EnumDesc &posDesc,
                         AbstractSimulationObject *obj);
+    ~MechanicalInterface();
 
     static constexpr QLatin1String IfaceType = QLatin1String("mechanical");
     QString ifaceType() override;
@@ -92,9 +115,23 @@ public:
     void setLockedRange(int newMin, int newMax);
     void checkPositionValidForLock();
 
-    void addConditionSet(const MechanicalConditionSet& cond);
+    inline int getConditionsSetsCount() const { return mConditionSets.size(); }
+
+    void addConditionSet(const QString &title);
+    void removeConditionSet(int idx);
+
+    void setConditionSetRange(int idx, const LockRange& range);
+
+    void setConditionSetConditions(int idx, const MechanicalCondition& c);
+    ConditionItem getConditionSet(int idx) const;
 
     void recalculateWantedConditionState();
+
+    const AllowedConditions& allowedConditionTypes() const;
+    void setAllowedConditionTypes(const AllowedConditions &newAllowedConditions);
+
+    const LockablePositions& lockablePositions() const;
+    void setLockablePositions(const LockablePositions &newLockablePositions);
 
 protected:
     inline bool isPositionValidForLock(int pos) const
@@ -108,7 +145,7 @@ protected:
 
 private:
     void registerRelationship(MechanicalInterface *other);
-    void unregisterRelationship(MechanicalInterface *other);
+    void unregisterRelationship(MechanicalInterface *other, bool doRelock = true);
 
 private:
     const EnumDesc mPositionDesc;
@@ -125,6 +162,9 @@ private:
     QVector<ConditionItem> mConditionSets;
     QVector<MechanicalInterface *> mWantsObjects;
     QVector<MechanicalInterface *> mWantedByObjects;
+
+    AllowedConditions mAllowedConditionTypes;
+    LockablePositions mLockablePositions;
 };
 
 #endif // MECHANICALINTERFACE_H

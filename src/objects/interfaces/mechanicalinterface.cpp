@@ -33,6 +33,22 @@ MechanicalInterface::MechanicalInterface(const EnumDesc &posDesc,
 
 }
 
+MechanicalInterface::~MechanicalInterface()
+{
+    // Remove relationship to other object
+    const auto wantsCopy = mWantsObjects;
+    for(auto otherIface : wantsCopy)
+    {
+        unregisterRelationship(otherIface);
+    }
+
+    const auto wantedByCopy = mWantedByObjects;
+    for(auto otherIface : wantedByCopy)
+    {
+        otherIface->unregisterRelationship(this);
+    }
+}
+
 QString MechanicalInterface::ifaceType()
 {
     return IfaceType;
@@ -268,15 +284,78 @@ void MechanicalInterface::checkPositionValidForLock()
     }
 }
 
-void MechanicalInterface::addConditionSet(const MechanicalConditionSet &cond)
+void MechanicalInterface::addConditionSet(const QString& title)
 {
     ConditionItem item;
-    item.conditions = cond;
+    item.title = title;
     mConditionSets.append(item);
+}
 
+void MechanicalInterface::removeConditionSet(int idx)
+{
+    if(idx < 0 || idx >= mConditionSets.size())
+        return;
+
+    // Unlock
+    ConditionItem& item = mConditionSets[idx];
+    if(item.isLocked())
+        item.setLocked(false, object());
+
+    // Remove
+    mConditionSets.removeAt(idx);
+
+    // Refresh state
     recalculateObjectRelationship();
     recalculateWantedConditionState();
+}
+
+void MechanicalInterface::setConditionSetRange(int idx, const LockRange &range)
+{
+    if(idx < 0 || idx >= mConditionSets.size())
+        return;
+
+    // Update
+    ConditionItem& item = mConditionSets[idx];
+    item.conditions.allowedRangeWhenUnstatisfied = range;
+
+    // Refresh state
+    recalculateObjectRelationship();
+    recalculateWantedConditionState();
+    checkPositionValidForLock();
     updateWantsLocks();
+
+    emitChanged(MecConditionsPropName, idx);
+    emit mObject->settingsChanged(mObject);
+}
+
+void MechanicalInterface::setConditionSetConditions(int idx, const MechanicalCondition &c)
+{
+    if(idx < 0 || idx >= mConditionSets.size())
+        return;
+
+    // Update
+    ConditionItem& item = mConditionSets[idx];
+
+    MechanicalCondition simplified = c;
+    simplified.removeInvalidConditions();
+    simplified.simplifyTree();
+    item.conditions.rootCondition = simplified;
+
+    // Refresh state
+    recalculateObjectRelationship();
+    recalculateWantedConditionState();
+    checkPositionValidForLock();
+    updateWantsLocks();
+
+    emitChanged(MecConditionsPropName, idx);
+    emit mObject->settingsChanged(mObject);
+}
+
+MechanicalInterface::ConditionItem MechanicalInterface::getConditionSet(int idx) const
+{
+    if(idx < 0 || idx >= mConditionSets.size())
+        return {};
+    return mConditionSets.at(idx);
 }
 
 void MechanicalInterface::recalculateWantedConditionState()
@@ -373,11 +452,66 @@ void MechanicalInterface::registerRelationship(MechanicalInterface *other)
     other->mWantedByObjects.append(this);
 }
 
-void MechanicalInterface::unregisterRelationship(MechanicalInterface *other)
+void MechanicalInterface::unregisterRelationship(MechanicalInterface *other, bool doRelock)
 {
     Q_ASSERT(mWantsObjects.contains(other));
     Q_ASSERT(other->mWantedByObjects.contains(this));
 
     mWantsObjects.removeOne(other);
     other->mWantedByObjects.removeOne(this);
+
+    // Remove ranges locked by us
+    other->setObjectLockConstraints(object(), {});
+
+    bool needsRelock = false;
+
+    // Remove other object from our conditions
+    for(ConditionItem& item : mConditionSets)
+    {
+        if(!item.conditions.rootCondition.containsReferencesTo(other))
+            continue; // This condition does not reference other item, skip it
+
+        if(item.isLocked())
+        {
+            item.setLocked(false, object()); // Release referenced objects
+            needsRelock = true;
+        }
+
+        item.conditions.rootCondition.removeReferencesTo(other);
+    }
+
+    if(needsRelock && doRelock)
+    {
+        // Re-lock referenced objects if needed
+        // Some conditions may not be satisfied anymore
+        // so also recalculate their state
+        recalculateWantedConditionState();
+        updateWantsLocks();
+    }
+}
+
+const MechanicalInterface::LockablePositions& MechanicalInterface::lockablePositions() const
+{
+    return mLockablePositions;
+}
+
+void MechanicalInterface::setLockablePositions(const LockablePositions &newLockablePositions)
+{
+    if(mLockablePositions == newLockablePositions)
+        return;
+
+    mLockablePositions = newLockablePositions;
+}
+
+const MechanicalInterface::AllowedConditions& MechanicalInterface::allowedConditionTypes() const
+{
+    return mAllowedConditionTypes;
+}
+
+void MechanicalInterface::setAllowedConditionTypes(const AllowedConditions &newAllowedConditions)
+{
+    if(mAllowedConditionTypes == newAllowedConditions)
+        return;
+
+    mAllowedConditionTypes = newAllowedConditions;
 }
