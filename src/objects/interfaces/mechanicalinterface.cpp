@@ -25,11 +25,6 @@
 
 #include <QJsonObject>
 
-static inline bool contains(const MechanicalCondition::LockRange &range, int position)
-{
-    return range.first <= position && range.second >= position;
-}
-
 MechanicalInterface::MechanicalInterface(const EnumDesc &posDesc,
                                          AbstractSimulationObject *obj)
     : AbstractObjectInterface(obj)
@@ -116,7 +111,7 @@ MechanicalInterface::LockRange MechanicalInterface::getCurrentLockRange() const
         bool found = false;
         for(const LockRange &r : c.ranges)
         {
-            if(contains(r, position()))
+            if(MechanicalCondition::contains(r, position()))
             {
                 // Current position is inside range
                 specific.first = std::min(specific.first,
@@ -289,12 +284,12 @@ void MechanicalInterface::recalculateWantedConditionState()
     LockRange allowedRange = {absoluteMin(), absoluteMax()};
 
     // Intersect all conditions' allowed ranges
-    for(const ConditionItem& item : std::as_const(mConditionSets))
+    for(const ConditionItem& cond : std::as_const(mConditionSets))
     {
-        if(!item.conditions.isSatisfied())
+        if(!cond.isSatisfied())
         {
             // Condition's range applies only when it is not satisfied
-            const LockRange subRange = item.conditions.allowedRangeWhenLocked;
+            const LockRange subRange = cond.conditions.allowedRangeWhenUnstatisfied;
             if(subRange.first > allowedRange.first)
                 allowedRange.first = subRange.first;
             if(subRange.second < allowedRange.second)
@@ -318,6 +313,17 @@ void MechanicalInterface::recalculateObjectRelationship()
         item.conditions.rootCondition.getAllObjects(newWants);
     }
 
+    for(auto iface : mWantsObjects)
+    {
+        if(newWants.contains(iface))
+            continue;
+
+        // Remove relationship to other object
+        // Do not recalculate conditions,
+        // it will be done manually later.
+        unregisterRelationship(iface, false);
+    }
+
     for(auto iface : newWants)
     {
         if(mWantsObjects.contains(iface))
@@ -326,18 +332,6 @@ void MechanicalInterface::recalculateObjectRelationship()
         // Add relationship to other object
         registerRelationship(iface);
     }
-
-    for(auto iface : mWantsObjects)
-    {
-        if(newWants.contains(iface))
-            continue;
-
-        // Remove relationship to other object
-        unregisterRelationship(iface);
-    }
-
-    // TODO: is this correct?
-    //emitChanged(LockRangePropName, QVariant());
 }
 
 void MechanicalInterface::updateWantsLocks()
@@ -348,43 +342,24 @@ void MechanicalInterface::updateWantsLocks()
         other->recalculateWantedConditionState();
     }
 
-    for(ConditionItem& item : mConditionSets)
+    for(ConditionItem& cond : mConditionSets)
     {
-        if(item.conditions.isSatisfied() &&
-                !contains(item.conditions.allowedRangeWhenLocked, position()))
+        if(cond.isSatisfied() && cond.shouldLock(position()))
         {
             // We movede this object positions in a way that is allowed when this
             // condition is satisfied and locked. So now lock other objets.
-            if(!item.lockedObjects.isEmpty())
+            if(cond.isLocked())
                 continue; // Already locked
 
-            // Lock wanted objects
-            item.conditions.rootCondition.getLockConstraints(item.lockedObjects);
-            for(const LockConstraint& c : std::as_const(item.lockedObjects))
-            {
-                auto otherIface = c.obj->getInterface<MechanicalInterface>();
-                Q_ASSERT(otherIface);
-
-                // Lock other object
-                otherIface->setObjectLockConstraints(object(), c.ranges);
-            }
+            cond.setLocked(true, object());
         }
         else
         {
             // We are inside allowed range so we can unlock other objects
-            if(item.lockedObjects.isEmpty())
+            if(!cond.isLocked())
                 continue; // Already unlocked
 
-            // Unlock
-            for(const LockConstraint& c : std::as_const(item.lockedObjects))
-            {
-                auto otherIface = c.obj->getInterface<MechanicalInterface>();
-                Q_ASSERT(otherIface);
-
-                // Reset our lock on other object
-                otherIface->setObjectLockConstraints(object(), {});
-            }
-            item.lockedObjects.clear();
+            cond.setLocked(false, object());
         }
     }
 }
@@ -405,126 +380,4 @@ void MechanicalInterface::unregisterRelationship(MechanicalInterface *other)
 
     mWantsObjects.removeOne(other);
     other->mWantedByObjects.removeOne(this);
-}
-
-bool MechanicalCondition::isSatisfied() const
-{
-    if(type == Type::Or)
-    {
-        return std::any_of(subConditions.constBegin(),
-                           subConditions.constEnd(),
-                           [](const MechanicalCondition& sub) -> bool
-        {
-            return sub.isSatisfied();
-        });
-    }
-    else if(type == Type::And)
-    {
-        return std::all_of(subConditions.constBegin(),
-                           subConditions.constEnd(),
-                           [](const MechanicalCondition& sub) -> bool
-        {
-            return sub.isSatisfied();
-        });
-    }
-
-    // Now check our lever
-    if(!otherIface)
-        return false;
-
-    const int otherPosition = otherIface->position();
-
-    if(type == Type::ExactPos)
-        return otherPosition == requiredPositions.first;
-
-    if(type == Type::RangePos)
-        return contains(requiredPositions, otherPosition);
-
-    if(type == Type::NotPos)
-    {
-        // This in reality is a range
-        // The lever must not be on this side respect to its central position.
-        // We use first position to deduce not allowed side
-        const int centralPos = otherIface->positionDesc().defaultValue;
-        const int notInPos = requiredPositions.first;
-        if(notInPos < centralPos)
-            return otherPosition >= centralPos;
-        if(notInPos > centralPos)
-            return otherPosition <= centralPos;
-    }
-
-    return false;
-}
-
-void MechanicalCondition::getAllObjects(QVector<MechanicalInterface *> &result) const
-{
-    if(type == Type::Or || type == Type::And)
-    {
-        for(auto sub : subConditions)
-            sub.getAllObjects(result);
-        return;
-    }
-
-    if(otherIface)
-        result.append(otherIface);
-}
-
-void MechanicalCondition::getLockConstraints(LockConstraints &result) const
-{
-    if(!isSatisfied())
-        return; // Only lock when satisfied
-
-    if(type == Type::Or || type == Type::And)
-    {
-        for(auto sub : subConditions)
-            sub.getLockConstraints(result);
-        return;
-    }
-
-    // Now check our lever
-    if(!otherIface)
-        return;
-
-    LockConstraint constraint;
-    constraint.obj = otherIface->object();
-
-    if(type == Type::ExactPos)
-    {
-        const int exactPos = requiredPositions.first;
-        constraint.ranges.append({exactPos, exactPos});
-    }
-    else if(type == Type::RangePos)
-    {
-        constraint.ranges.append(requiredPositions);
-    }
-    else if(type == Type::NotPos)
-    {
-        // This in reality is a range
-        // The lever must not be on this side respect to its central position.
-        // We use first position to deduce not allowed side
-        const int centralPos = otherIface->positionDesc().defaultValue;
-        const int notInPos = requiredPositions.first;
-
-        LockRange allowedRange = {otherIface->absoluteMin(),
-                                  otherIface->absoluteMax()};
-        if(notInPos < centralPos)
-            allowedRange.first = centralPos;
-        if(notInPos > centralPos)
-            allowedRange.second = centralPos;
-
-        constraint.ranges.append(allowedRange);
-    }
-
-    result.append(constraint);
-}
-
-bool MechanicalConditionSet::isSatisfied() const
-{
-    if(rootCondition.type == MechanicalCondition::Type::ExactPos && !rootCondition.otherIface)
-    {
-        // Empty condition, do not block
-        return true;
-    }
-
-    return rootCondition.isSatisfied();
 }

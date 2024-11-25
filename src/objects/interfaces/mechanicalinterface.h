@@ -24,55 +24,11 @@
 #define MECHANICALINTERFACE_H
 
 #include "abstractobjectinterface.h"
+#include "mechanical/mechanicalcondition.h"
 
 #include "../../utils/enum_desc.h"
 
 #include <QVector>
-
-class MechanicalInterface;
-
-struct MechanicalCondition
-{
-    enum class Type
-    {
-        ExactPos = 0,
-        RangePos,
-        NotPos,
-        Or,
-        And
-    };
-
-    typedef std::pair<int, int> LockRange;
-    typedef QVector<LockRange> LockRanges;
-
-    struct LockConstraint
-    {
-        AbstractSimulationObject *obj;
-        LockRanges ranges;
-    };
-    typedef QVector<LockConstraint> LockConstraints;
-
-    MechanicalInterface *otherIface = nullptr;
-    LockRange requiredPositions;
-    Type type;
-
-    // For OR and AND
-    QVector<MechanicalCondition> subConditions;
-
-    bool isSatisfied() const;
-
-    void getAllObjects(QVector<MechanicalInterface *>& result) const;
-
-    void getLockConstraints(LockConstraints &result) const;
-};
-
-struct MechanicalConditionSet
-{
-    MechanicalCondition::LockRange allowedRangeWhenLocked;
-    MechanicalCondition rootCondition;
-
-    bool isSatisfied() const;
-};
 
 class MechanicalInterface : public AbstractObjectInterface
 {
