@@ -22,40 +22,23 @@
 
 #include "enumvaluesmodel.h"
 
-EnumValuesModel::EnumValuesModel(const EnumDesc &desc, QObject *parent)
+EnumValuesModel::EnumValuesModel(QObject *parent)
     : QAbstractListModel(parent)
-    , mEnumDesc(desc)
 {
-    mMinValue = mEnumDesc.minValue;
-    mMaxValue = mEnumDesc.maxValue;
+
 }
 
 int EnumValuesModel::rowCount(const QModelIndex &p) const
 {
-    if(p.isValid())
-        return 0;
-
-    int count = (mMaxValue - mMinValue) + 1;
-
-    if(mSkipMiddleValues)
-    {
-        // Calculate exact position count (skipping middle positions)
-        return (((count - 1) / 2) + 1);
-    }
-
-    return count;
+    return p.isValid() ? 0 : mValues.size();
 }
 
 QVariant EnumValuesModel::data(const QModelIndex &idx, int role) const
 {
-    if (!idx.isValid() ||
-            idx.column() > 0 ||
-            idx.row() >= rowCount())
+    if (!idx.isValid() || idx.row() >= mValues.size() || idx.column() > 0)
         return QVariant();
 
     const int value = valueAt(idx.row());
-    if(value > mMaxValue)
-        return QVariant();
 
     if(role == Qt::DisplayRole)
         return mEnumDesc.name(value);
@@ -65,47 +48,53 @@ QVariant EnumValuesModel::data(const QModelIndex &idx, int role) const
     return QVariant();
 }
 
-void EnumValuesModel::setValueRange(int min, int max)
-{
-    beginResetModel();
-    mMinValue = min;
-    mMaxValue = max;
-    endResetModel();
-}
-
 int EnumValuesModel::valueAt(int row) const
 {
-    if(mSkipMiddleValues)
+    return mValues.value(row, -1);
+}
+
+int EnumValuesModel::rowForValue(int value) const
+{
+    return mValues.indexOf(value);
+}
+
+EnumDesc EnumValuesModel::enumDesc() const
+{
+    return mEnumDesc;
+}
+
+void EnumValuesModel::setEnumDescFull(const EnumDesc &newEnumDesc,
+                                      bool skipMiddleValues)
+{
+    setEnumDescRange(newEnumDesc, skipMiddleValues,
+                     newEnumDesc.minValue, newEnumDesc.maxValue);
+}
+
+void EnumValuesModel::setEnumDescRange(const EnumDesc &newEnumDesc,
+                                       bool skipMiddleValues,
+                                       int minVal, int maxVal)
+{
+    QVector<int> values;
+
+    minVal = qMax(minVal, newEnumDesc.minValue);
+    maxVal = qMin(maxVal, newEnumDesc.maxValue);
+
+    // To skip middle values we increase by 2 at each iteration
+    const int increment = skipMiddleValues ? 2 : 1;
+
+    for(int i = minVal; i <= maxVal; i+= increment)
     {
-        // Count middle positions in between
-        return mMinValue + row * 2;
+        values.append(i);
     }
 
-    return mMinValue + row;
+    setEnumDescFiltered(newEnumDesc, values);
 }
 
-int EnumValuesModel::rowForValue(int position) const
-{
-    if(position < mMinValue || position > mMaxValue)
-        return -1;
-
-    if(mSkipMiddleValues)
-    {
-        // We skip middle positions
-        return (position - mMinValue) / 2;
-    }
-
-    return position - mMinValue;
-}
-
-bool EnumValuesModel::skipMiddleValues() const
-{
-    return mSkipMiddleValues;
-}
-
-void EnumValuesModel::setSkipMiddleValues(bool newSkipMiddleValues)
+void EnumValuesModel::setEnumDescFiltered(const EnumDesc &newEnumDesc,
+                                          const QVector<int> &values)
 {
     beginResetModel();
-    mSkipMiddleValues = newSkipMiddleValues;
+    mEnumDesc = newEnumDesc;
+    mValues = values;
     endResetModel();
 }

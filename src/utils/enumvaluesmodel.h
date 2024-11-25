@@ -30,29 +30,31 @@
 class EnumValuesModel : public QAbstractListModel
 {
     Q_OBJECT
-
 public:
-    EnumValuesModel(const EnumDesc& desc, QObject *parent = nullptr);
+    EnumValuesModel(QObject *parent = nullptr);
 
     // Basic functionality:
     int rowCount(const QModelIndex &p = QModelIndex()) const override;
 
-    QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
-
-    void setValueRange(int min, int max);
+    QVariant data(const QModelIndex &idx,
+                  int role = Qt::DisplayRole) const override;
 
     int valueAt(int row) const;
-    int rowForValue(int position) const;
+    int rowForValue(int value) const;
 
-    bool skipMiddleValues() const;
-    void setSkipMiddleValues(bool newSkipMiddleValues);
+    EnumDesc enumDesc() const;
+
+    void setEnumDescFull(const EnumDesc &newEnumDesc,
+                         bool skipMiddleValues);
+    void setEnumDescRange(const EnumDesc &newEnumDesc,
+                          bool skipMiddleValues,
+                          int minVal, int maxVal);
+    void setEnumDescFiltered(const EnumDesc &newEnumDesc,
+                             const QVector<int>& values);
 
 private:
     EnumDesc mEnumDesc;
-
-    int mMinValue = 0;
-    int mMaxValue = 0;
-    bool mSkipMiddleValues = false;
+    QVector<int> mValues;
 };
 
 #endif // ENUM_VALUES_MODEL_H
