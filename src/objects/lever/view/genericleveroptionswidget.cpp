@@ -47,14 +47,14 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
     lay->addWidget(mHasSpringReturn);
 
     // Normal position and range
-    mMinPosModel = new EnumValuesModel(mLever->positionDesc(), this);
-    mMinPosModel->setSkipMiddleValues(true);
+    mMinPosModel = new EnumValuesModel(this);
+    mMinPosModel->setEnumDescFull(mLever->positionDesc(), true);
 
-    mMaxPosModel = new EnumValuesModel(mLever->positionDesc(), this);
-    mMaxPosModel->setSkipMiddleValues(true);
+    mMaxPosModel = new EnumValuesModel(this);
+    mMaxPosModel->setEnumDescFull(mLever->positionDesc(), true);
 
-    mNormalPosModel = new EnumValuesModel(mLever->positionDesc(), this);
-    mNormalPosModel->setSkipMiddleValues(true);
+    mNormalPosModel = new EnumValuesModel(this);
+    mNormalPosModel->setEnumDescFull(mLever->positionDesc(), true);
 
     mMinPosCombo = new QComboBox;
     mMinPosCombo->setModel(mMinPosModel);
@@ -135,8 +135,9 @@ void GenericLeverOptionsWidget::updatePositionRanges()
             mMinPosCombo->setCurrentIndex(posIdx);
 
         // Allow setting Max to at least Min position
-        mMaxPosModel->setValueRange(minPos,
-                                    mLever->positionDesc().maxValue);
+        mMaxPosModel->setEnumDescRange(mMaxPosModel->enumDesc(), true,
+                                       minPos,
+                                       mLever->positionDesc().maxValue);
     }
 
     if(updateMin || updateMax)
@@ -147,7 +148,8 @@ void GenericLeverOptionsWidget::updatePositionRanges()
             mMaxPosCombo->setCurrentIndex(maxPosIdx);
 
         // Normal position must be in range min/max
-        mNormalPosModel->setValueRange(minPos, maxPos);
+        mNormalPosModel->setEnumDescRange(mNormalPosModel->enumDesc(), true,
+                                          minPos, maxPos);
     }
 
     const int normalPosIdx = mNormalPosModel->rowForValue(mLever->normalPosition());

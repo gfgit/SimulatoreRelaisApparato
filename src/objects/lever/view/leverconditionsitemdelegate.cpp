@@ -53,14 +53,11 @@ QWidget *LeverConditionsItemDelegate::createEditor(QWidget *parent,
         const LeverContactConditionsModel *sourceModel =
                 static_cast<const LeverContactConditionsModel *>(index.model());
 
-        auto range = sourceModel->positionRangeFor(index);
+        const auto range = sourceModel->positionRangeFor(index);
 
-        EnumValuesModel *positionModel =
-                new EnumValuesModel(sourceModel->positionDesc(),
-                                    combo);
-        positionModel->setSkipMiddleValues(true);
-
-        positionModel->setValueRange(range.first, range.second);
+        EnumValuesModel *positionModel = new EnumValuesModel(combo);
+        positionModel->setEnumDescRange(sourceModel->positionDesc(), true,
+                                        range.first, range.second);
         combo->setModel(positionModel);
     }
 
