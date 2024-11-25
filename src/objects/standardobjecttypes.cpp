@@ -43,6 +43,9 @@
 #include "interfaces/mechanicalinterface.h"
 #include "interfaces/sasibaceleverextrainterface.h"
 
+
+#include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
+
 #include "../views/modemanager.h"
 
 #include "simulationobjectoptionswidget.h"
@@ -75,6 +78,15 @@ QWidget *defaultLeverEdit(AbstractSimulationObject *item)
     return genericW;
 }
 
+QWidget *defaultMechanicalEdit(AbstractSimulationObject *item)
+{
+    // Generic mechanical options
+    GenericMechanicalOptionsWidget *genericW
+            = new GenericMechanicalOptionsWidget(item->model()->modeMgr(),
+                                                 item->getInterface<MechanicalInterface>());
+    return genericW;
+}
+
 QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
 {
     ACESasibLeverCommonObject *lever = static_cast<ACESasibLeverCommonObject *>(item);
@@ -84,6 +96,9 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
 
     // Generic lever options
     lay->addRow(defaultLeverEdit(item));
+
+    // Generic mechanical options
+    lay->addRow(defaultMechanicalEdit(item));
 
     // Electro Magnet
     SimulationObjectLineEdit *magnetEdit
