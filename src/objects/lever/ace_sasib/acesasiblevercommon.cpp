@@ -155,6 +155,8 @@ void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *ifac
         else if(propName == MechanicalInterface::PositionPropName)
         {
             // Mirror positions, let lever update locked range
+            // Only sync if position are different because we cannot
+            // calculate angle for middle positions sice they are a range
             const int pos = mechanicalIface->position();
             if(pos != leverInterface->position())
             {
