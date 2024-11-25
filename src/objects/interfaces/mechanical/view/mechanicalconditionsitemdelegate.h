@@ -24,13 +24,15 @@
 #define MECHANICAL_CONDITIONS_ITEMDELEGATE_H
 
 #include <QStyledItemDelegate>
-#include <QStringListModel>
+
+class ModeManager;
 
 class MechanicalConditionsItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit MechanicalConditionsItemDelegate(QObject *parent = nullptr);
+    explicit MechanicalConditionsItemDelegate(ModeManager *mgr,
+                                              QObject *parent = nullptr);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &options,
                           const QModelIndex &index) const override;
@@ -42,7 +44,7 @@ private slots:
     //void onItemClicked();
 
 private:
-    QStringListModel conditionsTypeModel;
+    ModeManager *modeMgr = nullptr;
 };
 
 #endif // MECHANICAL_CONDITIONS_ITEMDELEGATE_H

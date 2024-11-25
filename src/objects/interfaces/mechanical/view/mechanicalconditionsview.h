@@ -28,26 +28,33 @@
 class MechanicalConditionsModel;
 
 class QPushButton;
-class QTableView;
+class QTreeView;
+
+class ModeManager;
 
 class MechanicalConditionsView : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MechanicalConditionsView(QWidget *parent = nullptr);
+    explicit MechanicalConditionsView(ModeManager *mgr, QWidget *parent = nullptr);
 
     MechanicalConditionsModel *model() const;
     void setModel(MechanicalConditionsModel *newModel);
+
+    void expandAll();
 
 private slots:
     void addCondition();
     void removeCurrentCondition();
 
 private:
-    QTableView *mView;
+    QTreeView *mView;
 
     QPushButton *addBut;
     QPushButton *remBut;
+
+    QPushButton *addOrBut;
+    QPushButton *addAndBut;
 
     MechanicalConditionsModel *mModel = nullptr;
 };

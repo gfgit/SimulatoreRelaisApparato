@@ -23,21 +23,58 @@
 #ifndef MECHANICAL_CONDITIONS_MODEL_H
 #define MECHANICAL_CONDITIONS_MODEL_H
 
-#include <QAbstractTableModel>
+#include <QAbstractItemModel>
 
 #include "../../../../utils/enum_desc.h"
 
-class MechanicalConditionsModel : public QAbstractTableModel
+class MechanicalInterface;
+class MechanicalCondition;
+class AbstractSimulationObject;
+
+class MechanicalConditionsModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
     enum Column
     {
-        TypeCol = 0,
+        ObjectCol = 0,
+        TypeCol,
         FromCol,
         ToCol,
         NCols
+    };
+
+    struct Item
+    {
+        typedef std::pair<int, int> LockRange;
+
+        // TODO: make single enum with MechanicalCondition
+        enum class Type
+        {
+            ExactPos = 0,
+            RangePos,
+            NotPos,
+            Or,
+            And
+        };
+
+        ~Item()
+        {
+            qDeleteAll(subConditions);
+            subConditions.clear();
+        }
+
+        Item *parent = nullptr;
+
+        Type type = Type::ExactPos;
+
+        MechanicalInterface *otherIface = nullptr;
+        LockRange requiredPositions = {0, 0};
+
+        QVector<Item *> subConditions;
+
+        int row() const;
     };
 
     explicit MechanicalConditionsModel(QObject *parent = nullptr);
@@ -46,6 +83,11 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     // Basic functionality:
+
+    QModelIndex index(int row, int column,
+                      const QModelIndex &p = QModelIndex()) const override;
+    QModelIndex parent(const QModelIndex &child) const override;
+
     int rowCount(const QModelIndex &p = QModelIndex()) const override;
     int columnCount(const QModelIndex &p = QModelIndex()) const override;
 
@@ -57,27 +99,31 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex& idx) const override;
 
-    LeverPositionConditionSet conditions() const;
-    void setConditions(const EnumDesc desc,
-                       const LeverPositionConditionSet &newConditions);
+    MechanicalCondition getConditionTree() const;
+    void setConditionTree(const MechanicalCondition &newConditions);
 
-    void instertConditionAt(int row);
-    void removeConditionAt(int row);
+    QModelIndex instertConditionAt(const QModelIndex &idx, Item::Type type);
+    void removeConditionAt(const QModelIndex &idx);
 
-    void setPositionRange(int min, int max);
+    EnumDesc getPositionDescFor(const QModelIndex& idx) const;
+    QVector<int> allowedPositionsFor(const QModelIndex& idx) const;
+    QVector<int> allowedTypesFor(const QModelIndex& idx) const;
 
-    std::pair<int, int> positionRangeFor(const QModelIndex& idx) const;
-
-    const EnumDesc &positionDesc() const;
+    AbstractSimulationObject *getObjectAt(const QModelIndex& idx) const;
+    bool setObjectAt(const QModelIndex& idx, AbstractSimulationObject *obj);
 
 signals:
     void changed();
 
 private:
-    EnumDesc mPositionDesc;
+    void recursiveParseTree(Item *p, const MechanicalCondition& c);
+    MechanicalCondition recursiveBuildConditions(const Item *item) const;
 
-    int mPositionMin = 0;
-    int mPositionMax = 0;
+    // Return grandparent index
+    QModelIndex moveChildrenUpAndRemoveParent(Item *parentItem, const QModelIndex& parentIdx);
+
+private:
+    Item rootItem;
 };
 
 #endif // MECHANICAL_CONDITIONS_MODEL_H

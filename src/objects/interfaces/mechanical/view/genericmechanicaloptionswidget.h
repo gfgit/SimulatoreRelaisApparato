@@ -26,20 +26,33 @@
 #include <QWidget>
 
 class QComboBox;
+class QPushButton;
 
 class MechanicalInterface;
 
 class EnumValuesModel;
 
+class QTabWidget;
+class MechanicalConditionsView;
+class MechanicalConditionsModel;
+
+class ModeManager;
+
 class GenericMechanicalOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    GenericMechanicalOptionsWidget(MechanicalInterface *lever,
+    GenericMechanicalOptionsWidget(ModeManager *mgr,
+                                   MechanicalInterface *iface,
                                    QWidget *parent = nullptr);
 
 private slots:
     void updatePositionRanges();
+    void applyConditions();
+
+    void onInterfacePropertyChanged(const QString &ifaceName,
+                                    const QString &propName,
+                                    const QVariant &value);
 
 private:
     MechanicalInterface *mMechanicalIface = nullptr;
@@ -51,6 +64,17 @@ private:
     EnumValuesModel *mMinPosModel = nullptr;
     EnumValuesModel *mMaxPosModel = nullptr;
     EnumValuesModel *mNormalPosModel = nullptr;
+
+    struct ConditionsView
+    {
+        MechanicalConditionsView *view;
+        MechanicalConditionsModel *model;
+        QString title;
+    };
+
+    QPushButton *applyConditionsBut;
+    QTabWidget *tabWidget;
+    QVector<ConditionsView> mConditionViews;
 
     int minPos = -1;
     int maxPos = -1;

@@ -25,27 +25,34 @@
 #include "../../../abstractsimulationobject.h"
 #include "../../mechanicalinterface.h"
 
+#include "../model/mechanicalconditionsmodel.h"
+#include "mechanicalconditionsview.h"
+
 #include "../../../../utils/enumvaluesmodel.h"
 
 #include <QFormLayout>
 #include <QComboBox>
+#include <QTabWidget>
+#include <QLabel>
+#include <QPushButton>
 
-GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(MechanicalInterface *lever,
+GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(ModeManager *mgr,
+                                                               MechanicalInterface *iface,
                                                                QWidget *parent)
     : QWidget{parent}
-    , mMechanicalIface(lever)
+    , mMechanicalIface(iface)
 {
     QFormLayout *lay = new QFormLayout(this);
 
-   // Normal position and range
-    mMinPosModel = new EnumValuesModel(mMechanicalIface->positionDesc(), this);
-    mMinPosModel->setSkipMiddleValues(true);
+    // Normal position and range
+    mMinPosModel = new EnumValuesModel(this);
+    mMinPosModel->setEnumDescFull(mMechanicalIface->positionDesc(), true);
 
-    mMaxPosModel = new EnumValuesModel(mMechanicalIface->positionDesc(), this);
-    mMaxPosModel->setSkipMiddleValues(true);
+    mMaxPosModel = new EnumValuesModel(this);
+    mMaxPosModel->setEnumDescFull(mMechanicalIface->positionDesc(), true);
 
-    mNormalPosModel = new EnumValuesModel(mMechanicalIface->positionDesc(), this);
-    mNormalPosModel->setSkipMiddleValues(true);
+    mNormalPosModel = new EnumValuesModel(this);
+    mNormalPosModel->setEnumDescFull(mMechanicalIface->positionDesc(), true);
 
     mMinPosCombo = new QComboBox;
     mMinPosCombo->setModel(mMinPosModel);
@@ -86,12 +93,50 @@ GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(MechanicalInterfa
                                  mMaxPosModel->valueAt(idx));
     });
 
-    connect(mNormalPosCombo, &QComboBox::activated,
-            this, [this](int idx)
+    // connect(mNormalPosCombo, &QComboBox::activated,
+    //         this, [this](int idx)
+    // {
+    //     // Change normal position
+    //     mMechanicalIface->setNormalPosition(mNormalPosModel->valueAt(idx));
+    // });
+    mNormalPosCombo->hide();
+
+    lay->addRow(new QLabel(tr("Mechanical Conditions:")));
+
+    applyConditionsBut = new QPushButton(tr("Apply"));
+    lay->addRow(applyConditionsBut);
+
+    tabWidget = new QTabWidget;
+    lay->addRow(tabWidget);
+
+    const int condCount = mMechanicalIface->getConditionsSetsCount();
+    for(int i = 0; i < condCount; i++)
     {
-        // Change normal position
-        mMechanicalIface->setNormalPosition(mNormalPosModel->valueAt(idx));
-    });
+        const auto cond = mMechanicalIface->getConditionSet(i);
+        ConditionsView item;
+        item.title = cond.title;
+        item.model = new MechanicalConditionsModel(this);
+        item.model->setConditionTree(cond.conditions.rootCondition);
+        item.view = new MechanicalConditionsView(mgr);
+        item.view->setModel(item.model);
+
+        tabWidget->addTab(item.view, item.title);
+
+        connect(item.model, &MechanicalConditionsModel::changed,
+                this, [this]()
+        {
+            applyConditionsBut->setVisible(true);
+        });
+    }
+
+    tabWidget->setMinimumSize(300, 400);
+
+    applyConditionsBut->setVisible(false);
+    connect(applyConditionsBut, &QPushButton::clicked,
+            this, &GenericMechanicalOptionsWidget::applyConditions);
+
+    connect(mMechanicalIface->object(), &AbstractSimulationObject::interfacePropertyChanged,
+            this, &GenericMechanicalOptionsWidget::onInterfacePropertyChanged);
 }
 
 void GenericMechanicalOptionsWidget::updatePositionRanges()
@@ -121,8 +166,9 @@ void GenericMechanicalOptionsWidget::updatePositionRanges()
             mMinPosCombo->setCurrentIndex(posIdx);
 
         // Allow setting Max to at least Min position
-        mMaxPosModel->setValueRange(minPos,
-                                    mMechanicalIface->positionDesc().maxValue);
+        mMaxPosModel->setEnumDescRange(mMaxPosModel->enumDesc(), true,
+                                       minPos,
+                                       mMechanicalIface->positionDesc().maxValue);
     }
 
     if(updateMin || updateMax)
@@ -133,10 +179,53 @@ void GenericMechanicalOptionsWidget::updatePositionRanges()
             mMaxPosCombo->setCurrentIndex(maxPosIdx);
 
         // Normal position must be in range min/max
-        mNormalPosModel->setValueRange(minPos, maxPos);
+        mNormalPosModel->setEnumDescRange(mNormalPosModel->enumDesc(), true,
+                                          minPos, maxPos);
     }
 
-    const int normalPosIdx = mNormalPosModel->rowForValue(mMechanicalIface->normalPosition());
-    if(normalPosIdx != -1 && mNormalPosCombo->currentIndex() != normalPosIdx)
-        mNormalPosCombo->setCurrentIndex(normalPosIdx);
+    // const int normalPosIdx = mNormalPosModel->rowForValue(mMechanicalIface->normalPosition());
+    // if(normalPosIdx != -1 && mNormalPosCombo->currentIndex() != normalPosIdx)
+    //     mNormalPosCombo->setCurrentIndex(normalPosIdx);
+}
+
+void GenericMechanicalOptionsWidget::applyConditions()
+{
+    for(int i = 0; i < mConditionViews.size(); i++)
+    {
+        const ConditionsView& item = mConditionViews.at(i);
+        MechanicalCondition c = item.model->getConditionTree();
+        mMechanicalIface->setConditionSetConditions(i, c);
+    }
+
+    applyConditionsBut->setVisible(false);
+}
+
+void GenericMechanicalOptionsWidget::onInterfacePropertyChanged(const QString &ifaceName,
+                                                                const QString &propName,
+                                                                const QVariant &value)
+{
+    if(ifaceName == MechanicalInterface::IfaceType)
+    {
+        if(!mMechanicalIface)
+            return;
+
+        if(propName == MechanicalInterface::MecConditionsPropName)
+        {
+            int i = value.toInt();
+
+            if(i < 0 || i >= mConditionViews.size())
+                return;
+
+            const auto cond = mMechanicalIface->getConditionSet(i);
+            const ConditionsView& item = mConditionViews.at(i);
+
+            item.title = cond.title;
+            tabWidget->setTabText(i, item.title);
+
+            item.model->setConditionTree(cond.conditions.rootCondition);
+            item.view->expandAll();
+
+            return;
+        }
+    }
 }

@@ -26,10 +26,10 @@
 #include "../model/mechanicalconditionsmodel.h"
 
 #include <QVBoxLayout>
-#include <QTableView>
+#include <QTreeView>
 #include <QPushButton>
 
-MechanicalConditionsView::MechanicalConditionsView(QWidget *parent)
+MechanicalConditionsView::MechanicalConditionsView(ModeManager *mgr, QWidget *parent)
     : QWidget{parent}
 {
     QVBoxLayout *lay = new QVBoxLayout(this);
@@ -40,15 +40,24 @@ MechanicalConditionsView::MechanicalConditionsView(QWidget *parent)
     addBut = new QPushButton(tr("Add Condition"));
     remBut = new QPushButton(tr("Remove Condition"));
 
+    addOrBut = new QPushButton(tr("Add OR"));
+    addAndBut = new QPushButton(tr("Add AND"));
+
     butLay->addWidget(addBut);
     butLay->addWidget(remBut);
+    butLay->addWidget(addOrBut);
+    butLay->addWidget(addAndBut);
 
-    mView = new QTableView;
+    mView = new QTreeView;
     lay->addWidget(mView);
 
-    mView->setItemDelegate(new MechanicalConditionsItemDelegate(this));
+    mView->setItemDelegate(new MechanicalConditionsItemDelegate(mgr, this));
 
     connect(addBut, &QPushButton::clicked,
+            this, &MechanicalConditionsView::addCondition);
+    connect(addOrBut, &QPushButton::clicked,
+            this, &MechanicalConditionsView::addCondition);
+    connect(addAndBut, &QPushButton::clicked,
             this, &MechanicalConditionsView::addCondition);
     connect(remBut, &QPushButton::clicked,
             this, &MechanicalConditionsView::removeCurrentCondition);
@@ -66,6 +75,14 @@ void MechanicalConditionsView::setModel(MechanicalConditionsModel *newModel)
 
     mModel = newModel;
     mView->setModel(mModel);
+    mView->expandAll();
+}
+
+void MechanicalConditionsView::expandAll()
+{
+    if(!mModel)
+        return;
+    mView->expandAll();
 }
 
 void MechanicalConditionsView::addCondition()
@@ -73,14 +90,29 @@ void MechanicalConditionsView::addCondition()
     if(!mModel)
         return;
 
+    MechanicalConditionsModel::Item::Type type =
+            MechanicalConditionsModel::Item::Type::ExactPos;
+
+    if(sender() == addBut)
+    {
+        type = MechanicalConditionsModel::Item::Type::ExactPos;
+    }
+    else if(sender() == addOrBut)
+    {
+        type = MechanicalConditionsModel::Item::Type::Or;
+    }
+    else if(sender() == addAndBut)
+    {
+        type = MechanicalConditionsModel::Item::Type::And;
+    }
+    else
+    {
+        return;
+    }
+
     QModelIndex idx = mView->currentIndex();
-
-    int row = 0;
-    if(idx.isValid())
-        row = idx.row() + 1;
-
-    // Add after current index
-    mModel->instertConditionAt(row);
+    idx = mModel->instertConditionAt(idx, type);
+    mView->expand(idx);
 }
 
 void MechanicalConditionsView::removeCurrentCondition()
@@ -88,9 +120,6 @@ void MechanicalConditionsView::removeCurrentCondition()
     if(!mModel)
         return;
 
-    QModelIndex idx = mView->currentIndex();
-    if(!idx.isValid())
-        return;
-
-    mModel->removeConditionAt(idx.row());
+    const QModelIndex idx = mView->currentIndex();
+    mModel->removeConditionAt(idx);
 }

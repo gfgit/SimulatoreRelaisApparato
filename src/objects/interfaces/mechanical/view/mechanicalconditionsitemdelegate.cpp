@@ -22,85 +22,115 @@
 
 #include "mechanicalconditionsitemdelegate.h"
 
-#include "../../../utils/enumvaluesmodel.h"
-#include "../model/levercontactconditionsmodel.h"
+#include "../../mechanicalinterface.h"
 
+#include "../../../../utils/enumvaluesmodel.h"
+#include "../model/mechanicalconditionsmodel.h"
+
+#include "../../../../views/modemanager.h"
+#include "../../../simulationobjectfactory.h"
+
+#include "../../../simulationobjectlineedit.h"
 #include <QComboBox>
 
-MechanicalConditionsItemDelegate::MechanicalConditionsItemDelegate(QObject *parent)
+MechanicalConditionsItemDelegate::MechanicalConditionsItemDelegate(ModeManager *mgr, QObject *parent)
     : QStyledItemDelegate{parent}
+    , modeMgr(mgr)
 {
-    // Init conditions type model
-    QStringList list;
-    list.reserve(int(LeverPositionConditionType::NTypes));
-    for (int i = 0; i < int(LeverPositionConditionType::NTypes); i++)
-        list.append(GenericLeverUtils::getTypeName(LeverPositionConditionType(i)));
 
-    conditionsTypeModel.setStringList(list);
 }
 
 QWidget *MechanicalConditionsItemDelegate::createEditor(QWidget *parent,
-                                                   const QStyleOptionViewItem &options,
-                                                   const QModelIndex &index) const
+                                                        const QStyleOptionViewItem &options,
+                                                        const QModelIndex &index) const
 {
-    QComboBox *combo = new QComboBox(parent);
+    const MechanicalConditionsModel *sourceModel =
+            static_cast<const MechanicalConditionsModel *>(index.model());
 
-    if(index.column() == LeverContactConditionsModel::TypeCol)
-        combo->setModel(const_cast<QStringListModel *>(&conditionsTypeModel));
-    else
+    if(index.column() == MechanicalConditionsModel::ObjectCol)
     {
-        // Get min max range
-        const LeverContactConditionsModel *sourceModel =
-                static_cast<const LeverContactConditionsModel *>(index.model());
+        QStringList objTypes = modeMgr->objectFactory()
+                ->typesForInterface(MechanicalInterface::IfaceType);
+        SimulationObjectLineEdit *objEdit
+                = new SimulationObjectLineEdit(modeMgr, objTypes, parent);
+        return objEdit;
+    }
+    else if(index.column() == MechanicalConditionsModel::TypeCol ||
+            index.column() == MechanicalConditionsModel::FromCol ||
+            index.column() == MechanicalConditionsModel::ToCol)
+    {
+        QComboBox *combo = new QComboBox(parent);
+        EnumValuesModel *enumValuesModel = new EnumValuesModel;
 
-        auto range = sourceModel->positionRangeFor(index);
+        if(index.column() == MechanicalConditionsModel::TypeCol)
+        {
+            enumValuesModel->setEnumDescFiltered(MechanicalCondition::getTypeDesc(),
+                                                 sourceModel->allowedTypesFor(index));
+        }
+        else
+        {
+            enumValuesModel->setEnumDescFiltered(sourceModel->getPositionDescFor(index),
+                                                 sourceModel->allowedPositionsFor(index));
+        }
 
-        EnumValuesModel *positionModel =
-                new EnumValuesModel(sourceModel->positionDesc(),
-                                    combo);
-        positionModel->setSkipMiddleValues(true);
-
-        positionModel->setValueRange(range.first, range.second);
-        combo->setModel(positionModel);
+        combo->setModel(enumValuesModel);
+        return combo;
     }
 
-    return combo;
+    return nullptr;
 }
 
 void MechanicalConditionsItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    QComboBox *combo = static_cast<QComboBox *>(editor);
-    const int value = index.data(Qt::EditRole).toInt();
+    const MechanicalConditionsModel *sourceModel =
+            static_cast<const MechanicalConditionsModel *>(index.model());
 
-    if(index.column() == LeverContactConditionsModel::TypeCol)
-        combo->setCurrentIndex(value);
-    else
+    if(index.column() == MechanicalConditionsModel::ObjectCol)
     {
-        EnumValuesModel *positionModel =
-                static_cast<EnumValuesModel *>(combo->model());
-        combo->setCurrentIndex(positionModel->rowForValue(value));
+        SimulationObjectLineEdit *objEdit = static_cast<SimulationObjectLineEdit *>(editor);
+        objEdit->setObject(sourceModel->getObjectAt(index));
     }
+    else if(index.column() == MechanicalConditionsModel::TypeCol ||
+            index.column() == MechanicalConditionsModel::FromCol ||
+            index.column() == MechanicalConditionsModel::ToCol)
+    {
+        QComboBox *combo = static_cast<QComboBox *>(editor);
+        const int value = index.data(Qt::EditRole).toInt();
 
-    // connect(combo, &QComboBox::activated,
-    //         this, &MechanicalConditionsItemDelegate::onItemClicked,
-    //         Qt::UniqueConnection);
+        EnumValuesModel *enumValuesModel =
+                static_cast<EnumValuesModel *>(combo->model());
+        combo->setCurrentIndex(enumValuesModel->rowForValue(value));
 
-    //combo->showPopup();
+        // connect(combo, &QComboBox::activated,
+        //         this, &MechanicalConditionsItemDelegate::onItemClicked,
+        //         Qt::UniqueConnection);
+
+        //combo->showPopup();
+    }
 }
 
 void MechanicalConditionsItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    QComboBox *combo = static_cast<QComboBox *>(editor);
-    int value = combo->currentIndex();
+    MechanicalConditionsModel *sourceModel =
+            static_cast<MechanicalConditionsModel *>(model);
 
-    if(index.column() != LeverContactConditionsModel::TypeCol)
+    if(index.column() == MechanicalConditionsModel::ObjectCol)
     {
-        EnumValuesModel *positionModel =
-                static_cast<EnumValuesModel *>(combo->model());
-        value = positionModel->valueAt(value);
+        SimulationObjectLineEdit *objEdit = static_cast<SimulationObjectLineEdit *>(editor);
+        sourceModel->setObjectAt(index, objEdit->getObject());
     }
+    else if(index.column() == MechanicalConditionsModel::TypeCol ||
+            index.column() == MechanicalConditionsModel::FromCol ||
+            index.column() == MechanicalConditionsModel::ToCol)
+    {
+        QComboBox *combo = static_cast<QComboBox *>(editor);
 
-    model->setData(index, value, Qt::EditRole);
+        EnumValuesModel *enumValuesModel =
+                static_cast<EnumValuesModel *>(combo->model());
+        const int value = enumValuesModel->valueAt(combo->currentIndex());
+
+        model->setData(index, value, Qt::EditRole);
+    }
 }
 
 // void MechanicalConditionsItemDelegate::onItemClicked()
