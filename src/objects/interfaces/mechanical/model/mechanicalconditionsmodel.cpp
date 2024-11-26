@@ -341,7 +341,10 @@ void MechanicalConditionsModel::setConditionTree(const MechanicalCondition &newC
 QModelIndex MechanicalConditionsModel::instertConditionAt(const QModelIndex& idx, Item::Type type)
 {
     Item *item = nullptr;
-    QModelIndex actualIdx = idx;
+
+    // Children are always related to first column
+    // beginInsertRows() does not work if another column is passed
+    QModelIndex actualIdx = idx.siblingAtColumn(0);
 
     if(idx == QModelIndex())
     {
