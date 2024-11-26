@@ -217,7 +217,7 @@ void GenericMechanicalOptionsWidget::onInterfacePropertyChanged(const QString &i
                 return;
 
             const auto cond = mMechanicalIface->getConditionSet(i);
-            const ConditionsView& item = mConditionViews.at(i);
+            ConditionsView& item = mConditionViews[i];
 
             item.title = cond.title;
             tabWidget->setTabText(i, item.title);
