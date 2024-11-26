@@ -82,8 +82,8 @@ bool MechanicalInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 
             const QJsonObject conditionObj = v.toObject();
 
-            MechanicalCondition c = MechanicalCondition::loadFromJSON(conditionObj,
-                                                                      object()->model()->modeMgr());
+            MechanicalCondition c = MechanicalCondition::loadFromJSON(object()->model()->modeMgr(),
+                                                                      conditionObj);
             c.removeInvalidConditions();
             c.simplifyTree();
 
