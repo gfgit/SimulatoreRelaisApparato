@@ -418,7 +418,8 @@ QModelIndex MechanicalConditionsModel::instertConditionAt(const QModelIndex& idx
             // Do not add nested ANDs
             type = Item::Type::ExactPos;
         }
-        else
+
+        if(type == Item::Type::And || type == Item::Type::Or)
         {
             // Add 2 empty children by default to new ORs and ANDs
             Item *subChild = new Item;
@@ -431,6 +432,7 @@ QModelIndex MechanicalConditionsModel::instertConditionAt(const QModelIndex& idx
             subChild->parent = child;
             child->subConditions.append(subChild);
         }
+
         child->type = type;
         child->parent = item;
         item->subConditions.insert(row, child);
