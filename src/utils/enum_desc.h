@@ -43,7 +43,7 @@ struct EnumDesc
         return valueNamesFromMin.at(value - minValue);
     }
 
-    inline int valueForUntranslated(const QByteArray& text)
+    inline int valueForUntranslated(const QByteArray& text) const
     {
         int idx = valueNamesFromMin.indexOf(text);
         if(idx < 0)
