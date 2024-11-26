@@ -188,18 +188,29 @@ bool MechanicalConditionsModel::setData(const QModelIndex &idx, const QVariant &
             if(!allowedTypesFor(idx).contains(int(type)))
                 return false;
 
+            // Set new type
+            item->type = Item::Type(type);
+
+            // Check position values
             if(item->type == Item::Type::RangePos)
             {
                 // For Range items ensure second is greater than first
-                const auto allowedPositions = allowedPositionsFor(idx.siblingAtColumn(ToCol));
-                if(allowedPositions.isEmpty())
+
+                auto allowedRange = allowedPositionsFor(idx.siblingAtColumn(FromCol));
+                if(!allowedRange.isEmpty())
                 {
-                    // We cannot set range end so we revert the change
-                    return false;
+                    item->requiredPositions.first = qBound(allowedRange.first(),
+                                                           item->requiredPositions.first,
+                                                           allowedRange.last());
                 }
 
-                item->requiredPositions.second = qMax(item->requiredPositions.second,
-                                                      allowedPositions.first());
+                allowedRange = allowedPositionsFor(idx.siblingAtColumn(ToCol));
+                if(!allowedRange.isEmpty())
+                {
+                    item->requiredPositions.second = qBound(allowedRange.first(),
+                                                            item->requiredPositions.second,
+                                                            allowedRange.last());
+                }
             }
             else
             {
@@ -207,17 +218,27 @@ bool MechanicalConditionsModel::setData(const QModelIndex &idx, const QVariant &
                 item->requiredPositions.second = item->requiredPositions.first;
             }
 
-            // Set new type
-            item->type = Item::Type(type);
-
             if(item->type == Item::Type::And &&
                     item->parent->type == Item::Type::And)
             {
-                // Remove nested AND
-                moveChildrenUpAndRemoveParent(item->parent, parent(idx));
+                const auto subCondCopy = item->subConditions;
+                for(Item *sub : subCondCopy)
+                {
+                    if(sub->type == Item::Type::And)
+                    {
+                        // There is a sub nested AND, remove it
+                        moveChildrenUpAndRemoveParent(sub, index(sub->row(), 0, idx));
+                    }
+                }
 
-                // Since we removed item we do not emit dataChanged() signal
-                return true;
+                if(item->parent->type == Item::Type::And)
+                {
+                    // We are a nested AND, remove
+                    moveChildrenUpAndRemoveParent(item, idx);
+
+                    // Since we removed ourselves we do not emit dataChanged() signal
+                    return true;
+                }
             }
             break;
         }
@@ -538,16 +559,16 @@ QVector<int> MechanicalConditionsModel::allowedPositionsFor(const QModelIndex &i
     if(idx.column() == FromCol)
     {
         minVal = item->otherIface->absoluteMin();
-    }
-    else if(idx.column() == ToCol)
-    {
-        // "To" position must be greater than "From"
-        minVal = item->requiredPositions.first + 1;
 
         // For Range items, we cannot set max as "From"
         // because "To" must be greater than "From"
         if(item->type == Item::Type::RangePos)
             maxVal--;
+    }
+    else if(idx.column() == ToCol)
+    {
+        // "To" position must be greater than "From"
+        minVal = item->requiredPositions.first + 1;
     }
     else
     {
