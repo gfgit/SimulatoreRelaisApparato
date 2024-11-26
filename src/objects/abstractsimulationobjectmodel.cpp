@@ -27,6 +27,8 @@
 
 #include "../views/modemanager.h"
 
+#include "../enums/loadphase.h"
+
 #include <QJsonObject>
 #include <QJsonArray>
 

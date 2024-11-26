@@ -25,14 +25,14 @@
 
 #include <QString>
 
+#include "../../enums/loadphase.h"
+
 class QVariant;
 
 class AbstractSimulationObject;
 class AbstractCircuitNode;
 
 class QJsonObject;
-
-enum class LoadPhase;
 
 class AbstractObjectInterface
 {
