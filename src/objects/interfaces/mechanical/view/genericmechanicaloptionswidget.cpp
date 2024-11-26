@@ -119,6 +119,7 @@ GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(ModeManager *mgr,
         item.model->setConditionTree(cond.conditions.rootCondition);
         item.view = new MechanicalConditionsView(mgr);
         item.view->setModel(item.model);
+        mConditionViews.append(item);
 
         tabWidget->addTab(item.view, item.title);
 
