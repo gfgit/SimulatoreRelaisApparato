@@ -324,7 +324,7 @@ void MechanicalCondition::simplifyTree()
 
 MechanicalCondition MechanicalCondition::loadFromJSON(ModeManager *modeMgr, const QJsonObject &obj)
 {
-    int type = getTypeDesc().valueForUntranslated(obj.value("type"));
+    int type = getTypeDesc().valueForUntranslated(obj.value("type").toString().toLatin1());
     if(type < 0)
         return {};
 
@@ -334,7 +334,7 @@ MechanicalCondition MechanicalCondition::loadFromJSON(ModeManager *modeMgr, cons
     if(c.type == Type::And || c.type == Type::Or)
     {
         // Load sub conditions
-        const QJsonArray arr = obj.value("sub_conditions");
+        const QJsonArray arr = obj.value("sub_conditions").toArray();
         c.subConditions.reserve(arr.size());
 
         for(const QJsonValue& v : arr)
@@ -357,9 +357,9 @@ MechanicalCondition MechanicalCondition::loadFromJSON(ModeManager *modeMgr, cons
                 c.otherIface = object->getInterface<MechanicalInterface>();
         }
 
-        c.requiredPositions.first = obj.value("pos1");
-        if(type == Type::RangePos)
-            c.requiredPositions.second = obj.value("pos2");
+        c.requiredPositions.first = obj.value("pos1").toInt();
+        if(c.type == Type::RangePos)
+            c.requiredPositions.second = obj.value("pos2").toInt();
         else
             c.requiredPositions.second = c.requiredPositions.first;
     }
@@ -369,7 +369,7 @@ MechanicalCondition MechanicalCondition::loadFromJSON(ModeManager *modeMgr, cons
 
 void MechanicalCondition::saveToJSON(QJsonObject &obj) const
 {
-    obj["type"] = getTypeDesc().untranslatedName(int(type));
+    obj["type"] = QString::fromLatin1(getTypeDesc().untranslatedName(int(type)));
 
     if(type == Type::And || type == Type::Or)
     {
