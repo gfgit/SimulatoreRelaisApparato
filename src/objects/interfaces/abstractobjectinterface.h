@@ -32,6 +32,8 @@ class AbstractCircuitNode;
 
 class QJsonObject;
 
+enum class LoadPhase;
+
 class AbstractObjectInterface
 {
 public:
@@ -42,7 +44,7 @@ public:
 
     virtual QVector<AbstractCircuitNode*> nodes() const;
 
-    virtual bool loadFromJSON(const QJsonObject &obj);
+    virtual bool loadFromJSON(const QJsonObject &obj, LoadPhase phase);
     virtual void saveToJSON(QJsonObject &obj) const;
 
     inline AbstractSimulationObject *object() const

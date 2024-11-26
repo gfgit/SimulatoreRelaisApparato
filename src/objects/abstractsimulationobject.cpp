@@ -58,20 +58,20 @@ AbstractObjectInterface *AbstractSimulationObject::getAbstractInterface(const QS
 
 bool AbstractSimulationObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
-    if(phase != LoadPhase::Creation)
-        return true; // Alredy created, nothing to do
+    if(phase == LoadPhase::Creation)
+    {
+        if(obj.value("type") != getType())
+            return false;
 
-    if(obj.value("type") != getType())
-        return false;
-
-    setName(obj.value("name").toString());
-    setDescription(obj.value("description").toString());
+        setName(obj.value("name").toString());
+        setDescription(obj.value("description").toString());
+    }
 
     const QJsonObject ifaceListObj = obj.value("interfaces").toObject();
     for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
     {
         const QJsonObject ifaceObj = ifaceListObj.value(iface->ifaceType()).toObject();
-        if(!iface->loadFromJSON(ifaceObj))
+        if(!iface->loadFromJSON(ifaceObj, phase))
             return false;
     }
 

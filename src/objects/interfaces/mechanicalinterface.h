@@ -79,7 +79,7 @@ public:
     static constexpr QLatin1String IfaceType = QLatin1String("mechanical");
     QString ifaceType() override;
 
-    bool loadFromJSON(const QJsonObject &obj) override;
+    bool loadFromJSON(const QJsonObject &obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject &obj) const override;
 
     void init();

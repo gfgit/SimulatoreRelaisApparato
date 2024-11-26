@@ -40,9 +40,10 @@ QVector<AbstractCircuitNode *> AbstractObjectInterface::nodes() const
     return {};
 }
 
-bool AbstractObjectInterface::loadFromJSON(const QJsonObject &obj)
+bool AbstractObjectInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
     Q_UNUSED(obj)
+    Q_UNUSED(phase)
     return true;
 }
 

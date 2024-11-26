@@ -54,15 +54,18 @@ QString MechanicalInterface::ifaceType()
     return IfaceType;
 }
 
-bool MechanicalInterface::loadFromJSON(const QJsonObject &obj)
+bool MechanicalInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
-    if(!AbstractObjectInterface::loadFromJSON(obj))
+    if(!AbstractObjectInterface::loadFromJSON(obj, phase))
         return false;
 
-    // Range
-    int pos_min = obj.value("pos_min").toInt();
-    int pos_max = obj.value("pos_max").toInt();
-    setAbsoluteRange(pos_min, pos_max);
+    if(phase == LoadPhase::Creation)
+    {
+        // Range
+        int pos_min = obj.value("pos_min").toInt();
+        int pos_max = obj.value("pos_max").toInt();
+        setAbsoluteRange(pos_min, pos_max);
+    }
 
     return true;
 }

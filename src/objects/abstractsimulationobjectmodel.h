@@ -27,7 +27,7 @@
 
 #include <QVector>
 
-#include "../enums/loadphase.h"
+enum class LoadPhase;
 
 class AbstractSimulationObject;
 

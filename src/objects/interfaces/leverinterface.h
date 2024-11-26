@@ -81,7 +81,7 @@ public:
 
     QVector<AbstractCircuitNode*> nodes() const override;
 
-    bool loadFromJSON(const QJsonObject &obj) override;
+    bool loadFromJSON(const QJsonObject &obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject &obj) const override;
 
     void init();
