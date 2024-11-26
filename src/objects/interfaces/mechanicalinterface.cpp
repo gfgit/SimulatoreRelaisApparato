@@ -22,8 +22,10 @@
 
 #include "mechanicalinterface.h"
 #include "../abstractsimulationobject.h"
+#include "../abstractsimulationobjectmodel.h"
 
 #include <QJsonObject>
+#include <QJsonArray>
 
 MechanicalInterface::MechanicalInterface(const EnumDesc &posDesc,
                                          AbstractSimulationObject *obj)
@@ -66,6 +68,37 @@ bool MechanicalInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
         int pos_max = obj.value("pos_max").toInt();
         setAbsoluteRange(pos_min, pos_max);
     }
+    else
+    {
+        // All objects created, we can build relationships
+
+        // Conditions
+        int idx = 0;
+        const QJsonArray conditionsArr = obj.value("conditions").toArray();
+        for(const QJsonValue& v : conditionsArr)
+        {
+            if(idx >= mConditionSets.size())
+                break;
+
+            const QJsonObject conditionObj = v.toObject();
+
+            MechanicalCondition c = MechanicalCondition::loadFromJSON(conditionObj,
+                                                                      object()->model()->modeMgr());
+            c.removeInvalidConditions();
+            c.simplifyTree();
+
+            mConditionSets[idx].conditions.rootCondition = c;
+            emitChanged(MecConditionsPropName, idx);
+
+            idx++;
+        }
+
+        // Refresh conditions state
+        recalculateObjectRelationship();
+        recalculateWantedConditionState();
+        checkPositionValidForLock();
+        updateWantsLocks();
+    }
 
     return true;
 }
@@ -77,6 +110,18 @@ void MechanicalInterface::saveToJSON(QJsonObject &obj) const
     // Range
     obj["pos_min"] = mAbsoluteMin;
     obj["pos_max"] = mAbsoluteMax;
+
+    // Conditions
+    QJsonArray conditionsArr;
+    for(const ConditionItem& item : mConditionSets)
+    {
+        QJsonObject conditionObj;
+        item.conditions.rootCondition.saveToJSON(conditionObj);
+
+        conditionsArr.append(conditionObj);
+    }
+
+    obj["conditions"] = conditionsArr;
 }
 
 void MechanicalInterface::init()

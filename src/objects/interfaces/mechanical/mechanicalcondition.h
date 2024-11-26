@@ -30,8 +30,12 @@ class MechanicalInterface;
 
 class EnumDesc;
 
+class ModeManager;
+class QJsonObject;
+
 struct MechanicalCondition
 {
+public:
     enum class Type
     {
         ExactPos = 0,
@@ -51,6 +55,7 @@ struct MechanicalCondition
     };
     typedef QVector<LockConstraint> LockConstraints;
 
+public:
     static const EnumDesc& getTypeDesc();
 
     static inline bool contains(const MechanicalCondition::LockRange &range, int position)
@@ -58,13 +63,7 @@ struct MechanicalCondition
         return range.first <= position && range.second >= position;
     }
 
-    MechanicalInterface *otherIface = nullptr;
-    LockRange requiredPositions = {0, 0};
-    Type type = Type::ExactPos;
-
-    // For OR and AND
-    QVector<MechanicalCondition> subConditions;
-
+public:
     bool isSatisfied() const;
 
     void getAllObjects(QVector<MechanicalInterface *>& result) const;
@@ -78,6 +77,9 @@ struct MechanicalCondition
 
     void simplifyTree();
 
+    static MechanicalCondition loadFromJSON(ModeManager *modeMgr, const QJsonObject& obj);
+    void saveToJSON(QJsonObject& obj) const;
+
     inline bool operator==(const MechanicalCondition& other) const
     {
         return otherIface == other.otherIface &&
@@ -90,6 +92,14 @@ struct MechanicalCondition
     {
         return !(*this == other);
     }
+
+public:
+    MechanicalInterface *otherIface = nullptr;
+    LockRange requiredPositions = {0, 0};
+    Type type = Type::ExactPos;
+
+    // For OR and AND
+    QVector<MechanicalCondition> subConditions;
 };
 
 struct MechanicalConditionSet

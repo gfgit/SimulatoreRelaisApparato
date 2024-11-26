@@ -27,7 +27,14 @@
 
 #include "../../../utils/enum_desc.h"
 
-#include <QCoreApplication>
+#include "../../../views/modemanager.h"
+#include "../../abstractsimulationobjectmodel.h"
+#include "../../abstractsimulationobject.h"
+
+#include <QCoreApplication> // For Q_DECLARE_TR_FUNCTIONS()
+
+#include <QJsonObject>
+#include <QJsonArray>
 
 class MechanicalConditionTypeTranslation
 {
@@ -312,6 +319,79 @@ void MechanicalCondition::simplifyTree()
     {
         // Reset this item
         *this = MechanicalCondition();
+    }
+}
+
+MechanicalCondition MechanicalCondition::loadFromJSON(ModeManager *modeMgr, const QJsonObject &obj)
+{
+    int type = getTypeDesc().valueForUntranslated(obj.value("type"));
+    if(type < 0)
+        return {};
+
+    MechanicalCondition c;
+    c.type = Type(type);
+
+    if(c.type == Type::And || c.type == Type::Or)
+    {
+        // Load sub conditions
+        const QJsonArray arr = obj.value("sub_conditions");
+        c.subConditions.reserve(arr.size());
+
+        for(const QJsonValue& v : arr)
+        {
+            const QJsonObject subObj = v.toObject();
+            MechanicalCondition sub = loadFromJSON(modeMgr, subObj);
+            c.subConditions.append(sub);
+        }
+    }
+    else
+    {
+        const QString objName = obj.value("object").toString();
+        const QString objType = obj.value("object_type").toString();
+        auto model = modeMgr->modelForType(objType);
+
+        if(model)
+        {
+            AbstractSimulationObject *object = model->getObjectByName(objName);
+            if(object)
+                c.otherIface = object->getInterface<MechanicalInterface>();
+        }
+
+        c.requiredPositions.first = obj.value("pos1");
+        if(type == Type::RangePos)
+            c.requiredPositions.second = obj.value("pos2");
+        else
+            c.requiredPositions.second = c.requiredPositions.first;
+    }
+
+    return c;
+}
+
+void MechanicalCondition::saveToJSON(QJsonObject &obj) const
+{
+    obj["type"] = getTypeDesc().untranslatedName(int(type));
+
+    if(type == Type::And || type == Type::Or)
+    {
+        // Store sub conditions
+        QJsonArray arr;
+        for(const MechanicalCondition& sub : subConditions)
+        {
+            QJsonObject subObj;
+            sub.saveToJSON(subObj);
+            arr.append(subObj);
+        }
+
+        obj["sub_conditions"] = arr;
+    }
+    else
+    {
+        obj["object"] = otherIface ? otherIface->object()->name() : QString();
+        obj["object_type"] = otherIface ? otherIface->object()->getType() : QString();
+
+        obj["pos1"] = requiredPositions.first;
+        if(type == Type::RangePos)
+            obj["pos2"] = requiredPositions.second;
     }
 }
 
