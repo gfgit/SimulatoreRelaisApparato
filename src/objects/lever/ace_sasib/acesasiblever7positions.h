@@ -54,9 +54,6 @@ public:
     static constexpr QLatin1String Type = QLatin1String("ace_sasib_lever_7");
     QString getType() const override;
 
-
-    bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
-
 protected:
     void addElectromagnetLock() override;
 };
