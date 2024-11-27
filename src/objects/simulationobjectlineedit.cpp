@@ -25,6 +25,8 @@
 #include "abstractsimulationobject.h"
 #include "abstractsimulationobjectmodel.h"
 
+#include "simulationobjectmultitypemodel.h"
+
 #include "simulationobjectfactory.h"
 
 #include "../views/modemanager.h"
@@ -48,15 +50,21 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
     SimulationObjectFactory *factory = modeMgr->objectFactory();
 
     // Fill combo with pretty names
+    mTypes.prepend(QString()); // Auto
+
     QStringList prettyTypes;
     prettyTypes.reserve(mTypes.size());
     for(const QString& type : std::as_const(mTypes))
     {
         prettyTypes.append(factory->prettyName(type));
     }
+    prettyTypes[0] = tr("Auto");
+
     mTypesModel = new QStringListModel(prettyTypes, this);
 
     mTypesCombo = new QComboBox;
+    mTypesCombo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+    mTypesCombo->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Fixed);
     mTypesCombo->setModel(mTypesModel);
     lay->addWidget(mTypesCombo);
 
@@ -69,7 +77,7 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
     mLineEdit->setCompleter(mCompleter);
     lay->addWidget(mLineEdit);
 
-    // Default to first type
+    // Default to Auto type
     setType(0);
 
     connect(mTypesCombo, &QComboBox::activated,
@@ -78,7 +86,10 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
     connect(mCompleter, qOverload<const QModelIndex&>(&QCompleter::activated),
             this, [this](const QModelIndex& idx)
     {
-        setObject(mModel->objectAt(idx.row()));
+        if(mMultiModel)
+            setObject(mMultiModel->objectAt(idx.row()));
+        else
+            setObject(mModel->objectAt(idx.row()));
     });
 
     connect(mCompleter, qOverload<const QModelIndex&>(&QCompleter::activated),
@@ -87,7 +98,10 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
         QAbstractProxyModel *m = static_cast<QAbstractProxyModel *>(mCompleter->completionModel());
         const QModelIndex sourceIdx = m->mapToSource(idx);
 
-        setObject(mModel->objectAt(sourceIdx.row()));
+        if(mMultiModel)
+            setObject(mMultiModel->objectAt(sourceIdx.row()));
+        else
+            setObject(mModel->objectAt(sourceIdx.row()));
     });
 
     if(mTypes.size() == 1)
@@ -103,7 +117,8 @@ void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
 
     if(mObject)
     {
-        setType(mTypes.indexOf(mObject->getType()));
+        if(!mMultiModel)
+            setType(mTypes.indexOf(mObject->getType()));
 
         if(mLineEdit->text() != mObject->name())
             mLineEdit->setText(mObject->name());
@@ -122,18 +137,40 @@ void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
 void SimulationObjectLineEdit::setType(int idx)
 {
     if(idx < 0)
-        idx = 0; // Default to first
+        idx = 0; // Default to Auto
+
+    if(idx == 0 && !mMultiModel)
+    {
+        // Auto mode
+        QStringList types = mTypes;
+        types.removeFirst();
+        mMultiModel = new SimulationObjectMultiTypeModel(modeMgr,
+                                                         types, this);
+    }
+    else if(idx != 0 && mMultiModel)
+    {
+        delete mMultiModel;
+        mMultiModel = nullptr;
+    }
 
     const QString type = mTypes.at(idx);
 
-    if(mObject && mObject->getType() != type)
+    if(idx != 0 && mObject && mObject->getType() != type)
     {
         // Reset old object
         setObject(nullptr); // Recursion
+        return;
     }
 
     mTypesCombo->setCurrentIndex(idx);
 
-    mModel = modeMgr->modelForType(type);
-    mCompleter->setModel(mModel);
+    if(mMultiModel)
+    {
+        mCompleter->setModel(mMultiModel);
+    }
+    else
+    {
+        mModel = modeMgr->modelForType(type);
+        mCompleter->setModel(mModel);
+    }
 }

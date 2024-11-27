@@ -34,6 +34,8 @@ class QCompleter;
 class AbstractSimulationObjectModel;
 class AbstractSimulationObject;
 
+class SimulationObjectMultiTypeModel;
+
 class ModeManager;
 
 class SimulationObjectLineEdit : public QWidget
@@ -63,6 +65,8 @@ private:
 
     AbstractSimulationObjectModel *mModel = nullptr;
     AbstractSimulationObject *mObject = nullptr;
+
+    SimulationObjectMultiTypeModel *mMultiModel = nullptr;
 
     QStringListModel *mTypesModel;
     QComboBox *mTypesCombo = nullptr;

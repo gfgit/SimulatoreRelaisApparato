@@ -13,6 +13,9 @@ set(SIMULATORE_RELAIS_SOURCES
     objects/abstractsimulationobjectmodel.cpp
     objects/abstractsimulationobjectmodel.h
 
+    objects/simulationobjectmultitypemodel.cpp
+    objects/simulationobjectmultitypemodel.h
+
     objects/simulationobjectfactory.cpp
     objects/simulationobjectfactory.h
 
