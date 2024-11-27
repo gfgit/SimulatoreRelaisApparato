@@ -261,14 +261,14 @@ bool MechanicalCondition::removeInvalidConditions()
 
 void MechanicalCondition::simplifyTree()
 {
-    if(type == Type::And)
+    if(type == Type::And || type == Type::Or)
     {
         for(auto it = subConditions.begin(); it != subConditions.end(); )
         {
             auto &sub = *it;
             sub.simplifyTree();
 
-            if(sub.type == Type::And)
+            if(sub.type == Type::And && type == Type::And)
             {
                 sub.simplifyTree();
 
