@@ -31,6 +31,8 @@
 #include "../objects/standardobjecttypes.h"
 #include "../objects/abstractsimulationobjectmodel.h"
 
+#include "../enums/loadphase.h"
+
 #include <QJsonObject>
 #include <QJsonArray>
 
