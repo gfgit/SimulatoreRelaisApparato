@@ -76,6 +76,9 @@ void MechanicalConditionsView::setModel(MechanicalConditionsModel *newModel)
     mModel = newModel;
     mView->setModel(mModel);
     mView->expandAll();
+
+    // Make Object column wider
+    mView->setColumnWidth(MechanicalConditionsModel::ObjectCol, 150);
 }
 
 void MechanicalConditionsView::expandAll()
