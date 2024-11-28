@@ -69,6 +69,23 @@ ACESasibLever5PosObject::ACESasibLever5PosObject(AbstractSimulationObjectModel *
     : ACESasibLeverCommonObject(m, ace_sasib_5_posDesc, ace_sasib_5_angleDesc)
 {
     leverInterface->setChangeRangeAllowed(false);
+    mechanicalIface->setAllowedConditionTypes({MechanicalCondition::Type::ExactPos});
+
+    mechanicalIface->setLockablePositions(
+                {
+                    int(ACESasibLeverPosition5::Normal),
+                    int(ACESasibLeverPosition5::Reverse)
+                });
+
+    mechanicalIface->addConditionSet(tr("Leave Normal"));
+    mechanicalIface->setConditionSetRange(0,
+                                          {int(ACESasibLeverPosition5::Normal),
+                                           int(ACESasibLeverPosition5::Normal)});
+
+    mechanicalIface->addConditionSet(tr("Leave Reverse"));
+    mechanicalIface->setConditionSetRange(1,
+                                          {int(ACESasibLeverPosition5::Reverse),
+                                           int(ACESasibLeverPosition5::Reverse)});
 }
 
 QString ACESasibLever5PosObject::getType() const

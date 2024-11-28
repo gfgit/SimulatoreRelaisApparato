@@ -77,7 +77,31 @@ static const LeverAngleDesc ace_sasib_7_angleDesc =
 ACESasibLever7PosObject::ACESasibLever7PosObject(AbstractSimulationObjectModel *m)
     : ACESasibLeverCommonObject(m, ace_sasib_7_posDesc, ace_sasib_7_angleDesc)
 {
+    mechanicalIface->setAllowedConditionTypes(
+                {
+                    MechanicalCondition::Type::ExactPos,
+                    MechanicalCondition::Type::RangePos,
+                    MechanicalCondition::Type::NotPos
+                });
 
+    mechanicalIface->setLockablePositions(
+                {
+                    int(ACESasibLeverPosition7::TurnedForward),
+                    int(ACESasibLeverPosition7::WaitLiberationForward),
+                    int(ACESasibLeverPosition7::Normal),
+                    int(ACESasibLeverPosition7::WaitLiberationBackwards),
+                    int(ACESasibLeverPosition7::TurnedBackwards)
+                });
+
+    mechanicalIface->addConditionSet(tr("Go Forward"));
+    mechanicalIface->setConditionSetRange(0,
+                                          {int(ACESasibLeverPosition7::Normal),
+                                           int(ACESasibLeverPosition7::TurnedBackwards)});
+
+    mechanicalIface->addConditionSet(tr("Go Backwards"));
+    mechanicalIface->setConditionSetRange(1,
+                                          {int(ACESasibLeverPosition7::TurnedForward),
+                                           int(ACESasibLeverPosition7::Normal)});
 }
 
 QString ACESasibLever7PosObject::getType() const
