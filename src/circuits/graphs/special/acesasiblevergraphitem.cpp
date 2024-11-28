@@ -218,6 +218,12 @@ void ACESasibLeverGraphItem::updateLeverTooltip()
                          "%2")
             .arg(mLever->name(), posStr);
 
+    if(!mLever->description().isEmpty())
+    {
+        tipText.append("<br><br>");
+        tipText.append(mLever->description());
+    }
+
     setToolTip(tipText);
 }
 
