@@ -140,6 +140,12 @@ GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(ModeManager *mgr,
             this, &GenericMechanicalOptionsWidget::onInterfacePropertyChanged);
 }
 
+GenericMechanicalOptionsWidget::~GenericMechanicalOptionsWidget()
+{
+    // TODO: object might have been destroyed by now
+    applyConditions();
+}
+
 void GenericMechanicalOptionsWidget::updatePositionRanges()
 {
     int min = mMechanicalIface->absoluteMin();

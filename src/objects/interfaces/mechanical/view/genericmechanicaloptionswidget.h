@@ -45,6 +45,7 @@ public:
     GenericMechanicalOptionsWidget(ModeManager *mgr,
                                    MechanicalInterface *iface,
                                    QWidget *parent = nullptr);
+    ~GenericMechanicalOptionsWidget();
 
 private slots:
     void updatePositionRanges();
