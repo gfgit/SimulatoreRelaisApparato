@@ -51,7 +51,17 @@ AbstractSimulationObjectModel::~AbstractSimulationObjectModel()
 
 QVariant AbstractSimulationObjectModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    // FIXME: Implement me!
+    if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
+    {
+        switch (section)
+        {
+        case 0:
+            return tr("Name");
+        default:
+            break;
+        }
+    }
+
     return QAbstractTableModel::headerData(section, orientation, role);
 }
 
