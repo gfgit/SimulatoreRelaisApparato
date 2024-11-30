@@ -338,7 +338,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
                 // It could have been rejected, check it
                 if(node->hasSecondConnector() != val)
-                    hasSecondContact->setChecked(val);
+                    hasSecondContact->setChecked(node->hasSecondConnector());
             });
 
             auto updDelayLambda =
