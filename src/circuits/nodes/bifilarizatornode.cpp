@@ -37,24 +37,26 @@ QVector<CableItem> BifilarizatorNode::getActiveConnections(CableItem source, boo
         return {};
 
     // For bifilar cables we use only First pole, so reject Second pole
-    if(source.nodeContact == 0)
+    if(source.nodeContact == FirstPoleContact)
     {
         if(source.cable.pole != CircuitPole::First)
             return {};
 
         // Connect to central positive
         CableItem centralPositive;
-        centralPositive.cable.cable = mContacts.at(1).cable;
-        centralPositive.cable.side = mContacts.at(1).cableSide;
-        centralPositive.nodeContact = 1;
+        centralPositive.cable.cable = mContacts.at(CentralContact).cable;
+        centralPositive.cable.side = mContacts.at(CentralContact).cableSide;
+        centralPositive.nodeContact = CentralContact;
         centralPositive.cable.pole = CircuitPole::First; // Positive
 
         return {centralPositive};
     }
-    else if(source.nodeContact == 1)
+    else if(source.nodeContact == CentralContact)
     {
         // Go to 0 or 2 based on unifilar polarity
-        const int destContact = (source.cable.pole == CircuitPole::First ? 0 : 2);
+        const int destContact = (source.cable.pole == CircuitPole::First ?
+                                     FirstPoleContact :
+                                     SecondPoleContact);
 
         // Connect to first pole of out cable
         CableItem dest;
@@ -65,16 +67,16 @@ QVector<CableItem> BifilarizatorNode::getActiveConnections(CableItem source, boo
 
         return {dest};
     }
-    else if(source.nodeContact == 2)
+    else if(source.nodeContact == SecondPoleContact)
     {
         if(source.cable.pole != CircuitPole::First)
             return {};
 
         // Connect to central negative
         CableItem centralNegative;
-        centralNegative.cable.cable = mContacts.at(1).cable;
-        centralNegative.cable.side = mContacts.at(1).cableSide;
-        centralNegative.nodeContact = 1;
+        centralNegative.cable.cable = mContacts.at(CentralContact).cable;
+        centralNegative.cable.side = mContacts.at(CentralContact).cableSide;
+        centralNegative.nodeContact = CentralContact;
         centralNegative.cable.pole = CircuitPole::Second; // Negative
 
         return {centralNegative};

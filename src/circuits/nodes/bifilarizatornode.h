@@ -36,8 +36,13 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("bifilarizator_node");
     QString nodeType() const override;
 
-signals:
-
+public:
+    enum Contacts
+    {
+        FirstPoleContact = 2,
+        CentralContact = 1,
+        SecondPoleContact = 0
+    };
 };
 
 #endif // BIFILARIZATORNODE_H
