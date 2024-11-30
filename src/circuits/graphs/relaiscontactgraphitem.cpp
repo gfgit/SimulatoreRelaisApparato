@@ -69,18 +69,23 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     {
         QColor color = Qt::black;
 
-        switch (node()->relais()->state())
+        if(node()->modeMgr()->mode() == FileMode::Simulation)
         {
-        case AbstractRelais::State::Up:
-            color = Qt::red;
-            break;
-        case AbstractRelais::State::GoingUp:
-        case AbstractRelais::State::GoingDown:
-            color.setRgb(120, 210, 255); // Light blue
-            break;
-        case AbstractRelais::State::Down:
-        default:
-            break;
+            // Draw name in red for active relais only during simulation mode
+            // (Stabilized relay stay active also in editing mode)
+            switch (node()->relais()->state())
+            {
+            case AbstractRelais::State::Up:
+                color = Qt::red;
+                break;
+            case AbstractRelais::State::GoingUp:
+            case AbstractRelais::State::GoingDown:
+                color.setRgb(120, 210, 255); // Light blue
+                break;
+            case AbstractRelais::State::Down:
+            default:
+                break;
+            }
         }
 
         painter->setPen(color);
@@ -95,17 +100,20 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
                  nameRotate, &textBr);
 
         if(!node()->hideRelayNormalState())
-            drawRelayArrow(painter, nameRotate, color, textBr);
+            drawRelayArrow(painter, nameRotate, textBr);
     }
 }
 
 void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
                                             TileRotate r,
-                                            const QColor& color,
                                             const QRectF& textBr)
 {
     if(!node()->relais())
         return;
+
+    if(node()->relais()->state() == AbstractRelais::State::GoingUp
+            || node()->relais()->state() == AbstractRelais::State::GoingDown)
+        return; // Do not draw arrow for transitory states
 
     // Draw arrow up/down for normally up/down relays
     QRectF arrowRect;
@@ -158,7 +166,8 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
     const double triangleSemiWidth = 0.5 * qMin(arrowRect.width(),
                                                 arrowRect.height() - lineHeight);
 
-    if(node()->relais()->normallyUp())
+    const bool isRelayUp = node()->relais()->state() == AbstractRelais::State::Up;
+    if(isRelayUp)
     {
         // Arrow up
         line.setP1(QPointF(centerX, arrowRect.bottom() - lineHeight));
@@ -177,6 +186,30 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
         triangle[0] = QPointF(centerX, arrowRect.bottom());
         triangle[1] = QPointF(centerX + triangleSemiWidth, line.y1());
         triangle[2] = QPointF(centerX - triangleSemiWidth, line.y1());
+    }
+
+    /* Colors:
+     * Black: relay is normally down and currently down
+     * Red: relay is normally up and currently up
+     *
+     * Blue: relay is normally up BUT currently down
+     * Purple: relay is normally down BUT currently up
+     */
+
+    QColor color = Qt::black;
+    if(isRelayUp)
+    {
+        if(node()->relais()->normallyUp())
+            color = Qt::red; // Relay in normal state
+        else
+            color = Qt::darkMagenta;
+    }
+    else
+    {
+        if(!node()->relais()->normallyUp())
+            color = Qt::black; // Relay in normal state
+        else
+            color = Qt::blue;
     }
 
     QPen pen;

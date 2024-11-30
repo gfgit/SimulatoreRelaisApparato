@@ -41,7 +41,7 @@ public:
     RelaisContactNode *node() const;
 
 private:
-    void drawRelayArrow(QPainter *painter, TileRotate r, const QColor &color, const QRectF &textBr);
+    void drawRelayArrow(QPainter *painter, TileRotate r, const QRectF &textBr);
 };
 
 #endif // RELAISCONTACTGRAPHITEM_H

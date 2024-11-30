@@ -63,8 +63,7 @@ protected slots:
 
 private:
     void drawRelayArrow(QPainter *painter,
-                        TileRotate r,
-                        const QColor &color);
+                        TileRotate r);
 
 private:
     static constexpr double relayRadius = 16.0;
