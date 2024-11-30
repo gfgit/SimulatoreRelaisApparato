@@ -401,7 +401,14 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
     const double triangleSemiWidth = 0.5 * qMin(arrowRect.width(),
                                                 arrowRect.height() - lineHeight);
 
-    const bool isRelayUp = node()->relais()->state() == AbstractRelais::State::Up;
+    bool isRelayUp = node()->relais()->state() == AbstractRelais::State::Up;
+    if(node()->modeMgr()->mode() != FileMode::Simulation)
+    {
+        // In static or editing mode,
+        // draw relay in its normal state
+        isRelayUp = node()->relais()->normallyUp();
+    }
+
     if(isRelayUp)
     {
         // Arrow up
