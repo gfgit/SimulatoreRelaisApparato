@@ -9,6 +9,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/abstractdeviatornode.h
     circuits/nodes/aceibuttonnode.cpp
     circuits/nodes/aceibuttonnode.h
+    circuits/nodes/bifilarizatornode.cpp
+    circuits/nodes/bifilarizatornode.h
     circuits/nodes/circuitcable.cpp
     circuits/nodes/circuitcable.h
     circuits/nodes/electromagnetnode.cpp

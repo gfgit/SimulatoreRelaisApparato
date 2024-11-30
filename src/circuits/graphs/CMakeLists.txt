@@ -9,6 +9,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/abstractdeviatorgraphitem.h
     circuits/graphs/aceibuttongraphitem.cpp
     circuits/graphs/aceibuttongraphitem.h
+    circuits/graphs/bifilarizatorgraphitem.cpp
+    circuits/graphs/bifilarizatorgraphitem.h
     circuits/graphs/cablegraphitem.cpp
     circuits/graphs/cablegraphitem.h
     circuits/graphs/electromagnetgraphitem.cpp

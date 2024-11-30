@@ -54,6 +54,9 @@
 #include "../graphs/levercontactgraphitem.h"
 #include "../nodes/levercontactnode.h"
 
+#include "../graphs/bifilarizatorgraphitem.h"
+#include "../nodes/bifilarizatornode.h"
+
 // TODO: special
 #include "../graphs/special/aceilevergraphitem.h"
 #include "../graphs/special/acesasiblevergraphitem.h"
@@ -645,6 +648,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = PolarityInversionGraphItem::Node::NodeType;
         factory.prettyName = tr("Polarity Inversion");
         factory.create = &addNewNodeToScene<PolarityInversionGraphItem>;
+        factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Bifilarizator node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+        factory.nodeType = BifilarizatorGraphItem::Node::NodeType;
+        factory.prettyName = tr("BiFiLar1zaT0R");
+        factory.create = &addNewNodeToScene<BifilarizatorGraphItem>;
         factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
