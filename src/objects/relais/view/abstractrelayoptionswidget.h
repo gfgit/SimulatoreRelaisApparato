@@ -29,6 +29,7 @@ class AbstractRelais;
 
 class QCheckBox;
 class QComboBox;
+class QSpinBox;
 
 class AbstractRelayOptionsWidget : public QWidget
 {
@@ -37,11 +38,18 @@ public:
     AbstractRelayOptionsWidget(AbstractRelais *relay,
                                QWidget *parent = nullptr);
 
+private slots:
+    void updateDurations();
+    void setNewDurations();
+
 private:
     AbstractRelais *mRelay = nullptr;
 
     QCheckBox *mNormallyUp = nullptr;
     QComboBox *mTypeCombo = nullptr;
+
+    QSpinBox *mUpTimeSpin = nullptr;
+    QSpinBox *mDownTimeSpin = nullptr;
 };
 
 #endif // ABSTRACT_RELAY_OPTIONSWIDGET_H

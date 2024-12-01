@@ -55,12 +55,12 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
 
-    constexpr double circleRadius = 10;
+    constexpr double leverCircleRadius = 10;
     constexpr double leverLength = 40;
 
     QRectF circle;
-    circle.setSize(QSizeF(circleRadius * 2,
-                          circleRadius * 2));
+    circle.setSize(QSizeF(leverCircleRadius * 2,
+                          leverCircleRadius * 2));
     circle.moveCenter(center);
 
     // Zero is vertical up, so cos/sin are swapped

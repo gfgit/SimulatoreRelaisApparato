@@ -34,6 +34,8 @@ class AbstractRelais : public AbstractSimulationObject
 {
     Q_OBJECT
 public:
+    static constexpr int DefaultUpMS = 700;
+    static constexpr int DefaultDownMS = 200;
 
     enum class State
     {
@@ -90,11 +92,11 @@ public:
     State state() const;
     void setState(State newState);
 
-    double upSpeed() const;
-    void setUpSpeed(double newUpSpeed);
+    quint32 durationUp() const;
+    void setDurationUp(quint32 durationUpMS);
 
-    double downSpeed() const;
-    void setDownSpeed(double newDownSpeed);
+    quint32 durationDown() const;
+    void setDurationDown(quint32 durationDownMS);
 
     void timerEvent(QTimerEvent *e) override;
 
@@ -139,9 +141,9 @@ private:
     State mInternalState = State::Down;
     bool mNormallyUp = true;
 
-    // Steps per 250ms (Speed of 0.25 means it goes up in 1 sec)
-    double mUpSpeed = 0.18;
-    double mDownSpeed = 0.25;
+    quint32 mCustomUpMS = 0;
+    quint32 mCustomDownMS = 0;
+    double mTickPositionDelta = 0;
     double mPosition = 0.0;
     int mTimerId = 0;
 

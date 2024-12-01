@@ -29,6 +29,8 @@
 
 #include <QJsonObject>
 
+#include <QRandomGenerator>
+
 QString AbstractRelais::getRelaisTypeName(RelaisType t)
 {
     switch(t)
@@ -87,8 +89,8 @@ bool AbstractRelais::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     if(phase != LoadPhase::Creation)
         return true; // Alredy created, nothing to do
 
-    setUpSpeed(obj.value("speed_up").toDouble());
-    setDownSpeed(obj.value("speed_down").toDouble());
+    setDurationUp(quint32(obj.value("duration_up_ms").toInteger()));
+    setDurationDown(quint32(obj.value("duration_down_ms").toInteger()));
     setNormallyUp(obj.value("normally_up").toBool());
     setRelaisType(RelaisType(obj.value("relay_type").toInt(int(RelaisType::Normal))));
     return true;
@@ -98,8 +100,10 @@ void AbstractRelais::saveToJSON(QJsonObject &obj) const
 {
     AbstractSimulationObject::saveToJSON(obj);
 
-    obj["speed_up"] = mUpSpeed;
-    obj["speed_down"] = mDownSpeed;
+    if(mCustomUpMS > 0)
+        obj["duration_up_ms"] = qint64(mCustomUpMS);
+    if(mCustomDownMS > 0)
+        obj["duration_down_ms"] = qint64(mCustomDownMS);
     obj["normally_up"] = normallyUp();
     obj["relay_type"] = int(relaisType());
 }
@@ -129,24 +133,32 @@ bool AbstractRelais::isStateIndependent(RelaisType t)
     return false;
 }
 
-double AbstractRelais::upSpeed() const
+quint32 AbstractRelais::durationUp() const
 {
-    return mUpSpeed;
+    return mCustomUpMS;
 }
 
-void AbstractRelais::setUpSpeed(double newUpSpeed)
+void AbstractRelais::setDurationUp(quint32 durationUpMS)
 {
-    mUpSpeed = newUpSpeed;
+    if(mCustomUpMS == durationUpMS)
+        return;
+
+    mCustomUpMS = durationUpMS;
+    emit settingsChanged(this);
 }
 
-double AbstractRelais::downSpeed() const
+quint32 AbstractRelais::durationDown() const
 {
-    return mDownSpeed;
+    return mCustomDownMS;
 }
 
-void AbstractRelais::setDownSpeed(double newDownSpeed)
+void AbstractRelais::setDurationDown(quint32 durationDownMS)
 {
-    mDownSpeed = newDownSpeed;
+    if(mCustomDownMS == durationDownMS)
+        return;
+
+    mCustomDownMS = durationDownMS;
+    emit settingsChanged(this);
 }
 
 void AbstractRelais::addPowerNode(RelaisPowerNode *p)
@@ -199,9 +211,9 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
     {
         double newPosition = mPosition;
         if(mInternalState == State::GoingUp)
-            newPosition += mUpSpeed;
+            newPosition += mTickPositionDelta;
         else if(mInternalState == State::GoingDown)
-            newPosition -= mDownSpeed;
+            newPosition -= mTickPositionDelta;
         else
         {
             killTimer(mTimerId);
@@ -334,9 +346,40 @@ void AbstractRelais::setPosition(double newPosition)
 
 void AbstractRelais::startMove(bool up)
 {
-    mInternalState = up ? State::GoingUp : State::GoingDown;
-    killTimer(mTimerId);
-    mTimerId = startTimer(250);
+    if(mTimerId)
+        killTimer(mTimerId);
+
+    int totalTime = 0;
+    if(up)
+    {
+        mInternalState = State::GoingUp;
+        totalTime = mCustomUpMS;
+        if(!totalTime)
+            totalTime = DefaultUpMS;
+    }
+    else
+    {
+        mInternalState = State::GoingDown;
+        totalTime = mCustomDownMS;
+        if(!totalTime)
+            totalTime = DefaultDownMS;
+    }
+
+    // Relay can be up to 33% faster/slower
+    const double MaxTimeOscillationRel = 0.33;
+    const double factor =
+            QRandomGenerator::global()->bounded(MaxTimeOscillationRel * 2) - MaxTimeOscillationRel;
+    const int timeOscillation = qRound(double(totalTime) * factor);
+
+    totalTime += timeOscillation;
+
+    // Get a sensible tick duration
+    const int tickDurationMS = qBound(20, totalTime / 10, 200);
+
+    // How much to change position at each tick
+    mTickPositionDelta = double(tickDurationMS) / double(totalTime);
+
+    mTimerId = startTimer(tickDurationMS);
 }
 
 AbstractRelais::RelaisType AbstractRelais::relaisType() const
