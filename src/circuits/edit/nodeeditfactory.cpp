@@ -113,7 +113,8 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
     }
 
     QPushButton *delBut = new QPushButton(tr("Delete"));
-    lay->addWidget(delBut);
+    delBut->setAutoDefault(false);
+    delBut->setDefault(false);
 
     connect(delBut, &QPushButton::clicked,
             dlg, [dlg, item]()
@@ -133,11 +134,16 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
     });
 
     QPushButton *okBut = new QPushButton(tr("Ok"));
-    lay->addWidget(okBut);
-
     connect(okBut, &QPushButton::clicked, dlg, &QDialog::accept);
     okBut->setFocus();
-    okBut->setDefault(true);
+
+    okBut->setAutoDefault(false);
+    okBut->setDefault(false);
+
+    QHBoxLayout *butLay = new QHBoxLayout;
+    butLay->addWidget(delBut);
+    butLay->addWidget(okBut);
+    lay->setLayout(lay->rowCount(), QFormLayout::SpanningRole, butLay);
 
     dlg->exec();
 
