@@ -113,6 +113,7 @@ void LeverContactNode::setLever(AbstractSimulationObject *newLever)
 
     emit leverChanged(mLever);
     refreshContactState();
+    modeMgr()->setFileEdited();
 }
 
 LeverInterface *LeverContactNode::leverIface() const
