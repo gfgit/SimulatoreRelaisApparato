@@ -30,6 +30,8 @@
 class AbstractSimulationObject;
 class LeverInterface;
 
+class LightBulbObject;
+
 // TODO: this is a fake node
 class FakeLeverNode : public OnOffSwitchNode
 {
@@ -61,8 +63,15 @@ public:
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
+    LightBulbObject *leftLight() const;
+    void setLeftLight(LightBulbObject *newLeftLight);
+
+    LightBulbObject *rightLight() const;
+    void setRightLight(LightBulbObject *newRightLight);
+
 signals:
     void leverChanged(AbstractSimulationObject *newLever);
+    void lightsChanged();
 
 private slots:
     void onLeverDestroyed();
@@ -82,6 +91,9 @@ private:
 private:
     AbstractSimulationObject *mLever = nullptr;
     LeverInterface *mLeverIface = nullptr;
+
+    LightBulbObject *mLeftLight = nullptr;
+    LightBulbObject *mRightLight = nullptr;
 
     QPointF mLastMousePos;
 };

@@ -33,6 +33,8 @@
 
 #include "../../../objects/lever/acei/aceileverobject.h"
 
+#include "../../../objects/simple_activable/lightbulbobject.h"
+
 #include "../../../views/modemanager.h"
 
 #include <QGraphicsSceneMouseEvent>
@@ -52,52 +54,136 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 {
     AbstractNodeGraphItem::paint(painter, option, widget);
 
-    constexpr QPointF center(TileLocation::HalfSize,
-                             TileLocation::HalfSize);
-
-    constexpr double leverCircleRadius = 10;
-    constexpr double leverLength = 40;
-
-    QRectF circle;
-    circle.setSize(QSizeF(leverCircleRadius * 2,
-                          leverCircleRadius * 2));
-    circle.moveCenter(center);
-
     // Zero is vertical up, so cos/sin are swapped
     // Also returned angle must be inverted to be clockwise
     const double angleRadiants = -qDegreesToRadians(mLeverIface ? mLeverIface->angle() : 0);
+    const QPointF delta(qSin(angleRadiants),
+                        qCos(angleRadiants));
 
-    QPointF endPt(qSin(angleRadiants),
-                  qCos(angleRadiants));
-    endPt *= -leverLength; // Negative to go upwards
-    endPt += center;
+    constexpr QPointF center(TileLocation::HalfSize,
+                             TileLocation::HalfSize);
 
-    QColor color = Qt::darkCyan;
+    constexpr QPointF leverCenter(center.x(), center.y());
+
+    constexpr double baseCircleRadius = 32;
+    constexpr double leverCircleRadius = 18;
+    constexpr double leverTipLength = 32;
+    constexpr double leverBottomLength = 24;
+
+    constexpr double lightCircleRadius = 12;
+    constexpr double lightOffset = 16;
+
+    // Draw dark gray border around
+    QPen borderPen;
+    borderPen.setWidth(3);
+    borderPen.setColor(Qt::darkGray);
+    painter->setPen(borderPen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRect(boundingRect());
+
+    // Draw lights
+    QRectF circle;
+    circle.setSize(QSizeF(lightCircleRadius * 2,
+                          lightCircleRadius * 2));
+
+    if(mLeftLight)
+    {
+        // White light (We draw yellow to have contrast)
+        // and because incandescent light bulb are never white
+        if(mLeftLight->state() == LightBulbObject::State::On)
+            painter->setBrush(Qt::yellow);
+        else
+            painter->setBrush(Qt::NoBrush);
+
+        circle.moveCenter(QPointF(lightOffset, lightOffset));
+        painter->drawEllipse(circle);
+    }
+
+    if(mRightLight)
+    {
+        // Blue light
+        if(mRightLight->state() == LightBulbObject::State::On)
+            painter->setBrush(Qt::blue);
+        else
+            painter->setBrush(Qt::NoBrush);
+
+        circle.moveCenter(QPointF(TileLocation::Size - lightOffset, lightOffset));
+        painter->drawEllipse(circle);
+    }
+
+    // Draw base circle below lever
+    circle.setSize(QSizeF(baseCircleRadius * 2,
+                          baseCircleRadius * 2));
+    circle.moveCenter(leverCenter);
+    painter->setBrush(Qt::lightGray);
+    painter->setPen(Qt::NoPen);
+    painter->drawEllipse(circle);
+
+    // Draw lever
+    QColor color = qRgb(77, 77, 77); // Dark gray
     if(!mLeverIface || mLeverIface->isPressed())
         color = Qt::blue;
 
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
     pen.setColor(color);
-    pen.setWidth(5);
+    pen.setWidth(12);
 
-    // Draw lever line
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
-    painter->drawLine(center, endPt);
+
+    // Lever tip
+    QPointF endPt = delta;
+    endPt *= -leverTipLength; // Negative to go upwards
+    endPt += leverCenter;
+    painter->drawLine(leverCenter, endPt);
+
+    // Lever bottom
+    pen.setWidth(20);
+    painter->setPen(pen);
+
+    endPt = delta;
+    endPt *= leverBottomLength; // Positive to go downwards
+    endPt += leverCenter;
+    painter->drawLine(leverCenter, endPt);
 
     // Draw circle
     painter->setBrush(color);
     painter->setPen(Qt::NoPen);
+
+    circle.setSize(QSizeF(leverCircleRadius * 2,
+                          leverCircleRadius * 2));
+    circle.moveCenter(leverCenter);
     painter->drawEllipse(circle);
 
     // Draw Lever name
+    const QString leverName = mLever ? mLever->name() : tr("NULL");
+
+    QRectF textRect;
+    textRect.setLeft(10);
+    textRect.setRight(TileLocation::Size - 10.0);
+    textRect.setTop(TileLocation::HalfSize + 20.0);
+    textRect.setBottom(TileLocation::Size - 4.0);
+
+    Qt::Alignment textAlign = Qt::AlignLeft;
+
+    QFont f;
+    f.setPointSizeF(18.0);
+    f.setBold(true);
+
+    QFontMetrics metrics(f, painter->device());
+    double width = metrics.horizontalAdvance(leverName, QTextOption(textAlign));
+    if(width > textRect.width())
+    {
+        f.setPointSizeF(f.pointSizeF() * textRect.width() / width * 0.9);
+    }
+
     painter->setBrush(Qt::NoBrush);
     pen.setColor(Qt::black);
     painter->setPen(pen);
-    drawName(painter,
-             mLever ? mLever->name() : tr("NULL"),
-             TileRotate::Deg90); // Put at bottom
+
+    painter->setFont(f);
+    painter->drawText(textRect, textAlign, leverName);
 }
 
 void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
@@ -204,6 +290,64 @@ void ACEILeverGraphItem::updateLeverTooltip()
     setToolTip(tipText);
 }
 
+LightBulbObject *ACEILeverGraphItem::leftLight() const
+{
+    return mLeftLight;
+}
+
+void ACEILeverGraphItem::setLeftLight(LightBulbObject *newLeftLight)
+{
+    if(mLeftLight == newLeftLight)
+        return;
+
+    if(mLeftLight)
+    {
+        disconnect(mLeftLight, &LightBulbObject::stateChanged,
+                   this, &ACEILeverGraphItem::triggerUpdate);
+    }
+
+    mLeftLight = newLeftLight;
+
+    if(mLeftLight)
+    {
+        connect(mLeftLight, &LightBulbObject::stateChanged,
+                this, &ACEILeverGraphItem::triggerUpdate);
+    }
+
+    getAbstractNode()->modeMgr()->setFileEdited();
+    update();
+    emit lightsChanged();
+}
+
+LightBulbObject *ACEILeverGraphItem::rightLight() const
+{
+    return mRightLight;
+}
+
+void ACEILeverGraphItem::setRightLight(LightBulbObject *newRightLight)
+{
+    if(mRightLight == newRightLight)
+        return;
+
+    if(mRightLight)
+    {
+        disconnect(mRightLight, &LightBulbObject::stateChanged,
+                   this, &ACEILeverGraphItem::triggerUpdate);
+    }
+
+    mRightLight = newRightLight;
+
+    if(mRightLight)
+    {
+        connect(mRightLight, &LightBulbObject::stateChanged,
+                this, &ACEILeverGraphItem::triggerUpdate);
+    }
+
+    getAbstractNode()->modeMgr()->setFileEdited();
+    update();
+    emit lightsChanged();
+}
+
 AbstractSimulationObject *ACEILeverGraphItem::lever() const
 {
     return mLever;
@@ -264,6 +408,21 @@ bool ACEILeverGraphItem::loadFromJSON(const QJsonObject &obj)
     else
         setLever(nullptr);
 
+    auto lightModel = getAbstractNode()->modeMgr()->modelForType(LightBulbObject::Type);
+    if(lightModel)
+    {
+        const QString leftLightName = obj.value("light_left").toString();
+        setLeftLight(static_cast<LightBulbObject *>(lightModel->getObjectByName(leftLightName)));
+
+        const QString rightLightName = obj.value("light_right").toString();
+        setRightLight(static_cast<LightBulbObject *>(lightModel->getObjectByName(rightLightName)));
+    }
+    else
+    {
+        setLeftLight(nullptr);
+        setRightLight(nullptr);
+    }
+
     return AbstractNodeGraphItem::loadFromJSON(objCopy);
 }
 
@@ -276,6 +435,9 @@ void ACEILeverGraphItem::saveToJSON(QJsonObject &obj) const
 
     obj["lever"] = mLever ? mLever->name() : QString();
     obj["lever_type"] = mLever ? mLever->getType() : QString();
+
+    obj["light_left"] = mLeftLight ? mLeftLight->name() : QString();
+    obj["light_right"] = mRightLight ? mRightLight->name() : QString();
 }
 
 void ACEILeverGraphItem::onLeverDestroyed()

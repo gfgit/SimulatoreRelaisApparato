@@ -41,11 +41,11 @@ static const EnumDesc acei_lever_posDesc =
 
 static const LeverAngleDesc acei_lever_angleDesc =
 {
-    {-90, -90}, // Left
+    {-45, -90}, // Left
     {}, // Middle1
     {  0,   0}, // Vertical
     {}, // Middle2
-    {+90, +90}  // Right
+    {+45, +90}  // Right
 };
 
 ACEILeverObject::ACEILeverObject(AbstractSimulationObjectModel *m)

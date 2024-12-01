@@ -79,6 +79,7 @@
 #include "../../objects/interfaces/sasibaceleverextrainterface.h"
 
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
+#include "../../objects/simple_activable/lightbulbobject.h"
 
 #include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/lever/acei/aceileverobject.h"
@@ -501,6 +502,39 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             leverEdit->setObject(specialItem->lever());
 
             lay->addRow(tr("Lever:"), leverEdit);
+
+            // Left Light
+            SimulationObjectLineEdit *leftLightEdit =
+                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+            QObject::connect(leftLightEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setLeftLight(static_cast<LightBulbObject *>(obj));
+            });
+
+            lay->addRow(tr("Left light:"), leftLightEdit);
+
+            // Right Light
+            SimulationObjectLineEdit *rightLightEdit =
+                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+            QObject::connect(rightLightEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setRightLight(static_cast<LightBulbObject *>(obj));
+            });
+
+            lay->addRow(tr("Right light:"), rightLightEdit);
+
+            auto updateLights = [specialItem, leftLightEdit, rightLightEdit]()
+            {
+                leftLightEdit->setObject(specialItem->leftLight());
+                rightLightEdit->setObject(specialItem->rightLight());
+            };
+
+            QObject::connect(specialItem, &ACEILeverGraphItem::lightsChanged,
+                             w, updateLights);
+
+            updateLights();
 
             return w;
         };
