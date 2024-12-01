@@ -73,6 +73,8 @@ SimulationObjectOptionsWidget *SimulationObjectFactory::createEditWidget(QWidget
             optionsWidget->addCustomWidget(customWidget);
     }
 
+    optionsWidget->fixScrollingChildrenInScrollArea();
+
     return optionsWidget;
 }
 

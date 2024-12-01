@@ -43,6 +43,10 @@ public:
 
     QString uniqueId() const;
 
+    void fixScrollingChildrenInScrollArea();
+
+    bool eventFilter(QObject *watched, QEvent *ev) override;
+
 signals:
     void uniqueIdChanged(const QString& uniqueId);
 

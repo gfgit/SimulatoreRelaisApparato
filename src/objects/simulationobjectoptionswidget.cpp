@@ -30,6 +30,11 @@
 #include <QScrollArea>
 #include <QLineEdit>
 
+#include <QSpinBox>
+#include <QComboBox>
+
+#include <QEvent>
+
 SimulationObjectOptionsWidget::SimulationObjectOptionsWidget(AbstractSimulationObject *object, QWidget *parent)
     : QWidget{parent}
     , mObject(object)
@@ -94,6 +99,52 @@ void SimulationObjectOptionsWidget::addCustomWidget(QWidget *w)
 QString SimulationObjectOptionsWidget::uniqueId() const
 {
     return QLatin1String("edit_%1").arg(mObject->uniqueId());
+}
+
+void SimulationObjectOptionsWidget::fixScrollingChildrenInScrollArea()
+{
+    // Prevent changing value of spinbox with mouse wheel
+    // This could happen while scrolling the scroll area
+    // Also prevent getting focused by mouse wheel by setting StrongFocus
+    const auto spinBoxes = findChildren<QAbstractSpinBox *>();
+    for(QAbstractSpinBox *spin : spinBoxes)
+    {
+        spin->setFocusPolicy(Qt::StrongFocus);
+        spin->installEventFilter(this);
+    }
+
+    const auto comboBoxes = findChildren<QComboBox *>();
+    for(QComboBox *combo : comboBoxes)
+    {
+        combo->setFocusPolicy(Qt::StrongFocus);
+        combo->installEventFilter(this);
+    }
+}
+
+bool SimulationObjectOptionsWidget::eventFilter(QObject *watched, QEvent *ev)
+{
+    if(ev->type() == QEvent::Wheel)
+    {
+        // Allow reacting to mouse wheel only if already has focus
+        if(QAbstractSpinBox *spin = qobject_cast<QAbstractSpinBox *>(watched))
+        {
+            if(!spin->hasFocus())
+            {
+                ev->ignore();
+                return true;
+            }
+        }
+        else if(QComboBox *combo = qobject_cast<QComboBox *>(watched))
+        {
+            if(!combo->hasFocus())
+            {
+                ev->ignore();
+                return true;
+            }
+        }
+    }
+
+    return QWidget::eventFilter(watched, ev);
 }
 
 void SimulationObjectOptionsWidget::setName()
