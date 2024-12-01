@@ -30,6 +30,15 @@ AbstractSimpleActivableObject::AbstractSimpleActivableObject(AbstractSimulationO
 
 }
 
+AbstractSimpleActivableObject::~AbstractSimpleActivableObject()
+{
+    const auto nodesCopy = mNodes;
+    for(SimpleActivationNode *node : nodesCopy)
+    {
+        node->setObject(nullptr);
+    }
+}
+
 QVector<AbstractCircuitNode *> AbstractSimpleActivableObject::nodes() const
 {
     QVector<AbstractCircuitNode *> result;

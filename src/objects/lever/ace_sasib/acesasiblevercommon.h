@@ -51,6 +51,7 @@ public:
 
 private slots:
     void updateElectroMagnetState();
+    void onElectroMagnedDestroyed();
 
 protected:
     void onInterfaceChanged(AbstractObjectInterface *iface,

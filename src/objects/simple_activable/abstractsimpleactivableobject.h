@@ -41,6 +41,7 @@ public:
 
 
     explicit AbstractSimpleActivableObject(AbstractSimulationObjectModel *m);
+    ~AbstractSimpleActivableObject();
 
     QVector<AbstractCircuitNode *> nodes() const override;
 

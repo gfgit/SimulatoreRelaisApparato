@@ -113,19 +113,25 @@ void SimpleActivationNode::setObject(AbstractSimpleActivableObject *newObject)
     if(mObject == newObject)
         return;
 
-    if(newObject->getType() != allowedObjectType())
+    if(newObject && newObject->getType() != allowedObjectType())
         return;
 
-    if(mObject && hasCircuits())
+    if(mObject)
     {
-        mObject->onNodeStateChanged(this, false);
+        mObject->removeNode(this);
+
+        if(hasCircuits())
+            mObject->onNodeStateChanged(this, false);
     }
 
     mObject = newObject;
 
-    if(mObject && hasCircuits())
+    if(mObject)
     {
-        mObject->onNodeStateChanged(this, true);
+        mObject->addNode(this);
+
+        if(hasCircuits())
+            mObject->onNodeStateChanged(this, true);
     }
 
     emit objectChanged(mObject);

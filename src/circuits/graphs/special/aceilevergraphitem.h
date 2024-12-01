@@ -75,6 +75,7 @@ signals:
 
 private slots:
     void onLeverDestroyed();
+    void onLightDestroyed();
 
     void onInterfacePropertyChanged(const QString &ifaceName,
                                     const QString &propName,

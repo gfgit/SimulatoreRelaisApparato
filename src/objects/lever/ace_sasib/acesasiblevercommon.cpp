@@ -63,6 +63,11 @@ ACESasibLeverCommonObject::~ACESasibLeverCommonObject()
 
     delete leverInterface;
     leverInterface = nullptr;
+
+    delete sasibInterface;
+    sasibInterface = nullptr;
+
+    setMagnet(nullptr);
 }
 
 bool ACESasibLeverCommonObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
@@ -109,6 +114,8 @@ void ACESasibLeverCommonObject::setMagnet(ElectroMagnetObject *newMagnet)
     {
         disconnect(mMagnet, &AbstractSimpleActivableObject::stateChanged,
                    this, &ACESasibLeverCommonObject::updateElectroMagnetState);
+        disconnect(mMagnet, &AbstractSimpleActivableObject::destroyed,
+                   this, &ACESasibLeverCommonObject::onElectroMagnedDestroyed);
         removeElectromagnetLock();
     }
 
@@ -118,6 +125,8 @@ void ACESasibLeverCommonObject::setMagnet(ElectroMagnetObject *newMagnet)
     {
         connect(mMagnet, &AbstractSimpleActivableObject::stateChanged,
                 this, &ACESasibLeverCommonObject::updateElectroMagnetState);
+        connect(mMagnet, &AbstractSimpleActivableObject::destroyed,
+                this, &ACESasibLeverCommonObject::onElectroMagnedDestroyed);
 
         if(mMagnet->state() == ElectroMagnetObject::State::Off)
             addElectromagnetLock();
@@ -136,6 +145,11 @@ void ACESasibLeverCommonObject::updateElectroMagnetState()
         addElectromagnetLock();
     else
         removeElectromagnetLock();
+}
+
+void ACESasibLeverCommonObject::onElectroMagnedDestroyed()
+{
+    setMagnet(nullptr);
 }
 
 void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *iface, const QString &propName, const QVariant &value)

@@ -304,6 +304,8 @@ void ACEILeverGraphItem::setLeftLight(LightBulbObject *newLeftLight)
     {
         disconnect(mLeftLight, &LightBulbObject::stateChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
+        disconnect(mLeftLight, &LightBulbObject::destroyed,
+                   this, &ACEILeverGraphItem::onLightDestroyed);
     }
 
     mLeftLight = newLeftLight;
@@ -312,6 +314,8 @@ void ACEILeverGraphItem::setLeftLight(LightBulbObject *newLeftLight)
     {
         connect(mLeftLight, &LightBulbObject::stateChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
+        connect(mLeftLight, &LightBulbObject::destroyed,
+                this, &ACEILeverGraphItem::onLightDestroyed);
     }
 
     getAbstractNode()->modeMgr()->setFileEdited();
@@ -333,6 +337,8 @@ void ACEILeverGraphItem::setRightLight(LightBulbObject *newRightLight)
     {
         disconnect(mRightLight, &LightBulbObject::stateChanged,
                    this, &ACEILeverGraphItem::triggerUpdate);
+        disconnect(mRightLight, &LightBulbObject::destroyed,
+                   this, &ACEILeverGraphItem::onLightDestroyed);
     }
 
     mRightLight = newRightLight;
@@ -341,6 +347,8 @@ void ACEILeverGraphItem::setRightLight(LightBulbObject *newRightLight)
     {
         connect(mRightLight, &LightBulbObject::stateChanged,
                 this, &ACEILeverGraphItem::triggerUpdate);
+        connect(mRightLight, &LightBulbObject::destroyed,
+                this, &ACEILeverGraphItem::onLightDestroyed);
     }
 
     getAbstractNode()->modeMgr()->setFileEdited();
@@ -446,6 +454,14 @@ void ACEILeverGraphItem::onLeverDestroyed()
     mLeverIface = nullptr;
     updateLeverTooltip();
     emit leverChanged(mLever);
+}
+
+void ACEILeverGraphItem::onLightDestroyed()
+{
+    if(sender() == mLeftLight)
+        setLeftLight(nullptr);
+    else if(sender() == mRightLight)
+        setRightLight(nullptr);
 }
 
 void ACEILeverGraphItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
