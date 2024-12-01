@@ -168,13 +168,6 @@ void SimulationObjectLineEdit::setType(int idx)
         mMultiModel = nullptr;
     }
 
-    if(!type.isEmpty() && mObject && mObject->getType() != type)
-    {
-        // Reset old object of wrong type
-        setObject(nullptr); // Recursion
-        return;
-    }
-
     mTypesCombo->setCurrentIndex(idx);
 
     if(mMultiModel)
