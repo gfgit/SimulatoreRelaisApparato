@@ -68,7 +68,7 @@ private:
 
     SimulationObjectMultiTypeModel *mMultiModel = nullptr;
 
-    QStringListModel *mTypesModel;
+    QStringListModel *mTypesModel = nullptr;
     QComboBox *mTypesCombo = nullptr;
 
     QLineEdit *mLineEdit = nullptr;

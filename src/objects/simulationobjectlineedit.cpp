@@ -49,16 +49,21 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
 
     SimulationObjectFactory *factory = modeMgr->objectFactory();
 
-    // Fill combo with pretty names
-    mTypes.prepend(QString()); // Auto
+    // Add "Auto" for when there are more possibilities
+    const bool addAutoMode = mTypes.size() > 1;
+    if(addAutoMode)
+        mTypes.prepend(QString()); // Auto
 
+    // Fill combo with pretty names
     QStringList prettyTypes;
     prettyTypes.reserve(mTypes.size());
     for(const QString& type : std::as_const(mTypes))
     {
         prettyTypes.append(factory->prettyName(type));
     }
-    prettyTypes[0] = tr("Auto");
+
+    if(addAutoMode)
+        prettyTypes[0] = tr("Auto");
 
     mTypesModel = new QStringListModel(prettyTypes, this);
 
@@ -139,7 +144,9 @@ void SimulationObjectLineEdit::setType(int idx)
     if(idx < 0)
         idx = 0; // Default to Auto
 
-    if(idx == 0 && !mMultiModel)
+    const QString type = mTypes.at(idx);
+
+    if(type.isEmpty() && !mMultiModel)
     {
         // Auto mode
         QStringList types = mTypes;
@@ -147,17 +154,15 @@ void SimulationObjectLineEdit::setType(int idx)
         mMultiModel = new SimulationObjectMultiTypeModel(modeMgr,
                                                          types, this);
     }
-    else if(idx != 0 && mMultiModel)
+    else if(!type.isEmpty() && mMultiModel)
     {
         delete mMultiModel;
         mMultiModel = nullptr;
     }
 
-    const QString type = mTypes.at(idx);
-
-    if(idx != 0 && mObject && mObject->getType() != type)
+    if(!type.isEmpty() && mObject && mObject->getType() != type)
     {
-        // Reset old object
+        // Reset old object of wrong type
         setObject(nullptr); // Recursion
         return;
     }
