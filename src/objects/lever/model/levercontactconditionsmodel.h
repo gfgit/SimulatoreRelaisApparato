@@ -59,7 +59,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& idx) const override;
 
     LeverPositionConditionSet conditions() const;
-    void setConditions(const EnumDesc desc,
+    void setConditions(const EnumDesc &desc,
                        const LeverPositionConditionSet &newConditions);
 
     void instertConditionAt(int row);

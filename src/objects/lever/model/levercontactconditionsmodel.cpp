@@ -200,15 +200,16 @@ LeverPositionConditionSet LeverContactConditionsModel::conditions() const
     return mConditions;
 }
 
-void LeverContactConditionsModel::setConditions(const EnumDesc desc, const LeverPositionConditionSet &newConditions)
+void LeverContactConditionsModel::setConditions(const EnumDesc& desc,
+                                                const LeverPositionConditionSet &newConditions)
 {
     beginResetModel();
 
     mPositionDesc = desc;
     mConditions = newConditions;
 
-    // Recalculate range
-    setPositionRange(mPositionMin, mPositionMax);
+    // Resets range
+    setPositionRange(mPositionDesc.minValue, mPositionDesc.maxValue);
 
     endResetModel();
 }
