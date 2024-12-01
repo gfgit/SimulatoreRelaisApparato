@@ -111,6 +111,14 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
 
     if(mTypes.size() == 1)
         mTypesCombo->hide(); // No need to show if type cannot be changed
+
+    connect(mLineEdit, &QLineEdit::returnPressed,
+            [this]()
+    {
+        // Allow un-set current object
+        if(mLineEdit->text().isEmpty())
+            setObject(nullptr);
+    });
 }
 
 void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
