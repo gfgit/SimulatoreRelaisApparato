@@ -256,8 +256,13 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
     {
         if(mActivePowerNodesDown == 0)
         {
+            // Relay can go up only if down coil is not active
             if((hadActiveDown || !hadActiveUp) && mActivePowerNodesUp > 0)
             {
+                // Up coil was activated
+                // Or both coil were active but now down coil is deactivated
+
+                // So relay anchor goes up
                 startMove(true);
             }
         }
@@ -301,11 +306,22 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
 
     if(stateIndependent())
     {
+        // Relay can go up only if down coil is not active
         if(mActivePowerNodesDown == 0)
         {
-            if((hadActiveDown || !hadActiveUp) && mActivePowerNodesUp > 0)
+            if((hadActiveDown || !hadActiveUp) && (mActivePowerNodesUp > 0 || mPosition > 0.5))
             {
-                startMove(true);
+                // If tried to go down but not yet reached middle position,
+                // go back up.
+                if(mActivePowerNodesUp > 0 || mPosition > 0.5)
+                    startMove(true);
+            }
+            else if(hadActiveUp && mPosition < 0.5)
+            {
+                // We tried to go up and then power was lost.
+                // Keep going up for permanent magnet/mechanical inertia
+                // only if after middle position.
+                startMove(false);
             }
         }
         else if(!hadActiveDown)
