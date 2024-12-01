@@ -50,7 +50,10 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
     {
         const QString relaisName = obj.value("relais").toString();
         AbstractSimulationObject *relayObj = model->getObjectByName(relaisName);
-        setRelais(static_cast<AbstractRelais *>(relayObj));
+
+        // Do not auto swap based on relay type.
+        // We do it only for newly created items during editing
+        setRelais(static_cast<AbstractRelais *>(relayObj), false);
     }
     else
         setRelais(nullptr);
@@ -78,7 +81,7 @@ AbstractRelais *RelaisContactNode::relais() const
     return mRelais;
 }
 
-void RelaisContactNode::setRelais(AbstractRelais *newRelais)
+void RelaisContactNode::setRelais(AbstractRelais *newRelais, bool autoSwapState)
 {
     if(mRelais == newRelais)
         return;
@@ -102,7 +105,7 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais)
 
         mRelais->addContactNode(this);
 
-        if(!hadRelay &&
+        if(autoSwapState && !hadRelay &&
                 modeMgr()->mode() == FileMode::Editing &&
                 mRelais->normallyUp())
         {

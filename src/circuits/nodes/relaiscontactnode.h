@@ -48,7 +48,7 @@ public:
     QString nodeType() const override;
 
     AbstractRelais *relais() const;
-    void setRelais(AbstractRelais *newRelais);
+    void setRelais(AbstractRelais *newRelais, bool autoSwapState = true);
 
     State state() const;
     void setState(State newState);
