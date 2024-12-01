@@ -207,10 +207,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
             SasibACELeverExtraInterface::IfaceType
         };
         item.prettyName = tr("ACE Sasib 7 Lever");
-        item.edit = [](AbstractSimulationObject *obj) -> QWidget*
-        {
-            return defaultSasibLeverEdit(obj);
-        };
+        item.edit = &defaultSasibLeverEdit;
 
         factory->registerFactory(item);
     }
