@@ -54,6 +54,7 @@ ACEILeverObject::ACEILeverObject(AbstractSimulationObjectModel *m)
     leverInterface = new LeverInterface(acei_lever_posDesc,
                                         acei_lever_angleDesc,
                                         this);
+    leverInterface->init();
 
     // Allow adding spring return
     leverInterface->setChangeSpringAllowed(true);
