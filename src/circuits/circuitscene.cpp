@@ -953,6 +953,7 @@ void CircuitScene::startMovingItem(AbstractNodeGraphItem *item)
     Q_ASSERT(mItemBeingMoved);
 
     mLastMovedItemValidLocation = mItemBeingMoved->location();
+    mMovedItemOriginalLocation = mLastMovedItemValidLocation;
 
     if(circuitsModel()->modeMgr()->mode() == FileMode::Editing)
         mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, true);
@@ -975,8 +976,11 @@ void CircuitScene::endMovingItem()
     }
     mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, false);
 
+    const bool itemReallyMoved = (possibleNewLocation != mMovedItemOriginalLocation);
     AbstractNodeGraphItem *item = mItemBeingMoved;
     mItemBeingMoved = nullptr;
+    mLastMovedItemValidLocation = TileLocation::invalid;
+    mMovedItemOriginalLocation = mLastMovedItemValidLocation;
 
     // Since this might add cables and adding cables
     // calls stopOperations() which calls endMovingItem()
@@ -1026,7 +1030,11 @@ void CircuitScene::endMovingItem()
         }
     }
 
-    refreshItemConnections(item, true);
+    // This might trigger cable refresh which results in file
+    // having unsaved changes and asking user to save.
+    // So do it only if really moved
+    if(itemReallyMoved)
+        refreshItemConnections(item, true);
 }
 
 void CircuitScene::requestEditNode(AbstractNodeGraphItem *item)

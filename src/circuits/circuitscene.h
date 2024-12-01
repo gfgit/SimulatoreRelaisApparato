@@ -254,6 +254,7 @@ private:
 
     AbstractNodeGraphItem *mItemBeingMoved = nullptr;
     TileLocation mLastMovedItemValidLocation = TileLocation::invalid;
+    TileLocation mMovedItemOriginalLocation = TileLocation::invalid;
 
     bool m_hasUnsavedChanges = false;
 
