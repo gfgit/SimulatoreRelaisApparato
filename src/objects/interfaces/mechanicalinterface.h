@@ -133,6 +133,16 @@ public:
     const LockablePositions& lockablePositions() const;
     void setLockablePositions(const LockablePositions &newLockablePositions);
 
+    inline bool userCanChangeAbsoulteRange() const
+    {
+        return mUserCanChangeAbsoulteRange;
+    }
+
+    inline void setUserCanChangeAbsoulteRange(bool val)
+    {
+        mUserCanChangeAbsoulteRange = val;
+    }
+
 protected:
     inline bool isPositionValidForLock(int pos) const
     {
@@ -158,6 +168,8 @@ private:
     int mAbsoluteMax = 0;
     int mLockedMin = 0;
     int mLockedMax = 0;
+
+    bool mUserCanChangeAbsoulteRange = true;
 
     QVector<ConditionItem> mConditionSets;
     QVector<MechanicalInterface *> mWantsObjects;

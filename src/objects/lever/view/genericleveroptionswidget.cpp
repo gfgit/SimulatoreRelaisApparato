@@ -43,8 +43,8 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
     mHasSpringReturn->setChecked(mLever->hasSpringReturn());
     mHasSpringReturn->setToolTip(tr("When released lever will return"
                                     " to its normal position."));
-    mHasSpringReturn->setVisible(mLever->canChangeSpring());
     lay->addWidget(mHasSpringReturn);
+    lay->setRowVisible(mHasSpringReturn, mLever->canChangeSpring());
 
     // Normal position and range
     mMinPosModel = new EnumValuesModel(this);
@@ -64,8 +64,8 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
     mMaxPosCombo->setModel(mMaxPosModel);
     lay->addRow(tr("Maximum Position:"), mMaxPosCombo);
 
-    mMinPosCombo->setVisible(mLever->canChangeRange());
-    mMaxPosCombo->setVisible(mLever->canChangeRange());
+    lay->setRowVisible(mMinPosCombo, mLever->canChangeRange());
+    lay->setRowVisible(mMaxPosCombo, mLever->canChangeRange());
 
     mNormalPosCombo = new QComboBox;
     mNormalPosCombo->setModel(mNormalPosModel);

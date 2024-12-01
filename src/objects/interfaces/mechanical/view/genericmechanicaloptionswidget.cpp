@@ -62,10 +62,6 @@ GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(ModeManager *mgr,
     mMaxPosCombo->setModel(mMaxPosModel);
     lay->addRow(tr("Maximum Position:"), mMaxPosCombo);
 
-    // TODO
-    //mMinPosCombo->setVisible(mMechanicalIface->canChangeRange());
-    //mMaxPosCombo->setVisible(mMechanicalIface->canChangeRange());
-
     mNormalPosCombo = new QComboBox;
     mNormalPosCombo->setModel(mNormalPosModel);
     mNormalPosCombo->setToolTip(tr("On program start,"
@@ -99,7 +95,13 @@ GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(ModeManager *mgr,
     //     // Change normal position
     //     mMechanicalIface->setNormalPosition(mNormalPosModel->valueAt(idx));
     // });
-    mNormalPosCombo->hide();
+    lay->setRowVisible(mNormalPosCombo, false);
+
+    if(!mMechanicalIface->userCanChangeAbsoulteRange())
+    {
+        lay->setRowVisible(mMinPosCombo, false);
+        lay->setRowVisible(mMaxPosCombo, false);
+    }
 
     lay->addRow(new QLabel(tr("Mechanical Conditions:")));
 

@@ -50,6 +50,10 @@ ACESasibLeverCommonObject::ACESasibLeverCommonObject(AbstractSimulationObjectMod
     // After all interfaces are constructed
     mechanicalIface->init();
     leverInterface->init();
+
+    // Lever and Mechanical interfaces are synced
+    // So just set absolute range on Lever interface
+    mechanicalIface->setUserCanChangeAbsoulteRange(false);
 }
 
 ACESasibLeverCommonObject::~ACESasibLeverCommonObject()
