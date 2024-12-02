@@ -2,6 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="it" sourcelanguage="en_GB">
 <context>
+    <name>ACEIButtonGraphItem</name>
+    <message>
+        <location filename="../circuits/graphs/special/aceibuttongraphitem.cpp" line="126"/>
+        <source>NULL</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>ACEILeverGraphItem</name>
     <message>
         <location filename="../circuits/graphs/special/aceilevergraphitem.cpp" line="160"/>
@@ -238,6 +246,14 @@
     </message>
 </context>
 <context>
+    <name>ButtonContactGraphItem</name>
+    <message>
+        <location filename="../circuits/graphs/buttoncontactgraphitem.cpp" line="74"/>
+        <source>NULL</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>CircuitListModel</name>
     <message>
         <location filename="../circuits/view/circuitlistmodel.cpp" line="54"/>
@@ -403,22 +419,22 @@ Scegli un altro nome:</translation>
         <translation>Posizione Massima:</translation>
     </message>
     <message>
-        <location filename="../objects/interfaces/mechanical/view/genericmechanicaloptionswidget.cpp" line="71"/>
+        <location filename="../objects/interfaces/mechanical/view/genericmechanicaloptionswidget.cpp" line="67"/>
         <source>On program start, lever will be in this position.</source>
         <translation>All&apos;avvio del programma, la leva sarà in questa posizione.</translation>
     </message>
     <message>
-        <location filename="../objects/interfaces/mechanical/view/genericmechanicaloptionswidget.cpp" line="73"/>
+        <location filename="../objects/interfaces/mechanical/view/genericmechanicaloptionswidget.cpp" line="69"/>
         <source>Normal Position:</source>
         <translation>Posizione Normale:</translation>
     </message>
     <message>
-        <location filename="../objects/interfaces/mechanical/view/genericmechanicaloptionswidget.cpp" line="104"/>
+        <location filename="../objects/interfaces/mechanical/view/genericmechanicaloptionswidget.cpp" line="106"/>
         <source>Mechanical Conditions:</source>
         <translation>Condizioni Meccaniche:</translation>
     </message>
     <message>
-        <location filename="../objects/interfaces/mechanical/view/genericmechanicaloptionswidget.cpp" line="106"/>
+        <location filename="../objects/interfaces/mechanical/view/genericmechanicaloptionswidget.cpp" line="108"/>
         <source>Apply</source>
         <translation>Applica</translation>
     </message>
@@ -823,32 +839,32 @@ Scegli un altro nome:</translation>
 <context>
     <name>SimulationObjectOptionsWidget</name>
     <message>
-        <location filename="../objects/simulationobjectoptionswidget.cpp" line="49"/>
+        <location filename="../objects/simulationobjectoptionswidget.cpp" line="54"/>
         <source>Unique name</source>
         <translation>Nome Univoco</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectoptionswidget.cpp" line="51"/>
+        <location filename="../objects/simulationobjectoptionswidget.cpp" line="56"/>
         <source>Name:</source>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectoptionswidget.cpp" line="57"/>
+        <location filename="../objects/simulationobjectoptionswidget.cpp" line="62"/>
         <source>Description</source>
         <translation>Descrizione</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectoptionswidget.cpp" line="59"/>
+        <location filename="../objects/simulationobjectoptionswidget.cpp" line="64"/>
         <source>Description:</source>
         <translation>Descrizione:</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectoptionswidget.cpp" line="129"/>
+        <location filename="../objects/simulationobjectoptionswidget.cpp" line="180"/>
         <source>Edit %1 (%2)</source>
         <translation>Modifica %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectoptionswidget.cpp" line="148"/>
+        <location filename="../objects/simulationobjectoptionswidget.cpp" line="199"/>
         <source>Name already exists</source>
         <translation>Nome già esistente</translation>
     </message>
@@ -856,163 +872,199 @@ Scegli un altro nome:</translation>
 <context>
     <name>StandardNodeTypes</name>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="107"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="109"/>
         <source>Flip contact</source>
         <translation>Specchia contatto</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="120"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="122"/>
         <source>Swap contact state</source>
         <translation>Inverti stato contatti</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="133"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="135"/>
         <source>Has central connector</source>
         <translation>Ha il connettore centrale</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="196"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="198"/>
         <source>On/Off switch</source>
         <translation>Interruttore On/Off</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="206"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="208"/>
         <source>Initially On</source>
         <translation>Inizialmente On</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="234"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="236"/>
         <source>Power Source</source>
         <translation>Sorgente Alimentazione</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="245"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="247"/>
         <source>Simple Node</source>
         <translation>Nodo Semplice</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="256"/>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="310"/>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="322"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="258"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="312"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="324"/>
         <source>None</source>
         <translation>Nessuno</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="257"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="259"/>
         <source>Disabled contact:</source>
         <translation>Contatto disabilitato:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="285"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="287"/>
         <source>Relay Power</source>
         <translation>Alimetazione Relè</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="305"/>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="392"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="307"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="394"/>
         <source>Relay:</source>
         <translation>Relè:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="311"/>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="323"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="313"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="325"/>
         <source> sec</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="312"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="314"/>
         <source>Delay up:</source>
         <translation>Ritardo Eccitazione:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="324"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="326"/>
         <source>Delay down:</source>
         <translation>Ritardo Diseccitazione:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="332"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="334"/>
         <source>Has second contact</source>
         <translation>Ha il secondo contatto</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="372"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="374"/>
         <source>Relay Contact</source>
         <translation>Contatto Relè</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="398"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="400"/>
         <source>Hide relay normal state</source>
         <translation>Nascondi stato normale del Relè</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="428"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="430"/>
+        <source>Button Contact</source>
+        <translation>Contatto Pulsante</translation>
+    </message>
+    <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="459"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="585"/>
+        <source>Button:</source>
+        <translation>Pulsante:</translation>
+    </message>
+    <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="468"/>
+        <source>Normal</source>
+        <translation>Normale</translation>
+    </message>
+    <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="469"/>
+        <source>Pressed</source>
+        <translation>Premuto</translation>
+    </message>
+    <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="470"/>
+        <source>Extracted</source>
+        <translation>Estratto</translation>
+    </message>
+    <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="475"/>
+        <source>When %1:</source>
+        <translation>Quando %1:</translation>
+    </message>
+    <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="560"/>
         <source>ACEI Button</source>
         <translation>Pulsante ACEI</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="452"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="528"/>
         <source>Light Bulb</source>
         <translation>Lampadina</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="457"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="533"/>
         <source>Light:</source>
         <translation>Lampadina:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="468"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="544"/>
         <source>Electromagnet</source>
         <translation>Elettromagnete</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="473"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="549"/>
         <source>Magnet:</source>
         <translation>Magnete:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="484"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="596"/>
+        <source>Central light:</source>
+        <translation>Lampada centrale:</translation>
+    </message>
+    <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="619"/>
         <source>ACEI Lever</source>
         <translation>Levetta ACEI</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="504"/>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="577"/>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="614"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="639"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="712"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="749"/>
         <source>Lever:</source>
         <translation>Leva:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="515"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="650"/>
         <source>Left light:</source>
         <translation>Lampada sinistra:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="526"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="661"/>
         <source>Right light:</source>
         <translation>Lampada destra:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="550"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="685"/>
         <source>ACE Sasib Lever</source>
         <translation>Leva ACE Sasib</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="590"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="725"/>
         <source>Lever Contact</source>
         <translation>Contatto Leva</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="626"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="761"/>
         <source>Conditions</source>
         <translation>Condizioni</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="683"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="818"/>
         <source>Polarity Inversion</source>
         <translation>Inversione Polarità</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="695"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="830"/>
         <source>BiFiLar1zaT0R</source>
         <translation></translation>
     </message>
@@ -1020,39 +1072,54 @@ Scegli un altro nome:</translation>
 <context>
     <name>StandardObjectTypes</name>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="123"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="128"/>
         <source>Magnet</source>
         <translation>Magnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="137"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="140"/>
+        <source>Can be pressed</source>
+        <translation>Può essere premuto</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="152"/>
+        <source>Can be extracted</source>
+        <translation>Può essere estratto</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="176"/>
         <source>Relais</source>
         <translation>Relè</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="152"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="191"/>
         <source>ACEI Lever</source>
         <translation>Leva ACEI</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="164"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="203"/>
         <source>Ligth bulb</source>
         <translation>Lampada</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="176"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="215"/>
         <source>Electromagnet</source>
         <translation>Elettromagnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="192"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="231"/>
         <source>ACE Sasib 5 Lever</source>
         <translation>Leva ACE Sasib 5</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="209"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="248"/>
         <source>ACE Sasib 7 Lever</source>
         <translation>Leva ACE Sasib 7</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="263"/>
+        <source>Generic Button</source>
+        <translation>Pulsante Generico</translation>
     </message>
 </context>
 <context>
