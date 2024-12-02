@@ -178,6 +178,18 @@ ModeManager::ModeManager(QObject *parent)
 
 ModeManager::~ModeManager()
 {
+    // Delete circuits and factory
+    // before objects
+    delete mCircuitList;
+    mCircuitList = nullptr;
+
+    delete mCircuitFactory;
+    mCircuitFactory = nullptr;
+
+    // Delete objects and factory
+    qDeleteAll(mObjectModels);
+    mObjectModels.clear();
+
     delete mObjectFactory;
     mObjectFactory = nullptr;
 }
