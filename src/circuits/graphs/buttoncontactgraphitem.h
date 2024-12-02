@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/aceibuttongraphitem.h
+ * src/circuits/graphs/buttoncontactgraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,33 +20,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEIBUTTONGRAPHITEM_H
-#define ACEIBUTTONGRAPHITEM_H
+#ifndef BUTTON_CONTACT_GRAPHITEM_H
+#define BUTTON_CONTACT_GRAPHITEM_H
 
 #include "abstractdeviatorgraphitem.h"
 
-class ACEIButtonNode;
+class ButtonContactNode;
 
-class ACEIButtonGraphItem : public AbstractDeviatorGraphItem
+class ButtonContactGraphItem : public AbstractDeviatorGraphItem
 {
     Q_OBJECT
 public:
-    typedef ACEIButtonNode Node;
+    typedef ButtonContactNode Node;
 
-    ACEIButtonGraphItem(ACEIButtonNode *node_);
+    ButtonContactGraphItem(ButtonContactNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    ACEIButtonNode *node() const;
+    ButtonContactNode *node() const;
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
-
     void drawCustomArc(QPainter *painter,
                        const QLineF &contact1Line,
                        const QLineF &contact2Line,
                        const QPointF &center) override;
 };
 
-#endif // ACEIBUTTONGRAPHITEM_H
+#endif // BUTTON_CONTACT_GRAPHITEM_H

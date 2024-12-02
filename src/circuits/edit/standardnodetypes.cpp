@@ -39,8 +39,8 @@
 #include "../graphs/relaiscontactgraphitem.h"
 #include "../nodes/relaiscontactnode.h"
 
-#include "../graphs/aceibuttongraphitem.h"
-#include "../nodes/aceibuttonnode.h"
+#include "../graphs/buttoncontactgraphitem.h"
+#include "../nodes/buttoncontactnode.h"
 
 #include "../graphs/lightbulbgraphitem.h"
 #include "../nodes/lightbulbnode.h"
@@ -58,6 +58,7 @@
 #include "../nodes/bifilarizatornode.h"
 
 // TODO: special
+#include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
 #include "../graphs/special/acesasiblevergraphitem.h"
 
@@ -75,6 +76,7 @@
 #include "../../objects/simulationobjectlineedit.h"
 #include "../../objects/simulationobjectfactory.h"
 
+#include "../../objects/interfaces/buttoninterface.h"
 #include "../../objects/interfaces/leverinterface.h"
 #include "../../objects/interfaces/sasibaceleverextrainterface.h"
 
@@ -421,15 +423,15 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     }
 
     {
-        // ACEI Button Contact
+        // Button Contact
         NodeEditFactory::FactoryItem factory;
-        factory.needsName = NodeEditFactory::NeedsName::Always;
-        factory.nodeType = ACEIButtonGraphItem::Node::NodeType;
-        factory.prettyName = tr("ACEI Button");
-        factory.create = &addNewNodeToScene<ACEIButtonGraphItem>;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = ButtonContactGraphItem::Node::NodeType;
+        factory.prettyName = tr("Button Contact");
+        factory.create = &addNewNodeToScene<ButtonContactGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
         {
-            //ACEIButtonNode *node = static_cast<ACEIButtonNode *>(item->getAbstractNode());
+            ButtonContactNode *node = static_cast<ButtonContactNode *>(item->getAbstractNode());
 
             QWidget *w = new QWidget;
             QFormLayout *lay = new QFormLayout(w);
@@ -437,6 +439,80 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             // Deviator
             lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
                                                mgr));
+
+            // Button
+            const QStringList buttonTypes = mgr->objectFactory()
+                    ->typesForInterface(ButtonInterface::IfaceType);
+
+            SimulationObjectLineEdit *buttonEdit =
+                    new SimulationObjectLineEdit(mgr, buttonTypes);
+
+            QObject::connect(node, &ButtonContactNode::buttonChanged,
+                             buttonEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(buttonEdit, &SimulationObjectLineEdit::objectChanged,
+                             node, [node](AbstractSimulationObject *obj)
+            {
+                node->setButton(obj);
+            });
+            buttonEdit->setObject(node->button());
+
+            lay->addRow(tr("Button:"), buttonEdit);
+
+            // Button contacts state
+            QGridLayout *gridLay = new QGridLayout;
+            QCheckBox *firstArr[3] = {nullptr};
+            QCheckBox *secondArr[3] = {nullptr};
+
+            const QString stateNames[3] =
+            {
+                tr("Normal"),
+                tr("Pressed"),
+                tr("Extracted")
+            };
+
+            for(int i = 0; i < 3; i++)
+            {
+                gridLay->addWidget(new QLabel(tr("When %1:").arg(stateNames[i])), i, 0);
+
+                firstArr[i] = new QCheckBox("First");
+                gridLay->addWidget(firstArr[i], i, 1);
+
+                secondArr[i] = new QCheckBox("Second");
+                gridLay->addWidget(secondArr[i], i, 2);
+            }
+
+            lay->setLayout(lay->rowCount(), QFormLayout::SpanningRole, gridLay);
+
+            auto setNewState = [node, firstArr, secondArr]()
+            {
+                for(int i = 0; i < 3; i++)
+                {
+                    node->setContactStateFor(i, 0, firstArr[i]->isChecked());
+                    node->setContactStateFor(i, 1, secondArr[i]->isChecked());
+                }
+            };
+
+            auto updateState = [node, firstArr, secondArr]()
+            {
+                for(int i = 0; i < 3; i++)
+                {
+                    firstArr[i]->setChecked(node->getContactStateFor(i, 0));
+                    secondArr[i]->setChecked(node->getContactStateFor(i, 1));
+                }
+            };
+
+            updateState();
+
+            for(int i = 0; i < 3; i++)
+            {
+                QObject::connect(firstArr[i], &QCheckBox::toggled,
+                                 node, setNewState);
+                QObject::connect(secondArr[i], &QCheckBox::toggled,
+                                 node, setNewState);
+            }
+
+            QObject::connect(node, &ButtonContactNode::contactStateSettingsChanged,
+                             w, updateState);
 
             return w;
         };
@@ -471,6 +547,65 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         {
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
                                                mgr, tr("Magnet:"));
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // ACEI Button
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = ACEIButtonGraphItem::CustomNodeType;
+        factory.prettyName = tr("ACEI Button");
+        factory.create = &addNewNodeToScene<ACEIButtonGraphItem>;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            ACEIButtonGraphItem *specialItem = static_cast<ACEIButtonGraphItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Button
+            const QStringList buttonTypes = mgr->objectFactory()
+                    ->typesForInterface(ButtonInterface::IfaceType);
+
+            SimulationObjectLineEdit *buttonEdit =
+                    new SimulationObjectLineEdit(mgr, buttonTypes);
+
+            QObject::connect(specialItem, &ACEIButtonGraphItem::buttonChanged,
+                             buttonEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(buttonEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setButton(obj);
+            });
+            buttonEdit->setObject(specialItem->button());
+
+            lay->addRow(tr("Button:"), buttonEdit);
+
+            // Central Light
+            SimulationObjectLineEdit *centralLightEdit =
+                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+            QObject::connect(centralLightEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setCentralLight(static_cast<LightBulbObject *>(obj));
+            });
+
+            lay->addRow(tr("Central light:"), centralLightEdit);
+
+            auto updateLights = [specialItem, centralLightEdit]()
+            {
+                centralLightEdit->setObject(specialItem->centralLight());
+            };
+
+            QObject::connect(specialItem, &ACEIButtonGraphItem::lightsChanged,
+                             w, updateLights);
+
+            updateLights();
+
+            return w;
         };
 
         factoryReg->registerFactory(factory);

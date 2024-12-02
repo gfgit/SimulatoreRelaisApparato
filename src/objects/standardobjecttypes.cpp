@@ -38,10 +38,13 @@
 
 #include "simple_activable/electromagnet.h"
 
+#include "button/genericbuttonobject.h"
+
 // TODO: extract names in separate header
 #include "interfaces/leverinterface.h"
 #include "interfaces/mechanicalinterface.h"
 #include "interfaces/sasibaceleverextrainterface.h"
+#include "interfaces/buttoninterface.h"
 
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
@@ -51,6 +54,8 @@
 #include "simulationobjectoptionswidget.h"
 #include "simulationobjectlineedit.h"
 #include <QFormLayout>
+
+#include <QCheckBox>
 
 template <typename T>
 AbstractSimulationObjectModel *createModel(ModeManager *mgr)
@@ -121,6 +126,40 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
 
     magnetEdit->setObject(lever->magnet());
     lay->addRow(StandardObjectTypes::tr("Magnet"), magnetEdit);
+
+    return w;
+}
+
+QWidget *defaultButtonEdit(AbstractSimulationObject *item)
+{
+    ButtonInterface *buttonIface = item->getInterface<ButtonInterface>();
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    QCheckBox *pressedCB = new QCheckBox(StandardObjectTypes::tr("Can be pressed"));
+    lay->addRow(pressedCB);
+    pressedCB->setChecked(buttonIface->canBePressed());
+
+    QObject::connect(pressedCB, &QCheckBox::toggled,
+                     item, [buttonIface, pressedCB](bool val)
+    {
+        buttonIface->setCanBePressed(val);
+        if(buttonIface->canBePressed() != val)
+            pressedCB->setChecked(!val); // Change was rejected
+    });
+
+    QCheckBox *extractedCB = new QCheckBox(StandardObjectTypes::tr("Can be extracted"));
+    lay->addRow(extractedCB);
+    extractedCB->setChecked(buttonIface->canBeExtracted());
+
+    QObject::connect(extractedCB, &QCheckBox::toggled,
+                     item, [buttonIface, extractedCB](bool val)
+    {
+        buttonIface->setCanBeExtracted(val);
+        if(buttonIface->canBeExtracted() != val)
+            extractedCB->setChecked(!val); // Change was rejected
+    });
 
     return w;
 }
@@ -208,6 +247,21 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         };
         item.prettyName = tr("ACE Sasib 7 Lever");
         item.edit = &defaultSasibLeverEdit;
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Generic Button
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<GenericButtonObject>;
+        item.objectType = GenericButtonObject::Type;
+        item.interfaces = {
+            ButtonInterface::IfaceType
+        };
+        item.prettyName = tr("Generic Button");
+        item.edit = defaultButtonEdit;
 
         factory->registerFactory(item);
     }

@@ -7,8 +7,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/abstractnodegraphitem.h
     circuits/graphs/abstractdeviatorgraphitem.cpp
     circuits/graphs/abstractdeviatorgraphitem.h
-    circuits/graphs/aceibuttongraphitem.cpp
-    circuits/graphs/aceibuttongraphitem.h
+    circuits/graphs/buttoncontactgraphitem.cpp
+    circuits/graphs/buttoncontactgraphitem.h
     circuits/graphs/bifilarizatorgraphitem.cpp
     circuits/graphs/bifilarizatorgraphitem.h
     circuits/graphs/cablegraphitem.cpp
@@ -33,6 +33,9 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/simplenodegraphitem.h
     circuits/graphs/simpleactivationgraphitem.cpp
     circuits/graphs/simpleactivationgraphitem.h
+
+    circuits/graphs/special/aceibuttongraphitem.cpp
+    circuits/graphs/special/aceibuttongraphitem.h
 
     circuits/graphs/special/aceilevergraphitem.cpp
     circuits/graphs/special/aceilevergraphitem.h

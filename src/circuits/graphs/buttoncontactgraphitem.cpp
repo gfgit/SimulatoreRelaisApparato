@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/aceibuttongraphitem.cpp
+ * src/circuits/graphs/buttoncontactgraphitem.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,22 +20,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "aceibuttongraphitem.h"
+#include "buttoncontactgraphitem.h"
 
-#include "../nodes/aceibuttonnode.h"
+#include "../nodes/buttoncontactnode.h"
+
+#include "../../objects/interfaces/buttoninterface.h"
+#include "../../objects/button/genericbuttonobject.h"
 
 #include "../circuitscene.h"
 
 #include <QPainter>
-#include <QGraphicsSceneMouseEvent>
 
-ACEIButtonGraphItem::ACEIButtonGraphItem(ACEIButtonNode *node_)
+ButtonContactGraphItem::ButtonContactGraphItem(ButtonContactNode *node_)
     : AbstractDeviatorGraphItem(node_)
 {
 
 }
 
-void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ButtonContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     AbstractDeviatorGraphItem::paint(painter, option, widget);
 
@@ -46,17 +48,20 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     // Draw name
     QColor color = Qt::black;
 
-    switch (node()->state())
+    if(node()->buttonIface())
     {
-    case ACEIButtonNode::State::Pressed:
-        color = Qt::darkGreen;
-        break;
-    case ACEIButtonNode::State::Extracted:
-        color = Qt::red;
-        break;
-    case ACEIButtonNode::State::Normal:
-    default:
-        break;
+        switch (node()->buttonIface()->state())
+        {
+        case ButtonInterface::State::Pressed:
+            color = Qt::darkGreen;
+            break;
+        case ButtonInterface::State::Extracted:
+            color = Qt::red;
+            break;
+        case ButtonInterface::State::Normal:
+        default:
+            break;
+        }
     }
 
     painter->setPen(color);
@@ -64,43 +69,18 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     TileRotate nameRotate = rotate();
     if(node()->flipContact())
         nameRotate += TileRotate::Deg180;
-    drawName(painter, node()->objectName(), nameRotate);
+
+    drawName(painter,
+             node()->button() ? node()->button()->name() : tr("NULL"),
+             nameRotate);
 }
 
-ACEIButtonNode *ACEIButtonGraphItem::node() const
+ButtonContactNode *ButtonContactGraphItem::node() const
 {
-    return static_cast<ACEIButtonNode *>(getAbstractNode());
+    return static_cast<ButtonContactNode *>(getAbstractNode());
 }
 
-void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
-{
-    CircuitScene *s = circuitScene();
-    if(s && s->mode() == FileMode::Simulation)
-    {
-        if(ev->button() == Qt::LeftButton)
-            node()->setState(ACEIButtonNode::State::Pressed);
-        else if(ev->button() == Qt::RightButton)
-            node()->setState(ACEIButtonNode::State::Extracted);
-        return;
-    }
-
-    AbstractNodeGraphItem::mousePressEvent(ev);
-}
-
-void ACEIButtonGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
-{
-    CircuitScene *s = circuitScene();
-    if(s && s->mode() == FileMode::Simulation)
-    {
-        if(ev->button() == Qt::LeftButton || ev->button() == Qt::RightButton)
-            node()->setState(ACEIButtonNode::State::Normal);
-        return;
-    }
-
-    AbstractNodeGraphItem::mouseReleaseEvent(ev);
-}
-
-void ACEIButtonGraphItem::drawCustomArc(QPainter *painter,
+void ButtonContactGraphItem::drawCustomArc(QPainter *painter,
                                               const QLineF &contact1Line,
                                               const QLineF &contact2Line,
                                               const QPointF &center)

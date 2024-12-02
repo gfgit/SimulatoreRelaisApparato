@@ -1,6 +1,7 @@
 # src/objects
 
 add_subdirectory(interfaces)
+add_subdirectory(button)
 add_subdirectory(lever)
 add_subdirectory(relais)
 add_subdirectory(simple_activable)

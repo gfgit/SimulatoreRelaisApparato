@@ -1,5 +1,5 @@
 /**
- * src/circuits/nodes/aceibuttonnode.h
+ * src/objects/button/genericbuttonobject.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,36 +20,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEIBUTTONNODE_H
-#define ACEIBUTTONNODE_H
+#include "genericbuttonobject.h"
 
-#include "abstractdeviatornode.h"
+#include "../interfaces/buttoninterface.h"
 
-class ACEIButtonNode : public AbstractDeviatorNode
+GenericButtonObject::GenericButtonObject(AbstractSimulationObjectModel *m)
+    : AbstractSimulationObject{m}
 {
-    Q_OBJECT
-public:
-    enum State
-    {
-        Normal = 0,
-        Pressed,
-        Extracted
-    };
+    mButtonInterface = new ButtonInterface(this);
+}
 
-    explicit ACEIButtonNode(ModeManager *mgr, QObject *parent = nullptr);
-    ~ACEIButtonNode();
+GenericButtonObject::~GenericButtonObject()
+{
+    delete mButtonInterface;
+    mButtonInterface = nullptr;
+}
 
-    bool loadFromJSON(const QJsonObject& obj) override;
-    void saveToJSON(QJsonObject& obj) const override;
-
-    static constexpr QLatin1String NodeType = QLatin1String("acei_button");
-    QString nodeType() const override;
-
-    State state() const;
-    void setState(State newState);
-
-private:
-    State mState = State::Normal;
-};
-
-#endif // ACEIBUTTONNODE_H
+QString GenericButtonObject::getType() const
+{
+    return Type;
+}
