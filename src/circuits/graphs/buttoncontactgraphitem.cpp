@@ -95,5 +95,11 @@ void ButtonContactGraphItem::drawCustomArc(QPainter *painter,
         corner.setX(contact2Line.x2());
     if(qFuzzyCompare(contact1Line.y2(), center.y()))
         corner.setY(contact2Line.y2());
-    painter->drawLine(center, corner);
+
+    // Going to corner would make diagonal longer
+    // than central contact line (sqrt(2) * length)
+    // So we set direction and then adjust length to be same
+    QLineF diagonal(center, corner);
+    diagonal.setLength(qAbs(center.x() - corner.x()));
+    painter->drawLine(diagonal);
 }
