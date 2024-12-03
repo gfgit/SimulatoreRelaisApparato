@@ -84,6 +84,9 @@ public:
 
     AbstractSimulationObjectModel *modelForType(const QString& objType) const;
 
+    QString filePath() const;
+    void setFilePath(const QString &newFilePath);
+
 signals:
     void modeChanged(FileMode newMode, FileMode oldMode);
     void fileEdited(bool val);
@@ -102,6 +105,8 @@ private:
     SimulationObjectFactory *mObjectFactory;
 
     bool mFileWasEdited = false;
+
+    QString mFilePath;
 };
 
 #endif // MODEMANAGER_H

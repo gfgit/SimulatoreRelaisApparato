@@ -305,6 +305,7 @@ void MainWindow::onNew()
 
     setWindowModified(false);
     setWindowFilePath(QString());
+    mModeMgr->setFilePath(QString());
 
     // Reset scenes and objects
     mViewMgr->closeAllFileSpecificDocks();
@@ -353,6 +354,7 @@ void MainWindow::loadFile(const QString& fileName)
     mViewMgr->closeAllFileSpecificDocks();
 
     setWindowFilePath(fileName);
+    mModeMgr->setFilePath(fileName);
     updateWindowModified();
 
     addFileToRecents(fileName);
@@ -399,8 +401,15 @@ bool MainWindow::maybeSave()
 
 bool MainWindow::saveFile(const QString& fileName)
 {
+    // Set before saving to allow getting relative path
+    const QString oldFilePath = mModeMgr->filePath();
+    mModeMgr->setFilePath(fileName);
+
     QJsonObject rootObj;
     mModeMgr->saveToJSON(rootObj);
+
+    // Reset
+    mModeMgr->setFilePath(oldFilePath);
 
     QJsonDocument doc(rootObj);
 
@@ -446,6 +455,7 @@ bool MainWindow::onSaveAs()
 
     // Set current file to new file path
     setWindowFilePath(fileName);
+    mModeMgr->setFilePath(fileName);
     return true;
 }
 

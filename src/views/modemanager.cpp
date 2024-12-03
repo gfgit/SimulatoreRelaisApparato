@@ -345,3 +345,13 @@ AbstractSimulationObjectModel *ModeManager::modelForType(const QString &objType)
 {
     return mObjectModels.value(objType, nullptr);
 }
+
+QString ModeManager::filePath() const
+{
+    return mFilePath;
+}
+
+void ModeManager::setFilePath(const QString &newFilePath)
+{
+    mFilePath = newFilePath;
+}
