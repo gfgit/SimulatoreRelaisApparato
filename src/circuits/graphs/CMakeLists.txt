@@ -34,6 +34,9 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/simpleactivationgraphitem.cpp
     circuits/graphs/simpleactivationgraphitem.h
 
+    circuits/graphs/soundcircuitgraphitem.cpp
+    circuits/graphs/soundcircuitgraphitem.h
+
     circuits/graphs/special/aceibuttongraphitem.cpp
     circuits/graphs/special/aceibuttongraphitem.h
 

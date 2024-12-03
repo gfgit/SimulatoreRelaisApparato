@@ -33,6 +33,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/simplecircuitnode.h
     circuits/nodes/simpleactivationnode.cpp
     circuits/nodes/simpleactivationnode.h
+    circuits/nodes/soundcircuitnode.cpp
+    circuits/nodes/soundcircuitnode.h
 
     PARENT_SCOPE
 )

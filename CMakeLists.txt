@@ -49,6 +49,7 @@ find_package(Qt6 REQUIRED
     Gui
     Widgets
     Svg
+    Multimedia
     LinguistTools)
 
 find_package(KDDockWidgets-qt6 REQUIRED)
