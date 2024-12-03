@@ -219,7 +219,7 @@ void MainWindow::buildEditToolBar()
     int i = 0;
     for(QAction *act : std::as_const(addItemActions))
     {
-        if(i < 4)
+        if(i < addItemActions.size() / 2)
             editToolbar1->addAction(act);
         else
             editToolbar2->addAction(act);
