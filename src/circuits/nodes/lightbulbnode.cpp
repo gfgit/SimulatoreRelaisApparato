@@ -22,6 +22,8 @@
 
 #include "lightbulbnode.h"
 
+#include "../../objects/simple_activable/lightbulbobject.h"
+
 LightBulbNode::LightBulbNode(ModeManager *mgr, QObject *parent)
     : SimpleActivationNode{mgr, parent}
 {
@@ -35,5 +37,5 @@ QString LightBulbNode::nodeType() const
 
 QString LightBulbNode::allowedObjectType() const
 {
-    return AllowedType;
+    return LightBulbObject::Type;
 }

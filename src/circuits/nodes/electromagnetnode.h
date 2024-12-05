@@ -34,7 +34,6 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("electromagnet_activation");
     QString nodeType() const override;
 
-    static constexpr QLatin1String AllowedType = QLatin1String("electromagnet");
     QString allowedObjectType() const override;
 };
 

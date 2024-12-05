@@ -22,6 +22,8 @@
 
 #include "electromagnetnode.h"
 
+#include "../../objects/simple_activable/electromagnet.h"
+
 ElectroMagnetNode::ElectroMagnetNode(ModeManager *mgr, QObject *parent)
     : SimpleActivationNode{mgr, parent}
 {
@@ -35,5 +37,5 @@ QString ElectroMagnetNode::nodeType() const
 
 QString ElectroMagnetNode::allowedObjectType() const
 {
-    return AllowedType;
+    return ElectroMagnetObject::Type;
 }

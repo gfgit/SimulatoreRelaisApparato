@@ -34,7 +34,6 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("light_bulb_activation");
     QString nodeType() const override;
 
-    static constexpr QLatin1String AllowedType = QLatin1String("light_bulb");
     QString allowedObjectType() const override;
 };
 
