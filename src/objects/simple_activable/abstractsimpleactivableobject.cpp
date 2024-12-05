@@ -80,5 +80,13 @@ void AbstractSimpleActivableObject::onNodeStateChanged(SimpleActivationNode *nod
         mActiveNodesCount--;
 
     if(state() != oldState)
+    {
+        onStateChangedInternal();
         emit stateChanged(this);
+    }
+}
+
+void AbstractSimpleActivableObject::onStateChangedInternal()
+{
+
 }

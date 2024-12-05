@@ -38,6 +38,8 @@
 
 #include "simple_activable/electromagnet.h"
 
+#include "simple_activable/soundobject.h"
+
 #include "button/genericbuttonobject.h"
 
 // TODO: extract names in separate header
@@ -56,6 +58,10 @@
 #include <QFormLayout>
 
 #include <QCheckBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QFileDialog>
+
 
 template <typename T>
 AbstractSimulationObjectModel *createModel(ModeManager *mgr)
@@ -164,6 +170,54 @@ QWidget *defaultButtonEdit(AbstractSimulationObject *item)
     return w;
 }
 
+QWidget *soundObjectEdit(AbstractSimulationObject *item)
+{
+    SoundObject *sound = static_cast<SoundObject *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Loop
+    QCheckBox *loopCheckBox = new QCheckBox(StandardObjectTypes::tr("Loop sound"));
+    lay->addRow(loopCheckBox);
+
+    loopCheckBox->setChecked(sound->loopEnabled());
+    QObject::connect(loopCheckBox, &QCheckBox::toggled,
+                     sound, [sound](bool val)
+    {
+        sound->setLoopEnabled(val);
+    });
+
+    // Sound File
+    QLineEdit *soundFileEdit = new QLineEdit;
+    lay->addRow(StandardObjectTypes::tr("Sound File:"), soundFileEdit);
+
+    QPushButton *browseBut = new QPushButton(StandardObjectTypes::tr("Browse"));
+    lay->addRow(browseBut);
+
+    QPushButton *applyBut = new QPushButton(StandardObjectTypes::tr("Apply"));
+    lay->addRow(applyBut);
+
+    soundFileEdit->setText(sound->getSoundFile());
+
+    QObject::connect(applyBut, &QPushButton::clicked,
+                     sound, [sound, soundFileEdit]()
+    {
+        sound->setSoundFile(soundFileEdit->text());
+    });
+
+    QObject::connect(browseBut, &QPushButton::clicked,
+                     soundFileEdit, [soundFileEdit]()
+    {
+        QString str = QFileDialog::getOpenFileName(soundFileEdit,
+                                                   StandardObjectTypes::tr("Choose WAV Sound"),
+                                                   soundFileEdit->text());
+        soundFileEdit->setText(str);
+    });
+
+    return w;
+}
+
 void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
 {
     {
@@ -262,6 +316,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         };
         item.prettyName = tr("Generic Button");
         item.edit = defaultButtonEdit;
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Sound Activable Object
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<SoundObject>;
+        item.objectType = SoundObject::Type;
+        item.prettyName = tr("Sound Object");
+        item.edit = &soundObjectEdit;
 
         factory->registerFactory(item);
     }

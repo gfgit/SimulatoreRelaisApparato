@@ -11,6 +11,9 @@ set(SIMULATORE_RELAIS_SOURCES
     objects/simple_activable/electromagnet.cpp
     objects/simple_activable/electromagnet.h
 
+    objects/simple_activable/soundobject.cpp
+    objects/simple_activable/soundobject.h
+
     ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE
 )

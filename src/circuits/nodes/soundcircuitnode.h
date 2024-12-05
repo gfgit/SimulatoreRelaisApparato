@@ -23,52 +23,18 @@
 #ifndef SOUND_CIRCUIT_NODE_H
 #define SOUND_CIRCUIT_NODE_H
 
-#include "abstractcircuitnode.h"
+#include "simpleactivationnode.h"
 
-class QSoundEffect;
-
-class QPropertyAnimation;
-
-class SoundCircuitNode : public AbstractCircuitNode
+class SoundCircuitNode : public SimpleActivationNode
 {
     Q_OBJECT
 public:
-    enum State
-    {
-        Stopped = 0,
-        Playing = 1,
-        FadeIn = 2,
-        FadeOut = 3
-    };
-
     explicit SoundCircuitNode(ModeManager *mgr, QObject *parent = nullptr);
-
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
-
-    void addCircuit(ElectricCircuit *circuit) override;
-    void removeCircuit(ElectricCircuit *circuit, const NodeOccurences& items) override;
-
-    bool loadFromJSON(const QJsonObject& obj) override;
-    void saveToJSON(QJsonObject& obj) const override;
 
     static constexpr QLatin1String NodeType = QLatin1String("sound_circuit_node");
     QString nodeType() const override;
 
-    QString getSoundFile() const;
-    void setSoundFile(const QString &fileName);
-
-private slots:
-    void onFadeEnd();
-
-private:
-    void setState(State newState);
-
-private:
-    QSoundEffect *mSound = nullptr;
-    QPropertyAnimation *mFadeAnimation = nullptr;
-
-    State mState = State::Stopped;
-    bool stoppedByNewState = false;
+    QString allowedObjectType() const override;
 };
 
 #endif // SOUND_CIRCUIT_NODE_H

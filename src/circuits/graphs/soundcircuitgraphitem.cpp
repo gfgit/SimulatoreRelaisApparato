@@ -29,14 +29,14 @@
 #include <QPainter>
 
 SoundCircuitGraphItem::SoundCircuitGraphItem(SoundCircuitNode *node_)
-    : AbstractNodeGraphItem(node_)
+    : SimpleActivationGraphItem(node_)
 {
 
 }
 
 void SoundCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    AbstractNodeGraphItem::paint(painter, option, widget);
+    SimpleActivationGraphItem::paint(painter, option, widget);
 
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
@@ -109,17 +109,26 @@ void SoundCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
     painter->drawLine(commonLine);
 
     // Draw sound symbol
-    if(node()->hasCircuits(CircuitType::Closed))
+    QColor soundColor;
+
+    if(node()->object() &&
+            node()->object()->state() == AbstractSimpleActivableObject::State::On)
     {
         // Fill sound symbol in red
-        painter->setBrush(Qt::red);
+        soundColor = Qt::red;
+        painter->setBrush(soundColor);
+
         painter->setPen(Qt::NoPen);
     }
     else
     {
         // Only draw sound symbol borders in black
+        soundColor = Qt::black;
         painter->setBrush(Qt::NoBrush);
-        painter->setPen(Qt::black);
+
+        pen.setColor(soundColor);
+        pen.setWidth(3);
+        painter->setPen(pen);
     }
 
     // Draw sound symbol (half circle)
@@ -129,14 +138,13 @@ void SoundCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
     if(rotate() == TileRotate::Deg0)
         textRotate = TileRotate::Deg270;
 
-    drawName(painter,
-             node()->objectName(),
-             textRotate);
-}
+    // Set text color
+    painter->setPen(soundColor);
+    painter->setBrush(Qt::NoBrush);
 
-void SoundCircuitGraphItem::getConnectors(std::vector<Connector> &connectors) const
-{
-    connectors.emplace_back(location(), rotate(), 0);
+    drawName(painter,
+             node()->object() ? node()->object()->name() : tr("OBJ?"),
+             textRotate);
 }
 
 SoundCircuitNode *SoundCircuitGraphItem::node() const

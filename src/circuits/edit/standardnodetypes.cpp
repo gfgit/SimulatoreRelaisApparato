@@ -67,15 +67,10 @@
 
 #include <QWidget>
 #include <QFormLayout>
-#include <QLineEdit>
-#include <QCompleter>
 
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLabel>
-#include <QPushButton>
-
-#include <QFileDialog>
 
 #include "../../views/modemanager.h"
 
@@ -843,45 +838,14 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // Sound Circuit node
         NodeEditFactory::FactoryItem factory;
-        factory.needsName = NodeEditFactory::NeedsName::Always;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = SoundCircuitGraphItem::Node::NodeType;
         factory.prettyName = tr("Sound Node");
         factory.create = &addNewNodeToScene<SoundCircuitGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
         {
-            SoundCircuitNode *node = static_cast<SoundCircuitNode *>(item->getAbstractNode());
-
-            QWidget *w = new QWidget;
-            QFormLayout *lay = new QFormLayout(w);
-
-            // Sound File
-            QLineEdit *soundFileEdit = new QLineEdit;
-            lay->addRow(tr("Sound File:"), soundFileEdit);
-
-            QPushButton *browseBut = new QPushButton(tr("Browse"));
-            lay->addRow(browseBut);
-
-            QPushButton *applyBut = new QPushButton(tr("Apply"));
-            lay->addRow(applyBut);
-
-            soundFileEdit->setText(node->getSoundFile());
-
-            QObject::connect(applyBut, &QPushButton::clicked,
-                             node, [node, soundFileEdit]()
-            {
-                node->setSoundFile(soundFileEdit->text());
-            });
-
-            QObject::connect(browseBut, &QPushButton::clicked,
-                             soundFileEdit, [soundFileEdit]()
-            {
-                QString str = QFileDialog::getOpenFileName(soundFileEdit,
-                                                           tr("Choose WAV Sound"),
-                                                           soundFileEdit->text());
-                soundFileEdit->setText(str);
-            });
-
-            return w;
+            return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item), mgr,
+                                               tr("Sound Object"));
         };
 
         factoryReg->registerFactory(factory);

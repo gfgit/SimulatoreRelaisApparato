@@ -23,11 +23,11 @@
 #ifndef SOUND_CIRCUIT_GRAPHITEM_H
 #define SOUND_CIRCUIT_GRAPHITEM_H
 
-#include "abstractnodegraphitem.h"
+#include "simpleactivationgraphitem.h"
 
 class SoundCircuitNode;
 
-class SoundCircuitGraphItem : public AbstractNodeGraphItem
+class SoundCircuitGraphItem : public SimpleActivationGraphItem
 {
     Q_OBJECT
 public:
@@ -36,8 +36,6 @@ public:
     explicit SoundCircuitGraphItem(SoundCircuitNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
-
-    void getConnectors(std::vector<Connector> &connectors) const override;
 
     SoundCircuitNode *node() const;
 };

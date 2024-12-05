@@ -57,6 +57,9 @@ private:
 
     void onNodeStateChanged(SimpleActivationNode *node, bool val);
 
+protected:
+    virtual void onStateChangedInternal();
+
 private:
     QVector<SimpleActivationNode *> mNodes;
 
