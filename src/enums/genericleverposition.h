@@ -37,6 +37,11 @@ struct LeverPositionCondition
 {
     int positionFrom = 0; // Or exact position
     int positionTo = 0;
+
+    // For continuous rotation levers
+    // when contact spans from last position to firs
+    // so positionTo < positionFrom
+    bool warpsAroundZero = false;
     LeverPositionConditionType type = LeverPositionConditionType::Exact;
 };
 

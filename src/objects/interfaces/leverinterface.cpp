@@ -229,7 +229,17 @@ int LeverInterface::closestPosition(int angle, bool allowMiddle) const
         if(isPositionMiddle(i))
         {
             const int prevPosAngle = angleForPosition(i - 1);
-            const int nextPosAngle = angleForPosition(i + 1);
+            int nextPosAngle = 0;
+
+            if(canWarpAroundZero() && i == mPositionDesc.maxValue)
+            {
+                // Do a full circle (360 degrees) and start from first position
+                nextPosAngle = angleForPosition(0) + 360;
+            }
+            else
+            {
+                nextPosAngle = angleForPosition(i + 1);
+            }
 
             if(angle <= prevPosAngle || angle >= nextPosAngle)
                 continue;
@@ -406,6 +416,16 @@ void LeverInterface::removeContactNode(LeverContactNode *c)
     mContactNodes.removeOne(c);
 
     emit mObject->nodesChanged();
+}
+
+bool LeverInterface::canWarpAroundZero() const
+{
+    return mCanWarpAroundZero;
+}
+
+void LeverInterface::setCanWarpAroundZero(bool newCanWarpAroundZero)
+{
+    mCanWarpAroundZero = newCanWarpAroundZero;
 }
 
 int LeverInterface::normalPosition() const

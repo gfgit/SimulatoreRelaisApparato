@@ -777,7 +777,8 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
                     auto conditions = conditionsModel->conditions();
                     conditionsModel->setConditions(leverIface->positionDesc(),
-                                                   conditions);
+                                                   conditions,
+                                                   leverIface->canWarpAroundZero());
                     conditionsModel->setPositionRange(leverIface->absoluteMin(),
                                                       leverIface->absoluteMax());
                 }
@@ -791,7 +792,8 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
                 auto conditions = node->conditionSet();
                 conditionsModel->setConditions(leverIface->positionDesc(),
-                                               conditions);
+                                               conditions,
+                                               leverIface->canWarpAroundZero());
                 conditionsModel->setPositionRange(leverIface->absoluteMin(),
                                                   leverIface->absoluteMax());
             }

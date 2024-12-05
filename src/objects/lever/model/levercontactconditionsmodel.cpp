@@ -125,6 +125,9 @@ bool LeverContactConditionsModel::setData(const QModelIndex &idx, const QVariant
             {
                 item.type = LeverPositionConditionType::FromTo;
                 item.positionTo = item.positionFrom + 2; // Pass Middle, go next position
+
+                if(mCanWarpAroundZero && item.positionTo > mPositionDesc.maxValue)
+                    item.positionTo = item.positionTo - mPositionDesc.maxValue; // Warp
             }
             else
             {
@@ -155,7 +158,8 @@ bool LeverContactConditionsModel::setData(const QModelIndex &idx, const QVariant
         return false;
     }
 
-    if(item.type == LeverPositionConditionType::FromTo)
+    if(item.type == LeverPositionConditionType::FromTo
+            && !mCanWarpAroundZero)
     {
         // Pass Middle, go next position
         item.positionTo = qMax(item.positionFrom + 2,
@@ -166,13 +170,17 @@ bool LeverContactConditionsModel::setData(const QModelIndex &idx, const QVariant
                                item.positionFrom,
                                mPositionMax);
 
-    item.positionTo = qBound(item.positionFrom,
+    const int minToPos = mCanWarpAroundZero ? mPositionMin : item.positionFrom;
+    item.positionTo = qBound(minToPos,
                              item.positionTo,
                              mPositionMax);
 
     // Reset to Exact if positions are equal
     if(item.positionFrom == item.positionTo)
         item.type = LeverPositionConditionType::Exact;
+
+    // Check if it warps
+    item.warpsAroundZero = (item.positionFrom < item.positionTo);
 
     emit changed();
 
@@ -201,12 +209,14 @@ LeverPositionConditionSet LeverContactConditionsModel::conditions() const
 }
 
 void LeverContactConditionsModel::setConditions(const EnumDesc& desc,
-                                                const LeverPositionConditionSet &newConditions)
+                                                const LeverPositionConditionSet &newConditions,
+                                                bool canWarp)
 {
     beginResetModel();
 
     mPositionDesc = desc;
     mConditions = newConditions;
+    mCanWarpAroundZero = canWarp;
 
     // Resets range
     setPositionRange(mPositionDesc.minValue, mPositionDesc.maxValue);
@@ -238,6 +248,14 @@ void LeverContactConditionsModel::removeConditionAt(int row)
 
 void LeverContactConditionsModel::setPositionRange(int min, int max)
 {
+    if(mCanWarpAroundZero)
+    {
+        // Continuous rotation levers always use full range
+        mPositionMin = mPositionDesc.minValue;
+        mPositionMax = mPositionDesc.maxValue;
+        return;
+    }
+
     min = qBound(mPositionDesc.minValue,
                  min,
                  mPositionDesc.maxValue);

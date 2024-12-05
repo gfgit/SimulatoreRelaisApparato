@@ -60,7 +60,8 @@ public:
 
     LeverPositionConditionSet conditions() const;
     void setConditions(const EnumDesc &desc,
-                       const LeverPositionConditionSet &newConditions);
+                       const LeverPositionConditionSet &newConditions,
+                       bool canWarp);
 
     void instertConditionAt(int row);
     void removeConditionAt(int row);
@@ -80,6 +81,7 @@ private:
 
     int mPositionMin = 0;
     int mPositionMax = 0;
+    bool mCanWarpAroundZero = false;
 };
 
 #endif // LEVERCONTACTCONDITIONSMODEL_H

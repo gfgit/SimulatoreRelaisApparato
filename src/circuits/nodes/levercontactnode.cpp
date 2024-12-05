@@ -159,6 +159,12 @@ LeverContactNode::State LeverContactNode::stateForPosition(int pos) const
         }
 
         // From/To
+        if(item.warpsAroundZero)
+        {
+            if(pos >= item.positionFrom || pos <= item.positionTo)
+                return State::Down;
+        }
+
         if(item.positionFrom <= pos && pos <= item.positionTo)
             return State::Down;
     }
@@ -195,11 +201,20 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
     {
         LeverPositionCondition& item = *it;
         if(item.type == LeverPositionConditionType::Exact)
+        {
             item.positionTo = item.positionFrom;
+            item.warpsAroundZero = false;
+        }
         else
         {
-            item.positionTo = qMax(item.positionFrom + 2,
-                                   item.positionTo);
+            if(!mLeverIface->canWarpAroundZero())
+                item.warpsAroundZero = false;
+
+            if(!item.warpsAroundZero)
+            {
+                item.positionTo = qMax(item.positionFrom + 2,
+                                       item.positionTo);
+            }
         }
     }
 

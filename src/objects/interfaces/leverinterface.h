@@ -143,6 +143,14 @@ public:
         if(qAbs(posAngle - angle) <= MaxSnapAngleDelta)
             return pos; // Snap to position
 
+        if(canWarpAroundZero() && posAngle < angle)
+        {
+            // Try again considering the remaining sector
+            // to close a full circle
+            if(qAbs(posAngle + 360 - angle) <= MaxSnapAngleDelta)
+                return pos; // Snap to position
+        }
+
         // Do not snap
         return LeverAngleDesc::InvalidPosition;
     }
@@ -170,6 +178,10 @@ public:
     void setLockedRange(int newMin, int newMax);
     void checkPositionValidForLock();
 
+    // Set at creation, should stay fixed
+    bool canWarpAroundZero() const;
+    void setCanWarpAroundZero(bool newCanWarpAroundZero);
+
 protected:
     bool timerEvent(const int timerId) override;
 
@@ -193,6 +205,10 @@ private:
     int mAngle = 0;
     int mPosition = 0;
     int mNormalPosition = 0;
+
+    // For continuous rotation levers
+    // After last position we go to a "middle" and the first again
+    bool mCanWarpAroundZero = false;
 
     int springTimerId = 0;
 
