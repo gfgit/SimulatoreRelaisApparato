@@ -125,32 +125,30 @@ void LeverInterface::setAngle(int newAngle)
     if(mLockedMin != LeverAngleDesc::InvalidPosition
             && mLockedMax != LeverAngleDesc::InvalidPosition)
     {
-        int old = newAngle;
-
         // Clamp to allowed locked range
         int MinAngleAbs= angleForPosition(mLockedMin);
         int MaxAngleAbs = angleForPosition(mLockedMax);
-        int oldMax = MaxAngleAbs;
 
-        if(canWarpAroundZero() && MaxAngleAbs < MinAngleAbs)
+        if(canWarpAroundZero())
         {
-            MaxAngleAbs += 360;
-            if(newAngle < MinAngleAbs && newAngle <= 180)
-                newAngle += 360;
+            if(MaxAngleAbs < MinAngleAbs)
+            {
+                MaxAngleAbs += 360;
+                if(newAngle < MinAngleAbs)
+                    newAngle += 360;
+            }
 
             if(newAngle < MinAngleAbs || newAngle > MaxAngleAbs)
             {
-                // If out of range, go to nearest
-                if(qAbs(MinAngleAbs - newAngle) <= qAbs(MaxAngleAbs - newAngle))
-                    newAngle = MinAngleAbs;
-                else
-                    newAngle = MaxAngleAbs;
+                // Angle not in range, reject change
+                return;
             }
 
             newAngle = newAngle % 360;
         }
         else
         {
+            // For non-continuous levers we bound angle in range
             newAngle = qBound(MinAngleAbs, newAngle, MaxAngleAbs);
         }
     }
