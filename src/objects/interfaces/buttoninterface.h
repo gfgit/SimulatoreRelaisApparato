@@ -58,8 +58,6 @@ public:
     void setState(State newState);
 
     // Options
-
-
     bool canBePressed() const;
     void setCanBePressed(bool newCanBePressed);
 

@@ -196,7 +196,7 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
             // Draw end position line and
             // Draw arc from start position to end position
             double toAngle = leverIface->angleForPosition(item.positionTo, true);
-            if(item.warpsAroundZero)
+            if(toAngle < fromAngle)
                 toAngle += 360;
 
             const double toRadiants = -qDegreesToRadians(toAngle);
