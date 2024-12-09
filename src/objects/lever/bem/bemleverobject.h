@@ -70,6 +70,9 @@ protected:
                                     const QVariant &value) override;
 
 private:
+    void recalculateLockedRange();
+
+private:
     LeverInterface *leverInterface = nullptr;
     BEMHandleInterface *bemInterface = nullptr;
 };

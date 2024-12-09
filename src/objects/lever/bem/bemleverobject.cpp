@@ -96,6 +96,8 @@ BEMLeverObject::BEMLeverObject(AbstractSimulationObjectModel *m)
     leverInterface->setChangeRangeAllowed(false);
 
     bemInterface = new BEMHandleInterface(this);
+
+    recalculateLockedRange();
 }
 
 BEMLeverObject::~BEMLeverObject()
@@ -130,8 +132,96 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
                                                 bem_mr_lever_angleDesc);
 
             leverInterface->setChangeRangeAllowed(false);
+
+            recalculateLockedRange();
+        }
+    }
+    else if(iface == leverInterface)
+    {
+        if(propName == LeverInterface::PositionPropName)
+        {
+            recalculateLockedRange();
         }
     }
 
     return AbstractSimulationObject::onInterfaceChanged(iface, propName, value);
+}
+
+void BEMLeverObject::recalculateLockedRange()
+{
+    if(bemInterface->leverType() == BEMHandleInterface::Consensus)
+    {
+        // This handle can only rotate counter-clockwise
+        BEMLeverPositionMc pos = BEMLeverPositionMc(leverInterface->position());
+
+        BEMLeverPositionMc lockedMin;
+        BEMLeverPositionMc lockedMax;
+        switch (pos)
+        {
+        case BEMLeverPositionMc::Normal:
+        case BEMLeverPositionMc::Middle3:
+            lockedMin = BEMLeverPositionMc::Consensus;
+            lockedMax = BEMLeverPositionMc::Normal;
+            break;
+        case BEMLeverPositionMc::Consensus:
+        case BEMLeverPositionMc::Middle2:
+            lockedMin = BEMLeverPositionMc::Blocked;
+            lockedMax = BEMLeverPositionMc::Consensus;
+            break;
+        case BEMLeverPositionMc::Blocked:
+        case BEMLeverPositionMc::Middle1:
+            // TODO: blocked?
+            lockedMin = BEMLeverPositionMc::Normal;
+            lockedMax = BEMLeverPositionMc::Blocked;
+            break;
+        default:
+            Q_ASSERT(false);
+            break;
+        }
+
+        leverInterface->setLockedRange(int(lockedMin), int(lockedMax));
+    }
+    else
+    {
+        // This handle can only rotate clockwise
+        BEMLeverPositionMr pos = BEMLeverPositionMr(leverInterface->position());
+
+        BEMLeverPositionMr lockedMin;
+        BEMLeverPositionMr lockedMax;
+        switch (pos)
+        {
+        case BEMLeverPositionMr::Normal:
+        case BEMLeverPositionMr::Middle1:
+            lockedMin = BEMLeverPositionMr::Normal;
+            lockedMax = BEMLeverPositionMr::RequestConsensus;
+            break;
+        case BEMLeverPositionMr::RequestConsensus:
+        case BEMLeverPositionMr::Middle2:
+            lockedMin = BEMLeverPositionMr::RequestConsensus;
+            lockedMax = BEMLeverPositionMr::SignalsAtStop;
+            break;
+        case BEMLeverPositionMr::SignalsAtStop:
+        case BEMLeverPositionMr::Middle3:
+            lockedMin = BEMLeverPositionMr::SignalsAtStop;
+            lockedMax = BEMLeverPositionMr::ActivateFirstCatSignal;
+            break;
+        case BEMLeverPositionMr::ActivateFirstCatSignal:
+        case BEMLeverPositionMr::Middle4:
+            // Allow going back
+            lockedMin = BEMLeverPositionMr::SignalsAtStop;
+            lockedMax = BEMLeverPositionMr::ActivateBothSignals;
+            break;
+        case BEMLeverPositionMr::ActivateBothSignals:
+        case BEMLeverPositionMr::Middle5:
+            // Allow going back
+            lockedMin = BEMLeverPositionMr::ActivateFirstCatSignal;
+            lockedMax = BEMLeverPositionMr::Normal;
+            break;
+        default:
+            Q_ASSERT(false);
+            break;
+        }
+
+        leverInterface->setLockedRange(int(lockedMin), int(lockedMax));
+    }
 }
