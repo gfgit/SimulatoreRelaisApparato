@@ -7,6 +7,9 @@ set(SIMULATORE_RELAIS_SOURCES
     objects/interfaces/abstractobjectinterface.cpp
     objects/interfaces/abstractobjectinterface.h
 
+    objects/interfaces/bemhandleinterface.cpp
+    objects/interfaces/bemhandleinterface.h
+
     objects/interfaces/buttoninterface.cpp
     objects/interfaces/buttoninterface.h
 

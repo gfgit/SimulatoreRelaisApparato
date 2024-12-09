@@ -5,6 +5,7 @@ add_subdirectory(view)
 
 add_subdirectory(acei)
 add_subdirectory(ace_sasib)
+add_subdirectory(bem)
 
 
 set(SIMULATORE_RELAIS_SOURCES
