@@ -48,13 +48,8 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
 
     // Normal position and range
     mMinPosModel = new EnumValuesModel(this);
-    mMinPosModel->setEnumDescFull(mLever->positionDesc(), true);
-
     mMaxPosModel = new EnumValuesModel(this);
-    mMaxPosModel->setEnumDescFull(mLever->positionDesc(), true);
-
     mNormalPosModel = new EnumValuesModel(this);
-    mNormalPosModel->setEnumDescFull(mLever->positionDesc(), true);
 
     mMinPosCombo = new QComboBox;
     mMinPosCombo->setModel(mMinPosModel);
@@ -82,7 +77,7 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
     connect(mLever->object(), &AbstractSimulationObject::settingsChanged,
             this, &GenericLeverOptionsWidget::updatePositionRanges);
 
-    updatePositionRanges();
+    updatePositionDesc();
 
     connect(mMinPosCombo, &QComboBox::activated,
             this, [this](int idx)
@@ -106,6 +101,18 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
         // Change normal position
         mLever->setNormalPosition(mNormalPosModel->valueAt(idx));
     });
+
+    connect(mLever->object(), &AbstractSimulationObject::interfacePropertyChanged,
+            this, &GenericLeverOptionsWidget::onInterfacePropertyChanged);
+}
+
+void GenericLeverOptionsWidget::updatePositionDesc()
+{
+    mMinPosModel->setEnumDescFull(mLever->positionDesc(), true);
+    mMaxPosModel->setEnumDescFull(mLever->positionDesc(), true);
+    mNormalPosModel->setEnumDescFull(mLever->positionDesc(), true);
+
+    updatePositionRanges();
 }
 
 void GenericLeverOptionsWidget::updatePositionRanges()
@@ -155,4 +162,20 @@ void GenericLeverOptionsWidget::updatePositionRanges()
     const int normalPosIdx = mNormalPosModel->rowForValue(mLever->normalPosition());
     if(normalPosIdx != -1 && mNormalPosCombo->currentIndex() != normalPosIdx)
         mNormalPosCombo->setCurrentIndex(normalPosIdx);
+}
+
+void GenericLeverOptionsWidget::onInterfacePropertyChanged(const QString &ifaceName,
+                                                           const QString &propName,
+                                                           const QVariant &value)
+{
+    if(ifaceName == LeverInterface::IfaceType)
+    {
+        if(!mLever)
+            return;
+
+        if(propName == LeverInterface::PosDescPropName)
+        {
+            updatePositionDesc();
+        }
+    }
 }

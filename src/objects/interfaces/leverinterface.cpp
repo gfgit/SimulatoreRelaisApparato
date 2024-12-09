@@ -131,6 +131,14 @@ void LeverInterface::setAngle(int newAngle)
 
         newAngle = qBound(MinAngleAbs, newAngle, MaxAngleAbs);
     }
+    else if(!canWarpAroundZero())
+    {
+        // Clamp to absolute range for non-continuous rotation levers
+        const int MinAngleAbs= angleForPosition(mAbsoluteMin);
+        const int MaxAngleAbs = angleForPosition(mAbsoluteMax);
+
+        newAngle = qBound(MinAngleAbs, newAngle, MaxAngleAbs);
+    }
 
     if(mAngle == newAngle)
         return;
@@ -182,6 +190,24 @@ void LeverInterface::setPosition(int newPosition)
         emitChanged(PositionPropName, mPosition);
         emit mObject->stateChanged(mObject);
     }
+}
+
+void LeverInterface::setPositionDesc(const EnumDesc &desc_,
+                                     const LeverAngleDesc &angleDesc_)
+{
+    // Reset lever conditions
+    for(LeverContactNode *node : std::as_const(mContactNodes))
+    {
+        node->setConditionSet(LeverPositionConditionSet());
+    }
+
+    mPositionDesc = desc_;
+    mAngleDesc = angleDesc_;
+
+    // Re-init
+    init();
+
+    emitChanged(PosDescPropName, QVariant());
 }
 
 bool LeverInterface::hasSpringReturn() const

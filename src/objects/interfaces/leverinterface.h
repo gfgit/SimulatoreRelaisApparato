@@ -66,6 +66,7 @@ private:
 public:
     // Property names
     static constexpr QLatin1String PressedPropName = QLatin1String("pressed");
+    static constexpr QLatin1String PosDescPropName = QLatin1String("position_desc");
     static constexpr QLatin1String PositionPropName = QLatin1String("position");
     static constexpr QLatin1String AnglePropName = QLatin1String("angle");
     static constexpr QLatin1String AbsoluteRangePropName = QLatin1String("abs_range");
@@ -98,6 +99,9 @@ public:
     {
         return mPositionDesc;
     }
+
+    void setPositionDesc(const EnumDesc& desc_,
+                         const LeverAngleDesc& angleDesc_);
 
     bool isPressed() const;
     void setPressed(bool newIsPressed);
@@ -213,8 +217,8 @@ private:
     void removeContactNode(LeverContactNode *c);
 
 private:
-    const EnumDesc mPositionDesc;
-    const LeverAngleDesc mAngleDesc;
+    EnumDesc mPositionDesc;
+    LeverAngleDesc mAngleDesc;
 
     int mAngle = 0;
     int mPosition = 0;

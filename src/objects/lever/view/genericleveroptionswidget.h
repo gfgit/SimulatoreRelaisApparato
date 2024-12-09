@@ -40,7 +40,10 @@ public:
                               QWidget *parent = nullptr);
 
 private slots:
+    void updatePositionDesc();
     void updatePositionRanges();
+
+    void onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value);
 
 private:
     LeverInterface *mLever = nullptr;
