@@ -148,6 +148,9 @@ public:
 
         // Skip Middle positions
         const int pos = closestPosition(newAngle, false);
+        if(pos == LeverAngleDesc::InvalidPosition)
+            return pos;
+
         const int posAngle = angleForPosition(pos);
 
         if(qAbs(posAngle - newAngle) <= MaxSnapAngleDelta)
@@ -205,6 +208,9 @@ protected:
                 || mLockedMax == LeverAngleDesc::InvalidPosition)
             return true; // Not locked
 
+        if(canWarpAroundZero() && mLockedMax < mLockedMin)
+            return pos <= mLockedMin || pos >= mLockedMax;
+
         return pos >= mLockedMin && pos <= mLockedMax;
     }
 
@@ -215,6 +221,8 @@ private:
     friend class LeverContactNode;
     void addContactNode(LeverContactNode *c);
     void removeContactNode(LeverContactNode *c);
+
+    int positionForAngle_internal(int pos, int newAngle, bool allowMiddle) const;
 
 private:
     EnumDesc mPositionDesc;
