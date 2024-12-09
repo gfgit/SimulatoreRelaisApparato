@@ -34,6 +34,8 @@
 #include "lever/ace_sasib/acesasiblever5positions.h"
 #include "lever/ace_sasib/acesasiblever7positions.h"
 
+#include "lever/bem/bemleverobject.h"
+
 #include "simple_activable/lightbulbobject.h"
 
 #include "simple_activable/electromagnet.h"
@@ -47,6 +49,7 @@
 #include "interfaces/mechanicalinterface.h"
 #include "interfaces/sasibaceleverextrainterface.h"
 #include "interfaces/buttoninterface.h"
+#include "interfaces/bemhandleinterface.h"
 
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
@@ -62,6 +65,8 @@
 #include <QPushButton>
 #include <QFileDialog>
 
+#include <QComboBox>
+#include "../utils/enumvaluesmodel.h"
 
 template <typename T>
 AbstractSimulationObjectModel *createModel(ModeManager *mgr)
@@ -218,6 +223,67 @@ QWidget *soundObjectEdit(AbstractSimulationObject *item)
     return w;
 }
 
+QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
+{
+    BEMLeverObject *lever = static_cast<BEMLeverObject *>(item);
+    BEMHandleInterface *bemIface = lever->getInterface<BEMHandleInterface>();
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Generic lever options
+    lay->addRow(defaultLeverEdit(item));
+
+    // BEM Interface
+
+    // Type
+    QComboBox *typeCombo = new QComboBox;
+    EnumValuesModel *typeModel = new EnumValuesModel(typeCombo);
+    typeModel->setEnumDescFull(BEMHandleInterface::getLeverTypeDesc(), false);
+    typeCombo->setModel(typeModel);
+
+    QObject::connect(typeCombo, &QComboBox::activated,
+                     lever, [bemIface, typeModel](int idx)
+    {
+        bemIface->setLeverType(BEMHandleInterface::LeverType(typeModel->valueAt(idx)));
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Type:"), typeCombo);
+
+    // Twin Handle
+    SimulationObjectLineEdit *twinEdit
+            = new SimulationObjectLineEdit(
+                item->model()->modeMgr(),
+                {
+                    BEMLeverObject::Type
+                });
+
+    QObject::connect(twinEdit, &SimulationObjectLineEdit::objectChanged,
+                     lever, [bemIface](AbstractSimulationObject *obj)
+    {
+        bemIface->setTwinHandle(obj ?
+                                    obj->getInterface<BEMHandleInterface>() :
+                                    nullptr);
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Twin Handle:"), twinEdit);
+
+    auto updateSettings = [bemIface, twinEdit, typeCombo, typeModel]()
+    {
+        twinEdit->setObject(bemIface->getTwinHandle() ?
+                                bemIface->getTwinHandle()->object() :
+                                nullptr);
+        typeCombo->setCurrentIndex(typeModel->rowForValue(int(bemIface->leverType())));
+    };
+
+    QObject::connect(lever, &BEMLeverObject::settingsChanged,
+                     twinEdit, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
 void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
 {
     {
@@ -328,6 +394,21 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.objectType = SoundObject::Type;
         item.prettyName = tr("Sound Object");
         item.edit = &soundObjectEdit;
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // BEM Lever
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<BEMLeverObject>;
+        item.edit = &defaultBEMLeverEdit;
+        item.objectType = BEMLeverObject::Type;
+        item.interfaces = {
+            LeverInterface::IfaceType
+        };
+        item.prettyName = tr("BEM Handle");
 
         factory->registerFactory(item);
     }
