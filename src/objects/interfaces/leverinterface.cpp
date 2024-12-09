@@ -119,10 +119,18 @@ int LeverInterface::angle() const
 
 void LeverInterface::setAngle(int newAngle)
 {
-    const int MinAngleAbs= angleForPosition(mLockedMin);
-    const int MaxAngleAbs = angleForPosition(mLockedMax);
+    if(newAngle < 0 && canWarpAroundZero())
+        newAngle += 360;
 
-    newAngle = qBound(MinAngleAbs, newAngle, MaxAngleAbs);
+    if(mLockedMin != LeverAngleDesc::InvalidPosition
+            && mLockedMax != LeverAngleDesc::InvalidPosition)
+    {
+        // Clamp to allowed locked range
+        const int MinAngleAbs= angleForPosition(mLockedMin);
+        const int MaxAngleAbs = angleForPosition(mLockedMax);
+
+        newAngle = qBound(MinAngleAbs, newAngle, MaxAngleAbs);
+    }
 
     if(mAngle == newAngle)
         return;
@@ -222,9 +230,21 @@ void LeverInterface::setPressed(bool newIsPressed)
     }
 }
 
-int LeverInterface::closestPosition(int angle, bool allowMiddle) const
+int LeverInterface::closestPosition(int newAngle, bool allowMiddle) const
 {
-    for(int i = mLockedMin; i <= mLockedMax; i++)
+    if(newAngle < 0 && canWarpAroundZero())
+        newAngle += 360;
+
+    int min = mLockedMin;
+    int max = mLockedMax;
+    if(min == LeverAngleDesc::InvalidPosition || max == LeverAngleDesc::InvalidPosition)
+    {
+        // Not locked
+        min = mAbsoluteMin;
+        max = mAbsoluteMax;
+    }
+
+    for(int i = min; i <= max; i++)
     {
         if(isPositionMiddle(i))
         {
@@ -234,26 +254,45 @@ int LeverInterface::closestPosition(int angle, bool allowMiddle) const
             if(canWarpAroundZero() && i == mPositionDesc.maxValue)
             {
                 // Do a full circle (360 degrees) and start from first position
-                nextPosAngle = angleForPosition(0) + 360;
+                nextPosAngle = angleForPosition(0);
             }
             else
             {
                 nextPosAngle = angleForPosition(i + 1);
             }
 
-            if(angle <= prevPosAngle || angle >= nextPosAngle)
+            int adjustedAngle = newAngle;
+
+            if(canWarpAroundZero() && prevPosAngle > nextPosAngle)
+            {
+                nextPosAngle += 360;
+                if(adjustedAngle <= 180)
+                    adjustedAngle += 360;
+            }
+
+            if(adjustedAngle <= prevPosAngle || adjustedAngle >= nextPosAngle)
                 continue;
 
             if(allowMiddle)
                 return i; // Return middle position
 
-            if((angle - prevPosAngle) < (nextPosAngle - angle))
-                return (i - 1); // Closest to prev
+            if((adjustedAngle - prevPosAngle) < (nextPosAngle - adjustedAngle))
+            {
+                // Closest to prev
+                const int prevPos = i - 1;
+                if(canWarpAroundZero() && prevPos < 0)
+                    return prevPos + mPositionDesc.maxValue + 1;
+                return prevPos;
+            }
 
-            return (i + 1); // Closest to next
+            // Closest to next
+            const int nextPos = i + 1;
+            if(canWarpAroundZero() && nextPos > mPositionDesc.maxValue)
+                return nextPos - mPositionDesc.maxValue - 1;
+            return nextPos;
         }
 
-        if(angle == angleForPosition(i))
+        if(newAngle == angleForPosition(i))
             return i;
     }
 
@@ -263,11 +302,21 @@ int LeverInterface::closestPosition(int angle, bool allowMiddle) const
 
 void LeverInterface::setLockedRange(int newMin, int newMax)
 {
-    newMin = qMax(newMin, mAbsoluteMin);
-    newMax = qMin(newMax, mAbsoluteMax);
+    if(newMin == LeverAngleDesc::InvalidPosition
+            || newMax == LeverAngleDesc::InvalidPosition)
+    {
+        // Remove locking
+        newMin = newMax = LeverAngleDesc::InvalidPosition;
+    }
+    else
+    {
+        // Clamp locked range to absolute range
+        newMin = qMax(newMin, mAbsoluteMin);
+        newMax = qMin(newMax, mAbsoluteMax);
 
-    if(newMax < newMin)
-        newMax = newMin;
+        if(newMax < newMin)
+            newMax = newMin;
+    }
 
     if(mLockedMin == newMin && mLockedMax == newMax)
         return;
@@ -390,9 +439,10 @@ void LeverInterface::setAbsoluteRange(int newMin, int newMax)
         setAngle(mAngle);
         setNormalPosition(mNormalPosition);
 
-        // Set fake locked range to allow every position
+        // Unset locked range to allow every position
         // It will be recalculated by object if needed
-        setLockedRange(absoluteMin(), absoluteMax());
+        setLockedRange(LeverAngleDesc::InvalidPosition,
+                       LeverAngleDesc::InvalidPosition);
 
         emitChanged(AbsoluteRangePropName, QVariant());
         emit mObject->settingsChanged(mObject);
@@ -416,11 +466,6 @@ void LeverInterface::removeContactNode(LeverContactNode *c)
     mContactNodes.removeOne(c);
 
     emit mObject->nodesChanged();
-}
-
-bool LeverInterface::canWarpAroundZero() const
-{
-    return mCanWarpAroundZero;
 }
 
 void LeverInterface::setCanWarpAroundZero(bool newCanWarpAroundZero)

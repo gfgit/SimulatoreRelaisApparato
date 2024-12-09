@@ -180,7 +180,7 @@ bool LeverContactConditionsModel::setData(const QModelIndex &idx, const QVariant
         item.type = LeverPositionConditionType::Exact;
 
     // Check if it warps
-    item.warpsAroundZero = (item.positionFrom < item.positionTo);
+    item.warpsAroundZero = (item.positionFrom > item.positionTo);
 
     emit changed();
 
@@ -300,6 +300,8 @@ std::pair<int, int> LeverContactConditionsModel::positionRangeFor(const QModelIn
     if(idx.column() == ToCol)
     {
         // TODO: sort items and return prev/next
+        if(mCanWarpAroundZero)
+            return {mPositionMin, mPositionMax};
         return {item.positionFrom + 2, mPositionMax};
     }
 

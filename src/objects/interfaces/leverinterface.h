@@ -125,7 +125,10 @@ public:
             return LeverAngleDesc::MiddleAngle;
 
         const auto& item = mAngleDesc.items.at(pos - mPositionDesc.minValue);
-        return preview ? item.contactDrawingAngle : item.angle;
+        int posAngle = preview ? item.contactDrawingAngle : item.angle;
+        if(posAngle < 0 && canWarpAroundZero())
+            posAngle += 360;
+        return posAngle;
     }
 
     inline bool isPositionMiddle(int pos) const
@@ -134,20 +137,23 @@ public:
     }
 
     // Returns InvalidPosition if cannot snap
-    inline int snapTarget(int angle) const
+    inline int snapTarget(int newAngle) const
     {
+        if(newAngle < 0 && canWarpAroundZero())
+            newAngle += 360;
+
         // Skip Middle positions
-        const int pos = closestPosition(angle, false);
+        const int pos = closestPosition(newAngle, false);
         const int posAngle = angleForPosition(pos);
 
-        if(qAbs(posAngle - angle) <= MaxSnapAngleDelta)
+        if(qAbs(posAngle - newAngle) <= MaxSnapAngleDelta)
             return pos; // Snap to position
 
-        if(canWarpAroundZero() && posAngle < angle)
+        if(canWarpAroundZero() && posAngle < newAngle)
         {
             // Try again considering the remaining sector
             // to close a full circle
-            if(qAbs(posAngle + 360 - angle) <= MaxSnapAngleDelta)
+            if(qAbs(posAngle + 360 - newAngle) <= MaxSnapAngleDelta)
                 return pos; // Snap to position
         }
 
@@ -179,7 +185,11 @@ public:
     void checkPositionValidForLock();
 
     // Set at creation, should stay fixed
-    bool canWarpAroundZero() const;
+    inline bool canWarpAroundZero() const
+    {
+        return mCanWarpAroundZero;
+    }
+
     void setCanWarpAroundZero(bool newCanWarpAroundZero);
 
 protected:
@@ -187,6 +197,10 @@ protected:
 
     inline bool isPositionValidForLock(int pos) const
     {
+        if(mLockedMin == LeverAngleDesc::InvalidPosition
+                || mLockedMax == LeverAngleDesc::InvalidPosition)
+            return true; // Not locked
+
         return pos >= mLockedMin && pos <= mLockedMax;
     }
 
@@ -217,8 +231,8 @@ private:
 
     int mAbsoluteMin = 0;
     int mAbsoluteMax = 0;
-    int mLockedMin = 0;
-    int mLockedMax = 0;
+    int mLockedMin = LeverAngleDesc::InvalidPosition;
+    int mLockedMax = LeverAngleDesc::InvalidPosition;
 
     bool mCanSetRange = true;
     bool mCanChangeSpring = false;

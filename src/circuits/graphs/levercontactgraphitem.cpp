@@ -195,7 +195,10 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
         {
             // Draw end position line and
             // Draw arc from start position to end position
-            const double toAngle = leverIface->angleForPosition(item.positionTo, true);
+            double toAngle = leverIface->angleForPosition(item.positionTo, true);
+            if(item.warpsAroundZero)
+                toAngle += 360;
+
             const double toRadiants = -qDegreesToRadians(toAngle);
 
             endPt = QPointF(qSin(toRadiants), qCos(toRadiants));
@@ -233,7 +236,16 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
         {
             // Average prev/next angles
             const double prev = leverIface->angleForPosition(leverPos - 1, true);
-            const double next = leverIface->angleForPosition(leverPos + 1, true);
+
+            double next = 0;
+            if(leverIface->canWarpAroundZero() && leverPos == leverIface->positionDesc().maxValue)
+                next = leverIface->angleForPosition(0, true);
+            else
+                next = leverIface->angleForPosition(leverPos + 1, true);
+
+            if(next < prev)
+                next += 360;
+
             leverAngle = (prev + next) / 2.0;
         }
         else
