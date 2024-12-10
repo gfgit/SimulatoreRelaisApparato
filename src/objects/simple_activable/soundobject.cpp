@@ -50,6 +50,21 @@ SoundObject::SoundObject(AbstractSimulationObjectModel *m)
     mSound->setLoopCount(QSoundEffect::Infinite);
 }
 
+SoundObject::~SoundObject()
+{
+    const auto overlappedCopy = mOverlappedSounds;
+    for(QSoundEffect *sound : overlappedCopy)
+    {
+        sound->stop();
+        delete sound;
+    };
+    Q_ASSERT(mOverlappedSounds.isEmpty());
+
+    mSound->stop();
+    delete mSound;
+    mSound = nullptr;
+}
+
 QString SoundObject::getType() const
 {
     return Type;
@@ -152,13 +167,38 @@ void SoundObject::setSoundState(SoundState newState)
         }
         else
         {
-            // Restart sound
-            stoppedByNewState = true;
-            mSound->stop();
-            stoppedByNewState = false;
+            QSoundEffect *soundEffect = mSound;
+            if(mSound->isPlaying() && mOverlappedSounds.size() < 3)
+            {
+                // FIXME: still not working properly
+                // Trigger ALSA error if played rapidly many times
+                // "ALSA lib pcm.c:8675:(snd_pcm_recover) underrun occurred"
 
-            mSound->setVolume(1.0);
-            mSound->play();
+                // Our sound is already playing
+                // Probably because node has stopped
+                // but audio sample is not finished yet
+
+                // We create a new sound of same file and play it over
+                // original
+
+                soundEffect = new QSoundEffect(this);
+                soundEffect->setSource(mSound->source());
+                mOverlappedSounds.append(soundEffect);
+                connect(soundEffect, &QSoundEffect::playingChanged,
+                        [soundEffect]()
+                {
+                    if(!soundEffect->isPlaying())
+                        soundEffect->deleteLater();
+                });
+                connect(soundEffect, &QObject::destroyed,
+                        [this, soundEffect]()
+                {
+                    mOverlappedSounds.removeOne(soundEffect);
+                });
+            }
+
+            soundEffect->setVolume(1.0);
+            soundEffect->play();
         }
     }
     else if(mSoundState == SoundState::FadeIn)

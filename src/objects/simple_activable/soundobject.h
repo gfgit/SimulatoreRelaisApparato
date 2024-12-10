@@ -25,6 +25,8 @@
 
 #include "abstractsimpleactivableobject.h"
 
+#include <QVector>
+
 class QSoundEffect;
 
 class QPropertyAnimation;
@@ -41,6 +43,7 @@ public:
     };
 
     explicit SoundObject(AbstractSimulationObjectModel *m);
+    ~SoundObject();
 
     static constexpr QLatin1String Type = QLatin1String("sound_activable");
     QString getType() const override;
@@ -67,6 +70,7 @@ protected:
 private:
     QSoundEffect *mSound = nullptr;
     QPropertyAnimation *mFadeAnimation = nullptr;
+    QVector<QSoundEffect *> mOverlappedSounds;
 
     SoundState mSoundState = SoundState::Stopped;
     bool stoppedByNewState = false;
