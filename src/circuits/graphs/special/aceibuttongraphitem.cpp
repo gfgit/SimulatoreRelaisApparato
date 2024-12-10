@@ -156,10 +156,40 @@ void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
     if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
             && mButtonIface && boundingRect().contains(ev->pos()))
     {
+        ButtonInterface::State state = mButtonIface->state();
+
         if(ev->button() == Qt::LeftButton)
-            mButtonIface->setState(ButtonInterface::State::Pressed);
+        {
+            // Go down by one
+            switch (state)
+            {
+            case ButtonInterface::State::Extracted:
+                state = ButtonInterface::State::Normal;
+                break;
+            case ButtonInterface::State::Normal:
+                state = ButtonInterface::State::Pressed;
+                break;
+            default:
+                return; // Cannot go lower
+            }
+        }
         else if(ev->button() == Qt::RightButton)
-            mButtonIface->setState(ButtonInterface::State::Extracted);
+        {
+            // Go down by one
+            switch (state)
+            {
+            case ButtonInterface::State::Pressed:
+                state = ButtonInterface::State::Normal;
+                break;
+            case ButtonInterface::State::Normal:
+                state = ButtonInterface::State::Extracted;
+                break;
+            default:
+                return; // Cannot go higher
+            }
+        }
+
+        mButtonIface->setState(state);
         return;
     }
 
@@ -173,7 +203,8 @@ void ACEIButtonGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     {
         // We don't care about mouse button
         // Also sometimes there are already no buttons
-        mButtonIface->setState(ButtonInterface::State::Normal);
+        if(mButtonIface->mode() == ButtonInterface::Mode::AutoReturnNormal)
+            mButtonIface->setState(ButtonInterface::State::Normal);
         return;
     }
 

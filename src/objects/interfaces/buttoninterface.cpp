@@ -27,6 +27,19 @@
 
 #include <QJsonObject>
 
+static const EnumDesc button_mode_desc =
+{
+    int(ButtonInterface::Mode::AutoReturnNormal),
+    int(ButtonInterface::Mode::ReturnNormalAfterTimout),
+    int(ButtonInterface::Mode::AutoReturnNormal),
+    "GenericButtonObject",
+    {
+        QT_TRANSLATE_NOOP("GenericButtonObject", "Auto Return Normal"),
+        QT_TRANSLATE_NOOP("GenericButtonObject", "Stay in last position"),
+        QT_TRANSLATE_NOOP("GenericButtonObject", "Return Normal after timeout")
+    }
+};
+
 ButtonInterface::ButtonInterface(AbstractSimulationObject *obj)
     : AbstractObjectInterface(obj)
 {
@@ -72,6 +85,8 @@ bool ButtonInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     setCanBePressed(obj.value("can_press").toBool(true));
     setCanBeExtracted(obj.value("can_extract").toBool(false));
 
+    setMode(Mode(obj.value("mode").toInt(int(Mode::AutoReturnNormal))));
+
     return true;
 }
 
@@ -81,6 +96,7 @@ void ButtonInterface::saveToJSON(QJsonObject &obj) const
 
     obj["can_press"] = mCanBePressed;
     obj["can_extract"] = mCanBeExtracted;
+    obj["mode"] = int(mMode);
 }
 
 ButtonInterface::State ButtonInterface::state() const
@@ -121,6 +137,26 @@ void ButtonInterface::removeContactNode(ButtonContactNode *c)
     mContactNodes.removeOne(c);
 
     emit mObject->nodesChanged();
+}
+
+ButtonInterface::Mode ButtonInterface::mode() const
+{
+    return mMode;
+}
+
+void ButtonInterface::setMode(Mode newMode)
+{
+    if(mMode == newMode)
+        return;
+
+    mMode = newMode;
+    emitChanged(ModePropName, QVariant());
+    emit mObject->stateChanged(mObject);
+}
+
+const EnumDesc &ButtonInterface::getModeDesc()
+{
+    return button_mode_desc;
 }
 
 bool ButtonInterface::canBePressed() const

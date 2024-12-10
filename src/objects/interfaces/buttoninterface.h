@@ -29,17 +29,27 @@
 
 class ButtonContactNode;
 
+class EnumDesc;
+
 class ButtonInterface : public AbstractObjectInterface
 {
 public:
     // Property names
     static constexpr QLatin1String StatePropName = QLatin1String("state");
+    static constexpr QLatin1String ModePropName = QLatin1String("mode");
 
     enum class State
     {
         Normal = 0,
         Pressed,
         Extracted
+    };
+
+    enum class Mode
+    {
+        AutoReturnNormal = 0,
+        StayInLastPosition = 1,
+        ReturnNormalAfterTimout = 2
     };
 
     ButtonInterface(AbstractSimulationObject *obj);
@@ -64,6 +74,11 @@ public:
     bool canBeExtracted() const;
     void setCanBeExtracted(bool newCanBeExtracted);
 
+    Mode mode() const;
+    void setMode(Mode newMode);
+
+    static const EnumDesc& getModeDesc();
+
 private:
     friend class ButtonContactNode;
     void addContactNode(ButtonContactNode *c);
@@ -71,6 +86,7 @@ private:
 
 private:
     State mState = State::Normal;
+    Mode mMode = Mode::AutoReturnNormal;
 
     bool mCanBePressed = true;
     bool mCanBeExtracted = false;

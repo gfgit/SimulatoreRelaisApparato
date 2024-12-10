@@ -37,8 +37,21 @@ public:
     static constexpr QLatin1String Type = QLatin1String("generic_button");
     QString getType() const override;
 
+protected:
+    void timerEvent(QTimerEvent *ev) override;
+
+    void onInterfaceChanged(AbstractObjectInterface *iface,
+                            const QString &propName,
+                            const QVariant &value) override;
+
+private:
+    void startReturnTimer();
+    void stopReturnTimer();
+
 private:
     ButtonInterface *mButtonInterface = nullptr;
+
+    int mReturnTimerId = 0;
 };
 
 #endif // GENERICBUTTONOBJECT_H

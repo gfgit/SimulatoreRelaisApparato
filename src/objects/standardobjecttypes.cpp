@@ -150,7 +150,6 @@ QWidget *defaultButtonEdit(AbstractSimulationObject *item)
 
     QCheckBox *pressedCB = new QCheckBox(StandardObjectTypes::tr("Can be pressed"));
     lay->addRow(pressedCB);
-    pressedCB->setChecked(buttonIface->canBePressed());
 
     QObject::connect(pressedCB, &QCheckBox::toggled,
                      item, [buttonIface, pressedCB](bool val)
@@ -162,7 +161,6 @@ QWidget *defaultButtonEdit(AbstractSimulationObject *item)
 
     QCheckBox *extractedCB = new QCheckBox(StandardObjectTypes::tr("Can be extracted"));
     lay->addRow(extractedCB);
-    extractedCB->setChecked(buttonIface->canBeExtracted());
 
     QObject::connect(extractedCB, &QCheckBox::toggled,
                      item, [buttonIface, extractedCB](bool val)
@@ -171,6 +169,32 @@ QWidget *defaultButtonEdit(AbstractSimulationObject *item)
         if(buttonIface->canBeExtracted() != val)
             extractedCB->setChecked(!val); // Change was rejected
     });
+
+    // Mode
+    QComboBox *modeCombo = new QComboBox;
+    EnumValuesModel *modeModel = new EnumValuesModel(modeCombo);
+    modeModel->setEnumDescFull(ButtonInterface::getModeDesc(), false);
+    modeCombo->setModel(modeModel);
+
+    QObject::connect(modeCombo, &QComboBox::activated,
+                     item, [buttonIface, modeModel](int idx)
+    {
+        buttonIface->setMode(ButtonInterface::Mode(modeModel->valueAt(idx)));
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Mode:"), modeCombo);
+
+    auto updateSettings = [buttonIface, pressedCB, extractedCB, modeCombo, modeModel]()
+    {
+        pressedCB->setChecked(buttonIface->canBePressed());
+        extractedCB->setChecked(buttonIface->canBeExtracted());
+        modeCombo->setCurrentIndex(modeModel->rowForValue(int(buttonIface->mode())));
+    };
+
+    QObject::connect(item, &AbstractSimulationObject::settingsChanged,
+                     modeCombo, updateSettings);
+
+    updateSettings();
 
     return w;
 }

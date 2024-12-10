@@ -24,6 +24,8 @@
 
 #include "../interfaces/buttoninterface.h"
 
+#include <QTimerEvent>
+
 GenericButtonObject::GenericButtonObject(AbstractSimulationObjectModel *m)
     : AbstractSimulationObject{m}
 {
@@ -32,6 +34,8 @@ GenericButtonObject::GenericButtonObject(AbstractSimulationObjectModel *m)
 
 GenericButtonObject::~GenericButtonObject()
 {
+    stopReturnTimer();
+
     delete mButtonInterface;
     mButtonInterface = nullptr;
 }
@@ -39,4 +43,68 @@ GenericButtonObject::~GenericButtonObject()
 QString GenericButtonObject::getType() const
 {
     return Type;
+}
+
+void GenericButtonObject::timerEvent(QTimerEvent *ev)
+{
+    if(ev->timerId() == mReturnTimerId)
+    {
+        // Reset button to Normal position
+        stopReturnTimer();
+        mButtonInterface->setState(ButtonInterface::State::Normal);
+        return;
+    }
+
+    AbstractSimulationObject::timerEvent(ev);
+}
+
+void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, const QString &propName, const QVariant &value)
+{
+    if(iface == mButtonInterface)
+    {
+        if(propName == ButtonInterface::StatePropName)
+        {
+            if(mButtonInterface->mode() == ButtonInterface::Mode::AutoReturnNormal
+                    && mButtonInterface->state() != ButtonInterface::State::Normal)
+            {
+                startReturnTimer();
+            }
+            else
+            {
+                stopReturnTimer();
+            }
+        }
+        else if(propName == ButtonInterface::StatePropName)
+        {
+            if(mButtonInterface->mode() != ButtonInterface::Mode::AutoReturnNormal)
+            {
+                if(mReturnTimerId)
+                {
+                    // Timer was active, reset button
+                    mButtonInterface->setState(ButtonInterface::State::Normal);
+                }
+
+                stopReturnTimer();
+            }
+        }
+    }
+
+    AbstractSimulationObject::onInterfaceChanged(iface, propName, value);
+}
+
+void GenericButtonObject::startReturnTimer()
+{
+    stopReturnTimer();
+
+    // TODO: make configurable
+    mReturnTimerId = startTimer(2000, Qt::CoarseTimer);
+}
+
+void GenericButtonObject::stopReturnTimer()
+{
+    if(!mReturnTimerId)
+        return;
+
+    killTimer(mReturnTimerId);
+    mReturnTimerId = 0;
 }
