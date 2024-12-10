@@ -259,11 +259,16 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
                 });
 
     QObject::connect(twinEdit, &SimulationObjectLineEdit::objectChanged,
-                     lever, [bemIface](AbstractSimulationObject *obj)
+                     lever, [bemIface, twinEdit](AbstractSimulationObject *obj)
     {
         bemIface->setTwinHandle(obj ?
                                     obj->getInterface<BEMHandleInterface>() :
                                     nullptr);
+
+        AbstractSimulationObject *actualObj = bemIface->getTwinHandle() ?
+                    bemIface->getTwinHandle()->object() : nullptr;
+        if(actualObj != obj)
+            twinEdit->setObject(actualObj);
     });
 
     lay->addRow(StandardObjectTypes::tr("Twin Handle:"), twinEdit);

@@ -115,16 +115,26 @@ BEMHandleInterface *BEMHandleInterface::getTwinHandle() const
 
 void BEMHandleInterface::setTwinHandle(BEMHandleInterface *newTwinHandle)
 {
-    if(twinHandle == newTwinHandle)
+    if(twinHandle == newTwinHandle || twinHandle == this)
         return;
 
     if(twinHandle)
-        twinHandle->setTwinHandle(nullptr);
+    {
+        twinHandle->twinHandle = nullptr;
+        twinHandle->emitChanged(TwinLeverPropName, QVariant());
+        twinHandle = nullptr;
+    }
 
     twinHandle = newTwinHandle;
 
     if(twinHandle)
     {
+        if(twinHandle->twinHandle)
+        {
+            twinHandle->twinHandle->twinHandle = nullptr;
+            twinHandle->twinHandle->emitChanged(TwinLeverPropName, QVariant());
+        }
+
         if(twinHandle->leverType() == this->leverType())
         {
             // Twin levers always have opposite types
@@ -132,9 +142,10 @@ void BEMHandleInterface::setTwinHandle(BEMHandleInterface *newTwinHandle)
                         LeverType::Consensus :
                         LeverType::Request;
             twinHandle->setLeverType(twinType);
-
-            twinHandle->setTwinHandle(this);
         }
+
+        twinHandle->twinHandle = this;
+        twinHandle->emitChanged(TwinLeverPropName, QVariant());
     }
 
     emitChanged(TwinLeverPropName, QVariant());
