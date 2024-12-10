@@ -133,6 +133,14 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
 
             leverInterface->setChangeRangeAllowed(false);
 
+            fixBothInMiddlePosition();
+
+            recalculateLockedRange();
+        }
+        else if(propName == BEMHandleInterface::TwinLeverPropName)
+        {
+            fixBothInMiddlePosition();
+
             recalculateLockedRange();
         }
     }
@@ -141,6 +149,15 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
         if(propName == LeverInterface::PositionPropName)
         {
             recalculateLockedRange();
+
+            if(bemInterface->getTwinHandle())
+            {
+                // Recalculate also other lever range
+                // because twin levers are interconnected
+                BEMLeverObject *otherObj = qobject_cast<BEMLeverObject *>(bemInterface->getTwinHandle()->object());
+                if(otherObj)
+                    otherObj->recalculateLockedRange();
+            }
         }
     }
 
@@ -149,6 +166,24 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
 
 void BEMLeverObject::recalculateLockedRange()
 {
+    if(bemInterface->getTwinHandle())
+    {
+        LeverInterface *otherLeverIface = bemInterface->getTwinHandle()->object()->getInterface<LeverInterface>();
+        if(otherLeverIface->isPositionMiddle(otherLeverIface->position()))
+        {
+            // Other lever is in middle position
+            // We cannot be in middle position at same time
+
+            const int currentPos = leverInterface->position();
+            Q_ASSERT(!leverInterface->isPositionMiddle(currentPos));
+
+            // Lock lever in current position until other lever
+            // is not in middle position anymore
+            leverInterface->setLockedRange(currentPos, currentPos);
+            return;
+        }
+    }
+
     if(bemInterface->leverType() == BEMHandleInterface::Consensus)
     {
         // This handle can only rotate counter-clockwise
@@ -224,4 +259,39 @@ void BEMLeverObject::recalculateLockedRange()
 
         leverInterface->setLockedRange(int(lockedMin), int(lockedMax));
     }
+}
+
+void BEMLeverObject::fixBothInMiddlePosition()
+{
+    if(bemInterface->leverType() != BEMHandleInterface::LeverType::Consensus)
+        return;
+
+    if(bemInterface->getTwinHandle())
+        return;
+
+    Q_ASSERT(bemInterface->getTwinHandle()->leverType() == BEMHandleInterface::LeverType::Request);
+
+    // We are Consensus, twin is Request
+    // Cannot be both in middle position, we ajdust request in case this happen
+    if(!leverInterface->isPositionMiddle(leverInterface->position()))
+        return;
+
+    // Adjust other lever
+    LeverInterface *otherLeverIface = bemInterface->getTwinHandle()->object()->getInterface<LeverInterface>();
+    if(!otherLeverIface)
+        return; // Error
+
+    BEMLeverPositionMr otherPos = BEMLeverPositionMr(otherLeverIface->position());
+    if(!otherLeverIface->isPositionMiddle(int(otherPos)))
+        return; // Already not in middle position
+
+    // Both lever are in middle position, adjust Request lever
+    // Go to next position which is not middle
+    if(otherPos == BEMLeverPositionMr::Middle5)
+        otherPos = BEMLeverPositionMr::Normal; // Warp, go to first
+    else
+        otherPos = BEMLeverPositionMr(int(otherPos) + 1); // Next
+
+    otherLeverIface->setAngle(otherLeverIface->angleForPosition(int(otherPos)));
+    otherLeverIface->setPosition(int(otherPos));
 }

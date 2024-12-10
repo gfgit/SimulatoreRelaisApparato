@@ -71,6 +71,7 @@ protected:
 
 private:
     void recalculateLockedRange();
+    void fixBothInMiddlePosition();
 
 private:
     LeverInterface *leverInterface = nullptr;
