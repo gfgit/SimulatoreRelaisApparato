@@ -94,6 +94,9 @@
 
 #include "../../objects/lever/view/levercontactconditionsview.h"
 
+// TODO: remove BEM
+#include "../../objects/lever/bem/bemleverobject.h"
+
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
 {
@@ -630,7 +633,8 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr, {ACEILeverObject::Type});
+            // TODO: remove BEM
+            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr, {ACEILeverObject::Type, BEMLeverObject::Type});
             QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,

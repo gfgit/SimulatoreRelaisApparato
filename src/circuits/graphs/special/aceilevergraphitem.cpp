@@ -33,6 +33,9 @@
 
 #include "../../../objects/lever/acei/aceileverobject.h"
 
+//TODO: remove BEM
+#include "../../../objects/lever/bem/bemleverobject.h"
+
 #include "../../../objects/simple_activable/lightbulbobject.h"
 
 #include "../../../views/modemanager.h"
@@ -363,7 +366,8 @@ AbstractSimulationObject *ACEILeverGraphItem::lever() const
 
 void ACEILeverGraphItem::setLever(AbstractSimulationObject *newLever)
 {
-    if(newLever && newLever->getType() != ACEILeverObject::Type)
+    // TODO: remove BEM
+    if(newLever && newLever->getType() != ACEILeverObject::Type && newLever->getType() != BEMLeverObject::Type)
         return;
 
     if(mLever)
