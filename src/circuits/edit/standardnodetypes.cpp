@@ -60,6 +60,9 @@
 #include "../graphs/soundcircuitgraphitem.h"
 #include "../nodes/soundcircuitnode.h"
 
+#include "../graphs/diodegraphitem.h"
+#include "../nodes/diodecircuitnode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -849,6 +852,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item), mgr,
                                                tr("Sound Object"));
         };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Diode Circuit node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+        factory.nodeType = DiodeGraphItem::Node::NodeType;
+        factory.prettyName = tr("Diode");
+        factory.create = &addNewNodeToScene<DiodeGraphItem>;
+        factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
     }

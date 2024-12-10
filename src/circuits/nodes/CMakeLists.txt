@@ -13,6 +13,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/buttoncontactnode.h
     circuits/nodes/circuitcable.cpp
     circuits/nodes/circuitcable.h
+    circuits/nodes/diodecircuitnode.cpp
+    circuits/nodes/diodecircuitnode.h
     circuits/nodes/electromagnetnode.cpp
     circuits/nodes/electromagnetnode.h
     circuits/nodes/levercontactnode.cpp
