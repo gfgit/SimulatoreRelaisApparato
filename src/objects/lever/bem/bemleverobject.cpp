@@ -25,6 +25,8 @@
 #include "../../interfaces/leverinterface.h"
 #include "../../interfaces/bemhandleinterface.h"
 
+#include "../../relais/model/abstractrelais.h"
+
 static const EnumDesc bem_mc_lever_posDesc =
 {
     int(BEMLeverPositionMc::Normal),
@@ -143,6 +145,10 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
 
             recalculateLockedRange();
         }
+        else if(propName == BEMHandleInterface::LibRelayPropName)
+        {
+            setLiberationRelay(bemInterface->liberationRelay());
+        }
     }
     else if(iface == leverInterface)
     {
@@ -162,6 +168,12 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
     }
 
     return AbstractSimulationObject::onInterfaceChanged(iface, propName, value);
+}
+
+void BEMLeverObject::onLiberationRelayStateChanged()
+{
+    if(bemInterface->leverType() == BEMHandleInterface::LeverType::Consensus)
+        recalculateLockedRange();
 }
 
 void BEMLeverObject::recalculateLockedRange()
@@ -195,20 +207,36 @@ void BEMLeverObject::recalculateLockedRange()
         {
         case BEMLeverPositionMc::Normal:
         case BEMLeverPositionMc::Middle3:
+        {
             lockedMin = BEMLeverPositionMc::Consensus;
             lockedMax = BEMLeverPositionMc::Normal;
             break;
+        }
         case BEMLeverPositionMc::Consensus:
         case BEMLeverPositionMc::Middle2:
+        {
             lockedMin = BEMLeverPositionMc::Blocked;
             lockedMax = BEMLeverPositionMc::Consensus;
             break;
+        }
         case BEMLeverPositionMc::Blocked:
+        {
+            // TODO: artificial liberation
+            // If liberation relay is not fully Up, lever stays locked
+            bool blocked = mLiberationRelay && mLiberationRelay->state() != AbstractRelais::State::Up;
+
+            lockedMin = blocked ? BEMLeverPositionMc::Blocked : BEMLeverPositionMc::Normal;
+            lockedMax = BEMLeverPositionMc::Blocked;
+            break;
+        }
         case BEMLeverPositionMc::Middle1:
-            // TODO: blocked?
+        {
+            // We already passed Blocked position
+            // so we can go up to Normal
             lockedMin = BEMLeverPositionMc::Normal;
             lockedMax = BEMLeverPositionMc::Blocked;
             break;
+        }
         default:
             Q_ASSERT(false);
             break;
@@ -294,4 +322,31 @@ void BEMLeverObject::fixBothInMiddlePosition()
 
     otherLeverIface->setAngle(otherLeverIface->angleForPosition(int(otherPos)));
     otherLeverIface->setPosition(int(otherPos));
+}
+
+AbstractRelais *BEMLeverObject::liberationRelay() const
+{
+    return mLiberationRelay;
+}
+
+void BEMLeverObject::setLiberationRelay(AbstractRelais *newLiberationRelay)
+{
+    if(mLiberationRelay == newLiberationRelay)
+        return;
+
+    if(mLiberationRelay)
+    {
+        disconnect(mLiberationRelay, &AbstractRelais::stateChanged,
+                   this, &BEMLeverObject::onLiberationRelayStateChanged);
+    }
+
+    mLiberationRelay = newLiberationRelay;
+
+    if(mLiberationRelay)
+    {
+        connect(mLiberationRelay, &AbstractRelais::stateChanged,
+                this, &BEMLeverObject::onLiberationRelayStateChanged);
+    }
+
+    onLiberationRelayStateChanged();
 }

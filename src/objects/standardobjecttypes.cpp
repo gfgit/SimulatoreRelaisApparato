@@ -273,12 +273,34 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
 
     lay->addRow(StandardObjectTypes::tr("Twin Handle:"), twinEdit);
 
-    auto updateSettings = [bemIface, twinEdit, typeCombo, typeModel]()
+    // Liberation Relay
+    SimulationObjectLineEdit *relayEdit
+            = new SimulationObjectLineEdit(
+                item->model()->modeMgr(),
+                {
+                    AbstractRelais::Type
+                });
+
+    QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
+                     lever, [bemIface](AbstractSimulationObject *obj)
+    {
+        bemIface->setLiberationRelay(qobject_cast<AbstractRelais *>(obj));
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Liberation Relay:"), relayEdit);
+
+    auto updateSettings = [bemIface, twinEdit, typeCombo, typeModel, relayEdit, lay]()
     {
         twinEdit->setObject(bemIface->getTwinHandle() ?
                                 bemIface->getTwinHandle()->object() :
                                 nullptr);
         typeCombo->setCurrentIndex(typeModel->rowForValue(int(bemIface->leverType())));
+
+        relayEdit->setObject(bemIface->liberationRelay());
+
+        // Show Liberation relay only for Consensus levers
+        lay->setRowVisible(relayEdit,
+                           bemIface->leverType() == BEMHandleInterface::LeverType::Consensus);
     };
 
     QObject::connect(lever, &BEMLeverObject::settingsChanged,

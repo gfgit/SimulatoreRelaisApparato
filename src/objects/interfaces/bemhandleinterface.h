@@ -25,6 +25,8 @@
 
 #include "abstractobjectinterface.h"
 
+class AbstractRelais;
+
 class EnumDesc;
 
 class BEMHandleInterface : public AbstractObjectInterface
@@ -33,6 +35,7 @@ public:
     // Property names
     static constexpr QLatin1String LeverTypePropName = QLatin1String("lever_type");
     static constexpr QLatin1String TwinLeverPropName = QLatin1String("twin_lever");
+    static constexpr QLatin1String LibRelayPropName = QLatin1String("lib_relay");
 
     enum LeverType
     {
@@ -57,10 +60,15 @@ public:
     BEMHandleInterface *getTwinHandle() const;
     void setTwinHandle(BEMHandleInterface *newTwinHandle);
 
+    AbstractRelais *liberationRelay() const;
+    void setLiberationRelay(AbstractRelais *newLiberationRelay);
+
 private:
     LeverType mLeverType = LeverType::Consensus;
 
     BEMHandleInterface *twinHandle = nullptr;
+
+    AbstractRelais *mLiberationRelay = nullptr;
 };
 
 #endif // BEMHANDLEINTERFACE_H

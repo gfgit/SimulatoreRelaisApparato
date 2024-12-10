@@ -25,7 +25,11 @@
 #include "../abstractsimulationobject.h"
 #include "../abstractsimulationobjectmodel.h"
 
+#include "../relais/model/abstractrelais.h"
+
 #include "../../utils/enum_desc.h"
+
+#include "../../views/modemanager.h"
 
 #include <QJsonObject>
 
@@ -72,6 +76,15 @@ bool BEMHandleInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
         setTwinHandle(twin ?
                           twin->getInterface<BEMHandleInterface>() :
                           nullptr);
+
+        // Liberation Relay
+        const QString libRelName = obj.value("lib_relay").toString();
+        AbstractRelais *libRel = nullptr;
+        auto relayModel = object()->model()->modeMgr()->modelForType(AbstractRelais::Type);
+        if(relayModel)
+            libRel = static_cast<AbstractRelais *>(relayModel->getObjectByName(libRelName));
+
+        setLiberationRelay(libRel);
     }
 
     return true;
@@ -86,6 +99,9 @@ void BEMHandleInterface::saveToJSON(QJsonObject &obj) const
 
     // Twin
     obj["twin_handle"] = twinHandle ? twinHandle->object()->name() : QString();
+
+    // Liberation Relay
+    obj["lib_relay"] = mLiberationRelay ? mLiberationRelay->name() : QString();
 }
 
 BEMHandleInterface::LeverType BEMHandleInterface::leverType() const
@@ -132,6 +148,7 @@ void BEMHandleInterface::setTwinHandle(BEMHandleInterface *newTwinHandle)
     {
         twinHandle->twinHandle = nullptr;
         twinHandle->emitChanged(TwinLeverPropName, QVariant());
+        emit twinHandle->mObject->settingsChanged(mObject);
         twinHandle = nullptr;
     }
 
@@ -143,6 +160,7 @@ void BEMHandleInterface::setTwinHandle(BEMHandleInterface *newTwinHandle)
         {
             twinHandle->twinHandle->twinHandle = nullptr;
             twinHandle->twinHandle->emitChanged(TwinLeverPropName, QVariant());
+            emit twinHandle->twinHandle->mObject->settingsChanged(mObject);
             twinHandle->twinHandle = nullptr;
         }
 
@@ -157,7 +175,24 @@ void BEMHandleInterface::setTwinHandle(BEMHandleInterface *newTwinHandle)
 
         twinHandle->twinHandle = this;
         twinHandle->emitChanged(TwinLeverPropName, QVariant());
+        emit twinHandle->mObject->settingsChanged(mObject);
     }
 
     emitChanged(TwinLeverPropName, QVariant());
+    emit mObject->settingsChanged(mObject);
+}
+
+AbstractRelais *BEMHandleInterface::liberationRelay() const
+{
+    return mLiberationRelay;
+}
+
+void BEMHandleInterface::setLiberationRelay(AbstractRelais *newLiberationRelay)
+{
+    if(mLiberationRelay == newLiberationRelay)
+        return;
+
+    mLiberationRelay = newLiberationRelay;
+    emitChanged(LibRelayPropName, QVariant());
+    emit mObject->settingsChanged(mObject);
 }

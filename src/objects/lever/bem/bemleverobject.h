@@ -51,6 +51,8 @@ enum class BEMLeverPositionMr
     NPositions
 };
 
+class AbstractRelais;
+
 class LeverInterface;
 class BEMHandleInterface;
 
@@ -69,13 +71,21 @@ protected:
                                     const QString &propName,
                                     const QVariant &value) override;
 
+private slots:
+    void onLiberationRelayStateChanged();
+
 private:
     void recalculateLockedRange();
     void fixBothInMiddlePosition();
 
+    AbstractRelais *liberationRelay() const;
+    void setLiberationRelay(AbstractRelais *newLiberationRelay);
+
 private:
     LeverInterface *leverInterface = nullptr;
     BEMHandleInterface *bemInterface = nullptr;
+
+    AbstractRelais *mLiberationRelay = nullptr;
 };
 
 #endif // BEMLeverObject_H
