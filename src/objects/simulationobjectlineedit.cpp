@@ -91,15 +91,6 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
     connect(mCompleter, qOverload<const QModelIndex&>(&QCompleter::activated),
             this, [this](const QModelIndex& idx)
     {
-        if(mMultiModel)
-            setObject(mMultiModel->objectAt(idx.row()));
-        else
-            setObject(mModel->objectAt(idx.row()));
-    });
-
-    connect(mCompleter, qOverload<const QModelIndex&>(&QCompleter::activated),
-            this, [this](const QModelIndex& idx)
-    {
         QAbstractProxyModel *m = static_cast<QAbstractProxyModel *>(mCompleter->completionModel());
         const QModelIndex sourceIdx = m->mapToSource(idx);
 
