@@ -272,13 +272,22 @@ void ACEILeverGraphItem::updateLeverTooltip()
     QString posStr;
     if(mLeverIface->isPositionMiddle(leverPos))
     {
+        int prevPos = leverPos - 1;
+        int nextPos = leverPos + 1;
+
+        if(mLeverIface->canWarpAroundZero())
+        {
+            if(leverPos == mLeverIface->positionDesc().maxValue)
+                nextPos = 0; // Wrap around, next is first position
+        }
+
         // Position index increases going from left to right
         // so we say between left position (-1) and right position (+1)
         posStr = tr("Between<br>"
                  "<b>%1</b><br>"
                  "and<br>"
                  "<b>%2</b>")
-                .arg(desc.name(leverPos - 1), desc.name(leverPos + 1));
+                .arg(desc.name(prevPos), desc.name(nextPos));
     }
     else
     {
