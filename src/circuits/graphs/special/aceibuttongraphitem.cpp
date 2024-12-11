@@ -203,7 +203,7 @@ void ACEIButtonGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     {
         // We don't care about mouse button
         // Also sometimes there are already no buttons
-        if(mButtonIface->mode() == ButtonInterface::Mode::AutoReturnNormal)
+        if(mButtonIface->mode() == ButtonInterface::Mode::ReturnNormalOnRelease)
             mButtonIface->setState(ButtonInterface::State::Normal);
         return;
     }

@@ -25,13 +25,15 @@
 
 #include "../../circuits/nodes/buttoncontactnode.h"
 
+#include "../../utils/enum_desc.h"
+
 #include <QJsonObject>
 
 static const EnumDesc button_mode_desc =
 {
-    int(ButtonInterface::Mode::AutoReturnNormal),
+    int(ButtonInterface::Mode::ReturnNormalOnRelease),
     int(ButtonInterface::Mode::ReturnNormalAfterTimout),
-    int(ButtonInterface::Mode::AutoReturnNormal),
+    int(ButtonInterface::Mode::ReturnNormalOnRelease),
     "GenericButtonObject",
     {
         QT_TRANSLATE_NOOP("GenericButtonObject", "Auto Return Normal"),
@@ -85,7 +87,7 @@ bool ButtonInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     setCanBePressed(obj.value("can_press").toBool(true));
     setCanBeExtracted(obj.value("can_extract").toBool(false));
 
-    setMode(Mode(obj.value("mode").toInt(int(Mode::AutoReturnNormal))));
+    setMode(Mode(obj.value("mode").toInt(int(Mode::ReturnNormalOnRelease))));
 
     return true;
 }
@@ -151,7 +153,7 @@ void ButtonInterface::setMode(Mode newMode)
 
     mMode = newMode;
     emitChanged(ModePropName, QVariant());
-    emit mObject->stateChanged(mObject);
+    emit mObject->settingsChanged(mObject);
 }
 
 const EnumDesc &ButtonInterface::getModeDesc()

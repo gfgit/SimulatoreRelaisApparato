@@ -47,7 +47,7 @@ public:
 
     enum class Mode
     {
-        AutoReturnNormal = 0,
+        ReturnNormalOnRelease = 0,
         StayInLastPosition = 1,
         ReturnNormalAfterTimout = 2
     };
@@ -86,7 +86,7 @@ private:
 
 private:
     State mState = State::Normal;
-    Mode mMode = Mode::AutoReturnNormal;
+    Mode mMode = Mode::ReturnNormalOnRelease;
 
     bool mCanBePressed = true;
     bool mCanBeExtracted = false;

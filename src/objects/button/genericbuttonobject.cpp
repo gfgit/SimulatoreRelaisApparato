@@ -64,7 +64,7 @@ void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, con
     {
         if(propName == ButtonInterface::StatePropName)
         {
-            if(mButtonInterface->mode() == ButtonInterface::Mode::AutoReturnNormal
+            if(mButtonInterface->mode() == ButtonInterface::Mode::ReturnNormalAfterTimout
                     && mButtonInterface->state() != ButtonInterface::State::Normal)
             {
                 startReturnTimer();
@@ -74,9 +74,9 @@ void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, con
                 stopReturnTimer();
             }
         }
-        else if(propName == ButtonInterface::StatePropName)
+        else if(propName == ButtonInterface::ModePropName)
         {
-            if(mButtonInterface->mode() != ButtonInterface::Mode::AutoReturnNormal)
+            if(mButtonInterface->mode() != ButtonInterface::Mode::ReturnNormalAfterTimout)
             {
                 if(mReturnTimerId)
                 {
