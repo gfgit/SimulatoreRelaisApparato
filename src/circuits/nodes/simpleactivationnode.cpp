@@ -36,6 +36,11 @@ SimpleActivationNode::SimpleActivationNode(ModeManager *mgr, QObject *parent)
     mContacts.append(NodeContact("1", "2"));
 }
 
+SimpleActivationNode::~SimpleActivationNode()
+{
+    setObject(nullptr);
+}
+
 QVector<CableItem> SimpleActivationNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0 || !mContacts.at(0).cable)

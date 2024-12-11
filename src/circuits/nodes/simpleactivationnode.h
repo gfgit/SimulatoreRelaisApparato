@@ -32,6 +32,7 @@ class SimpleActivationNode : public AbstractCircuitNode
     Q_OBJECT
 public:
     explicit SimpleActivationNode(ModeManager *mgr, QObject *parent = nullptr);
+    ~SimpleActivationNode();
 
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
