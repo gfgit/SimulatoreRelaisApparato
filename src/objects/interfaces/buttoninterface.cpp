@@ -36,7 +36,7 @@ static const EnumDesc button_mode_desc =
     int(ButtonInterface::Mode::ReturnNormalOnRelease),
     "GenericButtonObject",
     {
-        QT_TRANSLATE_NOOP("GenericButtonObject", "Auto Return Normal"),
+        QT_TRANSLATE_NOOP("GenericButtonObject", "Return Normal on release"),
         QT_TRANSLATE_NOOP("GenericButtonObject", "Stay in last position"),
         QT_TRANSLATE_NOOP("GenericButtonObject", "Return Normal after timeout")
     }
