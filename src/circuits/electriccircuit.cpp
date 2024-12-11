@@ -509,8 +509,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
                 continue; // Already has voltage
 
-            if(mode.testFlag(PassModes::SkipLoads))
-                continue;
+            //if(mode.testFlag(PassModes::SkipLoads))
+            //    continue;
 
             // Register an open circuit which passes through node
             ElectricCircuit *circuit = new ElectricCircuit();
@@ -533,8 +533,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
                 continue; // Already has voltage
 
-            if(mode.testFlag(PassModes::SkipLoads))
-                continue;
+            //if(mode.testFlag(PassModes::SkipLoads))
+            //    continue;
 
             // Register an open circuit which passes through node
             // And then go to next cable
@@ -611,7 +611,7 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
     if(circuitEndsHere)
     {
-        if(depth > 0 && !mode.testFlag(PassModes::SkipLoads))
+        if(depth > 0/* && !mode.testFlag(PassModes::SkipLoads)*/)
         {
             // Register an open circuit which passes HALF node
             ElectricCircuit *circuit = new ElectricCircuit();
