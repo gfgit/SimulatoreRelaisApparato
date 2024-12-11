@@ -111,6 +111,7 @@ void LeverContactNode::setLever(AbstractSimulationObject *newLever)
         mLeverIface->addContactNode(this);
     }
 
+    // TODO: sanitize conditions based on new lever type
     emit leverChanged(mLever);
     refreshContactState();
     modeMgr()->setFileEdited();
@@ -207,7 +208,7 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
         }
         else
         {
-            if(!mLeverIface->canWarpAroundZero())
+            if(mLeverIface && !mLeverIface->canWarpAroundZero())
                 item.warpsAroundZero = false;
 
             if(!item.warpsAroundZero)
