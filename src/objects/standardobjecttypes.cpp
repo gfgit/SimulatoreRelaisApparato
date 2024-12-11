@@ -313,7 +313,22 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
 
     lay->addRow(StandardObjectTypes::tr("Liberation Relay:"), relayEdit);
 
-    auto updateSettings = [bemIface, twinEdit, typeCombo, typeModel, relayEdit, lay]()
+    // Artificial Liberation Button
+    SimulationObjectLineEdit *butEdit
+            = new SimulationObjectLineEdit(
+                item->model()->modeMgr(),
+                item->model()->modeMgr()->objectFactory()
+                ->typesForInterface(ButtonInterface::IfaceType));
+
+    QObject::connect(butEdit, &SimulationObjectLineEdit::objectChanged,
+                     lever, [bemIface](AbstractSimulationObject *obj)
+    {
+        bemIface->setArtificialLiberation(obj->getInterface<ButtonInterface>());
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Artificial Liberation Button:"), butEdit);
+
+    auto updateSettings = [bemIface, twinEdit, typeCombo, typeModel, relayEdit, butEdit, lay]()
     {
         twinEdit->setObject(bemIface->getTwinHandle() ?
                                 bemIface->getTwinHandle()->object() :
@@ -322,9 +337,14 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
 
         relayEdit->setObject(bemIface->liberationRelay());
 
+        butEdit->setObject(bemIface->artificialLiberation() ?
+                               bemIface->artificialLiberation()->object() :
+                               nullptr);
+
         // Show Liberation relay only for Consensus levers
-        lay->setRowVisible(relayEdit,
-                           bemIface->leverType() == BEMHandleInterface::LeverType::Consensus);
+        const bool consensus = bemIface->leverType() == BEMHandleInterface::LeverType::Consensus;
+        lay->setRowVisible(relayEdit, consensus);
+        lay->setRowVisible(butEdit, consensus);
     };
 
     QObject::connect(lever, &BEMLeverObject::settingsChanged,

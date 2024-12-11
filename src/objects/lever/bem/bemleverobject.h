@@ -55,6 +55,7 @@ class AbstractRelais;
 
 class LeverInterface;
 class BEMHandleInterface;
+class ButtonInterface;
 
 class BEMLeverObject : public AbstractSimulationObject
 {
@@ -66,13 +67,16 @@ public:
     static constexpr QLatin1String Type = QLatin1String("bem_lever");
     QString getType() const override;
 
+    ButtonInterface *artificialLiberationBut() const;
+    void setArtificialLiberationBut(ButtonInterface *newArtificialLiberationBut);
+
 protected:
     virtual void onInterfaceChanged(AbstractObjectInterface *iface,
                                     const QString &propName,
                                     const QVariant &value) override;
 
 private slots:
-    void onLiberationRelayStateChanged();
+    void onLiberationStateChanged();
 
 private:
     void recalculateLockedRange();
@@ -86,6 +90,7 @@ private:
     BEMHandleInterface *bemInterface = nullptr;
 
     AbstractRelais *mLiberationRelay = nullptr;
+    ButtonInterface *mArtificialLiberationBut = nullptr;
 };
 
 #endif // BEMLeverObject_H

@@ -26,6 +26,7 @@
 #include "../abstractsimulationobjectmodel.h"
 
 #include "../relais/model/abstractrelais.h"
+#include "buttoninterface.h"
 
 #include "../../utils/enum_desc.h"
 
@@ -85,6 +86,17 @@ bool BEMHandleInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
             libRel = static_cast<AbstractRelais *>(relayModel->getObjectByName(libRelName));
 
         setLiberationRelay(libRel);
+
+        // Artificial Liberation Button
+        AbstractSimulationObject *butObj = nullptr;
+        const QString artificialLibButName = obj.value(ArtificialLibButPropName).toString();
+        const QString artificialLibButType = obj.value(ArtificialLibButPropName + "_type").toString();
+
+        auto butModel = object()->model()->modeMgr()->modelForType(artificialLibButType);
+        if(butModel)
+            butObj = butModel->getObjectByName(artificialLibButName);
+
+        setArtificialLiberation(butObj ? butObj->getInterface<ButtonInterface>() : nullptr);
     }
 
     return true;
@@ -102,6 +114,10 @@ void BEMHandleInterface::saveToJSON(QJsonObject &obj) const
 
     // Liberation Relay
     obj["lib_relay"] = mLiberationRelay ? mLiberationRelay->name() : QString();
+
+    // Artificial Liberation Button
+    obj[ArtificialLibButPropName] = mArtificialLiberation ? mArtificialLiberation->object()->name() : QString();
+    obj[ArtificialLibButPropName + "_type"] = mArtificialLiberation ? mArtificialLiberation->object()->getType() : QString();
 }
 
 BEMHandleInterface::LeverType BEMHandleInterface::leverType() const
@@ -194,5 +210,20 @@ void BEMHandleInterface::setLiberationRelay(AbstractRelais *newLiberationRelay)
 
     mLiberationRelay = newLiberationRelay;
     emitChanged(LibRelayPropName, QVariant());
+    emit mObject->settingsChanged(mObject);
+}
+
+ButtonInterface *BEMHandleInterface::artificialLiberation() const
+{
+    return mArtificialLiberation;
+}
+
+void BEMHandleInterface::setArtificialLiberation(ButtonInterface *newArtificialLiberation)
+{
+    if(mArtificialLiberation == newArtificialLiberation)
+        return;
+
+    mArtificialLiberation = newArtificialLiberation;
+    emitChanged(ArtificialLibButPropName, QVariant());
     emit mObject->settingsChanged(mObject);
 }

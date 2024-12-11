@@ -27,6 +27,8 @@
 
 #include "../../relais/model/abstractrelais.h"
 
+#include "../../interfaces/buttoninterface.h"
+
 static const EnumDesc bem_mc_lever_posDesc =
 {
     int(BEMLeverPositionMc::Normal),
@@ -149,6 +151,10 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
         {
             setLiberationRelay(bemInterface->liberationRelay());
         }
+        else if(propName == BEMHandleInterface::ArtificialLibButPropName)
+        {
+            setArtificialLiberationBut(bemInterface->artificialLiberation());
+        }
     }
     else if(iface == leverInterface)
     {
@@ -170,7 +176,7 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
     return AbstractSimulationObject::onInterfaceChanged(iface, propName, value);
 }
 
-void BEMLeverObject::onLiberationRelayStateChanged()
+void BEMLeverObject::onLiberationStateChanged()
 {
     if(bemInterface->leverType() == BEMHandleInterface::LeverType::Consensus)
         recalculateLockedRange();
@@ -221,9 +227,11 @@ void BEMLeverObject::recalculateLockedRange()
         }
         case BEMLeverPositionMc::Blocked:
         {
-            // TODO: artificial liberation
             // If liberation relay is not fully Up, lever stays locked
             bool blocked = mLiberationRelay && mLiberationRelay->state() != AbstractRelais::State::Up;
+
+            if(mArtificialLiberationBut && mArtificialLiberationBut->state() == ButtonInterface::State::Pressed)
+                blocked = false;
 
             lockedMin = blocked ? BEMLeverPositionMc::Blocked : BEMLeverPositionMc::Normal;
             lockedMax = BEMLeverPositionMc::Blocked;
@@ -337,7 +345,7 @@ void BEMLeverObject::setLiberationRelay(AbstractRelais *newLiberationRelay)
     if(mLiberationRelay)
     {
         disconnect(mLiberationRelay, &AbstractRelais::stateChanged,
-                   this, &BEMLeverObject::onLiberationRelayStateChanged);
+                   this, &BEMLeverObject::onLiberationStateChanged);
     }
 
     mLiberationRelay = newLiberationRelay;
@@ -345,8 +353,35 @@ void BEMLeverObject::setLiberationRelay(AbstractRelais *newLiberationRelay)
     if(mLiberationRelay)
     {
         connect(mLiberationRelay, &AbstractRelais::stateChanged,
-                this, &BEMLeverObject::onLiberationRelayStateChanged);
+                this, &BEMLeverObject::onLiberationStateChanged);
     }
 
-    onLiberationRelayStateChanged();
+    onLiberationStateChanged();
+}
+
+ButtonInterface *BEMLeverObject::artificialLiberationBut() const
+{
+    return mArtificialLiberationBut;
+}
+
+void BEMLeverObject::setArtificialLiberationBut(ButtonInterface *newArtificialLiberationBut)
+{
+    if(mArtificialLiberationBut == newArtificialLiberationBut)
+        return;
+
+    if(mArtificialLiberationBut)
+    {
+        disconnect(mArtificialLiberationBut->object(), &AbstractSimulationObject::stateChanged,
+                   this, &BEMLeverObject::onLiberationStateChanged);
+    }
+
+    mArtificialLiberationBut = newArtificialLiberationBut;
+
+    if(mArtificialLiberationBut)
+    {
+        connect(mArtificialLiberationBut->object(), &AbstractSimulationObject::stateChanged,
+                this, &BEMLeverObject::onLiberationStateChanged);
+    }
+
+    onLiberationStateChanged();
 }

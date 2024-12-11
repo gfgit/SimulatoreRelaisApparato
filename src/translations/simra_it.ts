@@ -252,44 +252,44 @@
         <translation type="obsolete">Verticale</translation>
     </message>
     <message>
-        <location filename="../objects/interfaces/bemhandleinterface.cpp" line="43"/>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="41"/>
+        <location filename="../objects/interfaces/bemhandleinterface.cpp" line="44"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="43"/>
         <source>Consensus</source>
         <translation>Consenso</translation>
     </message>
     <message>
-        <location filename="../objects/interfaces/bemhandleinterface.cpp" line="44"/>
+        <location filename="../objects/interfaces/bemhandleinterface.cpp" line="45"/>
         <source>Request</source>
         <translation>Richiesta</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="37"/>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="63"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="39"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="65"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="39"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="41"/>
         <source>Blocked</source>
         <translation>Bloccato</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="65"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="67"/>
         <source>Request Consensus</source>
         <translation>Richiesta consenso</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="67"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="69"/>
         <source>Signals At Stop</source>
         <translation>Segnali a Via Impedita</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="69"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="71"/>
         <source>Activate 1° Cat Signal</source>
         <translation>Manovra Segnale 1° Categoria</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="71"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="73"/>
         <source>Activate Both Signals</source>
         <translation>Manovra entrambi i Segnali</translation>
     </message>
@@ -1226,47 +1226,52 @@ Scegli un altro nome:</translation>
         <translation>Relè Liberazione:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="347"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="329"/>
+        <source>Artificial Liberation Button:</source>
+        <translation>Pulsante Liberazione Artificiale:</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="367"/>
         <source>Relais</source>
         <translation>Relè</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="362"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="382"/>
         <source>ACEI Lever</source>
         <translation>Leva ACEI</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="374"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="394"/>
         <source>Ligth bulb</source>
         <translation>Lampada</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="386"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="406"/>
         <source>Electromagnet</source>
         <translation>Elettromagnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="402"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="422"/>
         <source>ACE Sasib 5 Lever</source>
         <translation>Leva ACE Sasib 5</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="419"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="439"/>
         <source>ACE Sasib 7 Lever</source>
         <translation>Leva ACE Sasib 7</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="434"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="454"/>
         <source>Generic Button</source>
         <translation>Pulsante Generico</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="446"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="466"/>
         <source>Sound Object</source>
         <translation>Oggetto Sonoro</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="462"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="482"/>
         <source>BEM Handle</source>
         <translation>Maniglia BEM</translation>
     </message>
