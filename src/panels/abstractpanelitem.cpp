@@ -62,43 +62,11 @@ void AbstractPanelItem::triggerUpdate()
 
 void AbstractPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    // Sometimes we receive clicks even if out of node tile
-    // In those cases do not start moving item or rotate it!
-    PanelScene *s = panelScene();
-    if(s && s->mode() == FileMode::Editing && boundingRect().contains(ev->pos()))
-    {
-        const EditingSubMode subMode = s->modeMgr()->editingSubMode();
-
-        if(subMode == EditingSubMode::Default)
-        {
-            if(ev->button() == Qt::LeftButton)
-            {
-                s->startMovingItem(this);
-            }
-        }
-    }
-
     QGraphicsObject::mousePressEvent(ev);
 }
 
 void AbstractPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    PanelScene *s = panelScene();
-    if(s && s->mode() == FileMode::Editing)
-    {
-        const EditingSubMode subMode = s->modeMgr()->editingSubMode();
-
-        if(subMode == EditingSubMode::SingleItemMove)
-        {
-            // After move has ended we go back to last valid location
-            s->endMovingItem();
-        }
-        else if(subMode == EditingSubMode::ItemSelection)
-        {
-            s->endSelectionMove();
-        }
-    }
-
     QGraphicsObject::mouseReleaseEvent(ev);
 }
 
@@ -156,7 +124,7 @@ PanelScene *AbstractPanelItem::panelScene() const
     return qobject_cast<PanelScene *>(scene());
 }
 
-bool AbstractPanelItem::loadFromJSON(const QJsonObject &obj)
+bool AbstractPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
 {
     if(obj.value("type") != itemType())
         return false;

@@ -1,7 +1,7 @@
 # src/panels
 
 add_subdirectory(edit)
-#add_subdirectory(graphs)
+add_subdirectory(graphs)
 add_subdirectory(view)
 
 set(SIMULATORE_RELAIS_SOURCES

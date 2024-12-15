@@ -32,12 +32,15 @@
 //#include "../graphs/special/aceilevergraphitem.h"
 //#include "../graphs/special/acesasiblevergraphitem.h"
 
+#include "../graphs/lightrectitem.h"
+
 #include <QWidget>
 #include <QFormLayout>
 
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLabel>
+#include <QPushButton>
 
 #include "../../views/modemanager.h"
 
@@ -61,15 +64,133 @@
 // TODO: remove BEM
 #include "../../objects/lever/bem/bemleverobject.h"
 
+#include "../../utils/colorselectionwidget.h"
+
 template <typename Graph>
-AbstractPanelItem* addNewNodeToScene(PanelScene *s)
+AbstractPanelItem* addNewNodeToScene(PanelScene *s, ModeManager *)
 {
-    Graph *graph = new Graph(s);
+    Graph *graph = new Graph;
     return graph;
 }
 
 void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 {
+    {
+        // Light Rect
+        PanelItemFactory::FactoryItem factory;
+        factory.needsName = PanelItemFactory::NeedsName::Never;
+        factory.nodeType = LightRectItem::ItemType;
+        factory.prettyName = tr("Light Rect");
+        factory.create = &addNewNodeToScene<LightRectItem>;
+        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        {
+            LightRectItem *node = static_cast<LightRectItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Width, Height
+            QDoubleSpinBox *wSpin = new QDoubleSpinBox;
+            wSpin->setRange(0, 1000);
+            wSpin->setDecimals(5);
+            lay->addRow(tr("Width:"), wSpin);
+
+            QDoubleSpinBox *hSpin = new QDoubleSpinBox;
+            hSpin->setRange(0, 1000);
+            hSpin->setDecimals(5);
+            lay->addRow(tr("Height:"), hSpin);
+
+            wSpin->setValue(node->rect().width());
+            hSpin->setValue(node->rect().height());
+
+            QObject::connect(node, &LightRectItem::rectChanged,
+                    w, [wSpin, hSpin, node]()
+            {
+                wSpin->blockSignals(true);
+                wSpin->setValue(node->rect().width());
+                wSpin->blockSignals(false);
+
+                hSpin->blockSignals(true);
+                hSpin->setValue(node->rect().height());
+                hSpin->blockSignals(false);
+            });
+
+            QObject::connect(wSpin, &QDoubleSpinBox::valueChanged,
+                    node, [node](double newW)
+            {
+                QRectF r = node->rect();
+                r.setWidth(newW);
+                node->setRect(r);
+            });
+
+            QObject::connect(hSpin, &QDoubleSpinBox::valueChanged,
+                    node, [node](double newH)
+            {
+                QRectF r = node->rect();
+                r.setHeight(newH);
+                node->setRect(r);
+            });
+
+            // Rotation
+            QDoubleSpinBox *rSpin = new QDoubleSpinBox;
+            rSpin->setRange(-180, +180);
+            rSpin->setDecimals(5);
+            lay->addRow(tr("Rotation:"), rSpin);
+
+            rSpin->setValue(node->rotation());
+
+            QObject::connect(node, &LightRectItem::rotationChanged,
+                    w, [rSpin, node]()
+            {
+                rSpin->blockSignals(true);
+                rSpin->setValue(node->rotation());
+                rSpin->blockSignals(false);
+            });
+
+            QObject::connect(rSpin, &QDoubleSpinBox::valueChanged,
+                    node, [node](double newR)
+            {
+                node->setRotation(newR);
+            });
+
+            // Light
+            SimulationObjectLineEdit *lightEdit = new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+            QObject::connect(node, &LightRectItem::lightChanged,
+                             lightEdit, [node, lightEdit]()
+            {
+                lightEdit->setObject(node->lightObject());
+            });
+            QObject::connect(lightEdit, &SimulationObjectLineEdit::objectChanged,
+                             node, [node](AbstractSimulationObject *obj)
+            {
+                node->setLightObject(static_cast<LightBulbObject *>(obj));
+            });
+
+            lightEdit->setObject(node->lightObject());
+            lay->addRow(tr("Light:"), lightEdit);
+
+            // Color
+            ColorSelectionWidget *colorW = new ColorSelectionWidget;
+            colorW->setColor(node->color());
+
+            QObject::connect(colorW, &ColorSelectionWidget::colorChanged,
+                             node, [node, colorW]()
+            {
+                node->setColor(colorW->color());
+            });
+            QObject::connect(node, &LightRectItem::colorChanged,
+                             colorW, [node, colorW]()
+            {
+                colorW->setColor(node->color());
+            });
+            lay->addRow(tr("Color:"), colorW);
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
     /*
     {
         // Light Bulb node

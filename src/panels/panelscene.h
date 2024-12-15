@@ -32,10 +32,12 @@
 #include "../enums/filemodes.h"
 
 class AbstractPanelItem;
+class LightRectItem;
 
 class QJsonObject;
 class QJsonArray;
 class PanelItemFactory;
+
 
 class PanelListModel;
 
@@ -53,8 +55,6 @@ public:
 
     void addNode(AbstractPanelItem *item);
     void removeNode(AbstractPanelItem *item);
-
-    AbstractPanelItem *getNodeAt(TileLocation l) const;
 
     void removeAllItems();
     bool loadFromJSON(const QJsonObject &obj, PanelItemFactory *factory);
@@ -99,10 +99,6 @@ private:
 
     bool updateItemLocation(AbstractPanelItem *item);
 
-    AbstractPanelItem *itemBeingMoved() const;
-    void startMovingItem(AbstractPanelItem *item);
-    void endMovingItem();
-
     void requestEditNode(AbstractPanelItem *item);
 
     friend class PanelListModel;
@@ -114,8 +110,7 @@ private:
 
     void onItemSelected(AbstractPanelItem *item, bool value);
 
-    void moveSelectionBy(int16_t dx, int16_t dy);
-    void endSelectionMove();
+    void bringTop(LightRectItem *item);
 
     static constexpr QLatin1String PanelMimeType = QLatin1String("application/x-simulatore-rele-panels");
 
@@ -171,9 +166,9 @@ private:
     QString mCircuitSheetName;
     QString mCircuitSheetLongName;
 
-    std::unordered_map<TileLocation, AbstractPanelItem *, TileLocationHash> mItemMap;
-
-    AbstractPanelItem *mItemBeingMoved = nullptr;
+    QVector<AbstractPanelItem *> mOtherPanelItems;
+    QVector<LightRectItem *> mLightRects;
+    LightRectItem *mTopLightRect = nullptr;
 
     bool m_hasUnsavedChanges = false;
 

@@ -46,6 +46,8 @@
 
 #include "edit/panelitemfactory.h"
 
+#include "graphs/lightrectitem.h"
+
 PanelScene::PanelScene(PanelListModel *parent)
     : QGraphicsScene{parent}
 {
@@ -70,6 +72,12 @@ ModeManager *PanelScene::modeMgr() const
 void PanelScene::setMode(FileMode newMode, FileMode oldMode)
 {
     // TODO: bring light rect items to front
+    if(newMode != FileMode::Editing)
+    {
+        endItemSelection();
+    }
+
+    allowItemSelection(newMode == FileMode::Editing);
 
     // Background changes between modes
     invalidate(QRectF(), BackgroundLayer);
@@ -82,13 +90,28 @@ void PanelScene::addNode(AbstractPanelItem *item)
     // Add item after having inserted it in the map
     addItem(item);
 
+    if(item->itemType() == LightRectItem::ItemType)
+        mLightRects.append(static_cast<LightRectItem *>(item));
+    else
+        mOtherPanelItems.append(item);
+
+    const bool editing = modeMgr()->mode() == FileMode::Editing;
+    item->setFlag(QGraphicsItem::ItemIsSelectable, editing);
+    item->setFlag(QGraphicsItem::ItemIsMovable, editing);
+
     setHasUnsavedChanges(true);
 }
 
 void PanelScene::removeNode(AbstractPanelItem *item)
 {
-    if(item == itemBeingMoved())
-        endMovingItem();
+    if(item->itemType() == LightRectItem::ItemType)
+    {
+        if(mTopLightRect == item)
+            mTopLightRect = nullptr;
+        mLightRects.removeOne(static_cast<LightRectItem *>(item));
+    }
+    else
+        mOtherPanelItems.removeOne(item);
 
     removeItem(item);
 
@@ -101,33 +124,6 @@ bool PanelScene::updateItemLocation(AbstractPanelItem *item)
     return true;
 }
 
-AbstractPanelItem *PanelScene::itemBeingMoved() const
-{
-    return mItemBeingMoved;
-}
-
-void PanelScene::startMovingItem(AbstractPanelItem *item)
-{
-    modeMgr()->setEditingSubMode(EditingSubMode::SingleItemMove);
-
-    mItemBeingMoved = item;
-    Q_ASSERT(mItemBeingMoved);
-
-    if(panelsModel()->modeMgr()->mode() == FileMode::Editing)
-        mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, true);
-}
-
-void PanelScene::endMovingItem()
-{
-    if(!mItemBeingMoved)
-        return;
-
-    mItemBeingMoved->setFlag(QGraphicsItem::ItemIsMovable, false);
-
-    if(modeMgr()->editingSubMode() == EditingSubMode::SingleItemMove)
-        modeMgr()->setEditingSubMode(EditingSubMode::Default);
-}
-
 void PanelScene::requestEditNode(AbstractPanelItem *item)
 {
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
@@ -138,27 +134,7 @@ void PanelScene::requestEditNode(AbstractPanelItem *item)
 
 void PanelScene::onEditingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode)
 {
-    switch (oldMode)
-    {
-    case EditingSubMode::SingleItemMove:
-        endMovingItem();
-        break;
-    case EditingSubMode::ItemSelection:
-        endItemSelection();
-        break;
-    case EditingSubMode::Default:
-    default:
-        break;
-    }
 
-    switch (newMode)
-    {
-    case EditingSubMode::ItemSelection:
-        startItemSelection();
-        break;
-    default:
-        break;
-    }
 }
 
 void PanelScene::startItemSelection()
@@ -170,8 +146,6 @@ void PanelScene::startItemSelection()
 
 void PanelScene::endItemSelection()
 {
-    endSelectionMove();
-
     clearSelection();
 
     allowItemSelection(false);
@@ -183,10 +157,16 @@ void PanelScene::endItemSelection()
 
 void PanelScene::allowItemSelection(bool enabled)
 {
-    for(const auto& it : mItemMap)
+    for(AbstractPanelItem* item : mOtherPanelItems)
     {
-        AbstractPanelItem *item = it.second;
         item->setFlag(QGraphicsItem::ItemIsSelectable, enabled);
+        item->setFlag(QGraphicsItem::ItemIsMovable, enabled);
+    }
+
+    for(AbstractPanelItem* item : mLightRects)
+    {
+        item->setFlag(QGraphicsItem::ItemIsSelectable, enabled);
+        item->setFlag(QGraphicsItem::ItemIsMovable, enabled);
     }
 }
 
@@ -197,7 +177,8 @@ void PanelScene::onItemSelected(AbstractPanelItem *item, bool value)
 
     if(value)
     {
-        //TODO
+        if(item->itemType() == LightRectItem::ItemType)
+            bringTop(static_cast<LightRectItem *>(item));
     }
     else
     {
@@ -205,17 +186,29 @@ void PanelScene::onItemSelected(AbstractPanelItem *item, bool value)
     }
 }
 
-void PanelScene::moveSelectionBy(int16_t dx, int16_t dy)
+void PanelScene::bringTop(LightRectItem *item)
 {
-    if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
-        return;
+    if(mTopLightRect == item)
+        return; // Already top
 
-    setHasUnsavedChanges(true);
-}
+    if(mTopLightRect)
+    {
+        // Move above of current top
+        item->stackBefore(mTopLightRect);
+    }
+    else
+    {
+        // No current top, check all items
+        for(LightRectItem *other : mLightRects)
+        {
+            if(other == item)
+                continue;
 
-void PanelScene::endSelectionMove()
-{
+            item->stackBefore(other);
+        }
+    }
 
+    mTopLightRect = item;
 }
 
 void PanelScene::copySelectedItems()
@@ -300,9 +293,13 @@ void PanelScene::selectAll()
     if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
         return;
 
-    for(const auto& it : mItemMap)
+    for(AbstractPanelItem* item : mOtherPanelItems)
     {
-        AbstractPanelItem *item = it.second;
+        item->setSelected(true);
+    }
+
+    for(AbstractPanelItem* item : mLightRects)
+    {
         item->setSelected(true);
     }
 }
@@ -366,7 +363,7 @@ bool PanelScene::insertFragment(const QPointF &tileHint,
         AbstractPanelItem *item = factory->createItem(nodeType, this);
         if(item)
         {
-            if(!item->loadFromJSON(obj))
+            if(!item->loadFromJSON(obj, modeMgr()))
             {
                 delete item;
                 continue;
@@ -489,20 +486,26 @@ void PanelScene::removeAllItems()
 {
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
-    const auto itemsCopy = mItemMap;
-    for(const auto& it : itemsCopy)
+    const auto lightsCopy = mLightRects;
+    for(AbstractPanelItem* item : lightsCopy)
     {
-        AbstractPanelItem *item = it.second;
         removeNode(item);
     }
-    Q_ASSERT(mItemMap.size() == 0);
+    Q_ASSERT(mLightRects.size() == 0);
+
+    const auto itemsCopy = mOtherPanelItems;
+    for(AbstractPanelItem* item : itemsCopy)
+    {
+        removeNode(item);
+    }
+    Q_ASSERT(mOtherPanelItems.size() == 0);
 }
 
 bool PanelScene::loadFromJSON(const QJsonObject &obj, PanelItemFactory *factory)
 {
     removeAllItems();
 
-    if(!obj.contains("cables") || !obj.contains("nodes"))
+    if(!obj.contains("nodes") || !obj.contains("lights"))
         return false;
 
     if(!setPanelName(obj.value("name").toString()))
@@ -511,27 +514,33 @@ bool PanelScene::loadFromJSON(const QJsonObject &obj, PanelItemFactory *factory)
     setPanelLongName(obj.value("long_name").toString());
 
     const QJsonArray nodes = obj.value("nodes").toArray();
+    const QJsonArray lights = obj.value("lights").toArray();
 
-    for(const QJsonValue& v : nodes)
+    auto loadItem = [this, factory](const QJsonValue& v)
     {
         const QJsonObject nodeObj = v.toObject();
         const QString nodeType = nodeObj.value("type").toString();
         if(nodeType.isEmpty())
-            continue;
+            return;
 
         // Create new node
         AbstractPanelItem *item = factory->createItem(nodeType, this);
         if(item)
         {
-            if(!item->loadFromJSON(nodeObj))
+            if(!item->loadFromJSON(nodeObj, modeMgr()))
             {
                 delete item;
-                continue;
+                return;
             }
 
             addNode(item);
         }
-    }
+    };
+
+    for(const QJsonValue& v : nodes)
+        loadItem(v);
+    for(const QJsonValue& v : lights)
+        loadItem(v);
 
     setHasUnsavedChanges(false);
 
@@ -544,15 +553,24 @@ void PanelScene::saveToJSON(QJsonObject &obj) const
     obj["long_name"] = panelLongName();
 
     QJsonArray nodes;
-    for(const auto& it : mItemMap)
+    for(const AbstractPanelItem *item : mOtherPanelItems)
     {
-        AbstractPanelItem *item = it.second;
         QJsonObject nodeObj;
         item->saveToJSON(nodeObj);
         nodes.append(nodeObj);
     }
 
     obj["nodes"] = nodes;
+
+    QJsonArray lights;
+    for(const AbstractPanelItem *item : mLightRects)
+    {
+        QJsonObject nodeObj;
+        item->saveToJSON(nodeObj);
+        lights.append(nodeObj);
+    }
+
+    obj["lights"] = lights;
 }
 
 void PanelScene::keyReleaseEvent(QKeyEvent *e)

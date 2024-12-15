@@ -71,6 +71,10 @@ void PanelItemFactory::editItem(QWidget *parent, AbstractPanelItem *item)
     if(!factory)
         return;
 
+    if(item->scene())
+        item->scene()->clearSelection();
+    item->setSelected(true);
+
     QPointer<QDialog> dlg = new QDialog(parent);
     QFormLayout *lay = new QFormLayout(dlg);
 
