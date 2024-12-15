@@ -77,6 +77,8 @@ MainWindow *ViewManager::mainWin()
 
 void ViewManager::setActiveCircuit(CircuitWidget *w)
 {
+    setCurrentViewType(ViewType::Circuit);
+
     if(w && w == mActiveCircuitView)
         return;
 
@@ -87,6 +89,8 @@ void ViewManager::setActiveCircuit(CircuitWidget *w)
 
 void ViewManager::setActivePanel(PanelWidget *w)
 {
+    setCurrentViewType(ViewType::Panel);
+
     if(w && w == mActivePanelView)
         return;
 
@@ -202,9 +206,6 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
 
     mCircuitViews.insert(w, dock);
 
-    if(!mActiveCircuitView)
-        mActiveCircuitView = w;
-
     return w;
 }
 
@@ -295,6 +296,17 @@ int ViewManager::getUniqueNum(PanelScene *scene, PanelWidget *self) const
     return 0;
 }
 
+ViewManager::ViewType ViewManager::currentViewType() const
+{
+    return mCurrentViewType;
+}
+
+void ViewManager::setCurrentViewType(ViewType newCurrentViewType)
+{
+    mCurrentViewType = newCurrentViewType;
+    emit currentViewTypeChanged(mCurrentViewType);
+}
+
 PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
 {
     if(!forceNew)
@@ -327,9 +339,6 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
             this, &ViewManager::onCircuitViewDestroyed);
 
     mPanelViews.insert(w, dock);
-
-    if(!mActivePanelView)
-        mActivePanelView = w;
 
     return w;
 }
@@ -544,7 +553,7 @@ void ViewManager::showObjectListView(const QString &objType)
                              KDDockWidgets::Location_OnLeft);
 }
 
-void ViewManager::startEditNEwCableOnActiveView()
+void ViewManager::startEditNewCableOnActiveView()
 {
     if(!mActiveCircuitView)
         return;
@@ -563,8 +572,29 @@ void ViewManager::addNodeToActiveView(const QString &nodeType)
     if(mainWin()->modeMgr()->mode() != FileMode::Editing)
         return;
 
-    const auto editFactory = mainWin()->modeMgr()->circuitFactory();
-    mActiveCircuitView->addNodeToCenter(editFactory, nodeType);
+    switch (mCurrentViewType)
+    {
+    case ViewType::Circuit:
+    {
+        if(!mActiveCircuitView)
+            return;
+
+        const auto circuitFactory = mainWin()->modeMgr()->circuitFactory();
+        mActiveCircuitView->addNodeToCenter(circuitFactory, nodeType);
+        break;
+    }
+    case ViewType::Panel:
+    {
+        if(!mActivePanelView)
+            return;
+
+        const auto panelFactory = mainWin()->modeMgr()->panelFactory();
+        mActivePanelView->addNodeToCenter(panelFactory, nodeType);
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 void ViewManager::onCircuitViewDestroyed(QObject *obj)
@@ -585,8 +615,11 @@ void ViewManager::onCircuitViewDestroyed(QObject *obj)
 
 void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
 {
-    Q_ASSERT_X(mActiveCircuitView,
-               "nodeEditRequested", "no active view");
+    if(!mActiveCircuitView)
+    {
+        qWarning() << "nodeEditRequested: no active view";
+        return;
+    }
 
     DockWidget *dock = mCircuitViews.value(mActiveCircuitView);
 
@@ -597,8 +630,11 @@ void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
 
 void ViewManager::cableEditRequested(CableGraphItem *item)
 {
-    Q_ASSERT_X(mActiveCircuitView,
-               "nodeEditRequested", "no active view");
+    if(!mActiveCircuitView)
+    {
+        qWarning() << "cableEditRequested: no active view";
+        return;
+    }
 
     // Allow delete or modify path
     auto editFactory = mainWin()->modeMgr()->circuitFactory();
@@ -623,8 +659,11 @@ void ViewManager::onPanelViewDestroyed(QObject *obj)
 
 void ViewManager::panelItemEditRequested(AbstractPanelItem *item)
 {
-    Q_ASSERT_X(mActivePanelView,
-               "panelItemEditRequested", "no active view");
+    if(!mActivePanelView)
+    {
+        qWarning() << "panelItemEditRequested: no active view";
+        return;
+    }
 
     DockWidget *dock = mPanelViews.value(mActivePanelView);
 

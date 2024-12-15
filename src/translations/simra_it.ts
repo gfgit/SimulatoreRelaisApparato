@@ -569,134 +569,165 @@ Scegli un altro nome:</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../mainwindow.cpp" line="47"/>
+        <location filename="../mainwindow.cpp" line="48"/>
         <source>All Files (*.*)</source>
         <translation>Tutti i File (*.*)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="49"/>
+        <location filename="../mainwindow.cpp" line="50"/>
         <source>JSON Files (*.json)</source>
         <translation>File JSON (*.json)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="51"/>
+        <location filename="../mainwindow.cpp" line="52"/>
         <source>Simulatore Relais Circuits (*.simrelaisc)</source>
         <translation>Circuiti Simulatore Relè (*.simrelaisc)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="97"/>
+        <location filename="../mainwindow.cpp" line="101"/>
         <source>File</source>
         <translation>File</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="99"/>
+        <location filename="../mainwindow.cpp" line="103"/>
         <source>&amp;New</source>
         <translation>&amp;Nuovo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="100"/>
+        <location filename="../mainwindow.cpp" line="104"/>
         <source>&amp;Open</source>
         <translation>&amp;Apri</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="101"/>
+        <location filename="../mainwindow.cpp" line="105"/>
         <source>Open &amp;Recent</source>
         <translation>Apri &amp;Recente</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="103"/>
+        <location filename="../mainwindow.cpp" line="107"/>
         <source>&amp;Save</source>
         <translation>&amp;Salva</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="104"/>
+        <location filename="../mainwindow.cpp" line="108"/>
         <source>Ctrl+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="106"/>
+        <location filename="../mainwindow.cpp" line="110"/>
         <source>Sa&amp;ve As</source>
         <translation>Sa&amp;lva Come</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="107"/>
+        <location filename="../mainwindow.cpp" line="111"/>
         <source>Ctrl+Shift+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="134"/>
+        <location filename="../mainwindow.cpp" line="138"/>
         <source>View</source>
         <translation>Visualizza</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="136"/>
+        <location filename="../mainwindow.cpp" line="140"/>
         <source>Circuit list</source>
         <translation>Lista Circuiti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="140"/>
+        <location filename="../mainwindow.cpp" line="144"/>
         <source>Panel list</source>
         <translation>Lista Banchi</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="144"/>
+        <location filename="../mainwindow.cpp" line="148"/>
         <source>Object List</source>
         <translation>Lista Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="160"/>
+        <location filename="../mainwindow.cpp" line="164"/>
         <source>Edit mode</source>
         <translation>Modalità Modifica</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="187"/>
-        <source>Edit Tools 1</source>
-        <translation>Strumenti Modifica 1</translation>
-    </message>
-    <message>
-        <location filename="../mainwindow.cpp" line="188"/>
-        <source>Edit Tools 2</source>
-        <translation>Strumenti Modifica 2</translation>
+        <location filename="../mainwindow.cpp" line="192"/>
+        <source>Circuit Tools 1</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="193"/>
+        <source>Circuit Tools 2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="198"/>
+        <source>New Circuit Item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="209"/>
+        <location filename="../mainwindow.cpp" line="255"/>
+        <source>%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="221"/>
+        <source>Cable</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="240"/>
+        <source>Panel Tools 1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="244"/>
+        <source>New Panel Item</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Edit Tools 1</source>
+        <translation type="vanished">Strumenti Modifica 1</translation>
+    </message>
+    <message>
+        <source>Edit Tools 2</source>
+        <translation type="vanished">Strumenti Modifica 2</translation>
+    </message>
+    <message>
         <source>New Item</source>
-        <translation>Nuovo Elemento</translation>
+        <translation type="vanished">Nuovo Elemento</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="204"/>
         <source>New %1</source>
-        <translation>Nuovo %1</translation>
+        <translation type="vanished">Nuovo %1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="216"/>
         <source>New Cable</source>
-        <translation>Nuovo Cavo</translation>
+        <translation type="vanished">Nuovo Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="276"/>
+        <location filename="../mainwindow.cpp" line="326"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="330"/>
+        <location filename="../mainwindow.cpp" line="380"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="386"/>
+        <location filename="../mainwindow.cpp" line="436"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="387"/>
+        <location filename="../mainwindow.cpp" line="437"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="450"/>
+        <location filename="../mainwindow.cpp" line="500"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>
@@ -1446,38 +1477,38 @@ Scegli un altro nome:</translation>
 <context>
     <name>ViewManager</name>
     <message>
-        <location filename="../views/viewmanager.cpp" line="101"/>
-        <location filename="../views/viewmanager.cpp" line="116"/>
+        <location filename="../views/viewmanager.cpp" line="105"/>
+        <location filename="../views/viewmanager.cpp" line="120"/>
         <source>Empty</source>
         <translation>Vuoto</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="231"/>
+        <location filename="../views/viewmanager.cpp" line="232"/>
         <source>Edit Circuit %1</source>
         <translation>Modifica Circuito %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="357"/>
+        <location filename="../views/viewmanager.cpp" line="366"/>
         <source>Edit Panel %1</source>
         <translation>Modifica Banco %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="403"/>
+        <location filename="../views/viewmanager.cpp" line="412"/>
         <source>Edit %1 %2</source>
         <translation>Modifica %1 %2</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="483"/>
+        <location filename="../views/viewmanager.cpp" line="492"/>
         <source>Circuit Sheets</source>
         <translation>Fogli Circuiti</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="503"/>
+        <location filename="../views/viewmanager.cpp" line="512"/>
         <source>Panel Sheets</source>
         <translation>Fogli Banco</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="532"/>
+        <location filename="../views/viewmanager.cpp" line="541"/>
         <source>%1 List</source>
         <translation>Lista %1</translation>
     </message>

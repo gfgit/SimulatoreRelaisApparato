@@ -51,6 +51,12 @@ class ViewManager : public QObject
 {
     Q_OBJECT
 public:
+    enum class ViewType
+    {
+        Circuit = 0,
+        Panel = 1
+    };
+
     typedef KDDockWidgets::QtWidgets::DockWidget DockWidget;
 
     explicit ViewManager(MainWindow *parent);
@@ -74,8 +80,13 @@ public:
     void closeAllFileSpecificDocks();
     void closeAll();
 
+    ViewType currentViewType() const;
+
+signals:
+    void currentViewTypeChanged(ViewType newVal);
+
 public slots:
-    void startEditNEwCableOnActiveView();
+    void startEditNewCableOnActiveView();
     void addNodeToActiveView(const QString& nodeType);
     void showCircuitListView();
     void showPanelListView();
@@ -93,6 +104,8 @@ private slots:
 
 private:
     MainWindow *mainWin();
+
+    void setCurrentViewType(ViewType newCurrentViewType);
 
     friend class CircuitWidget;
     void setActiveCircuit(CircuitWidget *w);
@@ -123,6 +136,8 @@ private:
 
     QPointer<DockWidget> mCircuitListViewDock;
     QPointer<DockWidget> mPanelListViewDock;
+
+    ViewType mCurrentViewType = ViewType::Circuit;
 };
 
 #endif // VIEWMANAGER_H
