@@ -46,35 +46,6 @@
 
 #include "edit/panelitemfactory.h"
 
-template <typename Func>
-bool spiral_helper(const TileLocation& origin,
-                   TileLocation &outTile,
-                   Func func)
-{
-    // Loop in a square spiral around origin
-    // For each tile, func is called
-    // If func returns true, looping is stopped
-    const int N = 1000;
-    int16_t x = 0;
-    int16_t y = 0;
-    for(int i = 0; i < N; ++i)
-    {
-        const TileLocation tile = origin.adjusted(x, y);
-        if(func(tile))
-        {
-            outTile = tile;
-            return true;
-        }
-
-        if(std::abs(x) <= std::abs(y) && (x != y || x >= 0))
-            x += ((y >= 0) ? 1 : -1);
-        else
-            y += ((x >= 0) ? -1 : 1);
-    }
-
-    return false;
-}
-
 PanelScene::PanelScene(PanelListModel *parent)
     : QGraphicsScene{parent}
 {
@@ -162,7 +133,7 @@ void PanelScene::requestEditNode(AbstractPanelItem *item)
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     if(mode() == FileMode::Editing)
-        emit panelsModel()->nodeEditRequested(item);
+        emit panelsModel()->itemEditRequested(item);
 }
 
 void PanelScene::onEditingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode)

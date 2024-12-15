@@ -34,6 +34,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
+#include <QDoubleSpinBox>
 
 #include <QMessageBox>
 
@@ -99,6 +100,48 @@ void PanelItemFactory::editItem(QWidget *parent, AbstractPanelItem *item)
 
         lay->addRow(tr("Name"), nameEdit);
     }
+
+    // Position
+    QDoubleSpinBox *xSpin = new QDoubleSpinBox;
+    xSpin->setRange(std::numeric_limits<double>::min(),
+                   std::numeric_limits<double>::max());
+    xSpin->setDecimals(5);
+    lay->addRow(tr("X:"), xSpin);
+
+    QDoubleSpinBox *ySpin = new QDoubleSpinBox;
+    ySpin->setRange(std::numeric_limits<double>::min(),
+                   std::numeric_limits<double>::max());
+    ySpin->setDecimals(5);
+    lay->addRow(tr("Y:"), ySpin);
+
+    xSpin->setValue(item->x());
+    ySpin->setValue(item->y());
+
+    connect(item, &AbstractPanelItem::xChanged,
+            dlg, [xSpin, item]()
+    {
+        xSpin->blockSignals(true);
+        xSpin->setValue(item->x());
+        xSpin->blockSignals(false);
+    });
+    connect(item, &AbstractPanelItem::yChanged,
+            dlg, [ySpin, item]()
+    {
+        ySpin->blockSignals(true);
+        ySpin->setValue(item->y());
+        ySpin->blockSignals(false);
+    });
+
+    connect(xSpin, &QDoubleSpinBox::valueChanged,
+            item, [item](double newX)
+    {
+        item->setX(newX);
+    });
+    connect(ySpin, &QDoubleSpinBox::valueChanged,
+            item, [item](double newY)
+    {
+        item->setY(newY);
+    });
 
     if(factory->edit)
     {

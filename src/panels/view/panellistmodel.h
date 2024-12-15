@@ -94,7 +94,7 @@ public:
     void saveToJSON(QJsonObject &obj) const;
 
 signals:
-    void nodeEditRequested(AbstractPanelItem *item);
+    void itemEditRequested(AbstractPanelItem *item);
 
 private slots:
     void onSceneNameChanged(const QString& name, PanelScene *scene);

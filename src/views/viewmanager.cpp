@@ -63,6 +63,10 @@ ViewManager::ViewManager(MainWindow *parent)
             this, &ViewManager::nodeEditRequested);
     connect(circuitList, &CircuitListModel::cableEditRequested,
             this, &ViewManager::cableEditRequested);
+
+    PanelListModel *panelList = modeMgr->panelList();
+    connect(panelList, &PanelListModel::itemEditRequested,
+            this, &ViewManager::panelItemEditRequested);
 }
 
 ViewManager::~ViewManager()
@@ -566,9 +570,6 @@ void ViewManager::startEditNewCableOnActiveView()
 
 void ViewManager::addNodeToActiveView(const QString &nodeType)
 {
-    if(!mActiveCircuitView)
-        return;
-
     if(mainWin()->modeMgr()->mode() != FileMode::Editing)
         return;
 
