@@ -1617,6 +1617,7 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
                 auto *node = item->getAbstractNode();
                 delete item;
                 delete node;
+                continue;
             }
 
             // Translate node

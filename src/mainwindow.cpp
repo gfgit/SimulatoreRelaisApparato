@@ -134,9 +134,12 @@ void MainWindow::buildMenuBar()
     QMenu *menuView = menuBar()->addMenu(tr("View"));
 
     QAction *showCircuitList = menuView->addAction(tr("Circuit list"));
-
     connect(showCircuitList, &QAction::triggered,
             mViewMgr, &ViewManager::showCircuitListView);
+
+    QAction *showPanelList = menuView->addAction(tr("Panel list"));
+    connect(showPanelList, &QAction::triggered,
+            mViewMgr, &ViewManager::showPanelListView);
 
     QMenu *menuViewObject = menuView->addMenu(tr("Object List"));
 

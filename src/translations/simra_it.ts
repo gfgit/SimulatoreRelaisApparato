@@ -634,64 +634,69 @@ Scegli un altro nome:</translation>
         <translation>Lista Circuiti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="141"/>
+        <location filename="../mainwindow.cpp" line="140"/>
+        <source>Panel list</source>
+        <translation>Lista Banchi</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="144"/>
         <source>Object List</source>
         <translation>Lista Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="157"/>
+        <location filename="../mainwindow.cpp" line="160"/>
         <source>Edit mode</source>
         <translation>Modalità Modifica</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="184"/>
+        <location filename="../mainwindow.cpp" line="187"/>
         <source>Edit Tools 1</source>
         <translation>Strumenti Modifica 1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="185"/>
+        <location filename="../mainwindow.cpp" line="188"/>
         <source>Edit Tools 2</source>
         <translation>Strumenti Modifica 2</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="190"/>
+        <location filename="../mainwindow.cpp" line="193"/>
         <source>New Item</source>
         <translation>Nuovo Elemento</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="201"/>
+        <location filename="../mainwindow.cpp" line="204"/>
         <source>New %1</source>
         <translation>Nuovo %1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="213"/>
+        <location filename="../mainwindow.cpp" line="216"/>
         <source>New Cable</source>
         <translation>Nuovo Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="273"/>
+        <location filename="../mainwindow.cpp" line="276"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="327"/>
+        <location filename="../mainwindow.cpp" line="330"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="383"/>
+        <location filename="../mainwindow.cpp" line="386"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="384"/>
+        <location filename="../mainwindow.cpp" line="387"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="447"/>
+        <location filename="../mainwindow.cpp" line="450"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>
@@ -819,6 +824,168 @@ Vuoi salvarle ora?</translation>
         <location filename="../circuits/edit/nodeeditfactory.cpp" line="161"/>
         <source>Edit Path</source>
         <translation>Modifica Percorso</translation>
+    </message>
+</context>
+<context>
+    <name>PanelItemFactory</name>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="76"/>
+        <source>Edit %1</source>
+        <translation>Modifica %1</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="79"/>
+        <source>Type</source>
+        <translation>Tipo</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="100"/>
+        <source>Name</source>
+        <translation>Nome</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="111"/>
+        <source>Delete</source>
+        <translation>Elimina</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="119"/>
+        <source>Delete Item?</source>
+        <translation>Eliminare Elementi?</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="120"/>
+        <source>Are you sure?</source>
+        <translation>Sei sicuro?</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="132"/>
+        <source>Ok</source>
+        <translation>Ok</translation>
+    </message>
+</context>
+<context>
+    <name>PanelListModel</name>
+    <message>
+        <location filename="../panels/view/panellistmodel.cpp" line="54"/>
+        <source>Name</source>
+        <translation>Nome</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistmodel.cpp" line="56"/>
+        <source>Long Name</source>
+        <translation>Nome lungo</translation>
+    </message>
+</context>
+<context>
+    <name>PanelListWidget</name>
+    <message>
+        <source>Add Circuit</source>
+        <translation type="obsolete">Aggiungi Circuito</translation>
+    </message>
+    <message>
+        <source>Remove Circuit</source>
+        <translation type="obsolete">Rimuovi Circuito</translation>
+    </message>
+    <message>
+        <source>New Circuit Sheet</source>
+        <translation type="obsolete">Nuovo Foglio Circuito</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="56"/>
+        <source>Add Panel</source>
+        <translation>Aggiungi Banco</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="57"/>
+        <source>Remove Panel</source>
+        <translation>Rimuovi Banco</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="113"/>
+        <source>New Panel Sheet</source>
+        <translation>Nuovo Foglio Banco</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="115"/>
+        <source>Choose name:</source>
+        <translation>Scegli nome:</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="116"/>
+        <source>Name is not available.
+Choose another name:</source>
+        <translation>Il nome non è disponibile.
+Scegli un altro nome:</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="149"/>
+        <source>Delete Scene?</source>
+        <translation>Elimina scena?</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="150"/>
+        <source>Are you sure to delete &lt;b&gt;%1&lt;/b&gt;?</source>
+        <translation>Sei sicuro di voler eliminare &lt;b&gt;%1&lt;/b&gt;?</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="182"/>
+        <source>Edit</source>
+        <translation>Modifica</translation>
+    </message>
+</context>
+<context>
+    <name>PanelSceneOptionsWidget</name>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="195"/>
+        <source>Name</source>
+        <translation>Nome</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="196"/>
+        <source>Name:</source>
+        <translation>Nome:</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="201"/>
+        <source>Long Name</source>
+        <translation>Nome lungo</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="202"/>
+        <source>Long Name:</source>
+        <translation>Nome lungo:</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panellistwidget.cpp" line="258"/>
+        <source>Name already exists</source>
+        <translation>Nome già esistente</translation>
+    </message>
+</context>
+<context>
+    <name>PanelView</name>
+    <message>
+        <location filename="../panels/view/panelview.cpp" line="93"/>
+        <source>Delete Items</source>
+        <translation>Elimina Elementi</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panelview.cpp" line="94"/>
+        <source>Delete selected items?Are you sure?</source>
+        <translation>Eliminare elementi selezionati? Sei sicuro?</translation>
+    </message>
+</context>
+<context>
+    <name>PanelWidget</name>
+    <message>
+        <location filename="../panels/view/panelwidget.cpp" line="223"/>
+        <source>Choose Item Name</source>
+        <translation>Scegli Nome Elemento</translation>
+    </message>
+    <message>
+        <location filename="../panels/view/panelwidget.cpp" line="224"/>
+        <source>Name:</source>
+        <translation>Nome:</translation>
     </message>
 </context>
 <context>
@@ -1279,27 +1446,38 @@ Scegli un altro nome:</translation>
 <context>
     <name>ViewManager</name>
     <message>
-        <location filename="../views/viewmanager.cpp" line="80"/>
+        <location filename="../views/viewmanager.cpp" line="101"/>
+        <location filename="../views/viewmanager.cpp" line="116"/>
         <source>Empty</source>
         <translation>Vuoto</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="200"/>
+        <location filename="../views/viewmanager.cpp" line="231"/>
         <source>Edit Circuit %1</source>
         <translation>Modifica Circuito %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="246"/>
+        <location filename="../views/viewmanager.cpp" line="357"/>
+        <source>Edit Panel %1</source>
+        <translation>Modifica Banco %1</translation>
+    </message>
+    <message>
+        <location filename="../views/viewmanager.cpp" line="403"/>
         <source>Edit %1 %2</source>
         <translation>Modifica %1 %2</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="317"/>
+        <location filename="../views/viewmanager.cpp" line="483"/>
         <source>Circuit Sheets</source>
         <translation>Fogli Circuiti</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="346"/>
+        <location filename="../views/viewmanager.cpp" line="503"/>
+        <source>Panel Sheets</source>
+        <translation>Fogli Banco</translation>
+    </message>
+    <message>
+        <location filename="../views/viewmanager.cpp" line="532"/>
         <source>%1 List</source>
         <translation>Lista %1</translation>
     </message>

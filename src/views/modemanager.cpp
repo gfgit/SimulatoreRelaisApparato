@@ -24,8 +24,11 @@
 
 #include "../circuits/edit/nodeeditfactory.h"
 #include "../circuits/edit/standardnodetypes.h"
-
 #include "../circuits/view/circuitlistmodel.h"
+
+#include "../panels/edit/panelitemfactory.h"
+#include "../panels/edit/standardpanelitemtypes.h"
+#include "../panels/view/panellistmodel.h"
 
 #include "../objects/simulationobjectfactory.h"
 #include "../objects/standardobjecttypes.h"
@@ -158,11 +161,19 @@ QJsonObject convertOldFileFormat(const QJsonObject& origFile)
 ModeManager::ModeManager(QObject *parent)
     : QObject{parent}
 {
+    // Circuits
     mCircuitFactory = new NodeEditFactory(this);
     StandardNodeTypes::registerTypes(mCircuitFactory);
 
     mCircuitList = new CircuitListModel(this, this);
 
+    // Panels
+    mPanelItemFactory = new PanelItemFactory(this);
+    StandardPanelItemTypes::registerTypes(mPanelItemFactory);
+
+    mPanelList = new PanelListModel(this, this);
+
+    // Objects
     mObjectFactory = new SimulationObjectFactory;
     StandardObjectTypes::registerTypes(mObjectFactory);
 
@@ -185,6 +196,12 @@ ModeManager::~ModeManager()
 
     delete mCircuitFactory;
     mCircuitFactory = nullptr;
+
+    delete mPanelList;
+    mPanelList = nullptr;
+
+    delete mPanelItemFactory;
+    mPanelItemFactory = nullptr;
 
     // Delete objects and factory
     qDeleteAll(mObjectModels);
@@ -233,6 +250,7 @@ void ModeManager::resetFileEdited()
     mFileWasEdited = false;
 
     mCircuitList->resetHasUnsavedChanges();
+    mPanelList->resetHasUnsavedChanges();
 
     for(auto model : mObjectModels)
         model->resetHasUnsavedChanges();
@@ -248,6 +266,16 @@ NodeEditFactory *ModeManager::circuitFactory() const
 CircuitListModel *ModeManager::circuitList() const
 {
     return mCircuitList;
+}
+
+PanelItemFactory *ModeManager::panelFactory() const
+{
+    return mPanelItemFactory;
+}
+
+PanelListModel *ModeManager::panelList() const
+{
+    return mPanelList;
 }
 
 bool ModeManager::loadFromJSON(const QJsonObject &obj)
@@ -278,6 +306,9 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
     QJsonObject circuits = rootObj.value("circuits").toObject();
     mCircuitList->loadFromJSON(circuits);
 
+    QJsonObject panels = rootObj.value("panels").toObject();
+    mPanelList->loadFromJSON(panels);
+
     resetFileEdited();
 
     // Turn on power sources and stuff
@@ -290,6 +321,9 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
 {
     QJsonObject circuits;
     mCircuitList->saveToJSON(circuits);
+
+    QJsonObject panels;
+    mPanelList->saveToJSON(panels);
 
     QJsonObject pool;
     for(auto model : mObjectModels)
@@ -304,6 +338,7 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
     obj["objects"] = pool;
 
     obj["circuits"] = circuits;
+    obj["panels"] = panels;
 }
 
 void ModeManager::clearAll()
@@ -311,6 +346,7 @@ void ModeManager::clearAll()
     setMode(FileMode::LoadingFile);
 
     mCircuitList->clear();
+    mPanelList->clear();
 
     for(auto model : mObjectModels)
         model->clear();
