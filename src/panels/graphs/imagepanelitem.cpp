@@ -70,7 +70,7 @@ bool ImagePanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
     }
 
     setImageFileName(imagePath);
-    setScale(obj.value("scale").toDouble(1.0));
+    setImageScale(obj.value("scale").toDouble(1.0));
 
     return true;
 }
