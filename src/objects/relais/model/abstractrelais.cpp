@@ -93,6 +93,16 @@ bool AbstractRelais::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     setDurationDown(quint32(obj.value("duration_down_ms").toInteger()));
     setNormallyUp(obj.value("normally_up").toBool());
     setRelaisType(RelaisType(obj.value("relay_type").toInt(int(RelaisType::Normal))));
+
+    if(isStateIndependent(relaisType()))
+    {
+        // For stabilized relais we start in normal condition
+        if(normallyUp())
+            setPosition(1.0);
+        else
+            setPosition(0.0);
+    }
+
     return true;
 }
 
