@@ -45,7 +45,8 @@ public:
     {
         None = 0,
         LoadPassed = 1 << 0,
-        SkipLoads = 1 << 1
+        SkipLoads = 1 << 1,
+        ReverseVoltagePassed = 1 << 2
     };
 
     struct PassNodeResult

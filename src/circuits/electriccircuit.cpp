@@ -509,8 +509,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
                 continue; // Already has voltage
 
-            //if(mode.testFlag(PassModes::SkipLoads))
-            //    continue;
+            if(mode.testFlag(PassModes::ReverseVoltagePassed))
+                continue;
 
             // Register an open circuit which passes through node
             ElectricCircuit *circuit = new ElectricCircuit();
@@ -533,8 +533,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
                 continue; // Already has voltage
 
-            //if(mode.testFlag(PassModes::SkipLoads))
-            //    continue;
+            if(mode.testFlag(PassModes::ReverseVoltagePassed))
+                continue;
 
             // Register an open circuit which passes through node
             // And then go to next cable
@@ -583,6 +583,20 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             newMode.setFlag(PassModes::LoadPassed, true);
         }
 
+        if(cableEnd.node->hasAnyEntranceCircuit(cableEnd.nodeContact) != AnyCircuitType::None)
+        {
+            // We are going in, where another circuit goes out
+            // So we are basically going towards higher potential
+            // This is not possible, current will not flow reverse to voltage
+            // So we set a flag which will prevent open circuit to be registered
+
+            // TODO: we should not register closed circuits either
+            // TODO: we should detect shortcircuit and remove power from all
+            // affected circuits
+
+            newMode.setFlag(PassModes::ReverseVoltagePassed, true);
+        }
+
         PassNodeResult nextResult;
 
         if(newMode.testFlag(PassModes::LoadPassed))
@@ -611,7 +625,7 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
     if(circuitEndsHere)
     {
-        if(depth > 0/* && !mode.testFlag(PassModes::SkipLoads)*/)
+        if(depth > 0 && !mode.testFlag(PassModes::ReverseVoltagePassed))
         {
             // Register an open circuit which passes HALF node
             ElectricCircuit *circuit = new ElectricCircuit();
