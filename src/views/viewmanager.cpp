@@ -340,7 +340,7 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
 
     connect(w, &PanelWidget::destroyed,
-            this, &ViewManager::onCircuitViewDestroyed);
+            this, &ViewManager::onPanelViewDestroyed);
 
     mPanelViews.insert(w, dock);
 
