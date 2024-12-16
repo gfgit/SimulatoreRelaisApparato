@@ -47,6 +47,14 @@ class PanelScene : public QGraphicsScene
 {
     Q_OBJECT
 public:
+    enum class Layers
+    {
+        LightRects = 0,
+        Images = 1,
+        OtherItems = 2,
+        EditingLightRects = 3
+    };
+
     explicit PanelScene(PanelListModel *parent);
     ~PanelScene();
 
@@ -92,8 +100,6 @@ protected:
     void keyReleaseEvent(QKeyEvent *e) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
 
-    void drawBackground(QPainter *painter, const QRectF &rect) override;
-
 private:
     friend class AbstractPanelItem;
 
@@ -104,8 +110,6 @@ private:
     friend class PanelListModel;
     void onEditingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode);
 
-    void startItemSelection();
-    void endItemSelection();
     void allowItemSelection(bool enabled);
 
     void onItemSelected(AbstractPanelItem *item, bool value);

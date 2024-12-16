@@ -51,7 +51,7 @@
 PanelScene::PanelScene(PanelListModel *parent)
     : QGraphicsScene{parent}
 {
-
+    setBackgroundBrush(QColor(0x7F, 0x7F, 0x7F));
 }
 
 PanelScene::~PanelScene()
@@ -72,13 +72,17 @@ ModeManager *PanelScene::modeMgr() const
 void PanelScene::setMode(FileMode newMode, FileMode oldMode)
 {
     // TODO: bring light rect items to front
-    if(newMode != FileMode::Editing)
-    {
-        endItemSelection();
-    }
 
-    allowItemSelection(newMode == FileMode::Editing);
+    const bool editing = newMode == FileMode::Editing;
 
+    for(LightRectItem *item : mLightRects)
+        item->setZValue(editing ?
+                            int(Layers::EditingLightRects) :
+                            int(Layers::LightRects));
+
+    allowItemSelection(editing);
+
+    // TODO: not really...
     // Background changes between modes
     invalidate(QRectF(), BackgroundLayer);
 }
@@ -87,15 +91,29 @@ void PanelScene::addNode(AbstractPanelItem *item)
 {
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
+    const bool editing = modeMgr()->mode() == FileMode::Editing;
+
     // Add item after having inserted it in the map
     addItem(item);
 
     if(item->itemType() == LightRectItem::ItemType)
-        mLightRects.append(static_cast<LightRectItem *>(item));
+    {
+        LightRectItem *lightItem = static_cast<LightRectItem *>(item);
+        mLightRects.append(lightItem);
+        if(editing)
+        {
+            lightItem->setZValue(int(Layers::EditingLightRects));
+            bringTop(lightItem);
+        }
+        else
+            lightItem->setZValue(int(Layers::LightRects));
+    }
     else
+    {
         mOtherPanelItems.append(item);
+        item->setZValue(int(Layers::OtherItems));
+    }
 
-    const bool editing = modeMgr()->mode() == FileMode::Editing;
     item->setFlag(QGraphicsItem::ItemIsSelectable, editing);
     item->setFlag(QGraphicsItem::ItemIsMovable, editing);
 
@@ -135,24 +153,6 @@ void PanelScene::requestEditNode(AbstractPanelItem *item)
 void PanelScene::onEditingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode)
 {
 
-}
-
-void PanelScene::startItemSelection()
-{
-    modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
-
-    allowItemSelection(true);
-}
-
-void PanelScene::endItemSelection()
-{
-    clearSelection();
-
-    allowItemSelection(false);
-
-    // Disable item selection if not already done
-    if(modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
-        modeMgr()->setEditingSubMode(EditingSubMode::Default);
 }
 
 void PanelScene::allowItemSelection(bool enabled)
@@ -347,7 +347,7 @@ bool PanelScene::insertFragment(const QPointF &tileHint,
     const QPointF delta = fragmentOrigin - fragment.topLeftLocation;
 
     // Ensure we are default mode (clears previous selection)
-    modeMgr()->setEditingSubMode(EditingSubMode::Default);
+    clearSelection();
 
     // Really paste items
     QVector<AbstractPanelItem *> pastedItems;
@@ -651,98 +651,6 @@ void PanelScene::keyReleaseEvent(QKeyEvent *e)
 void PanelScene::mousePressEvent(QGraphicsSceneMouseEvent *e)
 {
     QGraphicsScene::mousePressEvent(e);
-}
-
-void PanelScene::drawBackground(QPainter *painter, const QRectF &rect)
-{
-    const QRectF sr = sceneRect();
-
-    // Actual scene background
-    QRectF bgRect = rect.intersected(sr);
-
-    if(!sr.contains(rect))
-    {
-        // Dark gray backgound outside of scene rect
-        painter->fillRect(rect, Qt::darkGray);
-    }
-
-    // Scene white background
-    painter->fillRect(bgRect, Qt::white);
-
-    if(panelsModel()->modeMgr()->mode() == FileMode::Editing)
-    {
-        // Draw grid lines in gray
-        QPen gridPen(Qt::gray, 2.0);
-        painter->setPen(gridPen);
-
-        const int ARR_SIZE = 100;
-        QLineF arr[ARR_SIZE];
-
-        const qreal x1 = bgRect.left();
-        const qreal x2 = bgRect.right();
-        const qreal t  = bgRect.top();
-        const qreal b  = bgRect.bottom();
-
-        const int minH = qCeil(sr.top() / TileLocation::Size);
-        const int maxH  = qFloor(sr.bottom() / TileLocation::Size);
-        const int minV = qCeil(sr.left() / TileLocation::Size);
-        const int maxV  = qFloor(sr.right() / TileLocation::Size);
-
-        if(minH > maxH || minV > maxV)
-            return; // Nothing to draw
-
-        int firstH = qCeil(t / TileLocation::Size) - 1;
-        int lastH  = qFloor(b / TileLocation::Size) + 1;
-        int firstV = qCeil(x1 / TileLocation::Size) - 1;
-        int lastV  = qFloor(x2 / TileLocation::Size) + 1;
-
-        firstH = qBound(minH, firstH, maxH);
-        lastH = qBound(minH, lastH, maxH);
-        firstV = qBound(minV, firstV, maxV);
-        lastV = qBound(minV, lastV, maxV);
-
-        const int horizN = lastH - firstH;
-        if (horizN > 0)
-        {
-            qreal y = firstH * TileLocation::Size;
-            int count = 0;
-            while(count < horizN)
-            {
-                int i = 0;
-                for (; i < ARR_SIZE; i++)
-                {
-                    arr[i] = QLineF(x1, y, x2, y);
-                    y += TileLocation::Size;
-
-                    if(count >= horizN)
-                        break;
-                    count++;
-                }
-                painter->drawLines(arr, i + 1);
-            }
-        }
-
-        const int vertN = lastV - firstV;
-        if (vertN > 0)
-        {
-            qreal x = firstV * TileLocation::Size;
-            int count = 0;
-            while(count < vertN)
-            {
-                int i = 0;
-                for (; i < ARR_SIZE; i++)
-                {
-                    arr[i] = QLineF(x, t, x, b);
-                    x += TileLocation::Size;
-
-                    if(count >= vertN)
-                        break;
-                    count++;
-                }
-                painter->drawLines(arr, i + 1);
-            }
-        }
-    }
 }
 
 PanelListModel *PanelScene::panelsModel() const

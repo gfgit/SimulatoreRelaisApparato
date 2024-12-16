@@ -33,6 +33,7 @@
 //#include "../graphs/special/acesasiblevergraphitem.h"
 
 #include "../graphs/lightrectitem.h"
+#include "../graphs/imagepanelitem.h"
 
 #include <QWidget>
 #include <QFormLayout>
@@ -41,6 +42,8 @@
 #include <QSpinBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QLineEdit>
+#include <QFileDialog>
 
 #include "../../views/modemanager.h"
 
@@ -184,6 +187,76 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
                 colorW->setColor(node->color());
             });
             lay->addRow(tr("Color:"), colorW);
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Image
+        PanelItemFactory::FactoryItem factory;
+        factory.needsName = PanelItemFactory::NeedsName::Never;
+        factory.nodeType = ImagePanelItem::ItemType;
+        factory.prettyName = tr("Image");
+        factory.create = &addNewNodeToScene<ImagePanelItem>;
+        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        {
+            ImagePanelItem *node = static_cast<ImagePanelItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Image File
+            QLineEdit *imageFileEdit = new QLineEdit;
+            lay->addRow(tr("Image File:"), imageFileEdit);
+
+            QPushButton *browseBut = new QPushButton(tr("Browse"));
+            lay->addRow(browseBut);
+
+            QPushButton *applyBut = new QPushButton(tr("Apply"));
+            lay->addRow(applyBut);
+
+            imageFileEdit->setText(node->imageFileName());
+
+            QObject::connect(applyBut, &QPushButton::clicked,
+                             node, [node, imageFileEdit]()
+            {
+                node->setImageFileName(imageFileEdit->text());
+            });
+
+            QObject::connect(browseBut, &QPushButton::clicked,
+                             imageFileEdit, [imageFileEdit]()
+            {
+                QString str = QFileDialog::getOpenFileName(imageFileEdit,
+                                                           tr("Choose PNG Image"),
+                                                           imageFileEdit->text());
+                imageFileEdit->setText(str);
+            });
+
+            // Scale
+            QDoubleSpinBox *scaleSpin = new QDoubleSpinBox;
+            scaleSpin->setRange(20, 400);
+            scaleSpin->setDecimals(2);
+            lay->addRow(tr("Scale:"), scaleSpin);
+
+            scaleSpin->setValue(node->imageScale() * 100.0);
+            scaleSpin->setSuffix(tr("%"));
+
+            QObject::connect(node, &ImagePanelItem::imageScaleChanged,
+                    w, [scaleSpin, node]()
+            {
+                scaleSpin->blockSignals(true);
+                scaleSpin->setValue(node->imageScale() * 100.0);
+                scaleSpin->blockSignals(false);
+            });
+
+            QObject::connect(scaleSpin, &QDoubleSpinBox::valueChanged,
+                    node, [node](double newScale)
+            {
+                node->setImageScale(newScale / 100.0);
+            });
 
             return w;
         };

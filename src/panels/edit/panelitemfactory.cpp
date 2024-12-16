@@ -107,13 +107,13 @@ void PanelItemFactory::editItem(QWidget *parent, AbstractPanelItem *item)
 
     // Position
     QDoubleSpinBox *xSpin = new QDoubleSpinBox;
-    xSpin->setRange(std::numeric_limits<double>::min(),
+    xSpin->setRange(-std::numeric_limits<double>::max(),
                    std::numeric_limits<double>::max());
     xSpin->setDecimals(5);
     lay->addRow(tr("X:"), xSpin);
 
     QDoubleSpinBox *ySpin = new QDoubleSpinBox;
-    ySpin->setRange(std::numeric_limits<double>::min(),
+    ySpin->setRange(-std::numeric_limits<double>::max(),
                    std::numeric_limits<double>::max());
     ySpin->setDecimals(5);
     lay->addRow(tr("Y:"), ySpin);
