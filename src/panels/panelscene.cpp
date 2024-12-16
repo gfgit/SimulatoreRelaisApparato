@@ -80,6 +80,9 @@ void PanelScene::setMode(FileMode newMode, FileMode oldMode)
                             int(Layers::EditingLightRects) :
                             int(Layers::LightRects));
 
+    if(!editing)
+        bringTop(nullptr); // Reset topmost item
+
     allowItemSelection(editing);
 
     // TODO: not really...
@@ -103,7 +106,6 @@ void PanelScene::addNode(AbstractPanelItem *item)
         if(editing)
         {
             lightItem->setZValue(int(Layers::EditingLightRects));
-            bringTop(lightItem);
         }
         else
             lightItem->setZValue(int(Layers::LightRects));
@@ -125,7 +127,7 @@ void PanelScene::removeNode(AbstractPanelItem *item)
     if(item->itemType() == LightRectItem::ItemType)
     {
         if(mTopLightRect == item)
-            mTopLightRect = nullptr;
+            bringTop(nullptr);
         mLightRects.removeOne(static_cast<LightRectItem *>(item));
     }
     else
@@ -172,9 +174,6 @@ void PanelScene::allowItemSelection(bool enabled)
 
 void PanelScene::onItemSelected(AbstractPanelItem *item, bool value)
 {
-    if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
-        return;
-
     if(value)
     {
         if(item->itemType() == LightRectItem::ItemType)
@@ -182,33 +181,23 @@ void PanelScene::onItemSelected(AbstractPanelItem *item, bool value)
     }
     else
     {
-
+        if(mTopLightRect == item)
+            bringTop(nullptr);
     }
 }
 
 void PanelScene::bringTop(LightRectItem *item)
 {
-    if(mTopLightRect == item)
-        return; // Already top
+    if(item == mTopLightRect)
+        return; // Already at top
 
     if(mTopLightRect)
-    {
-        // Move above of current top
-        item->stackBefore(mTopLightRect);
-    }
-    else
-    {
-        // No current top, check all items
-        for(LightRectItem *other : mLightRects)
-        {
-            if(other == item)
-                continue;
-
-            item->stackBefore(other);
-        }
-    }
+        mTopLightRect->setZValue(int(Layers::EditingLightRects));
 
     mTopLightRect = item;
+
+    if(mTopLightRect)
+        mTopLightRect->setZValue(int(Layers::TopMostLightRect));
 }
 
 void PanelScene::copySelectedItems()

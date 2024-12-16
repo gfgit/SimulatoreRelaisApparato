@@ -52,7 +52,8 @@ public:
         LightRects = 0,
         Images = 1,
         OtherItems = 2,
-        EditingLightRects = 3
+        EditingLightRects = 3,
+        TopMostLightRect = 4
     };
 
     explicit PanelScene(PanelListModel *parent);
