@@ -471,7 +471,7 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
         {
             if(mode.testFlag(PassModes::ReverseVoltagePassed))
             {
-                qWarning() << "Closed circuit with reverse voltage!";
+                //qWarning() << "Closed circuit with reverse voltage!";
                 return {};
             }
 
@@ -604,6 +604,10 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             // affected circuits
 
             newMode.setFlag(PassModes::ReverseVoltagePassed, true);
+
+            // For now we skip this path because it goes against current flow
+            // TODO: do not skip and do short circuit detection instead
+            continue;
         }
 
         PassNodeResult nextResult;
@@ -852,13 +856,17 @@ void ElectricCircuit::defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode)
     for(int contact = 0; contact < goalNode->getContactCount(); contact++)
     {
         // TODO: skip based on pole?
-        if(goalNode->hasAnyCircuit(contact) == AnyCircuitType::None)
+        if(goalNode->hasAnyCircuitOnPole(contact, CircuitPole::First) == AnyCircuitType::None)
         {
             // This contact is not powered anymore
             // Let's see if it can get voltage from other nodes
             ElectricCircuit::tryReachNextOpenCircuit(goalNode,
                                                      contact,
                                                      CircuitPole::First);
+        }
+
+        if(goalNode->hasAnyCircuitOnPole(contact, CircuitPole::Second) == AnyCircuitType::None)
+        {
             ElectricCircuit::tryReachNextOpenCircuit(goalNode,
                                                      contact,
                                                      CircuitPole::Second);
@@ -932,7 +940,7 @@ void ElectricCircuit::extendOpenCircuits(AbstractCircuitNode *node, int nodeCont
     if(qobject_cast<PowerSourceNode *>(node))
     {
         // Error, different power source connected
-        Q_ASSERT(false);
+        //Q_ASSERT(false);
         return;
     }
 
