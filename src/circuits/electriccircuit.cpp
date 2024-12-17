@@ -469,6 +469,12 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
     {
         if(nodeItem.node.fromPole == CircuitPole::Second)
         {
+            if(mode.testFlag(PassModes::ReverseVoltagePassed))
+            {
+                qWarning() << "Closed circuit with reverse voltage!";
+                return {};
+            }
+
             // We closed the circuit
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = items;
@@ -506,7 +512,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
         if(!conn.cable.cable)
         {
-            if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+            if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
+                                             conn.cable.pole) != AnyCircuitType::None)
                 continue; // Already has voltage
 
             if(mode.testFlag(PassModes::ReverseVoltagePassed))
@@ -530,7 +537,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
         if(!cableEnd.node)
         {
-            if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+            if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
+                                             conn.cable.pole) != AnyCircuitType::None)
                 continue; // Already has voltage
 
             if(mode.testFlag(PassModes::ReverseVoltagePassed))
@@ -583,7 +591,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             newMode.setFlag(PassModes::LoadPassed, true);
         }
 
-        if(cableEnd.node->hasAnyEntranceCircuit(cableEnd.nodeContact) != AnyCircuitType::None)
+        if(cableEnd.node->hasAnyExitCircuitOnPole(cableEnd.nodeContact,
+                                                  conn.cable.pole) == AnyCircuitType::Closed)
         {
             // We are going in, where another circuit goes out
             // So we are basically going towards higher potential
@@ -647,17 +656,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 {
     const QVector<ElectricCircuit *> openCircuitsCopy = node->getCircuits(CircuitType::Open);
 
-    // Search which nodes do not have any circuit.
+    // Search which node contacts do not have any circuit.
     // We look for new circuits on these nodes
     // and ignore the others.
-    QVarLengthArray<int, 4> unpoweredContacts;
-    for(int contact = 0; contact < node->getContactCount(); contact++)
-    {
-        if(node->hasAnyExitCircuit(contact) == AnyCircuitType::None)
-        {
-            unpoweredContacts.append(contact);
-        }
-    }
 
     for(ElectricCircuit *origCircuit : openCircuitsCopy)
     {
@@ -704,8 +705,11 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
             for(const auto& conn : connections)
             {
-                if(!unpoweredContacts.contains(conn.nodeContact))
+                if(node->hasAnyExitCircuitOnPole(conn.nodeContact, conn.cable.pole) != AnyCircuitType::None)
+                {
+                    // This contact has already power on this pole
                     continue;
+                }
 
                 if(conn.nodeContact == otherItem.node.toContact)
                     continue; // We should follow a different path
@@ -723,7 +727,8 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 if(!conn.cable.cable)
                 {
-                    if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                    if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
+                                                     conn.cable.pole) != AnyCircuitType::None)
                         continue; // Already has voltage
 
                     // Register an open circuit which passes through node
@@ -743,7 +748,8 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 if(!cableEnd.node)
                 {
-                    if(node->hasAnyExitCircuit(conn.nodeContact) != AnyCircuitType::None)
+                    if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
+                                                     conn.cable.pole) != AnyCircuitType::None)
                         continue; // Already has voltage
 
                     // Register an open circuit which passes through node
@@ -845,6 +851,7 @@ void ElectricCircuit::defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode)
 {
     for(int contact = 0; contact < goalNode->getContactCount(); contact++)
     {
+        // TODO: skip based on pole?
         if(goalNode->hasAnyCircuit(contact) == AnyCircuitType::None)
         {
             // This contact is not powered anymore
