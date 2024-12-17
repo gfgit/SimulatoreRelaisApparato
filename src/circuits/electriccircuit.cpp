@@ -887,12 +887,20 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
     nodeItem.node.toContact = nodeContact; // Backwards
     nodeItem.node.toPole = lastCable.pole;
 
-    if(node->hasCircuits(CircuitType::Open))
+    if(node->hasAnyEntranceCircuitOnPole(nodeItem.node.toContact,
+                                         nodeItem.node.toPole) == AnyCircuitType::Closed)
+    {
+        // We are going out were another circuits goes in
+        // This is not possible
+        return;
+    }
+
+    if(node->hasCircuits(CircuitType::Closed) || node->hasCircuits(CircuitType::Open))
     {
         // This node has voltage and it's connected to us
         // Maybe we can take voltage from it, towards us
         // TODO: avoid duplicates
-        extendOpenCircuits(node, nodeContact, items);
+        extendExistingCircuits(node, nodeContact, items);
         return;
     }
 
@@ -935,7 +943,7 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
     }
 }
 
-void ElectricCircuit::extendOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items)
+void ElectricCircuit::extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items)
 {
     if(qobject_cast<PowerSourceNode *>(node))
     {
@@ -946,57 +954,70 @@ void ElectricCircuit::extendOpenCircuits(AbstractCircuitNode *node, int nodeCont
 
     const CableContact lastCable = items.constLast().cable;
 
-    const QVector<ElectricCircuit *> openCircuitsCopy = node->getCircuits(CircuitType::Open);
+    const QVector<ElectricCircuit *> closedCircuitsCopy = node->getCircuits(CircuitType::Closed);
+    for(ElectricCircuit *otherCircuit : closedCircuitsCopy)
+    {
+        extendExistingCircuits_helper(node, nodeContact, items,
+                                      lastCable, otherCircuit);
+    }
 
+    const QVector<ElectricCircuit *> openCircuitsCopy = node->getCircuits(CircuitType::Open);
     for(ElectricCircuit *otherCircuit : openCircuitsCopy)
     {
-        for(int i = 0; i < otherCircuit->mItems.size(); i++)
-        {
-            // TODO: power source
+        extendExistingCircuits_helper(node, nodeContact, items,
+                                      lastCable, otherCircuit);
+    }
+}
 
-            const Item& otherItem = otherCircuit->mItems.at(i);
-            if(!otherItem.isNode || otherItem.node.node != node)
+void ElectricCircuit::extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items,
+                                                    const CableContact& lastCable, ElectricCircuit *otherCircuit)
+{
+    for(int i = 0; i < otherCircuit->mItems.size(); i++)
+    {
+        // TODO: power source
+
+        const Item& otherItem = otherCircuit->mItems.at(i);
+        if(!otherItem.isNode || otherItem.node.node != node)
+            continue;
+
+        // Let's see if this circuit can diverge and go to request contact
+
+        // Go forward
+        CableItem nodeSourceCable;
+        nodeSourceCable.cable = otherCircuit->mItems.at(i - 1).cable;
+        nodeSourceCable.nodeContact = otherItem.node.fromContact;
+        const auto connections = node->getActiveConnections(nodeSourceCable);
+
+        for(const auto& conn : connections)
+        {
+            if(conn.nodeContact != nodeContact)
                 continue;
 
-            // Let's see if this circuit can diverge and go to request contact
+            if(conn.cable.pole != lastCable.pole)
+                continue;
 
-            // Go forward
-            CableItem nodeSourceCable;
-            nodeSourceCable.cable = otherCircuit->mItems.at(i - 1).cable;
-            nodeSourceCable.nodeContact = otherItem.node.fromContact;
-            const auto connections = node->getActiveConnections(nodeSourceCable);
+            // This circuit can reach our node!
 
-            for(const auto& conn : connections)
-            {
-                if(conn.nodeContact != nodeContact)
-                    continue;
+            // Copy until cable before node
+            QVector<Item> newItems(otherCircuit->mItems.begin(),
+                                   otherCircuit->mItems.begin() + i);
 
-                if(conn.cable.pole != lastCable.pole)
-                    continue;
+            // Custom pass node to join with existing circuit
+            Item customNodeItem = otherItem;
+            customNodeItem.node.toContact = nodeContact;
+            customNodeItem.node.toPole = lastCable.pole;
 
-                // This circuit can reach our node!
+            newItems.append(customNodeItem);
 
-                // Copy until cable before node
-                QVector<Item> newItems(otherCircuit->mItems.begin(),
-                                       otherCircuit->mItems.begin() + i);
+            // Add previous searchd path from goal node (reversed)
+            for(auto it = items.crbegin(); it != items.crend(); it++)
+                newItems.append(*it);
 
-                // Custom pass node to join with existing circuit
-                Item customNodeItem = otherItem;
-                customNodeItem.node.toContact = nodeContact;
-                customNodeItem.node.toPole = lastCable.pole;
-
-                newItems.append(customNodeItem);
-
-                // Add previous searchd path from goal node (reversed)
-                for(auto it = items.crbegin(); it != items.crend(); it++)
-                    newItems.append(*it);
-
-                // Register new Open circuit
-                ElectricCircuit *circuit = new ElectricCircuit();
-                circuit->mItems = newItems;
-                circuit->mType = CircuitType::Open;
-                circuit->enableCircuit();
-            }
+            // Register new Open circuit
+            ElectricCircuit *circuit = new ElectricCircuit();
+            circuit->mItems = newItems;
+            circuit->mType = CircuitType::Open;
+            circuit->enableCircuit();
         }
     }
 }

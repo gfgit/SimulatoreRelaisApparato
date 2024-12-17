@@ -102,7 +102,10 @@ private:
 
     static void searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth);
 
-    static void extendOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items);
+    static void extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items);
+
+    static void extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items,
+                                              const CableContact& lastCable, ElectricCircuit *otherCircuit);
 
 private:
     QVector<Item> mItems;
