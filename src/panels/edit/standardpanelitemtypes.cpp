@@ -306,6 +306,17 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Left light:"), leftLightEdit);
 
+            // Left Light Color
+            ColorSelectionWidget *leftLightColor = new ColorSelectionWidget;
+
+            QObject::connect(leftLightColor, &ColorSelectionWidget::colorChanged,
+                             specialItem, [specialItem, leftLightColor]()
+            {
+                specialItem->setLeftLightColor(leftLightColor->color());
+            });
+
+            lay->addRow(tr("Left Color:"), leftLightColor);
+
             // Right Light
             SimulationObjectLineEdit *rightLightEdit =
                     new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
@@ -317,10 +328,24 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Right light:"), rightLightEdit);
 
-            auto updateLights = [specialItem, leftLightEdit, rightLightEdit]()
+            // Right Light Color
+            ColorSelectionWidget *rightLightColor = new ColorSelectionWidget;
+
+            QObject::connect(rightLightColor, &ColorSelectionWidget::colorChanged,
+                             specialItem, [specialItem, rightLightColor]()
+            {
+                specialItem->setRightLightColor(rightLightColor->color());
+            });
+
+            lay->addRow(tr("Right Color:"), rightLightColor);
+
+            auto updateLights = [specialItem, leftLightEdit, rightLightEdit,
+                    leftLightColor, rightLightColor]()
             {
                 leftLightEdit->setObject(specialItem->leftLight());
                 rightLightEdit->setObject(specialItem->rightLight());
+                leftLightColor->setColor(specialItem->leftLightColor());
+                rightLightColor->setColor(specialItem->rightLightColor());
             };
 
             QObject::connect(specialItem, &ACEILeverPanelItem::lightsChanged,

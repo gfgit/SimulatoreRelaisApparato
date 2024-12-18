@@ -58,6 +58,12 @@ public:
     LightBulbObject *rightLight() const;
     void setRightLight(LightBulbObject *newRightLight);
 
+    QColor leftLightColor() const;
+    void setLeftLightColor(const QColor &newLeftLightColor);
+
+    QColor rightLightColor() const;
+    void setRightLightColor(const QColor &newRightLightColor);
+
 signals:
     void leverChanged(AbstractSimulationObject *newLever);
     void lightsChanged();
@@ -79,13 +85,13 @@ private:
     void updateLeverTooltip();
 
 private:
-    static constexpr double baseCircleRadius = 32;
-    static constexpr double leverCircleRadius = 18;
-    static constexpr double leverTipLength = 32;
-    static constexpr double leverBottomLength = 24;
+    static constexpr double baseCircleRadius = 34;
+    static constexpr double leverCircleRadius = 20;
+    static constexpr double leverTipLength = 34;
+    static constexpr double leverBottomLength = 26;
 
-    static constexpr double lightCircleRadius = 12;
-    static constexpr double lightOffset = 16;
+    static constexpr double lightCircleRadius = 14;
+    static constexpr double lightOffset = 20;
 
 private:
     AbstractSimulationObject *mLever = nullptr;
@@ -93,6 +99,9 @@ private:
 
     LightBulbObject *mLeftLight = nullptr;
     LightBulbObject *mRightLight = nullptr;
+
+    QColor mLeftLightColor = Qt::yellow;
+    QColor mRightLightColor = Qt::blue;
 
     QPointF mLastMousePos;
 };

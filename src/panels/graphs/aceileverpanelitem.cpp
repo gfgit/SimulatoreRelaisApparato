@@ -84,7 +84,7 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     const QPointF center = br.center();
 
-    const QPointF leverCenter(center.x(), center.y() + lightOffset);
+    const QPointF leverCenter(center.x(), center.y());
 
     constexpr QRgb BorderColor = qRgb(97, 97, 97);
 
@@ -103,10 +103,8 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     if(mLeftLight)
     {
-        // White light (We draw yellow to have contrast)
-        // and because incandescent light bulb are never white
         if(mLeftLight->state() == LightBulbObject::State::On)
-            painter->setBrush(Qt::yellow);
+            painter->setBrush(mLeftLightColor);
         else
             painter->setBrush(Qt::NoBrush);
 
@@ -116,9 +114,8 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     if(mRightLight)
     {
-        // Blue light
         if(mRightLight->state() == LightBulbObject::State::On)
-            painter->setBrush(Qt::blue);
+            painter->setBrush(mRightLightColor);
         else
             painter->setBrush(Qt::NoBrush);
 
@@ -176,8 +173,8 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     QRectF textRect;
     textRect.setLeft(10);
-    textRect.setRight(br.left() - 10.0);
-    textRect.setTop(leverCenter.y() + 20.0);
+    textRect.setRight(br.width() - 10.0);
+    textRect.setTop(leverCenter.y() + baseCircleRadius);
     textRect.setBottom(br.bottom() - 4.0);
 
     Qt::Alignment textAlign = Qt::AlignLeft;
@@ -223,7 +220,7 @@ void ACEILeverPanelItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 {
     const QPointF center = boundingRect().center();
 
-    const QPointF leverCenter(center.x(), center.y() + lightOffset);
+    const QPointF leverCenter(center.x(), center.y());
 
     PanelScene *s = panelScene();
     if(s && s->modeMgr()->mode() != FileMode::Editing
@@ -316,6 +313,46 @@ void ACEILeverPanelItem::updateLeverTooltip()
             .arg(mLever->name(), posStr);
 
     setToolTip(tipText);
+}
+
+QColor ACEILeverPanelItem::rightLightColor() const
+{
+    return mRightLightColor;
+}
+
+void ACEILeverPanelItem::setRightLightColor(const QColor &newRightLightColor)
+{
+    if(mRightLightColor == newRightLightColor)
+        return;
+
+    mRightLightColor = newRightLightColor;
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit lightsChanged();
+}
+
+QColor ACEILeverPanelItem::leftLightColor() const
+{
+    return mLeftLightColor;
+}
+
+void ACEILeverPanelItem::setLeftLightColor(const QColor &newLeftLightColor)
+{
+    if(mLeftLightColor == newLeftLightColor)
+        return;
+
+    mLeftLightColor = newLeftLightColor;
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit lightsChanged();
 }
 
 LightBulbObject *ACEILeverPanelItem::leftLight() const
@@ -468,6 +505,13 @@ bool ACEILeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
         setRightLight(nullptr);
     }
 
+    // Color
+    QColor c = QColor::fromString(obj.value("light_left_color").toString());
+    setLeftLightColor(c.isValid() ? c : Qt::yellow);
+
+    c = QColor::fromString(obj.value("light_right_color").toString());
+    setRightLightColor(c.isValid() ? c : Qt::blue);
+
     return true;
 }
 
@@ -480,6 +524,10 @@ void ACEILeverPanelItem::saveToJSON(QJsonObject &obj) const
 
     obj["light_left"] = mLeftLight ? mLeftLight->name() : QString();
     obj["light_right"] = mRightLight ? mRightLight->name() : QString();
+
+    // Color
+    obj["light_left_color"] = mLeftLightColor.name(QColor::HexRgb);
+    obj["light_right_color"] = mRightLightColor.name(QColor::HexRgb);
 }
 
 void ACEILeverPanelItem::onLeverDestroyed()
