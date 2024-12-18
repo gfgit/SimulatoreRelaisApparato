@@ -1,5 +1,5 @@
 /**
- * src/panels/graphs/aceilevergraphitem.h
+ * src/panels/graphs/aceileverpanelitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,47 +20,36 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEILEVERGRAPHITEM_H
-#define ACEILEVERGRAPHITEM_H
+#ifndef ACEI_LEVER_PANELITEM_H
+#define ACEI_LEVER_PANELITEM_H
 
-#include "../abstractnodegraphitem.h"
-
-#include "../../nodes/onoffswitchnode.h"
+#include "../abstractpanelitem.h"
 
 class AbstractSimulationObject;
 class LeverInterface;
 
 class LightBulbObject;
 
-// TODO: this is a fake node
-class FakeLeverNode : public OnOffSwitchNode
-{
-public:
-    explicit FakeLeverNode(ModeManager *mgr, QObject *parent = nullptr)
-        : OnOffSwitchNode(mgr, parent)
-    {
-
-    }
-
-    static constexpr QLatin1String NodeType = QLatin1String("acei_lever");
-    QString nodeType() const override;
-};
-
-class ACEILeverGraphItem : public AbstractNodeGraphItem
+class ACEILeverPanelItem : public AbstractPanelItem
 {
     Q_OBJECT
 public:
-    typedef FakeLeverNode Node;
-    static constexpr QLatin1String CustomNodeType = QLatin1String("acei_lever");
+    static constexpr double ItemWidth = 100;
+    static constexpr double ItemHeight = 130;
 
-    explicit ACEILeverGraphItem(OnOffSwitchNode *node_);
+    explicit ACEILeverPanelItem();
+    ~ACEILeverPanelItem();
 
+    static constexpr QLatin1String ItemType = QLatin1String("acei_lever");
+    QString itemType() const override;
+
+    QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     AbstractSimulationObject *lever() const;
     void setLever(AbstractSimulationObject *newLever);
 
-    bool loadFromJSON(const QJsonObject& obj) override;
+    bool loadFromJSON(const QJsonObject& obj, ModeManager *mgr) override;
     void saveToJSON(QJsonObject& obj) const override;
 
     LightBulbObject *leftLight() const;
@@ -90,6 +79,15 @@ private:
     void updateLeverTooltip();
 
 private:
+    static constexpr double baseCircleRadius = 32;
+    static constexpr double leverCircleRadius = 18;
+    static constexpr double leverTipLength = 32;
+    static constexpr double leverBottomLength = 24;
+
+    static constexpr double lightCircleRadius = 12;
+    static constexpr double lightOffset = 16;
+
+private:
     AbstractSimulationObject *mLever = nullptr;
     LeverInterface *mLeverIface = nullptr;
 
@@ -99,4 +97,4 @@ private:
     QPointF mLastMousePos;
 };
 
-#endif // ACEILEVERGRAPHITEM_H
+#endif // ACEI_LEVER_PANELITEM_H

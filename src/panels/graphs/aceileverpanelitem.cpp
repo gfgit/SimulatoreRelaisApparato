@@ -1,5 +1,5 @@
 /**
- * src/panels/graphs/aceilevergraphitem.cpp
+ * src/panels/graphs/aceileverpanelitem.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,25 +20,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "aceilevergraphitem.h"
+#include "aceileverpanelitem.h"
+#include "../panelscene.h"
 
-//TODO: fake
-#include "../../nodes/onoffswitchnode.h"
-#include <QJsonObject>
+#include "../../objects/abstractsimulationobject.h"
+#include "../../objects/abstractsimulationobjectmodel.h"
 
-#include "../../../objects/abstractsimulationobject.h"
-#include "../../../objects/abstractsimulationobjectmodel.h"
+#include "../../objects/interfaces/leverinterface.h"
 
-#include "../../../objects/interfaces/leverinterface.h"
-
-#include "../../../objects/lever/acei/aceileverobject.h"
+#include "../../objects/lever/acei/aceileverobject.h"
 
 //TODO: remove BEM
-#include "../../../objects/lever/bem/bemleverobject.h"
+#include "../../objects/lever/bem/bemleverobject.h"
 
-#include "../../../objects/simple_activable/lightbulbobject.h"
+#include "../../objects/simple_activable/lightbulbobject.h"
 
-#include "../../../views/modemanager.h"
+#include "../../views/modemanager.h"
 
 #include <QGraphicsSceneMouseEvent>
 
@@ -47,15 +44,35 @@
 
 #include <QtMath>
 
-ACEILeverGraphItem::ACEILeverGraphItem(OnOffSwitchNode *node_)
-    : AbstractNodeGraphItem(node_)
+#include <QJsonObject>
+
+ACEILeverPanelItem::ACEILeverPanelItem()
+    : AbstractPanelItem()
 {
     updateLeverTooltip();
 }
 
-void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+ACEILeverPanelItem::~ACEILeverPanelItem()
 {
-    AbstractNodeGraphItem::paint(painter, option, widget);
+
+}
+
+QString ACEILeverPanelItem::itemType() const
+{
+    return ItemType;
+}
+
+QRectF ACEILeverPanelItem::boundingRect() const
+{
+    return QRectF(0, 0, ItemWidth, ItemHeight);
+}
+
+void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    const QRectF br = boundingRect();
+
+    if(isSelected())
+        painter->fillRect(br, SelectedBackground);
 
     // Zero is vertical up, so cos/sin are swapped
     // Also returned angle must be inverted to be clockwise
@@ -63,18 +80,9 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     const QPointF delta(qSin(angleRadiants),
                         qCos(angleRadiants));
 
-    constexpr QPointF center(TileLocation::HalfSize,
-                             TileLocation::HalfSize);
+    const QPointF center = br.center();
 
-    constexpr QPointF leverCenter(center.x(), center.y());
-
-    constexpr double baseCircleRadius = 32;
-    constexpr double leverCircleRadius = 18;
-    constexpr double leverTipLength = 32;
-    constexpr double leverBottomLength = 24;
-
-    constexpr double lightCircleRadius = 12;
-    constexpr double lightOffset = 16;
+    const QPointF leverCenter(center.x(), center.y() + lightOffset);
 
     // Draw dark gray border around
     QPen borderPen;
@@ -110,7 +118,7 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
         else
             painter->setBrush(Qt::NoBrush);
 
-        circle.moveCenter(QPointF(TileLocation::Size - lightOffset, lightOffset));
+        circle.moveCenter(QPointF(br.width() - lightOffset, lightOffset));
         painter->drawEllipse(circle);
     }
 
@@ -164,9 +172,9 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     QRectF textRect;
     textRect.setLeft(10);
-    textRect.setRight(TileLocation::Size - 10.0);
-    textRect.setTop(TileLocation::HalfSize + 20.0);
-    textRect.setBottom(TileLocation::Size - 4.0);
+    textRect.setRight(br.left() - 10.0);
+    textRect.setTop(leverCenter.y() + 20.0);
+    textRect.setBottom(br.bottom() - 4.0);
 
     Qt::Alignment textAlign = Qt::AlignLeft;
 
@@ -189,9 +197,10 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->drawText(textRect, textAlign, leverName);
 }
 
-void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
+void ACEILeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing
             && mLeverIface)
     {
         if(ev->button() == Qt::LeftButton)
@@ -203,15 +212,17 @@ void ACEILeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
         }
     }
 
-    AbstractNodeGraphItem::mousePressEvent(ev);
+    AbstractPanelItem::mousePressEvent(ev);
 }
 
-void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
+void ACEILeverPanelItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 {
-    constexpr QPointF center(TileLocation::HalfSize,
-                             TileLocation::HalfSize);
+    const QPointF center = boundingRect().center();
 
-    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
+    const QPointF leverCenter(center.x(), center.y() + lightOffset);
+
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing
             && mLeverIface)
     {
         if(ev->buttons() & Qt::LeftButton)
@@ -220,7 +231,7 @@ void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
             if(delta.manhattanLength() > 2)
             {
                 // Calculate angle
-                delta = center - ev->pos();
+                delta = leverCenter - ev->pos();
 
                 // Zero is vertical up, so x/y are swapped
                 // Also returned angle must be inverted to be clockwise
@@ -242,12 +253,13 @@ void ACEILeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
         }
     }
 
-    AbstractNodeGraphItem::mouseMoveEvent(ev);
+    AbstractPanelItem::mouseMoveEvent(ev);
 }
 
-void ACEILeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
+void ACEILeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing)
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing)
     {
         // We don't care about button
         // Also sometimes there are already no buttons
@@ -255,10 +267,10 @@ void ACEILeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
             mLeverIface->setPressed(false);
     }
 
-    AbstractNodeGraphItem::mouseReleaseEvent(ev);
+    AbstractPanelItem::mouseReleaseEvent(ev);
 }
 
-void ACEILeverGraphItem::updateLeverTooltip()
+void ACEILeverPanelItem::updateLeverTooltip()
 {
     if(!mLeverIface)
     {
@@ -302,12 +314,12 @@ void ACEILeverGraphItem::updateLeverTooltip()
     setToolTip(tipText);
 }
 
-LightBulbObject *ACEILeverGraphItem::leftLight() const
+LightBulbObject *ACEILeverPanelItem::leftLight() const
 {
     return mLeftLight;
 }
 
-void ACEILeverGraphItem::setLeftLight(LightBulbObject *newLeftLight)
+void ACEILeverPanelItem::setLeftLight(LightBulbObject *newLeftLight)
 {
     if(mLeftLight == newLeftLight)
         return;
@@ -315,9 +327,9 @@ void ACEILeverGraphItem::setLeftLight(LightBulbObject *newLeftLight)
     if(mLeftLight)
     {
         disconnect(mLeftLight, &LightBulbObject::stateChanged,
-                   this, &ACEILeverGraphItem::triggerUpdate);
+                   this, &ACEILeverPanelItem::triggerUpdate);
         disconnect(mLeftLight, &LightBulbObject::destroyed,
-                   this, &ACEILeverGraphItem::onLightDestroyed);
+                   this, &ACEILeverPanelItem::onLightDestroyed);
     }
 
     mLeftLight = newLeftLight;
@@ -325,22 +337,22 @@ void ACEILeverGraphItem::setLeftLight(LightBulbObject *newLeftLight)
     if(mLeftLight)
     {
         connect(mLeftLight, &LightBulbObject::stateChanged,
-                this, &ACEILeverGraphItem::triggerUpdate);
+                this, &ACEILeverPanelItem::triggerUpdate);
         connect(mLeftLight, &LightBulbObject::destroyed,
-                this, &ACEILeverGraphItem::onLightDestroyed);
+                this, &ACEILeverPanelItem::onLightDestroyed);
     }
 
-    getAbstractNode()->modeMgr()->setFileEdited();
+    panelScene()->modeMgr()->setFileEdited();
     update();
     emit lightsChanged();
 }
 
-LightBulbObject *ACEILeverGraphItem::rightLight() const
+LightBulbObject *ACEILeverPanelItem::rightLight() const
 {
     return mRightLight;
 }
 
-void ACEILeverGraphItem::setRightLight(LightBulbObject *newRightLight)
+void ACEILeverPanelItem::setRightLight(LightBulbObject *newRightLight)
 {
     if(mRightLight == newRightLight)
         return;
@@ -348,9 +360,9 @@ void ACEILeverGraphItem::setRightLight(LightBulbObject *newRightLight)
     if(mRightLight)
     {
         disconnect(mRightLight, &LightBulbObject::stateChanged,
-                   this, &ACEILeverGraphItem::triggerUpdate);
+                   this, &ACEILeverPanelItem::triggerUpdate);
         disconnect(mRightLight, &LightBulbObject::destroyed,
-                   this, &ACEILeverGraphItem::onLightDestroyed);
+                   this, &ACEILeverPanelItem::onLightDestroyed);
     }
 
     mRightLight = newRightLight;
@@ -358,22 +370,22 @@ void ACEILeverGraphItem::setRightLight(LightBulbObject *newRightLight)
     if(mRightLight)
     {
         connect(mRightLight, &LightBulbObject::stateChanged,
-                this, &ACEILeverGraphItem::triggerUpdate);
+                this, &ACEILeverPanelItem::triggerUpdate);
         connect(mRightLight, &LightBulbObject::destroyed,
-                this, &ACEILeverGraphItem::onLightDestroyed);
+                this, &ACEILeverPanelItem::onLightDestroyed);
     }
 
-    getAbstractNode()->modeMgr()->setFileEdited();
+    panelScene()->modeMgr()->setFileEdited();
     update();
     emit lightsChanged();
 }
 
-AbstractSimulationObject *ACEILeverGraphItem::lever() const
+AbstractSimulationObject *ACEILeverPanelItem::lever() const
 {
     return mLever;
 }
 
-void ACEILeverGraphItem::setLever(AbstractSimulationObject *newLever)
+void ACEILeverPanelItem::setLever(AbstractSimulationObject *newLever)
 {
     // TODO: remove BEM
     if(newLever && newLever->getType() != ACEILeverObject::Type && newLever->getType() != BEMLeverObject::Type)
@@ -382,13 +394,13 @@ void ACEILeverGraphItem::setLever(AbstractSimulationObject *newLever)
     if(mLever)
     {
         disconnect(mLever, &AbstractSimulationObject::destroyed,
-                   this, &ACEILeverGraphItem::onLeverDestroyed);
+                   this, &ACEILeverPanelItem::onLeverDestroyed);
         disconnect(mLever, &AbstractSimulationObject::stateChanged,
-                   this, &ACEILeverGraphItem::triggerUpdate);
+                   this, &ACEILeverPanelItem::triggerUpdate);
         disconnect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
-                   this, &ACEILeverGraphItem::onInterfacePropertyChanged);
+                   this, &ACEILeverPanelItem::onInterfacePropertyChanged);
         disconnect(mLever, &AbstractSimulationObject::settingsChanged,
-                   this, &ACEILeverGraphItem::triggerUpdate);
+                   this, &ACEILeverPanelItem::triggerUpdate);
         mLeverIface = nullptr;
     }
 
@@ -397,13 +409,13 @@ void ACEILeverGraphItem::setLever(AbstractSimulationObject *newLever)
     if(mLever)
     {
         connect(mLever, &AbstractSimulationObject::destroyed,
-                this, &ACEILeverGraphItem::onLeverDestroyed);
+                this, &ACEILeverPanelItem::onLeverDestroyed);
         connect(mLever, &AbstractSimulationObject::stateChanged,
-                this, &ACEILeverGraphItem::triggerUpdate);
+                this, &ACEILeverPanelItem::triggerUpdate);
         connect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
-                this, &ACEILeverGraphItem::onInterfacePropertyChanged);
+                this, &ACEILeverPanelItem::onInterfacePropertyChanged);
         connect(mLever, &AbstractSimulationObject::settingsChanged,
-                this, &ACEILeverGraphItem::triggerUpdate);
+                this, &ACEILeverPanelItem::triggerUpdate);
 
         mLeverIface = mLever->getInterface<LeverInterface>();
     }
@@ -413,23 +425,21 @@ void ACEILeverGraphItem::setLever(AbstractSimulationObject *newLever)
     emit leverChanged(mLever);
 }
 
-bool ACEILeverGraphItem::loadFromJSON(const QJsonObject &obj)
+bool ACEILeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
 {
-    QJsonObject objCopy = obj;
-
-    // Restore fake node type
-    objCopy["type"] = Node::NodeType;
+    if(!AbstractPanelItem::loadFromJSON(obj, mgr))
+        return false;
 
     const QString leverName = obj.value("lever").toString();
     const QString leverType = obj.value("lever_type").toString();
-    auto model = getAbstractNode()->modeMgr()->modelForType(leverType);
+    auto model = mgr->modelForType(leverType);
 
     if(model)
         setLever(model->getObjectByName(leverName));
     else
         setLever(nullptr);
 
-    auto lightModel = getAbstractNode()->modeMgr()->modelForType(LightBulbObject::Type);
+    auto lightModel = mgr->modelForType(LightBulbObject::Type);
     if(lightModel)
     {
         const QString leftLightName = obj.value("light_left").toString();
@@ -444,15 +454,12 @@ bool ACEILeverGraphItem::loadFromJSON(const QJsonObject &obj)
         setRightLight(nullptr);
     }
 
-    return AbstractNodeGraphItem::loadFromJSON(objCopy);
+    return true;
 }
 
-void ACEILeverGraphItem::saveToJSON(QJsonObject &obj) const
+void ACEILeverPanelItem::saveToJSON(QJsonObject &obj) const
 {
-    AbstractNodeGraphItem::saveToJSON(obj);
-
-    // Replace fake node type with ours
-    obj["type"] = CustomNodeType;
+    AbstractPanelItem::saveToJSON(obj);
 
     obj["lever"] = mLever ? mLever->name() : QString();
     obj["lever_type"] = mLever ? mLever->getType() : QString();
@@ -461,7 +468,7 @@ void ACEILeverGraphItem::saveToJSON(QJsonObject &obj) const
     obj["light_right"] = mRightLight ? mRightLight->name() : QString();
 }
 
-void ACEILeverGraphItem::onLeverDestroyed()
+void ACEILeverPanelItem::onLeverDestroyed()
 {
     mLever = nullptr;
     mLeverIface = nullptr;
@@ -469,7 +476,7 @@ void ACEILeverGraphItem::onLeverDestroyed()
     emit leverChanged(mLever);
 }
 
-void ACEILeverGraphItem::onLightDestroyed()
+void ACEILeverPanelItem::onLightDestroyed()
 {
     if(sender() == mLeftLight)
         setLeftLight(nullptr);
@@ -477,7 +484,7 @@ void ACEILeverGraphItem::onLightDestroyed()
         setRightLight(nullptr);
 }
 
-void ACEILeverGraphItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
+void ACEILeverPanelItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
 {
     if(ifaceName == LeverInterface::IfaceType)
     {
@@ -489,9 +496,4 @@ void ACEILeverGraphItem::onInterfacePropertyChanged(const QString &ifaceName, co
             updateLeverTooltip();
         }
     }
-}
-
-QString FakeLeverNode::nodeType() const
-{
-    return FakeLeverNode::NodeType;
 }

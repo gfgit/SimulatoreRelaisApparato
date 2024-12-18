@@ -27,13 +27,16 @@
 
 #include "../abstractpanelitem.h"
 
-// TODO: special
+// TODO: port to panel
 //#include "../graphs/special/aceibuttongraphitem.h"
-//#include "../graphs/special/aceilevergraphitem.h"
 //#include "../graphs/special/acesasiblevergraphitem.h"
 
+// Special items
 #include "../graphs/lightrectitem.h"
 #include "../graphs/imagepanelitem.h"
+
+// Other items
+#include "../graphs/aceileverpanelitem.h"
 
 #include <QWidget>
 #include <QFormLayout>
@@ -107,7 +110,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             hSpin->setValue(node->rect().height());
 
             QObject::connect(node, &LightRectItem::rectChanged,
-                    w, [wSpin, hSpin, node]()
+                             w, [wSpin, hSpin, node]()
             {
                 wSpin->blockSignals(true);
                 wSpin->setValue(node->rect().width());
@@ -119,7 +122,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             });
 
             QObject::connect(wSpin, &QDoubleSpinBox::valueChanged,
-                    node, [node](double newW)
+                             node, [node](double newW)
             {
                 QRectF r = node->rect();
                 r.setWidth(newW);
@@ -127,7 +130,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             });
 
             QObject::connect(hSpin, &QDoubleSpinBox::valueChanged,
-                    node, [node](double newH)
+                             node, [node](double newH)
             {
                 QRectF r = node->rect();
                 r.setHeight(newH);
@@ -143,7 +146,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             rSpin->setValue(node->rotation());
 
             QObject::connect(node, &LightRectItem::rotationChanged,
-                    w, [rSpin, node]()
+                             w, [rSpin, node]()
             {
                 rSpin->blockSignals(true);
                 rSpin->setValue(node->rotation());
@@ -151,7 +154,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             });
 
             QObject::connect(rSpin, &QDoubleSpinBox::valueChanged,
-                    node, [node](double newR)
+                             node, [node](double newR)
             {
                 node->setRotation(newR);
             });
@@ -245,7 +248,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             scaleSpin->setSuffix(tr("%"));
 
             QObject::connect(node, &ImagePanelItem::imageScaleChanged,
-                    w, [scaleSpin, node]()
+                             w, [scaleSpin, node]()
             {
                 scaleSpin->blockSignals(true);
                 scaleSpin->setValue(node->imageScale() * 100.0);
@@ -253,10 +256,77 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             });
 
             QObject::connect(scaleSpin, &QDoubleSpinBox::valueChanged,
-                    node, [node](double newScale)
+                             node, [node](double newScale)
             {
                 node->setImageScale(newScale / 100.0);
             });
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // ACEI Lever
+        PanelItemFactory::FactoryItem factory;
+        factory.needsName = PanelItemFactory::NeedsName::Never;
+        factory.nodeType = ACEILeverPanelItem::ItemType;
+        factory.prettyName = tr("ACEI Lever");
+        factory.create = &addNewNodeToScene<ACEILeverPanelItem>;
+        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        {
+            ACEILeverPanelItem *specialItem = static_cast<ACEILeverPanelItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Lever
+            // TODO: remove BEM
+            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr, {ACEILeverObject::Type, BEMLeverObject::Type});
+            QObject::connect(specialItem, &ACEILeverPanelItem::leverChanged,
+                             leverEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setLever(obj);
+            });
+            leverEdit->setObject(specialItem->lever());
+
+            lay->addRow(tr("Lever:"), leverEdit);
+
+            // Left Light
+            SimulationObjectLineEdit *leftLightEdit =
+                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+            QObject::connect(leftLightEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setLeftLight(static_cast<LightBulbObject *>(obj));
+            });
+
+            lay->addRow(tr("Left light:"), leftLightEdit);
+
+            // Right Light
+            SimulationObjectLineEdit *rightLightEdit =
+                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+            QObject::connect(rightLightEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setRightLight(static_cast<LightBulbObject *>(obj));
+            });
+
+            lay->addRow(tr("Right light:"), rightLightEdit);
+
+            auto updateLights = [specialItem, leftLightEdit, rightLightEdit]()
+            {
+                leftLightEdit->setObject(specialItem->leftLight());
+                rightLightEdit->setObject(specialItem->rightLight());
+            };
+
+            QObject::connect(specialItem, &ACEILeverPanelItem::lightsChanged,
+                             w, updateLights);
+
+            updateLights();
 
             return w;
         };
@@ -330,73 +400,6 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             };
 
             QObject::connect(specialItem, &ACEIButtonGraphItem::lightsChanged,
-                             w, updateLights);
-
-            updateLights();
-
-            return w;
-        };
-
-        factoryReg->registerFactory(factory);
-    }
-
-    {
-        // ACEI Lever
-        PanelItemFactory::FactoryItem factory;
-        factory.needsName = PanelItemFactory::NeedsName::Never;
-        factory.nodeType = ACEILeverGraphItem::CustomNodeType;
-        factory.prettyName = tr("ACEI Lever");
-        factory.create = &addNewNodeToScene<ACEILeverGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
-        {
-            ACEILeverGraphItem *specialItem = static_cast<ACEILeverGraphItem *>(item);
-
-            QWidget *w = new QWidget;
-            QFormLayout *lay = new QFormLayout(w);
-
-            // Lever
-            // TODO: remove BEM
-            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr, {ACEILeverObject::Type, BEMLeverObject::Type});
-            QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
-                             leverEdit, &SimulationObjectLineEdit::setObject);
-            QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
-            {
-                specialItem->setLever(obj);
-            });
-            leverEdit->setObject(specialItem->lever());
-
-            lay->addRow(tr("Lever:"), leverEdit);
-
-            // Left Light
-            SimulationObjectLineEdit *leftLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
-            QObject::connect(leftLightEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
-            {
-                specialItem->setLeftLight(static_cast<LightBulbObject *>(obj));
-            });
-
-            lay->addRow(tr("Left light:"), leftLightEdit);
-
-            // Right Light
-            SimulationObjectLineEdit *rightLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
-            QObject::connect(rightLightEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
-            {
-                specialItem->setRightLight(static_cast<LightBulbObject *>(obj));
-            });
-
-            lay->addRow(tr("Right light:"), rightLightEdit);
-
-            auto updateLights = [specialItem, leftLightEdit, rightLightEdit]()
-            {
-                leftLightEdit->setObject(specialItem->leftLight());
-                rightLightEdit->setObject(specialItem->rightLight());
-            };
-
-            QObject::connect(specialItem, &ACEILeverGraphItem::lightsChanged,
                              w, updateLights);
 
             updateLights();

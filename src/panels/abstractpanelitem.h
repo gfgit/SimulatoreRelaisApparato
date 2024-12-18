@@ -34,11 +34,15 @@ class AbstractPanelItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
+    static constexpr QRgb SelectedBackground = qRgb(180, 255, 255);
+
     AbstractPanelItem();
 
     QRectF boundingRect() const override;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
+
+    QPainterPath opaqueArea() const override;
 
     PanelScene *panelScene() const;
 

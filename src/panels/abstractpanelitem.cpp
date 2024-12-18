@@ -55,6 +55,11 @@ void AbstractPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem 
     }
 }
 
+QPainterPath AbstractPanelItem::opaqueArea() const
+{
+    return shape();
+}
+
 void AbstractPanelItem::triggerUpdate()
 {
     update();

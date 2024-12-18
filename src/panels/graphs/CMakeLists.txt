@@ -6,8 +6,8 @@ set(SIMULATORE_RELAIS_SOURCES
     # panels/graphs/aceibuttongraphitem.cpp
     # panels/graphs/aceibuttongraphitem.h
 
-    # panels/graphs/aceilevergraphitem.cpp
-    # panels/graphs/aceilevergraphitem.h
+    panels/graphs/aceileverpanelitem.cpp
+    panels/graphs/aceileverpanelitem.h
 
     # panels/graphs/acesasiblevergraphitem.cpp
     # panels/graphs/acesasiblevergraphitem.h
