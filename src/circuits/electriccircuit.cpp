@@ -715,12 +715,6 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
             for(const auto& conn : connections)
             {
-                if(node->hasAnyExitCircuitOnPole(conn.nodeContact, conn.cable.pole) != AnyCircuitType::None)
-                {
-                    // This contact has already power on this pole
-                    continue;
-                }
-
                 if(conn.nodeContact == otherItem.node.toContact)
                     continue; // We should follow a different path
 
