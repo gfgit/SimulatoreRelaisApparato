@@ -54,7 +54,9 @@ ACEILeverPanelItem::ACEILeverPanelItem()
 
 ACEILeverPanelItem::~ACEILeverPanelItem()
 {
-
+    setLeftLight(nullptr);
+    setRightLight(nullptr);
+    setLever(nullptr);
 }
 
 QString ACEILeverPanelItem::itemType() const
