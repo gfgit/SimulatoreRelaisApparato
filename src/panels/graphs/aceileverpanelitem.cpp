@@ -86,10 +86,12 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     const QPointF leverCenter(center.x(), center.y() + lightOffset);
 
+    constexpr QRgb BorderColor = qRgb(97, 97, 97);
+
     // Draw dark gray border around
     QPen borderPen;
     borderPen.setWidth(3);
-    borderPen.setColor(Qt::darkGray);
+    borderPen.setColor(BorderColor);
     painter->setPen(borderPen);
     painter->setBrush(Qt::NoBrush);
     painter->drawRect(boundingRect());
@@ -133,7 +135,7 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->drawEllipse(circle);
 
     // Draw lever
-    QColor color = qRgb(77, 77, 77); // Dark gray
+    QColor color = qRgb(77, 77, 77); // Medium Dark gray
     if(!mLeverIface || mLeverIface->isPressed())
         color = Qt::blue;
 
@@ -344,7 +346,10 @@ void ACEILeverPanelItem::setLeftLight(LightBulbObject *newLeftLight)
                 this, &ACEILeverPanelItem::onLightDestroyed);
     }
 
-    panelScene()->modeMgr()->setFileEdited();
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
     update();
     emit lightsChanged();
 }
@@ -377,7 +382,10 @@ void ACEILeverPanelItem::setRightLight(LightBulbObject *newRightLight)
                 this, &ACEILeverPanelItem::onLightDestroyed);
     }
 
-    panelScene()->modeMgr()->setFileEdited();
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
     update();
     emit lightsChanged();
 }
@@ -421,6 +429,10 @@ void ACEILeverPanelItem::setLever(AbstractSimulationObject *newLever)
 
         mLeverIface = mLever->getInterface<LeverInterface>();
     }
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
 
     updateLeverTooltip();
 
