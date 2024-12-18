@@ -32,10 +32,13 @@
 class MainWindow;
 
 class CircuitWidget;
-
 class CircuitScene;
 class AbstractNodeGraphItem;
 class CableGraphItem;
+
+class PanelWidget;
+class PanelScene;
+class AbstractPanelItem;
 
 class AbstractSimulationObject;
 
@@ -48,55 +51,83 @@ class ViewManager : public QObject
 {
     Q_OBJECT
 public:
+    enum class ViewType
+    {
+        Circuit = 0,
+        Panel = 1
+    };
+
     typedef KDDockWidgets::QtWidgets::DockWidget DockWidget;
 
     explicit ViewManager(MainWindow *parent);
     ~ViewManager();
 
+    // Circuits
     CircuitWidget *activeCircuitView() const;
-
     CircuitWidget *addCircuitView(CircuitScene *scene,
                                   bool forceNew = false);
-
     void showCircuitSceneEdit(CircuitScene *scene);
+
+    // Panels
+    PanelWidget *activePanelView() const;
+    PanelWidget *addPanelView(PanelScene *scene, bool forceNew);
+    void showPanelSceneEdit(PanelScene *scene);
+
+    // Objects
     void showObjectEdit(AbstractSimulationObject *item);
 
     void closeAllEditDocks();
     void closeAllFileSpecificDocks();
     void closeAll();
 
+    ViewType currentViewType() const;
+
+signals:
+    void currentViewTypeChanged(ViewType newVal);
+
 public slots:
-    void startEditNEwCableOnActiveView();
+    void startEditNewCableOnActiveView();
     void addNodeToActiveView(const QString& nodeType);
     void showCircuitListView();
+    void showPanelListView();
     void showObjectListView(const QString &objType);
 
 private slots:
     void onCircuitViewDestroyed(QObject *obj);
-
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);
+
+    void panelItemEditRequested(AbstractPanelItem *item);
+    void onPanelViewDestroyed(QObject *obj);
 
     void onFileModeChanged(FileMode mode, FileMode oldMode);
 
 private:
-    friend class CircuitWidget;
-    void setActiveCircuit(CircuitWidget *w);
-
-    void updateDockName(CircuitWidget *w);
-
     MainWindow *mainWin();
 
+    void setCurrentViewType(ViewType newCurrentViewType);
+
+    friend class CircuitWidget;
+    void setActiveCircuit(CircuitWidget *w);
+    void updateDockName(CircuitWidget *w);
     int getUniqueNum(CircuitScene *scene, CircuitWidget *self) const;
+
+    friend class PanelWidget;
+    void setActivePanel(PanelWidget *w);
+    void updateDockName(PanelWidget *w);
+    int getUniqueNum(PanelScene *scene, PanelWidget *self) const;
 
 private:
     // File specific views
     CircuitWidget *mActiveCircuitView = nullptr;
-
     QHash<CircuitWidget *, DockWidget *> mCircuitViews;
+
+    PanelWidget *mActivePanelView = nullptr;
+    QHash<PanelWidget *, DockWidget *> mPanelViews;
 
     // Edit views
     QHash<CircuitScene *, DockWidget *> mCircuitEdits;
+    QHash<PanelScene *, DockWidget *> mPanelEdits;
 
     QHash<AbstractSimulationObject *, DockWidget *> mObjectEdits;
 
@@ -104,6 +135,9 @@ private:
     QHash<QString, DockWidget *> mObjectListDocks;
 
     QPointer<DockWidget> mCircuitListViewDock;
+    QPointer<DockWidget> mPanelListViewDock;
+
+    ViewType mCurrentViewType = ViewType::Circuit;
 };
 
 #endif // VIEWMANAGER_H

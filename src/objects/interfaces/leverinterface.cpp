@@ -355,7 +355,7 @@ int LeverInterface::closestPosition(int newAngle, bool allowMiddle) const
         toPos = mAbsoluteMax;
     }
 
-    if(fromPos < toPos)
+    if(fromPos <= toPos)
     {
         for(int i = fromPos; i <= toPos; i++)
         {

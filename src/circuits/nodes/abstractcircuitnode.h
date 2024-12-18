@@ -52,37 +52,37 @@ public:
         CableSide cableSide = CableSide::A;
         ContactType type1 = ContactType::NotConnected;
         ContactType type2 = ContactType::NotConnected;
-        int closedCircuitEntranceCount = 0;
-        int openCircuitEntranceCount = 0;
-        int closedCircuitExitCount = 0;
-        int openCircuitExitCount = 0;
+        uint16_t closedCircuitEntranceCount[2] = {0, 0};
+        uint16_t openCircuitEntranceCount[2] = {0, 0};
+        uint16_t closedCircuitExitCount[2] = {0, 0};
+        uint16_t openCircuitExitCount[2] = {0, 0};
 
-        inline int& entranceCount(CircuitType type)
+        inline uint16_t& entranceCount(CircuitType type, CircuitPole pole)
         {
             return type == CircuitType::Closed ?
-                        closedCircuitEntranceCount :
-                        openCircuitEntranceCount;
+                        closedCircuitEntranceCount[int(pole)] :
+                        openCircuitEntranceCount[int(pole)];
         }
 
-        inline int entranceCount(CircuitType type) const
+        inline uint16_t entranceCount(CircuitType type, CircuitPole pole) const
         {
             return type == CircuitType::Closed ?
-                        closedCircuitEntranceCount :
-                        openCircuitEntranceCount;
+                        closedCircuitEntranceCount[int(pole)] :
+                        openCircuitEntranceCount[int(pole)];
         }
 
-        inline int& exitCount(CircuitType type)
+        inline uint16_t& exitCount(CircuitType type, CircuitPole pole)
         {
             return type == CircuitType::Closed ?
-                        closedCircuitExitCount :
-                        openCircuitExitCount;
+                        closedCircuitExitCount[int(pole)] :
+                        openCircuitExitCount[int(pole)];
         }
 
-        inline int exitCount(CircuitType type) const
+        inline uint16_t exitCount(CircuitType type, CircuitPole pole) const
         {
             return type == CircuitType::Closed ?
-                        closedCircuitExitCount :
-                        openCircuitExitCount;
+                        closedCircuitExitCount[int(pole)] :
+                        openCircuitExitCount[int(pole)];
         }
 
         inline ContactType getType(CircuitPole pole) const
@@ -133,25 +133,45 @@ public:
         return getCircuits(type).size() > 0;
     }
 
-    inline bool hasEntranceCircuit(int nodeContact,
-                           CircuitType type = CircuitType::Closed) const
+    inline bool hasEntranceCircuitOnPole(int nodeContact,
+                                         CircuitPole pole,
+                                         CircuitType type = CircuitType::Closed) const
     {
         Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
-        return mContacts.at(nodeContact).entranceCount(type) > 0;
+        return mContacts.at(nodeContact).entranceCount(type, pole) > 0;
     }
 
-    inline bool hasExitCircuit(int nodeContact,
-                           CircuitType type = CircuitType::Closed) const
+    inline bool hasExitCircuitOnPole(int nodeContact,
+                                     CircuitPole pole,
+                                     CircuitType type = CircuitType::Closed) const
     {
         Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
-        return mContacts.at(nodeContact).exitCount(type) > 0;
+        return mContacts.at(nodeContact).exitCount(type, pole) > 0;
+    }
+
+    inline bool hasCircuitOnPole(int nodeContact,
+                                 CircuitPole pole,
+                                 CircuitType type = CircuitType::Closed) const
+    {
+        return hasEntranceCircuitOnPole(nodeContact, pole, type) ||
+                hasExitCircuitOnPole(nodeContact, pole, type);
     }
 
     inline bool hasCircuit(int nodeContact,
                            CircuitType type = CircuitType::Closed) const
     {
-        return hasEntranceCircuit(nodeContact, type) ||
-                hasExitCircuit(nodeContact, type);
+        return hasCircuitOnPole(nodeContact, CircuitPole::First, type) ||
+                hasCircuitOnPole(nodeContact, CircuitPole::Second, type);
+    }
+
+    inline AnyCircuitType hasAnyCircuitOnPole(int nodeContact,
+                                              CircuitPole pole) const
+    {
+        if(hasCircuitOnPole(nodeContact, pole, CircuitType::Closed))
+            return AnyCircuitType::Closed;
+        if(hasCircuitOnPole(nodeContact, pole, CircuitType::Open))
+            return AnyCircuitType::Open;
+        return AnyCircuitType::None;
     }
 
     inline AnyCircuitType hasAnyCircuit(int nodeContact) const
@@ -163,20 +183,22 @@ public:
         return AnyCircuitType::None;
     }
 
-    inline AnyCircuitType hasAnyEntranceCircuit(int nodeContact) const
+    inline AnyCircuitType hasAnyEntranceCircuitOnPole(int nodeContact,
+                                                      CircuitPole pole) const
     {
-        if(hasExitCircuit(nodeContact, CircuitType::Closed))
+        if(hasExitCircuitOnPole(nodeContact, pole, CircuitType::Closed))
             return AnyCircuitType::Closed;
-        if(hasExitCircuit(nodeContact, CircuitType::Open))
+        if(hasExitCircuitOnPole(nodeContact, pole, CircuitType::Open))
             return AnyCircuitType::Open;
         return AnyCircuitType::None;
     }
 
-    inline AnyCircuitType hasAnyExitCircuit(int nodeContact) const
+    inline AnyCircuitType hasAnyExitCircuitOnPole(int nodeContact,
+                                                  CircuitPole pole) const
     {
-        if(hasExitCircuit(nodeContact, CircuitType::Closed))
+        if(hasExitCircuitOnPole(nodeContact, pole, CircuitType::Closed))
             return AnyCircuitType::Closed;
-        if(hasExitCircuit(nodeContact, CircuitType::Open))
+        if(hasExitCircuitOnPole(nodeContact, pole, CircuitType::Open))
             return AnyCircuitType::Open;
         return AnyCircuitType::None;
     }

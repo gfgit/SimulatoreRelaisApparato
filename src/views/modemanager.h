@@ -32,6 +32,9 @@
 class NodeEditFactory;
 class CircuitListModel;
 
+class PanelItemFactory;
+class PanelListModel;
+
 class SimulationObjectFactory;
 class AbstractSimulationObjectModel;
 
@@ -70,8 +73,10 @@ public:
     void resetFileEdited();
 
     NodeEditFactory *circuitFactory() const;
-
     CircuitListModel *circuitList() const;
+
+    PanelItemFactory *panelFactory() const;
+    PanelListModel *panelList() const;
 
     bool loadFromJSON(const QJsonObject &obj);
     void saveToJSON(QJsonObject &obj) const;
@@ -99,6 +104,9 @@ private:
 
     NodeEditFactory *mCircuitFactory;
     CircuitListModel *mCircuitList;
+
+    PanelItemFactory *mPanelItemFactory;
+    PanelListModel *mPanelList;
 
     QHash<QString, AbstractSimulationObjectModel*> mObjectModels;
 

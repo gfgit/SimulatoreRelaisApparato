@@ -41,6 +41,7 @@
 #include "views/modemanager.h"
 
 #include "circuits/edit/nodeeditfactory.h"
+#include "panels/edit/panelitemfactory.h"
 #include "objects/simulationobjectfactory.h"
 
 static constexpr const char *allFiles =
@@ -62,6 +63,9 @@ MainWindow::MainWindow(const QString& uniqueName_, const QString& settingsFile_,
             this, &MainWindow::onFileModeChanged);
     connect(mModeMgr, &ModeManager::fileEdited,
             this, &MainWindow::updateWindowModified);
+
+    connect(mViewMgr, &ViewManager::currentViewTypeChanged,
+            this, &MainWindow::showCurrentEditToolbars);
 
     buildMenuBar();
 
@@ -134,9 +138,12 @@ void MainWindow::buildMenuBar()
     QMenu *menuView = menuBar()->addMenu(tr("View"));
 
     QAction *showCircuitList = menuView->addAction(tr("Circuit list"));
-
     connect(showCircuitList, &QAction::triggered,
             mViewMgr, &ViewManager::showCircuitListView);
+
+    QAction *showPanelList = menuView->addAction(tr("Panel list"));
+    connect(showPanelList, &QAction::triggered,
+            mViewMgr, &ViewManager::showPanelListView);
 
     QMenu *menuViewObject = menuView->addMenu(tr("Object List"));
 
@@ -178,68 +185,114 @@ void MainWindow::buildMenuBar()
 
 void MainWindow::buildEditToolBar()
 {
-    Q_ASSERT(!editToolbar1 && !editToolbar2);
+    // Circuits
+    Q_ASSERT(!circuitEditToolbar1 && !circuitEditToolbar2);
 
     // Use 2 Toolbars to show actions in 2 rows
-    editToolbar1 = new QToolBar(tr("Edit Tools 1"));
-    editToolbar2 = new QToolBar(tr("Edit Tools 2"));
-    addToolBar(Qt::TopToolBarArea, editToolbar1);
-    insertToolBar(editToolbar1, editToolbar2);
-    insertToolBarBreak(editToolbar1);
+    circuitEditToolbar1 = new QToolBar(tr("Circuit Tools 1"));
+    circuitEditToolbar2 = new QToolBar(tr("Circuit Tools 2"));
+    addToolBar(Qt::TopToolBarArea, circuitEditToolbar1);
+    insertToolBar(circuitEditToolbar1, circuitEditToolbar2);
+    insertToolBarBreak(circuitEditToolbar1);
 
-    QAction *newItem = new QAction(tr("New Item"));
-    QMenu *newItemMenu = new QMenu;
-    newItem->setMenu(newItemMenu);
-    editToolbar1->addAction(newItem);
-    editToolbar1->addSeparator();
+    QAction *newCircuitItem = new QAction(tr("New Circuit Item"));
+    QMenu *newCircuitItemMenu = new QMenu;
+    newCircuitItem->setMenu(newCircuitItemMenu);
+    circuitEditToolbar1->addAction(newCircuitItem);
+    circuitEditToolbar1->addSeparator();
 
-    QVector<QAction *> addItemActions;
+    QVector<QAction *> addCircuitItemActions;
 
-    auto editFactory = mModeMgr->circuitFactory();
-    for(const QString& nodeType : editFactory->getRegisteredTypes())
+    auto circuitEditFactory = mModeMgr->circuitFactory();
+    for(const QString& nodeType : circuitEditFactory->getRegisteredTypes())
     {
-        QString title = tr("New %1").arg(editFactory->prettyName(nodeType));
+        QString title = tr("%1").arg(circuitEditFactory->prettyName(nodeType));
 
-        QAction *act = newItemMenu->addAction(title);
+        QAction *act = newCircuitItemMenu->addAction(title);
         connect(act, &QAction::triggered, mViewMgr,
                 [nodeType, this]()
         {
             mViewMgr->addNodeToActiveView(nodeType);
         });
 
-        addItemActions.append(act);
+        addCircuitItemActions.append(act);
     }
 
-    QAction *newCableAct = newItemMenu->addAction(tr("New Cable"));
+    QAction *newCableAct = newCircuitItemMenu->addAction(tr("Cable"));
     connect(newCableAct, &QAction::triggered,
-            mViewMgr, &ViewManager::startEditNEwCableOnActiveView);
+            mViewMgr, &ViewManager::startEditNewCableOnActiveView);
 
-    addItemActions.append(newCableAct);
+    addCircuitItemActions.append(newCableAct);
 
     int i = 0;
-    for(QAction *act : std::as_const(addItemActions))
+    for(QAction *act : std::as_const(addCircuitItemActions))
     {
-        if(i < addItemActions.size() / 2)
-            editToolbar1->addAction(act);
+        if(i < addCircuitItemActions.size() / 2)
+            circuitEditToolbar1->addAction(act);
         else
-            editToolbar2->addAction(act);
+            circuitEditToolbar2->addAction(act);
         i++;
     }
+
+    // Panels
+    Q_ASSERT(!panelEditToolbar1);
+
+    panelEditToolbar1 = new QToolBar(tr("Panel Tools 1"));
+    insertToolBarBreak(circuitEditToolbar2);
+    insertToolBar(circuitEditToolbar2, panelEditToolbar1);
+
+    QAction *newPanelItem = new QAction(tr("New Panel Item"));
+    QMenu *newPanelItemMenu = new QMenu;
+    newPanelItem->setMenu(newPanelItemMenu);
+    panelEditToolbar1->addAction(newPanelItem);
+    panelEditToolbar1->addSeparator();
+
+    QVector<QAction *> addPanelItemActions;
+
+    auto panelEditFactory = mModeMgr->panelFactory();
+    for(const QString& nodeType : panelEditFactory->getRegisteredTypes())
+    {
+        QString title = tr("%1").arg(panelEditFactory->prettyName(nodeType));
+
+        QAction *act = newPanelItemMenu->addAction(title);
+        connect(act, &QAction::triggered, mViewMgr,
+                [nodeType, this]()
+        {
+            mViewMgr->addNodeToActiveView(nodeType);
+        });
+
+        addPanelItemActions.append(act);
+    }
+
+    for(QAction *act : std::as_const(addPanelItemActions))
+    {
+        panelEditToolbar1->addAction(act);
+    }
+
+    showCurrentEditToolbars();
 }
 
 void MainWindow::removeEditToolBar()
 {
-    Q_ASSERT(editToolbar1 && editToolbar2);
+    Q_ASSERT(circuitEditToolbar1 && circuitEditToolbar2);
 
-    removeToolBarBreak(editToolbar1);
+    removeToolBarBreak(circuitEditToolbar1);
 
-    removeToolBar(editToolbar1);
-    delete editToolbar1;
-    editToolbar1 = nullptr;
+    removeToolBar(circuitEditToolbar1);
+    delete circuitEditToolbar1;
+    circuitEditToolbar1 = nullptr;
 
-    removeToolBar(editToolbar2);
-    delete editToolbar2;
-    editToolbar2 = nullptr;
+    removeToolBarBreak(circuitEditToolbar2);
+
+    removeToolBar(circuitEditToolbar2);
+    delete circuitEditToolbar2;
+    circuitEditToolbar2 = nullptr;
+
+    Q_ASSERT(panelEditToolbar1);
+
+    removeToolBar(panelEditToolbar1);
+    delete panelEditToolbar1;
+    panelEditToolbar1 = nullptr;
 }
 
 static QString strippedName(const QString &fullFileName, bool *ok)
@@ -481,4 +534,33 @@ void MainWindow::onFileModeChanged(FileMode mode, FileMode oldMode)
         buildEditToolBar();
     else if(oldMode == FileMode::Editing)
         removeEditToolBar();
+}
+
+void MainWindow::showCurrentEditToolbars()
+{
+    if(mModeMgr->mode() != FileMode::Editing)
+        return;
+
+    ViewManager::ViewType currViewType = mViewMgr->currentViewType();
+
+    const bool canShowCircuits = currViewType == ViewManager::ViewType::Circuit;
+    const bool canEditCircuits = mViewMgr->activeCircuitView() != nullptr;
+    if(circuitEditToolbar1)
+    {
+        circuitEditToolbar1->setVisible(canShowCircuits);
+        circuitEditToolbar1->setEnabled(canEditCircuits);
+    }
+    if(circuitEditToolbar2)
+    {
+        circuitEditToolbar2->setVisible(canShowCircuits);
+        circuitEditToolbar2->setEnabled(canEditCircuits);
+    }
+
+    const bool canShowPanels = currViewType == ViewManager::ViewType::Panel;
+    const bool canEditPanels = mViewMgr->activePanelView() != nullptr;
+    if(panelEditToolbar1)
+    {
+        panelEditToolbar1->setVisible(canShowPanels);
+        panelEditToolbar1->setEnabled(canEditPanels);
+    }
 }

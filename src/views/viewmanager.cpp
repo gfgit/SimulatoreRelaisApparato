@@ -29,9 +29,15 @@
 
 #include "../circuits/view/circuitwidget.h"
 #include "../circuits/view/circuitlistwidget.h"
-
 #include "../circuits/view/circuitlistmodel.h"
 #include "../circuits/circuitscene.h"
+
+#include "../panels/edit/panelitemfactory.h"
+
+#include "../panels/view/panelwidget.h"
+#include "../panels/view/panellistwidget.h"
+#include "../panels/view/panellistmodel.h"
+#include "../panels/panelscene.h"
 
 #include "../objects/simulationobjectfactory.h"
 #include "../objects/abstractsimulationobject.h"
@@ -57,6 +63,10 @@ ViewManager::ViewManager(MainWindow *parent)
             this, &ViewManager::nodeEditRequested);
     connect(circuitList, &CircuitListModel::cableEditRequested,
             this, &ViewManager::cableEditRequested);
+
+    PanelListModel *panelList = modeMgr->panelList();
+    connect(panelList, &PanelListModel::itemEditRequested,
+            this, &ViewManager::panelItemEditRequested);
 }
 
 ViewManager::~ViewManager()
@@ -64,14 +74,33 @@ ViewManager::~ViewManager()
     closeAll();
 }
 
+MainWindow *ViewManager::mainWin()
+{
+    return static_cast<MainWindow *>(parent());
+}
+
 void ViewManager::setActiveCircuit(CircuitWidget *w)
 {
+    setCurrentViewType(ViewType::Circuit);
+
     if(w && w == mActiveCircuitView)
         return;
 
     mActiveCircuitView = w;
     if(!mActiveCircuitView && !mCircuitViews.isEmpty())
         mActiveCircuitView = mCircuitViews.begin().key();
+}
+
+void ViewManager::setActivePanel(PanelWidget *w)
+{
+    setCurrentViewType(ViewType::Panel);
+
+    if(w && w == mActivePanelView)
+        return;
+
+    mActivePanelView = w;
+    if(!mActivePanelView && !mPanelViews.isEmpty())
+        mActivePanelView = mPanelViews.begin().key();
 }
 
 static std::pair<QString, QString> getCircuitUniqueName(CircuitWidget *w)
@@ -89,6 +118,21 @@ static std::pair<QString, QString> getCircuitUniqueName(CircuitWidget *w)
     return {name, title};
 }
 
+static std::pair<QString, QString> getPanelUniqueName(PanelWidget *w)
+{
+    QString name = QLatin1String("null");
+    QString title = ViewManager::tr("Empty");
+
+    auto scene = w->scene();
+    if(scene)
+        title = scene->panelName();
+
+    name = QLatin1String("%1_(%2)").arg(title).arg(w->uniqueNum());
+    title = QLatin1String("%1 (%2)").arg(title).arg(w->uniqueNum());
+
+    return {name, title};
+}
+
 void ViewManager::updateDockName(CircuitWidget *w)
 {
     auto dock = mCircuitViews.value(w, nullptr);
@@ -98,11 +142,6 @@ void ViewManager::updateDockName(CircuitWidget *w)
     auto namePair = getCircuitUniqueName(w);
     dock->dockWidget()->setUniqueName(namePair.first);
     dock->setTitle(namePair.second);
-}
-
-MainWindow *ViewManager::mainWin()
-{
-    return static_cast<MainWindow *>(parent());
 }
 
 int ViewManager::getUniqueNum(CircuitScene *scene, CircuitWidget *self) const
@@ -171,9 +210,6 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
 
     mCircuitViews.insert(w, dock);
 
-    if(!mActiveCircuitView)
-        mActiveCircuitView = w;
-
     return w;
 }
 
@@ -218,6 +254,140 @@ void ViewManager::showCircuitSceneEdit(CircuitScene *scene)
     dock->open();
 
     mCircuitEdits.insert(scene, dock);
+}
+
+void ViewManager::updateDockName(PanelWidget *w)
+{
+    auto dock = mPanelViews.value(w, nullptr);
+    if(!dock)
+        return;
+
+    auto namePair = getPanelUniqueName(w);
+    dock->dockWidget()->setUniqueName(namePair.first);
+    dock->setTitle(namePair.second);
+}
+
+int ViewManager::getUniqueNum(PanelScene *scene, PanelWidget *self) const
+{
+    int result = 1;
+
+    while(true)
+    {
+        bool duplicate = false;
+
+        for(auto it : mPanelViews.asKeyValueRange())
+        {
+            PanelWidget *w = it.first;
+            if(w == self)
+                continue;
+
+            if(w->scene() != scene)
+                continue;
+
+            if(w->uniqueNum() == result)
+            {
+                duplicate = true;
+                break;
+            }
+        }
+
+        if(!duplicate)
+            return result;
+
+        result++; // Go to next num
+    }
+
+    return 0;
+}
+
+ViewManager::ViewType ViewManager::currentViewType() const
+{
+    return mCurrentViewType;
+}
+
+void ViewManager::setCurrentViewType(ViewType newCurrentViewType)
+{
+    mCurrentViewType = newCurrentViewType;
+    emit currentViewTypeChanged(mCurrentViewType);
+}
+
+PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
+{
+    if(!forceNew)
+    {
+        for(auto it : mPanelViews.asKeyValueRange())
+        {
+            PanelWidget *w = it.first;
+            if(w->scene() == scene)
+            {
+                w->raise();
+                return w;
+            }
+        }
+    }
+
+    // Create new view
+    PanelWidget *w = new PanelWidget(this);
+    w->setScene(scene, false);
+
+    auto namePair = getPanelUniqueName(w);
+
+    DockWidget *dock = new DockWidget(namePair.first,
+                                      KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    dock->setWidget(w);
+    dock->setTitle(namePair.second);
+
+    mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
+
+    connect(w, &PanelWidget::destroyed,
+            this, &ViewManager::onPanelViewDestroyed);
+
+    mPanelViews.insert(w, dock);
+
+    return w;
+}
+
+void ViewManager::showPanelSceneEdit(PanelScene *scene)
+{
+    // Raise existing edit window if present
+    for(auto it : mPanelEdits.asKeyValueRange())
+    {
+        if(it.first == scene)
+        {
+            it.second->raise();
+            return;
+        }
+    }
+
+    // Create new edit window
+    PanelSceneOptionsWidget *w = new PanelSceneOptionsWidget(scene);
+    DockWidget *dock = new DockWidget(scene->panelName(),
+                                      KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    dock->setWidget(w);
+
+    auto updateDock = [dock, scene]()
+    {
+        QString name = tr("Edit Panel %1").arg(scene->panelName());
+        dock->setTitle(name);
+        dock->dockWidget()->setUniqueName(name);
+    };
+
+    connect(scene, &PanelScene::nameChanged,
+            dock, updateDock);
+    connect(scene, &PanelScene::destroyed,
+            dock, &QWidget::close);
+    connect(dock, &QObject::destroyed,
+            this, [this, scene]()
+    {
+        mPanelEdits.remove(scene);
+    });
+
+    updateDock();
+
+    // By default open as floating window
+    dock->open();
+
+    mPanelEdits.insert(scene, dock);
 }
 
 void ViewManager::showObjectEdit(AbstractSimulationObject *item)
@@ -275,6 +445,10 @@ void ViewManager::closeAllEditDocks()
     qDeleteAll(circuitEditsCopy);
     mCircuitEdits.clear();
 
+    auto panelEditsCopy = mPanelEdits;
+    qDeleteAll(panelEditsCopy);
+    mPanelEdits.clear();
+
     auto objectEditsCopy = mObjectEdits;
     qDeleteAll(objectEditsCopy);
     mObjectEdits.clear();
@@ -287,6 +461,10 @@ void ViewManager::closeAllFileSpecificDocks()
     auto circuitViewsCopy = mCircuitViews;
     qDeleteAll(circuitViewsCopy);
     mCircuitViews.clear();
+
+    auto panelViewsCopy = mPanelViews;
+    qDeleteAll(panelViewsCopy);
+    mPanelViews.clear();
 }
 
 void ViewManager::closeAll()
@@ -294,6 +472,7 @@ void ViewManager::closeAll()
     closeAllFileSpecificDocks();
 
     delete mCircuitListViewDock;
+    delete mPanelListViewDock;
 
     qDeleteAll(mObjectListDocks);
     mObjectListDocks.clear();
@@ -317,6 +496,26 @@ void ViewManager::showCircuitListView()
     mCircuitListViewDock->setTitle(tr("Circuit Sheets"));
 
     mainWin()->addDockWidget(mCircuitListViewDock, KDDockWidgets::Location_OnLeft);
+}
+
+void ViewManager::showPanelListView()
+{
+    if(mPanelListViewDock)
+    {
+        mPanelListViewDock->raise();
+        mPanelListViewDock->activateWindow();
+        return;
+    }
+
+    PanelListModel *panelList = mainWin()->modeMgr()->panelList();
+    PanelListWidget *panelListView = new PanelListWidget(this, panelList);
+
+    mPanelListViewDock = new DockWidget(QLatin1String("panel_list"),
+                                        KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    mPanelListViewDock->setWidget(panelListView);
+    mPanelListViewDock->setTitle(tr("Panel Sheets"));
+
+    mainWin()->addDockWidget(mPanelListViewDock, KDDockWidgets::Location_OnLeft);
 }
 
 void ViewManager::showObjectListView(const QString &objType)
@@ -358,7 +557,7 @@ void ViewManager::showObjectListView(const QString &objType)
                              KDDockWidgets::Location_OnLeft);
 }
 
-void ViewManager::startEditNEwCableOnActiveView()
+void ViewManager::startEditNewCableOnActiveView()
 {
     if(!mActiveCircuitView)
         return;
@@ -371,14 +570,32 @@ void ViewManager::startEditNEwCableOnActiveView()
 
 void ViewManager::addNodeToActiveView(const QString &nodeType)
 {
-    if(!mActiveCircuitView)
-        return;
-
     if(mainWin()->modeMgr()->mode() != FileMode::Editing)
         return;
 
-    const auto editFactory = mainWin()->modeMgr()->circuitFactory();
-    mActiveCircuitView->addNodeToCenter(editFactory, nodeType);
+    switch (mCurrentViewType)
+    {
+    case ViewType::Circuit:
+    {
+        if(!mActiveCircuitView)
+            return;
+
+        const auto circuitFactory = mainWin()->modeMgr()->circuitFactory();
+        mActiveCircuitView->addNodeToCenter(circuitFactory, nodeType);
+        break;
+    }
+    case ViewType::Panel:
+    {
+        if(!mActivePanelView)
+            return;
+
+        const auto panelFactory = mainWin()->modeMgr()->panelFactory();
+        mActivePanelView->addNodeToCenter(panelFactory, nodeType);
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 void ViewManager::onCircuitViewDestroyed(QObject *obj)
@@ -399,8 +616,11 @@ void ViewManager::onCircuitViewDestroyed(QObject *obj)
 
 void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
 {
-    Q_ASSERT_X(mActiveCircuitView,
-               "nodeEditRequested", "no active view");
+    if(!mActiveCircuitView)
+    {
+        qWarning() << "nodeEditRequested: no active view";
+        return;
+    }
 
     DockWidget *dock = mCircuitViews.value(mActiveCircuitView);
 
@@ -411,12 +631,46 @@ void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
 
 void ViewManager::cableEditRequested(CableGraphItem *item)
 {
-    Q_ASSERT_X(mActiveCircuitView,
-               "nodeEditRequested", "no active view");
+    if(!mActiveCircuitView)
+    {
+        qWarning() << "cableEditRequested: no active view";
+        return;
+    }
 
     // Allow delete or modify path
     auto editFactory = mainWin()->modeMgr()->circuitFactory();
     editFactory->editCable(mActiveCircuitView, item);
+}
+
+void ViewManager::onPanelViewDestroyed(QObject *obj)
+{
+    PanelWidget *w = static_cast<PanelWidget *>(obj);
+
+    // Widget is destroyed by dock being closed
+    // So dock deletes itself already
+    mPanelViews.remove(w);
+
+    // Unset from active if it was us
+    // Do it AFTER removing from mCircuitViews
+    // Because setActiveCircuit() will try to use first
+    // available view as replacment
+    if(w == mActivePanelView)
+        setActivePanel(nullptr);
+}
+
+void ViewManager::panelItemEditRequested(AbstractPanelItem *item)
+{
+    if(!mActivePanelView)
+    {
+        qWarning() << "panelItemEditRequested: no active view";
+        return;
+    }
+
+    DockWidget *dock = mPanelViews.value(mActivePanelView);
+
+    // Allow delete or custom node options
+    auto editFactory = mainWin()->modeMgr()->panelFactory();
+    editFactory->editItem(dock, item);
 }
 
 void ViewManager::onFileModeChanged(FileMode mode, FileMode oldMode)
@@ -429,4 +683,9 @@ void ViewManager::onFileModeChanged(FileMode mode, FileMode oldMode)
 CircuitWidget *ViewManager::activeCircuitView() const
 {
     return mActiveCircuitView;
+}
+
+PanelWidget *ViewManager::activePanelView() const
+{
+    return mActivePanelView;
 }

@@ -72,6 +72,8 @@ private slots:
 
     void onFileModeChanged(FileMode mode, FileMode oldMode);
 
+    void showCurrentEditToolbars();
+
 private:
     // Actions
     QAction *actionOpen;
@@ -83,8 +85,10 @@ private:
     QAction *actionEditMode;
 
     // Edit toolbar
-    QToolBar *editToolbar1 = nullptr;
-    QToolBar *editToolbar2 = nullptr;
+    QToolBar *circuitEditToolbar1 = nullptr;
+    QToolBar *circuitEditToolbar2 = nullptr;
+
+    QToolBar *panelEditToolbar1 = nullptr;
 
     // Models
     ModeManager *mModeMgr = nullptr;

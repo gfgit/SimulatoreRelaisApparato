@@ -3,6 +3,9 @@
 set(SIMULATORE_RELAIS_SOURCES
     ${SIMULATORE_RELAIS_SOURCES}
 
+    utils/colorselectionwidget.cpp
+    utils/colorselectionwidget.h
+
     utils/enum_desc.cpp
     utils/enum_desc.h
 

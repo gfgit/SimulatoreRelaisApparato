@@ -67,7 +67,8 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
 
         if(item.fromContact != NodeItem::InvalidContact)
         {
-            int &fromCount = mContacts[item.fromContact].entranceCount(circuit->type());
+            uint16_t &fromCount = mContacts[item.fromContact].entranceCount(circuit->type(),
+                                                                            item.fromPole);
             fromCount++;
             if(fromCount == 1)
                 updateNeeded = true;
@@ -75,7 +76,8 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
 
         if(item.toContact != NodeItem::InvalidContact)
         {
-            int &toCount = mContacts[item.toContact].exitCount(circuit->type());
+            uint16_t &toCount = mContacts[item.toContact].exitCount(circuit->type(),
+                                                                    item.toPole);
             toCount++;
             if(toCount == 1)
                 updateNeeded = true;
@@ -108,7 +110,8 @@ void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const N
 
         if(item.fromContact != NodeItem::InvalidContact)
         {
-            int &fromCount = mContacts[item.fromContact].entranceCount(circuit->type());
+            uint16_t &fromCount = mContacts[item.fromContact].entranceCount(circuit->type(),
+                                                                            item.fromPole);
             Q_ASSERT(fromCount > 0);
 
             fromCount--;
@@ -118,7 +121,8 @@ void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const N
 
         if(item.toContact != NodeItem::InvalidContact)
         {
-            int &toCount = mContacts[item.toContact].exitCount(circuit->type());
+            uint16_t &toCount = mContacts[item.toContact].exitCount(circuit->type(),
+                                                                    item.toPole);
             Q_ASSERT(toCount > 0);
 
             toCount--;
@@ -250,8 +254,8 @@ void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
 }
 
 void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
-                                          AbstractCircuitNode *node,
-                                          const int contact)
+                                           AbstractCircuitNode *node,
+                                           const int contact)
 {
     CircuitList duplicateList;
     for(ElectricCircuit *circuit : listCopy)
@@ -283,7 +287,8 @@ void AbstractCircuitNode::unregisterOpenCircuitExit(ElectricCircuit *circuit)
     {
         // We enabled exit contact only for circuit passing through
         // Open circuits which end here (last node) do not enable toCount
-        int &toCount = mContacts[item.toContact].exitCount(circuit->type());
+        uint16_t &toCount = mContacts[item.toContact].exitCount(circuit->type(),
+                                                                item.toPole);
         Q_ASSERT(toCount > 0);
 
         toCount--;

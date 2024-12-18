@@ -45,7 +45,8 @@ public:
     {
         None = 0,
         LoadPassed = 1 << 0,
-        SkipLoads = 1 << 1
+        SkipLoads = 1 << 1,
+        ReverseVoltagePassed = 1 << 2
     };
 
     struct PassNodeResult
@@ -101,7 +102,12 @@ private:
 
     static void searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth);
 
-    static void extendOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items);
+    static void extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items);
+
+    static void extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items,
+                                              const CableContact& lastCable, ElectricCircuit *otherCircuit);
+
+    void checkReverseVoltageSiblings();
 
 private:
     QVector<Item> mItems;
