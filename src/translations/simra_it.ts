@@ -415,6 +415,19 @@ Scegli un altro nome:</translation>
     </message>
 </context>
 <context>
+    <name>ColorSelectionWidget</name>
+    <message>
+        <location filename="../utils/colorselectionwidget.cpp" line="65"/>
+        <source>#RRGGBB</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../utils/colorselectionwidget.cpp" line="74"/>
+        <source>Choose</source>
+        <translation>Scegli</translation>
+    </message>
+</context>
+<context>
     <name>ElectroMagnetGraphItem</name>
     <message>
         <location filename="../circuits/graphs/electromagnetgraphitem.cpp" line="123"/>
@@ -651,38 +664,38 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../mainwindow.cpp" line="192"/>
         <source>Circuit Tools 1</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="193"/>
         <source>Circuit Tools 2</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="198"/>
         <source>New Circuit Item</source>
-        <translation type="unfinished"></translation>
+        <translation>Nuovo Elemento Circuito</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="209"/>
         <location filename="../mainwindow.cpp" line="255"/>
         <source>%1</source>
-        <translation type="unfinished"></translation>
+        <translation>%1</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="221"/>
         <source>Cable</source>
-        <translation type="unfinished"></translation>
+        <translation>Cavo</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="240"/>
         <source>Panel Tools 1</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="244"/>
         <source>New Panel Item</source>
-        <translation type="unfinished"></translation>
+        <translation>Nuovo Elemento QL</translation>
     </message>
     <message>
         <source>Edit Tools 1</source>
@@ -860,37 +873,47 @@ Vuoi salvarle ora?</translation>
 <context>
     <name>PanelItemFactory</name>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="76"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="81"/>
         <source>Edit %1</source>
         <translation>Modifica %1</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="79"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="84"/>
         <source>Type</source>
         <translation>Tipo</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="100"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="105"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="111"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="113"/>
+        <source>X:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="119"/>
+        <source>Y:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="158"/>
         <source>Delete</source>
         <translation>Elimina</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="119"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="166"/>
         <source>Delete Item?</source>
         <translation>Eliminare Elementi?</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="120"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="167"/>
         <source>Are you sure?</source>
         <translation>Sei sicuro?</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="132"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="179"/>
         <source>Ok</source>
         <translation>Ok</translation>
     </message>
@@ -1401,7 +1424,7 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../objects/standardobjecttypes.cpp" line="227"/>
         <source>Apply</source>
-        <translation>ApplicaApplica</translation>
+        <translation>Applica</translation>
     </message>
     <message>
         <location filename="../objects/standardobjecttypes.cpp" line="242"/>
@@ -1475,40 +1498,108 @@ Scegli un altro nome:</translation>
     </message>
 </context>
 <context>
+    <name>StandardPanelItemTypes</name>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="86"/>
+        <source>Light Rect</source>
+        <translation>Rettangolo Luminoso</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="99"/>
+        <source>Width:</source>
+        <translation>Larghezza:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="104"/>
+        <source>Height:</source>
+        <translation>Altezza:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="141"/>
+        <source>Rotation:</source>
+        <translation>Rotazione:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="173"/>
+        <source>Light:</source>
+        <translation>Lampadina:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="189"/>
+        <source>Color:</source>
+        <translation>Colore:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="202"/>
+        <source>Image</source>
+        <translation>Immagine</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="213"/>
+        <source>Image File:</source>
+        <translation>File Immagine:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="215"/>
+        <source>Browse</source>
+        <translation>Esplora</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="218"/>
+        <source>Apply</source>
+        <translation>Applica</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="233"/>
+        <source>Choose PNG Image</source>
+        <translation>Scegli Immagine PNG</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="242"/>
+        <source>Scale:</source>
+        <translation>Scala:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="245"/>
+        <source>%</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>ViewManager</name>
     <message>
-        <location filename="../views/viewmanager.cpp" line="105"/>
-        <location filename="../views/viewmanager.cpp" line="120"/>
+        <location filename="../views/viewmanager.cpp" line="109"/>
+        <location filename="../views/viewmanager.cpp" line="124"/>
         <source>Empty</source>
         <translation>Vuoto</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="232"/>
+        <location filename="../views/viewmanager.cpp" line="236"/>
         <source>Edit Circuit %1</source>
         <translation>Modifica Circuito %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="366"/>
+        <location filename="../views/viewmanager.cpp" line="370"/>
         <source>Edit Panel %1</source>
         <translation>Modifica Banco %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="412"/>
+        <location filename="../views/viewmanager.cpp" line="416"/>
         <source>Edit %1 %2</source>
         <translation>Modifica %1 %2</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="492"/>
+        <location filename="../views/viewmanager.cpp" line="496"/>
         <source>Circuit Sheets</source>
         <translation>Fogli Circuiti</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="512"/>
+        <location filename="../views/viewmanager.cpp" line="516"/>
         <source>Panel Sheets</source>
         <translation>Fogli Banco</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="541"/>
+        <location filename="../views/viewmanager.cpp" line="545"/>
         <source>%1 List</source>
         <translation>Lista %1</translation>
     </message>
