@@ -107,6 +107,8 @@ private:
     static void extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items,
                                               const CableContact& lastCable, ElectricCircuit *otherCircuit);
 
+    void checkReverseVoltageSiblings();
+
 private:
     QVector<Item> mItems;
     bool enabled = false;

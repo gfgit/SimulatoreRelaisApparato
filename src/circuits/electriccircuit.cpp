@@ -426,6 +426,12 @@ void ElectricCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
         circuit->mType = CircuitType::Open;
         circuit->enableCircuit();
     }
+
+    const QVector<ElectricCircuit *> closedCircuitsCopy = source->getCircuits(CircuitType::Closed);
+    for(ElectricCircuit *circuit : closedCircuitsCopy)
+    {
+        circuit->checkReverseVoltageSiblings();
+    }
 }
 
 bool containsNode(const QVector<ElectricCircuit::Item> &items, AbstractCircuitNode *node, int nodeContact, CircuitPole pole)
@@ -817,6 +823,12 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
             origCircuit->terminateHere(origCircuit->getSource(), dummy);
         }
     }
+
+    const QVector<ElectricCircuit *> closedCircuitsCopy = node->getCircuits(CircuitType::Closed);
+    for(ElectricCircuit *circuit : closedCircuitsCopy)
+    {
+        circuit->checkReverseVoltageSiblings();
+    }
 }
 
 void ElectricCircuit::tryReachNextOpenCircuit(AbstractCircuitNode *goalNode, int nodeContact, CircuitPole pole)
@@ -1018,6 +1030,66 @@ void ElectricCircuit::extendExistingCircuits_helper(AbstractCircuitNode *node, i
             circuit->mItems = newItems;
             circuit->mType = CircuitType::Open;
             circuit->enableCircuit();
+        }
+    }
+}
+
+void ElectricCircuit::checkReverseVoltageSiblings()
+{
+    // We are a closed circuit.
+    // Check for every passed node if there are other circuits going
+    // in opposite direction than us and remove them
+    // This often are previously created open circuits which go
+    // strange routes, total non-sense.
+    // But until we do not have a closed circuit we cannot know the
+    // voltage direction so we cannot tell which open circuit is good and which not.
+    // At this point we know and can remove them.
+    Q_ASSERT(type() == CircuitType::Closed);
+    Q_ASSERT(enabled);
+
+    QVector<ElectricCircuit *> dummy;
+
+    for(int i = 0; i < mItems.size(); i++)
+    {
+        const Item& item = mItems[i];
+        if(!item.isNode)
+            continue;
+
+        bool needsFix = false;
+
+        if(item.node.fromContact != NodeItem::InvalidContact &&
+                item.node.node->hasExitCircuitOnPole(item.node.fromContact,
+                                                     item.node.fromPole,
+                                                     CircuitType::Open))
+        {
+            needsFix = true;
+        }
+
+        if(item.node.toContact != NodeItem::InvalidContact &&
+                item.node.node->hasEntranceCircuitOnPole(item.node.toContact,
+                                                         item.node.toPole,
+                                                         CircuitType::Open))
+        {
+            needsFix = true;
+        }
+
+        if(!needsFix)
+            continue;
+
+        const QVector<ElectricCircuit *> nodeOpenCircuitsCopy = item.node.node->getCircuits(CircuitType::Open);
+        for(ElectricCircuit *openCircuit : nodeOpenCircuitsCopy)
+        {
+            const auto items = openCircuit->getNode(item.node.node);
+            for(const NodeItem& openItem : items)
+            {
+                if((openItem.fromContact == item.node.toContact && openItem.fromPole == item.node.toPole)
+                        || (openItem.toContact == item.node.fromContact && openItem.toPole == item.node.fromPole))
+                {
+                    // This open circuit is going in opposite direction
+                    // Remove it
+                    openCircuit->terminateHere(openCircuit->getSource(), dummy);
+                }
+            }
         }
     }
 }
