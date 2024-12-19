@@ -73,8 +73,8 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 {
     const QRectF br = boundingRect();
 
-    if(isSelected())
-        painter->fillRect(br, SelectedBackground);
+    // Background
+    painter->fillRect(br, isSelected() ? SelectedBackground : qRgb(0x7F, 0x7F, 0x7F));
 
     // Zero is vertical up, so cos/sin are swapped
     // Also returned angle must be inverted to be clockwise
@@ -90,11 +90,14 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     // Draw dark gray border around
     QPen borderPen;
-    borderPen.setWidth(3);
+    borderPen.setWidth(2);
     borderPen.setColor(BorderColor);
     painter->setPen(borderPen);
     painter->setBrush(Qt::NoBrush);
-    painter->drawRect(boundingRect());
+    painter->drawRect(boundingRect().adjusted(1, 1, -1, -1));
+
+    borderPen.setWidth(3);
+    painter->setPen(borderPen);
 
     // Draw lights
     QRectF circle;
