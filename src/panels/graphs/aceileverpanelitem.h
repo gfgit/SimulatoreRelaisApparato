@@ -23,14 +23,14 @@
 #ifndef ACEI_LEVER_PANELITEM_H
 #define ACEI_LEVER_PANELITEM_H
 
-#include "../abstractpanelitem.h"
+#include "../snappablepanelitem.h"
 
 class AbstractSimulationObject;
 class LeverInterface;
 
 class LightBulbObject;
 
-class ACEILeverPanelItem : public AbstractPanelItem
+class ACEILeverPanelItem : public SnappablePanelItem
 {
     Q_OBJECT
 public:

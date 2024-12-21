@@ -47,7 +47,7 @@
 #include <QJsonObject>
 
 ACEILeverPanelItem::ACEILeverPanelItem()
-    : AbstractPanelItem()
+    : SnappablePanelItem()
 {
     updateLeverTooltip();
 }
@@ -216,7 +216,7 @@ void ACEILeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
         }
     }
 
-    AbstractPanelItem::mousePressEvent(ev);
+    SnappablePanelItem::mousePressEvent(ev);
 }
 
 void ACEILeverPanelItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
@@ -257,7 +257,7 @@ void ACEILeverPanelItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
         }
     }
 
-    AbstractPanelItem::mouseMoveEvent(ev);
+    SnappablePanelItem::mouseMoveEvent(ev);
 }
 
 void ACEILeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
@@ -271,7 +271,7 @@ void ACEILeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
             mLeverIface->setPressed(false);
     }
 
-    AbstractPanelItem::mouseReleaseEvent(ev);
+    SnappablePanelItem::mouseReleaseEvent(ev);
 }
 
 void ACEILeverPanelItem::updateLeverTooltip()
@@ -481,7 +481,7 @@ void ACEILeverPanelItem::setLever(AbstractSimulationObject *newLever)
 
 bool ACEILeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
 {
-    if(!AbstractPanelItem::loadFromJSON(obj, mgr))
+    if(!SnappablePanelItem::loadFromJSON(obj, mgr))
         return false;
 
     const QString leverName = obj.value("lever").toString();
@@ -520,7 +520,7 @@ bool ACEILeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
 
 void ACEILeverPanelItem::saveToJSON(QJsonObject &obj) const
 {
-    AbstractPanelItem::saveToJSON(obj);
+    SnappablePanelItem::saveToJSON(obj);
 
     obj["lever"] = mLever ? mLever->name() : QString();
     obj["lever_type"] = mLever ? mLever->getType() : QString();

@@ -80,8 +80,16 @@ void PanelScene::setMode(FileMode newMode, FileMode oldMode)
                             int(Layers::EditingLightRects) :
                             int(Layers::LightRects));
 
-    if(!editing)
+    if(editing)
+    {
+        buildSnapMap();
+    }
+    else
+    {
+        clearSnapMap();
+
         bringTop(nullptr); // Reset topmost item
+    }
 
     allowItemSelection(editing);
 
@@ -114,6 +122,9 @@ void PanelScene::addNode(AbstractPanelItem *item)
     {
         mOtherPanelItems.append(item);
         item->setZValue(int(Layers::OtherItems));
+
+        if(editing)
+            registerSnap(item->boundingRect().translated(item->pos()));
     }
 
     item->setFlag(QGraphicsItem::ItemIsSelectable, editing);
@@ -124,6 +135,8 @@ void PanelScene::addNode(AbstractPanelItem *item)
 
 void PanelScene::removeNode(AbstractPanelItem *item)
 {
+    const bool editing = modeMgr()->mode() == FileMode::Editing;
+
     if(item->itemType() == LightRectItem::ItemType)
     {
         if(mTopLightRect == item)
@@ -131,7 +144,12 @@ void PanelScene::removeNode(AbstractPanelItem *item)
         mLightRects.removeOne(static_cast<LightRectItem *>(item));
     }
     else
+    {
         mOtherPanelItems.removeOne(item);
+
+        if(editing)
+            unregisterSnap(item->boundingRect().translated(item->pos()));
+    }
 
     removeItem(item);
 
@@ -406,6 +424,157 @@ bool PanelScene::checkFragment(const QJsonArray &nodes, const QJsonArray &cables
     }
 
     return true;
+}
+
+void PanelScene::buildSnapMap()
+{
+    clearSnapMap();
+
+    for(AbstractPanelItem* item : mOtherPanelItems)
+    {
+        registerSnap(item->boundingRect().translated(item->pos()));
+    }
+}
+
+void PanelScene::clearSnapMap()
+{
+    mXSnapMap.clear();
+    mYSnapMap.clear();
+}
+
+void PanelScene::registerSnap(const QRectF &r)
+{
+    auto it = mXSnapMap.find(r.left());
+    if(it == mXSnapMap.end())
+        it = mXSnapMap.insert(r.left(), 0);
+    (*it)++;
+
+    it = mXSnapMap.find(r.right());
+    if(it == mXSnapMap.end())
+        it = mXSnapMap.insert(r.right(), 0);
+    (*it)++;
+
+    it = mYSnapMap.find(r.top());
+    if(it == mYSnapMap.end())
+        it = mYSnapMap.insert(r.top(), 0);
+    (*it)++;
+
+    it = mYSnapMap.find(r.bottom());
+    if(it == mYSnapMap.end())
+        it = mYSnapMap.insert(r.bottom(), 0);
+    (*it)++;
+}
+
+void PanelScene::unregisterSnap(const QRectF &r)
+{
+    auto it = mXSnapMap.find(r.left());
+    if(it != mXSnapMap.end())
+    {
+        int &ref = *it;
+        if(--ref == 0)
+            mXSnapMap.erase(it);
+    }
+
+    it = mXSnapMap.find(r.right());
+    if(it != mXSnapMap.end())
+    {
+        int &ref = *it;
+        if(--ref == 0)
+            mXSnapMap.erase(it);
+    }
+
+    it = mYSnapMap.find(r.top());
+    if(it != mYSnapMap.end())
+    {
+        int &ref = *it;
+        if(--ref == 0)
+            mYSnapMap.erase(it);
+    }
+
+    it = mYSnapMap.find(r.bottom());
+    if(it != mYSnapMap.end())
+    {
+        int &ref = *it;
+        if(--ref == 0)
+            mYSnapMap.erase(it);
+    }
+}
+
+template <typename Map, typename T>
+typename Map::const_iterator maxLowerThan(const Map& map, const T& val)
+{
+    // lowerBound() returns first item not-less than val
+    // so we need the item previous to it
+    typename Map::const_iterator it = map.lowerBound(val);
+
+    if(it != map.cend() && it.key() == val)
+        return it;
+
+    if(it == map.cbegin())
+    {
+        // No previous item, return end
+        return map.cend();
+    }
+
+    // Return previous item
+    return --it;
+}
+
+PanelScene::SnapResult PanelScene::getSnapFor(const QPointF &target)
+{
+    SnapResult result;
+    result.pt = target;
+
+    typedef QMap<double, int>::const_iterator Iter;
+
+    Iter x1 = maxLowerThan(mXSnapMap, target.x());
+    Iter x2 = mXSnapMap.upperBound(target.x());
+
+    const double deltaX1 = x1 != mXSnapMap.cend() ? (target.x() - x1.key()) : 0;
+    const double deltaX2 = x2 != mXSnapMap.cend() ? (x2.key() - target.x()) : 0;
+
+    if(x1 != mXSnapMap.cend() && (x2 == mXSnapMap.cend() || deltaX1 <= deltaX2))
+    {
+        if(deltaX1 < MAX_SNAP_DISTANCE)
+        {
+            result.pt.setX(x1.key());
+            result.foundX = true;
+        }
+    }
+    else if(x2 != mXSnapMap.cend() && (x1 == mXSnapMap.cend() || deltaX2 <= deltaX1))
+    {
+        if(deltaX2 < MAX_SNAP_DISTANCE)
+        {
+            result.pt.setX(x2.key());
+            result.foundX = true;
+        }
+    }
+
+
+    Iter y1 = maxLowerThan(mYSnapMap, target.y());
+    Iter y2 = mYSnapMap.upperBound(target.y());
+
+    const double deltaY1 = y1 != mYSnapMap.cend() ? (target.y() - y1.key()) : 0;
+    const double deltaY2 = y2 != mYSnapMap.cend() ? (y2.key() - target.y()) : 0;
+
+    if(y1 != mYSnapMap.cend() && (y2 == mYSnapMap.cend() || deltaY1 <= deltaY2))
+    {
+        if(deltaY1 < MAX_SNAP_DISTANCE)
+        {
+            result.pt.setY(y1.key());
+            result.foundY = true;
+        }
+    }
+    else if(y2 != mYSnapMap.cend() && (y1 == mYSnapMap.cend() || deltaY2 <= deltaY1))
+    {
+        if(deltaY2 < MAX_SNAP_DISTANCE)
+        {
+            result.pt.setY(y2.key());
+            result.foundY = true;
+        }
+    }
+
+    return result;
 }
 
 QString PanelScene::panelLongName() const

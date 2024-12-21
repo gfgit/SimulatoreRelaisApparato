@@ -1,5 +1,5 @@
 /**
- * src/panels/abstractpanelitem.h
+ * src/panels/snappablepanelitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,43 +20,25 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ABSTRACT_PANEL_ITEM_H
-#define ABSTRACT_PANEL_ITEM_H
+#ifndef SNAPPABLEPANELITEM_H
+#define SNAPPABLEPANELITEM_H
 
-#include <QGraphicsObject>
+#include "abstractpanelitem.h"
 
-class PanelScene;
-class ModeManager;
-
-class QJsonObject;
-
-class AbstractPanelItem : public QGraphicsObject
+class SnappablePanelItem : public AbstractPanelItem
 {
     Q_OBJECT
 public:
-    static constexpr QRgb SelectedBackground = qRgb(180, 255, 255);
-
-    AbstractPanelItem();
-
-    QRectF boundingRect() const override;
-
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
-
-    QPainterPath opaqueArea() const override;
-
-    PanelScene *panelScene() const;
-
-    virtual bool loadFromJSON(const QJsonObject& obj, ModeManager *mgr);
-    virtual void saveToJSON(QJsonObject& obj) const;
-
-    virtual QString itemType() const = 0;
-
-protected slots:
-    void triggerUpdate();
+    explicit SnappablePanelItem(QObject *parent = nullptr);
 
 protected:
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *ev) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+
+private:
+    bool mSnapEnabled = false;
 };
 
-#endif // ABSTRACT_PANEL_ITEM_H
+#endif // SNAPPABLEPANELITEM_H

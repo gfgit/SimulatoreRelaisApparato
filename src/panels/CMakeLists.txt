@@ -10,6 +10,9 @@ set(SIMULATORE_RELAIS_SOURCES
     panels/abstractpanelitem.cpp
     panels/abstractpanelitem.h
 
+    panels/snappablepanelitem.cpp
+    panels/snappablepanelitem.h
+
     panels/panelscene.cpp
     panels/panelscene.h
 

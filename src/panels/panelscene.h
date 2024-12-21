@@ -24,6 +24,7 @@
 #define PANELSCENE_H
 
 #include <QGraphicsScene>
+#include <QMap>
 
 #include <unordered_map>
 
@@ -167,6 +168,24 @@ private:
     bool checkFragment(const QJsonArray& nodes, const QJsonArray& cables,
                        FragmentData &fragment);
 
+    void buildSnapMap();
+    void clearSnapMap();
+
+    friend class SnappablePanelItem;
+    void registerSnap(const QRectF& r);
+    void unregisterSnap(const QRectF& r);
+
+    static constexpr double MAX_SNAP_DISTANCE = 10;
+
+    struct SnapResult
+    {
+        QPointF pt;
+        bool foundX = false;
+        bool foundY = false;
+    };
+
+    SnapResult getSnapFor(const QPointF& target);
+
 private:
     QString mCircuitSheetName;
     QString mCircuitSheetLongName;
@@ -174,6 +193,9 @@ private:
     QVector<AbstractPanelItem *> mOtherPanelItems;
     QVector<LightRectItem *> mLightRects;
     LightRectItem *mTopLightRect = nullptr;
+
+    QMap<double, int> mXSnapMap;
+    QMap<double, int> mYSnapMap;
 
     bool m_hasUnsavedChanges = false;
 

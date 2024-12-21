@@ -65,16 +65,6 @@ void AbstractPanelItem::triggerUpdate()
     update();
 }
 
-void AbstractPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
-{
-    QGraphicsObject::mousePressEvent(ev);
-}
-
-void AbstractPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
-{
-    QGraphicsObject::mouseReleaseEvent(ev);
-}
-
 void AbstractPanelItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
     PanelScene *s = panelScene();
@@ -97,19 +87,13 @@ QVariant AbstractPanelItem::itemChange(GraphicsItemChange change, const QVariant
     {
     case GraphicsItemChange::ItemPositionChange:
     {
-        // TODO: custom snap to align to other items
         QPointF newPos = value.toPointF();
 
-        if(newPos != pos() && s && s->modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
+        if(s && newPos != pos())
         {
-            // For item selection mode we bypass normal logic
-            if(!s->updateItemLocation(this))
-            {
-                // New position was not free
-                // Reset to old position
-                return pos();
-            }
+            s->updateItemLocation(this);
         }
+
         return newPos;
     }
     case GraphicsItemChange::ItemSelectedHasChanged:
