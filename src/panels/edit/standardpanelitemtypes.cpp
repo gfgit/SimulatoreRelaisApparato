@@ -310,9 +310,21 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Central light:"), centralLightEdit);
 
-            auto updateLights = [buttonItem, centralLightEdit]()
+            // Central Light Color
+            ColorSelectionWidget *centralLightColor = new ColorSelectionWidget;
+
+            QObject::connect(centralLightColor, &ColorSelectionWidget::colorChanged,
+                             buttonItem, [buttonItem, centralLightColor]()
+            {
+                buttonItem->setCentralLightColor(centralLightColor->color());
+            });
+
+            lay->addRow(tr("Light Color:"), centralLightColor);
+
+            auto updateLights = [buttonItem, centralLightEdit, centralLightColor]()
             {
                 centralLightEdit->setObject(buttonItem->centralLight());
+                centralLightColor->setColor(buttonItem->centralLightColor());
             };
 
             QObject::connect(buttonItem, &ACEIButtonPanelItem::lightsChanged,

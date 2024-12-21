@@ -92,10 +92,8 @@ void ACEIButtonPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
     if(mCentralLight)
     {
-        // White light (We draw yellow to have contrast)
-        // and because incandescent light bulb are never white
         if(mCentralLight->state() == LightBulbObject::State::On)
-            painter->setBrush(Qt::yellow);
+            painter->setBrush(mCentralLightColor);
         else
             painter->setBrush(Qt::NoBrush);
 
@@ -230,6 +228,26 @@ void ACEIButtonPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     SnappablePanelItem::mouseReleaseEvent(ev);
 }
 
+QColor ACEIButtonPanelItem::centralLightColor() const
+{
+    return mCentralLightColor;
+}
+
+void ACEIButtonPanelItem::setCentralLightColor(const QColor &newCentralLightColor)
+{
+    if(mCentralLightColor == newCentralLightColor)
+        return;
+
+    mCentralLightColor = newCentralLightColor;
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit lightsChanged();
+}
+
 LightBulbObject *ACEIButtonPanelItem::centralLight() const
 {
     return mCentralLight;
@@ -338,6 +356,10 @@ bool ACEIButtonPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
         setCentralLight(nullptr);
     }
 
+    // Color
+    QColor c = QColor::fromString(obj.value("light_central_color").toString());
+    setCentralLightColor(c.isValid() ? c : Qt::yellow);
+
     return true;
 }
 
@@ -349,6 +371,7 @@ void ACEIButtonPanelItem::saveToJSON(QJsonObject &obj) const
     obj["button_type"] = mButton ? mButton->getType() : QString();
 
     obj["light_central"] = mCentralLight ? mCentralLight->name() : QString();
+    obj["light_central_color"] = mCentralLightColor.name(QColor::HexRgb);
 }
 
 void ACEIButtonPanelItem::onButtonDestroyed()

@@ -55,6 +55,9 @@ public:
     LightBulbObject *centralLight() const;
     void setCentralLight(LightBulbObject *newCentralLight);
 
+    QColor centralLightColor() const;
+    void setCentralLightColor(const QColor &newCentralLightColor);
+
 signals:
     void buttonChanged(AbstractSimulationObject *newButton);
     void lightsChanged();
@@ -82,6 +85,8 @@ private:
     AbstractSimulationObject *mButton = nullptr;
     ButtonInterface *mButtonIface = nullptr;
     LightBulbObject *mCentralLight = nullptr;
+
+    QColor mCentralLightColor = Qt::yellow;
 };
 
 #endif // ACEI_BUTTON_PANELITEM_H
