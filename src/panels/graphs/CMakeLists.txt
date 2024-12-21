@@ -3,8 +3,8 @@
 set(SIMULATORE_RELAIS_SOURCES
     ${SIMULATORE_RELAIS_SOURCES}
 
-    # panels/graphs/aceibuttongraphitem.cpp
-    # panels/graphs/aceibuttongraphitem.h
+    panels/graphs/aceibuttonpanelitem.cpp
+    panels/graphs/aceibuttonpanelitem.h
 
     panels/graphs/aceileverpanelitem.cpp
     panels/graphs/aceileverpanelitem.h

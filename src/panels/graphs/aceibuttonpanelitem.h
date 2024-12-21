@@ -1,5 +1,5 @@
 /**
- * src/panels/graphs/aceibuttongraphitem.h
+ * src/panels/graphs/aceibuttonpanelitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,44 +20,33 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACEIBUTTONGRAPHITEM_H
-#define ACEIBUTTONGRAPHITEM_H
+#ifndef ACEI_BUTTON_PANELITEM_H
+#define ACEI_BUTTON_PANELITEM_H
 
-#include "../abstractnodegraphitem.h"
-
-#include "../../nodes/onoffswitchnode.h"
+#include "../snappablepanelitem.h"
 
 class AbstractSimulationObject;
 class ButtonInterface;
 
 class LightBulbObject;
 
-// TODO: this is a fake node
-class FakeACEIButtonNode : public OnOffSwitchNode
-{
-public:
-    explicit FakeACEIButtonNode(ModeManager *mgr, QObject *parent = nullptr)
-        : OnOffSwitchNode(mgr, parent)
-    {
-
-    }
-
-    static constexpr QLatin1String NodeType = QLatin1String("acei_button");
-    QString nodeType() const override;
-};
-
-class ACEIButtonGraphItem : public AbstractNodeGraphItem
+class ACEIButtonPanelItem : public SnappablePanelItem
 {
     Q_OBJECT
 public:
-    typedef FakeACEIButtonNode Node;
-    static constexpr QLatin1String CustomNodeType = QLatin1String("acei_button");
+    static constexpr double ItemWidth = 100;
+    static constexpr double ItemHeight = 130;
 
-    explicit ACEIButtonGraphItem(OnOffSwitchNode *node_);
+    explicit ACEIButtonPanelItem();
+    ~ACEIButtonPanelItem();
 
+    static constexpr QLatin1String ItemType = QLatin1String("acei_button");
+    QString itemType() const override;
+
+    QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    bool loadFromJSON(const QJsonObject& obj) override;
+    bool loadFromJSON(const QJsonObject& obj, ModeManager *mgr) override;
     void saveToJSON(QJsonObject& obj) const override;
 
     AbstractSimulationObject *button() const;
@@ -83,9 +72,16 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
 
 private:
+    static constexpr double baseCircleRadius = 34;
+    static constexpr double buttonCircleRadius = 20;
+
+    static constexpr double lightCircleRadius = 14;
+    static constexpr double lightOffset = 20;
+
+private:
     AbstractSimulationObject *mButton = nullptr;
     ButtonInterface *mButtonIface = nullptr;
     LightBulbObject *mCentralLight = nullptr;
 };
 
-#endif // ACEIBUTTONGRAPHITEM_H
+#endif // ACEI_BUTTON_PANELITEM_H

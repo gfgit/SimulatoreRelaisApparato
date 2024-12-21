@@ -1,5 +1,5 @@
 /**
- * src/panels/graphs/aceibuttongraphitem.cpp
+ * src/panels/graphs/aceibuttonpanelitem.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,54 +20,69 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "aceibuttongraphitem.h"
+#include "aceibuttonpanelitem.h"
+#include "../panelscene.h"
 
-//TODO: fake
-#include "../../nodes/onoffswitchnode.h"
-#include <QJsonObject>
+#include "../../objects/abstractsimulationobject.h"
+#include "../../objects/abstractsimulationobjectmodel.h"
 
-#include "../../../objects/abstractsimulationobject.h"
-#include "../../../objects/abstractsimulationobjectmodel.h"
+#include "../../objects/interfaces/buttoninterface.h"
 
-#include "../../../objects/interfaces/buttoninterface.h"
+#include "../../objects/simple_activable/lightbulbobject.h"
 
-#include "../../../objects/simple_activable/lightbulbobject.h"
-
-#include "../../../views/modemanager.h"
+#include "../../views/modemanager.h"
 
 #include <QGraphicsSceneMouseEvent>
 
 #include <QPainter>
 #include <QPen>
 
-ACEIButtonGraphItem::ACEIButtonGraphItem(OnOffSwitchNode *node_)
-    : AbstractNodeGraphItem(node_)
+#include <QJsonObject>
+
+ACEIButtonPanelItem::ACEIButtonPanelItem()
+    : SnappablePanelItem()
 {
 
 }
 
-void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+ACEIButtonPanelItem::~ACEIButtonPanelItem()
 {
-    AbstractNodeGraphItem::paint(painter, option, widget);
+    setButton(nullptr);
+}
 
-    constexpr QPointF center(TileLocation::HalfSize,
-                             TileLocation::HalfSize);
+QString ACEIButtonPanelItem::itemType() const
+{
+    return ItemType;
+}
 
-    constexpr QPointF buttonCenter(center.x(), center.y() + 5);
+QRectF ACEIButtonPanelItem::boundingRect() const
+{
+    return QRectF(0, 0, ItemWidth, ItemHeight);
+}
 
-    constexpr double baseCircleRadius = 24;
-    constexpr double buttonCircleRadius = 16;
+void ACEIButtonPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    const QRectF br = boundingRect();
 
-    constexpr double lightCircleRadius = 12;
-    constexpr double lightOffset = 16;
+    // Background
+    painter->fillRect(br, isSelected() ? SelectedBackground : qRgb(0x7F, 0x7F, 0x7F));
+
+    const QPointF center = br.center();
+
+    const QPointF buttonCenter(center.x(), center.y());
+
+    constexpr QRgb BorderColor = qRgb(97, 97, 97);
 
     // Draw dark gray border around
     QPen borderPen;
-    borderPen.setWidth(3);
-    borderPen.setColor(Qt::darkGray);
+    borderPen.setWidth(2);
+    borderPen.setColor(BorderColor);
     painter->setPen(borderPen);
     painter->setBrush(Qt::NoBrush);
-    painter->drawRect(boundingRect());
+    painter->drawRect(boundingRect().adjusted(1, 1, -1, -1));
+
+    borderPen.setWidth(3);
+    painter->setPen(borderPen);
 
     // Draw lights
     QRectF circle;
@@ -127,9 +142,9 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
     QRectF textRect;
     textRect.setLeft(10);
-    textRect.setRight(TileLocation::Size - 10.0);
-    textRect.setTop(TileLocation::HalfSize + 20.0);
-    textRect.setBottom(TileLocation::Size - 4.0);
+    textRect.setRight(br.width() - 10.0);
+    textRect.setTop(buttonCenter.y() + baseCircleRadius);
+    textRect.setBottom(br.bottom() - 4.0);
 
     Qt::Alignment textAlign = Qt::AlignLeft;
 
@@ -151,10 +166,12 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     painter->drawText(textRect, textAlign, buttonName);
 }
 
-void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
+void ACEIButtonPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
-            && mButtonIface && boundingRect().contains(ev->pos()))
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing
+            && mButtonIface
+            && boundingRect().contains(ev->pos()))
     {
         ButtonInterface::State state = mButtonIface->state();
 
@@ -193,12 +210,13 @@ void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
         return;
     }
 
-    AbstractNodeGraphItem::mousePressEvent(ev);
+    SnappablePanelItem::mousePressEvent(ev);
 }
 
-void ACEIButtonGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
+void ACEIButtonPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing
             && mButtonIface)
     {
         // We don't care about mouse button
@@ -208,15 +226,15 @@ void ACEIButtonGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
         return;
     }
 
-    AbstractNodeGraphItem::mouseReleaseEvent(ev);
+    SnappablePanelItem::mouseReleaseEvent(ev);
 }
 
-LightBulbObject *ACEIButtonGraphItem::centralLight() const
+LightBulbObject *ACEIButtonPanelItem::centralLight() const
 {
     return mCentralLight;
 }
 
-void ACEIButtonGraphItem::setCentralLight(LightBulbObject *newCentralLight)
+void ACEIButtonPanelItem::setCentralLight(LightBulbObject *newCentralLight)
 {
     if(mCentralLight == newCentralLight)
         return;
@@ -224,9 +242,9 @@ void ACEIButtonGraphItem::setCentralLight(LightBulbObject *newCentralLight)
     if(mCentralLight)
     {
         disconnect(mCentralLight, &LightBulbObject::stateChanged,
-                   this, &ACEIButtonGraphItem::triggerUpdate);
+                   this, &ACEIButtonPanelItem::triggerUpdate);
         disconnect(mCentralLight, &LightBulbObject::destroyed,
-                   this, &ACEIButtonGraphItem::onLightDestroyed);
+                   this, &ACEIButtonPanelItem::onLightDestroyed);
     }
 
     mCentralLight = newCentralLight;
@@ -234,22 +252,25 @@ void ACEIButtonGraphItem::setCentralLight(LightBulbObject *newCentralLight)
     if(mCentralLight)
     {
         connect(mCentralLight, &LightBulbObject::stateChanged,
-                this, &ACEIButtonGraphItem::triggerUpdate);
+                this, &ACEIButtonPanelItem::triggerUpdate);
         connect(mCentralLight, &LightBulbObject::destroyed,
-                this, &ACEIButtonGraphItem::onLightDestroyed);
+                this, &ACEIButtonPanelItem::onLightDestroyed);
     }
 
-    getAbstractNode()->modeMgr()->setFileEdited();
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
     update();
     emit lightsChanged();
 }
 
-AbstractSimulationObject *ACEIButtonGraphItem::button() const
+AbstractSimulationObject *ACEIButtonPanelItem::button() const
 {
     return mButton;
 }
 
-void ACEIButtonGraphItem::setButton(AbstractSimulationObject *newButton)
+void ACEIButtonPanelItem::setButton(AbstractSimulationObject *newButton)
 {
     if(newButton && !newButton->getInterface<ButtonInterface>())
         return;
@@ -257,13 +278,13 @@ void ACEIButtonGraphItem::setButton(AbstractSimulationObject *newButton)
     if(mButton)
     {
         disconnect(mButton, &AbstractSimulationObject::destroyed,
-                   this, &ACEIButtonGraphItem::onButtonDestroyed);
+                   this, &ACEIButtonPanelItem::onButtonDestroyed);
         disconnect(mButton, &AbstractSimulationObject::stateChanged,
-                   this, &ACEIButtonGraphItem::triggerUpdate);
+                   this, &ACEIButtonPanelItem::triggerUpdate);
         disconnect(mButton, &AbstractSimulationObject::interfacePropertyChanged,
-                   this, &ACEIButtonGraphItem::onInterfacePropertyChanged);
+                   this, &ACEIButtonPanelItem::onInterfacePropertyChanged);
         disconnect(mButton, &AbstractSimulationObject::settingsChanged,
-                   this, &ACEIButtonGraphItem::triggerUpdate);
+                   this, &ACEIButtonPanelItem::triggerUpdate);
         mButtonIface = nullptr;
     }
 
@@ -272,37 +293,40 @@ void ACEIButtonGraphItem::setButton(AbstractSimulationObject *newButton)
     if(mButton)
     {
         connect(mButton, &AbstractSimulationObject::destroyed,
-                this, &ACEIButtonGraphItem::onButtonDestroyed);
+                this, &ACEIButtonPanelItem::onButtonDestroyed);
         connect(mButton, &AbstractSimulationObject::stateChanged,
-                this, &ACEIButtonGraphItem::triggerUpdate);
+                this, &ACEIButtonPanelItem::triggerUpdate);
         connect(mButton, &AbstractSimulationObject::interfacePropertyChanged,
-                this, &ACEIButtonGraphItem::onInterfacePropertyChanged);
+                this, &ACEIButtonPanelItem::onInterfacePropertyChanged);
         connect(mButton, &AbstractSimulationObject::settingsChanged,
-                this, &ACEIButtonGraphItem::triggerUpdate);
+                this, &ACEIButtonPanelItem::triggerUpdate);
 
         mButtonIface = mButton->getInterface<ButtonInterface>();
     }
 
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
     emit buttonChanged(mButton);
 }
 
-bool ACEIButtonGraphItem::loadFromJSON(const QJsonObject &obj)
+bool ACEIButtonPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
 {
-    QJsonObject objCopy = obj;
-
-    // Restore fake node type
-    objCopy["type"] = Node::NodeType;
+    if(!SnappablePanelItem::loadFromJSON(obj, mgr))
+        return false;
 
     const QString buttonName = obj.value("button").toString();
     const QString buttonType = obj.value("button_type").toString();
-    auto model = getAbstractNode()->modeMgr()->modelForType(buttonType);
+    auto model = mgr->modelForType(buttonType);
 
     if(model)
         setButton(model->getObjectByName(buttonName));
     else
         setButton(nullptr);
 
-    auto lightModel = getAbstractNode()->modeMgr()->modelForType(LightBulbObject::Type);
+    auto lightModel = mgr->modelForType(LightBulbObject::Type);
     if(lightModel)
     {
         const QString centralLightName = obj.value("light_central").toString();
@@ -313,15 +337,12 @@ bool ACEIButtonGraphItem::loadFromJSON(const QJsonObject &obj)
         setCentralLight(nullptr);
     }
 
-    return AbstractNodeGraphItem::loadFromJSON(objCopy);
+    return true;
 }
 
-void ACEIButtonGraphItem::saveToJSON(QJsonObject &obj) const
+void ACEIButtonPanelItem::saveToJSON(QJsonObject &obj) const
 {
-    AbstractNodeGraphItem::saveToJSON(obj);
-
-    // Replace fake node type with ours
-    obj["type"] = CustomNodeType;
+    SnappablePanelItem::saveToJSON(obj);
 
     obj["button"] = mButton ? mButton->name() : QString();
     obj["button_type"] = mButton ? mButton->getType() : QString();
@@ -329,19 +350,17 @@ void ACEIButtonGraphItem::saveToJSON(QJsonObject &obj) const
     obj["light_central"] = mCentralLight ? mCentralLight->name() : QString();
 }
 
-void ACEIButtonGraphItem::onButtonDestroyed()
+void ACEIButtonPanelItem::onButtonDestroyed()
 {
-    mButton = nullptr;
-    mButtonIface = nullptr;
-    emit buttonChanged(mButton);
+    setButton(nullptr);
 }
 
-void ACEIButtonGraphItem::onLightDestroyed()
+void ACEIButtonPanelItem::onLightDestroyed()
 {
     setCentralLight(nullptr);
 }
 
-void ACEIButtonGraphItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
+void ACEIButtonPanelItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
 {
     if(ifaceName == ButtonInterface::IfaceType)
     {
@@ -353,9 +372,4 @@ void ACEIButtonGraphItem::onInterfacePropertyChanged(const QString &ifaceName, c
             triggerUpdate();
         }
     }
-}
-
-QString FakeACEIButtonNode::nodeType() const
-{
-    return FakeACEIButtonNode::NodeType;
 }

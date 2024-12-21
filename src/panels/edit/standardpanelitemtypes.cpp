@@ -28,7 +28,6 @@
 #include "../abstractpanelitem.h"
 
 // TODO: port to panel
-//#include "../graphs/special/aceibuttongraphitem.h"
 //#include "../graphs/special/acesasiblevergraphitem.h"
 
 // Special items
@@ -36,6 +35,7 @@
 #include "../graphs/imagepanelitem.h"
 
 // Other items
+#include "../graphs/aceibuttonpanelitem.h"
 #include "../graphs/aceileverpanelitem.h"
 
 #include <QWidget>
@@ -268,6 +268,65 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
     }
 
     {
+        // ACEI Button
+        PanelItemFactory::FactoryItem factory;
+        factory.needsName = PanelItemFactory::NeedsName::Never;
+        factory.nodeType = ACEIButtonPanelItem::ItemType;
+        factory.prettyName = tr("ACEI Button");
+        factory.create = &addNewNodeToScene<ACEIButtonPanelItem>;
+        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        {
+            ACEIButtonPanelItem *buttonItem = static_cast<ACEIButtonPanelItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Button
+            const QStringList buttonTypes = mgr->objectFactory()
+                    ->typesForInterface(ButtonInterface::IfaceType);
+
+            SimulationObjectLineEdit *buttonEdit =
+                    new SimulationObjectLineEdit(mgr, buttonTypes);
+
+            QObject::connect(buttonItem, &ACEIButtonPanelItem::buttonChanged,
+                             buttonEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(buttonEdit, &SimulationObjectLineEdit::objectChanged,
+                             buttonItem, [buttonItem](AbstractSimulationObject *obj)
+            {
+                buttonItem->setButton(obj);
+            });
+            buttonEdit->setObject(buttonItem->button());
+
+            lay->addRow(tr("Button:"), buttonEdit);
+
+            // Central Light
+            SimulationObjectLineEdit *centralLightEdit =
+                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+            QObject::connect(centralLightEdit, &SimulationObjectLineEdit::objectChanged,
+                             buttonItem, [buttonItem](AbstractSimulationObject *obj)
+            {
+                buttonItem->setCentralLight(static_cast<LightBulbObject *>(obj));
+            });
+
+            lay->addRow(tr("Central light:"), centralLightEdit);
+
+            auto updateLights = [buttonItem, centralLightEdit]()
+            {
+                centralLightEdit->setObject(buttonItem->centralLight());
+            };
+
+            QObject::connect(buttonItem, &ACEIButtonPanelItem::lightsChanged,
+                             w, updateLights);
+
+            updateLights();
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
         // ACEI Lever
         PanelItemFactory::FactoryItem factory;
         factory.needsName = PanelItemFactory::NeedsName::Never;
@@ -276,7 +335,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.create = &addNewNodeToScene<ACEILeverPanelItem>;
         factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
         {
-            ACEILeverPanelItem *specialItem = static_cast<ACEILeverPanelItem *>(item);
+            ACEILeverPanelItem *leverItem = static_cast<ACEILeverPanelItem *>(item);
 
             QWidget *w = new QWidget;
             QFormLayout *lay = new QFormLayout(w);
@@ -284,14 +343,14 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             // Lever
             // TODO: remove BEM
             SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr, {ACEILeverObject::Type, BEMLeverObject::Type});
-            QObject::connect(specialItem, &ACEILeverPanelItem::leverChanged,
+            QObject::connect(leverItem, &ACEILeverPanelItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
+                             leverItem, [leverItem](AbstractSimulationObject *obj)
             {
-                specialItem->setLever(obj);
+                leverItem->setLever(obj);
             });
-            leverEdit->setObject(specialItem->lever());
+            leverEdit->setObject(leverItem->lever());
 
             lay->addRow(tr("Lever:"), leverEdit);
 
@@ -299,9 +358,9 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             SimulationObjectLineEdit *leftLightEdit =
                     new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
             QObject::connect(leftLightEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
+                             leverItem, [leverItem](AbstractSimulationObject *obj)
             {
-                specialItem->setLeftLight(static_cast<LightBulbObject *>(obj));
+                leverItem->setLeftLight(static_cast<LightBulbObject *>(obj));
             });
 
             lay->addRow(tr("Left light:"), leftLightEdit);
@@ -310,9 +369,9 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             ColorSelectionWidget *leftLightColor = new ColorSelectionWidget;
 
             QObject::connect(leftLightColor, &ColorSelectionWidget::colorChanged,
-                             specialItem, [specialItem, leftLightColor]()
+                             leverItem, [leverItem, leftLightColor]()
             {
-                specialItem->setLeftLightColor(leftLightColor->color());
+                leverItem->setLeftLightColor(leftLightColor->color());
             });
 
             lay->addRow(tr("Left Color:"), leftLightColor);
@@ -321,9 +380,9 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             SimulationObjectLineEdit *rightLightEdit =
                     new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
             QObject::connect(rightLightEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
+                             leverItem, [leverItem](AbstractSimulationObject *obj)
             {
-                specialItem->setRightLight(static_cast<LightBulbObject *>(obj));
+                leverItem->setRightLight(static_cast<LightBulbObject *>(obj));
             });
 
             lay->addRow(tr("Right light:"), rightLightEdit);
@@ -332,23 +391,23 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             ColorSelectionWidget *rightLightColor = new ColorSelectionWidget;
 
             QObject::connect(rightLightColor, &ColorSelectionWidget::colorChanged,
-                             specialItem, [specialItem, rightLightColor]()
+                             leverItem, [leverItem, rightLightColor]()
             {
-                specialItem->setRightLightColor(rightLightColor->color());
+                leverItem->setRightLightColor(rightLightColor->color());
             });
 
             lay->addRow(tr("Right Color:"), rightLightColor);
 
-            auto updateLights = [specialItem, leftLightEdit, rightLightEdit,
+            auto updateLights = [leverItem, leftLightEdit, rightLightEdit,
                     leftLightColor, rightLightColor]()
             {
-                leftLightEdit->setObject(specialItem->leftLight());
-                rightLightEdit->setObject(specialItem->rightLight());
-                leftLightColor->setColor(specialItem->leftLightColor());
-                rightLightColor->setColor(specialItem->rightLightColor());
+                leftLightEdit->setObject(leverItem->leftLight());
+                rightLightEdit->setObject(leverItem->rightLight());
+                leftLightColor->setColor(leverItem->leftLightColor());
+                rightLightColor->setColor(leverItem->rightLightColor());
             };
 
-            QObject::connect(specialItem, &ACEILeverPanelItem::lightsChanged,
+            QObject::connect(leverItem, &ACEILeverPanelItem::lightsChanged,
                              w, updateLights);
 
             updateLights();
@@ -371,65 +430,6 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         {
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
                                                mgr, tr("Light:"));
-        };
-
-        factoryReg->registerFactory(factory);
-    }
-
-    {
-        // ACEI Button
-        PanelItemFactory::FactoryItem factory;
-        factory.needsName = PanelItemFactory::NeedsName::Never;
-        factory.nodeType = ACEIButtonGraphItem::CustomNodeType;
-        factory.prettyName = tr("ACEI Button");
-        factory.create = &addNewNodeToScene<ACEIButtonGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
-        {
-            ACEIButtonGraphItem *specialItem = static_cast<ACEIButtonGraphItem *>(item);
-
-            QWidget *w = new QWidget;
-            QFormLayout *lay = new QFormLayout(w);
-
-            // Button
-            const QStringList buttonTypes = mgr->objectFactory()
-                    ->typesForInterface(ButtonInterface::IfaceType);
-
-            SimulationObjectLineEdit *buttonEdit =
-                    new SimulationObjectLineEdit(mgr, buttonTypes);
-
-            QObject::connect(specialItem, &ACEIButtonGraphItem::buttonChanged,
-                             buttonEdit, &SimulationObjectLineEdit::setObject);
-            QObject::connect(buttonEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
-            {
-                specialItem->setButton(obj);
-            });
-            buttonEdit->setObject(specialItem->button());
-
-            lay->addRow(tr("Button:"), buttonEdit);
-
-            // Central Light
-            SimulationObjectLineEdit *centralLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
-            QObject::connect(centralLightEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
-            {
-                specialItem->setCentralLight(static_cast<LightBulbObject *>(obj));
-            });
-
-            lay->addRow(tr("Central light:"), centralLightEdit);
-
-            auto updateLights = [specialItem, centralLightEdit]()
-            {
-                centralLightEdit->setObject(specialItem->centralLight());
-            };
-
-            QObject::connect(specialItem, &ACEIButtonGraphItem::lightsChanged,
-                             w, updateLights);
-
-            updateLights();
-
-            return w;
         };
 
         factoryReg->registerFactory(factory);
