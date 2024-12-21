@@ -84,6 +84,7 @@ public:
 
 signals:
     void currentViewTypeChanged(ViewType newVal);
+    void activeViewChanged();
 
 public slots:
     void startEditNewCableOnActiveView();

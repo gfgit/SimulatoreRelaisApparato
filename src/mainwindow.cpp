@@ -66,6 +66,8 @@ MainWindow::MainWindow(const QString& uniqueName_, const QString& settingsFile_,
 
     connect(mViewMgr, &ViewManager::currentViewTypeChanged,
             this, &MainWindow::showCurrentEditToolbars);
+    connect(mViewMgr, &ViewManager::activeViewChanged,
+            this, &MainWindow::showCurrentEditToolbars);
 
     buildMenuBar();
 

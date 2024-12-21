@@ -87,8 +87,8 @@ void ViewManager::setActiveCircuit(CircuitWidget *w)
         return;
 
     mActiveCircuitView = w;
-    if(!mActiveCircuitView && !mCircuitViews.isEmpty())
-        mActiveCircuitView = mCircuitViews.begin().key();
+
+    emit activeViewChanged();
 }
 
 void ViewManager::setActivePanel(PanelWidget *w)
@@ -99,8 +99,8 @@ void ViewManager::setActivePanel(PanelWidget *w)
         return;
 
     mActivePanelView = w;
-    if(!mActivePanelView && !mPanelViews.isEmpty())
-        mActivePanelView = mPanelViews.begin().key();
+
+    emit activeViewChanged();
 }
 
 static std::pair<QString, QString> getCircuitUniqueName(CircuitWidget *w)
