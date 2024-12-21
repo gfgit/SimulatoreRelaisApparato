@@ -51,7 +51,7 @@
 PanelScene::PanelScene(PanelListModel *parent)
     : QGraphicsScene{parent}
 {
-    setBackgroundBrush(QColor(0x7F, 0x7F, 0x7F));
+
 }
 
 PanelScene::~PanelScene()
@@ -809,6 +809,15 @@ void PanelScene::keyReleaseEvent(QKeyEvent *e)
 void PanelScene::mousePressEvent(QGraphicsSceneMouseEvent *e)
 {
     QGraphicsScene::mousePressEvent(e);
+}
+
+void PanelScene::drawBackground(QPainter *painter, const QRectF &rect)
+{
+    // Draw dark gray background only on scene rect
+
+    const QRectF toBePainted = rect.intersected(sceneRect());
+
+    painter->fillRect(toBePainted, qRgb(0x7F, 0x7F, 0x7F));
 }
 
 PanelListModel *PanelScene::panelsModel() const

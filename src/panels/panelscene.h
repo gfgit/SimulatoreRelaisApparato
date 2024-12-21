@@ -102,6 +102,8 @@ protected:
     void keyReleaseEvent(QKeyEvent *e) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
 
+    void drawBackground(QPainter *painter, const QRectF &rect) override;
+
 private:
     friend class AbstractPanelItem;
 
