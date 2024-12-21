@@ -77,6 +77,7 @@ void ACEIButtonPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     QPen borderPen;
     borderPen.setWidth(2);
     borderPen.setColor(BorderColor);
+    borderPen.setJoinStyle(Qt::MiterJoin);
     painter->setPen(borderPen);
     painter->setBrush(Qt::NoBrush);
     painter->drawRect(boundingRect().adjusted(1, 1, -1, -1));

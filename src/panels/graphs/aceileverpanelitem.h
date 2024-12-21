@@ -46,11 +46,11 @@ public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    AbstractSimulationObject *lever() const;
-    void setLever(AbstractSimulationObject *newLever);
-
     bool loadFromJSON(const QJsonObject& obj, ModeManager *mgr) override;
     void saveToJSON(QJsonObject& obj) const override;
+
+    AbstractSimulationObject *lever() const;
+    void setLever(AbstractSimulationObject *newLever);
 
     LightBulbObject *leftLight() const;
     void setLeftLight(LightBulbObject *newLeftLight);

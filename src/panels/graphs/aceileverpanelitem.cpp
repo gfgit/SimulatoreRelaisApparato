@@ -92,6 +92,7 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     QPen borderPen;
     borderPen.setWidth(2);
     borderPen.setColor(BorderColor);
+    borderPen.setJoinStyle(Qt::MiterJoin);
     painter->setPen(borderPen);
     painter->setBrush(Qt::NoBrush);
     painter->drawRect(boundingRect().adjusted(1, 1, -1, -1));
@@ -535,10 +536,7 @@ void ACEILeverPanelItem::saveToJSON(QJsonObject &obj) const
 
 void ACEILeverPanelItem::onLeverDestroyed()
 {
-    mLever = nullptr;
-    mLeverIface = nullptr;
-    updateLeverTooltip();
-    emit leverChanged(mLever);
+    setLever(nullptr);
 }
 
 void ACEILeverPanelItem::onLightDestroyed()
