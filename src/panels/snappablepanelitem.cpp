@@ -90,9 +90,6 @@ QVariant SnappablePanelItem::itemChange(GraphicsItemChange change, const QVarian
                 const QPointF deltaPos = snapPos.pt - newPos;
                 const QPointF deltaCorner = snapCorner.pt - newRect.bottomRight();
 
-                if(deltaPos.x() >= 10 || deltaCorner.x() >= 10)
-                    qt_noop();
-
                 if(snapCorner.foundX && (!snapPos.foundX || qAbs(deltaCorner.x()) <= qAbs(deltaPos.x())))
                 {
                     newPos.rx() += deltaCorner.x();
