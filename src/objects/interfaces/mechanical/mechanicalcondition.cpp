@@ -270,22 +270,18 @@ void MechanicalCondition::simplifyTree()
 
             if(sub.type == Type::And && type == Type::And)
             {
-                sub.simplifyTree();
-
-                auto beforeIt = it + 1;
-
-                // Merge all sub ANDs togheter
-                for(const auto& sub2 : sub.subConditions)
-                {
-                    beforeIt = subConditions.insert(beforeIt, sub2);
-                    beforeIt++;
-                }
+                MechanicalCondition subCopy = sub;
 
                 // Remove original sub item
                 it = subConditions.erase(it);
 
-                // Skip newly inserted items
-                it += sub.subConditions.size();
+                // Merge all sub ANDs togheter
+                for(const auto& sub2 : subCopy.subConditions)
+                {
+                    it = subConditions.insert(it, sub2);
+                    it++;
+                }
+
                 continue;
             }
             else
