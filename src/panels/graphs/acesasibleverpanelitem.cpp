@@ -1,5 +1,5 @@
 /**
- * src/panels/graphs/acesasiblevergraphitem.cpp
+ * src/panels/graphs/acesasibleverpanelitem.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,19 +20,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "acesasiblevergraphitem.h"
+#include "acesasibleverpanelitem.h"
+#include "../panelscene.h"
 
-//TODO: fake
-#include "../../nodes/onoffswitchnode.h"
-#include <QJsonObject>
+#include "../../objects/abstractsimulationobject.h"
+#include "../../objects/abstractsimulationobjectmodel.h"
 
-#include "../../../objects/abstractsimulationobject.h"
-#include "../../../objects/abstractsimulationobjectmodel.h"
+#include "../../objects/interfaces/leverinterface.h"
+#include "../../objects/interfaces/sasibaceleverextrainterface.h"
 
-#include "../../../objects/interfaces/leverinterface.h"
-#include "../../../objects/interfaces/sasibaceleverextrainterface.h"
-
-#include "../../../views/modemanager.h"
+#include "../../views/modemanager.h"
 
 #include <QGraphicsSceneMouseEvent>
 
@@ -41,25 +38,59 @@
 
 #include <QtMath>
 
-ACESasibLeverGraphItem::ACESasibLeverGraphItem(OnOffSwitchNode *node_)
-    : AbstractNodeGraphItem(node_)
+#include <QJsonObject>
+
+ACESasibLeverPanelItem::ACESasibLeverPanelItem()
+    : SnappablePanelItem()
 {
     updateLeverTooltip();
 }
 
-void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+ACESasibLeverPanelItem::~ACESasibLeverPanelItem()
 {
-    AbstractNodeGraphItem::paint(painter, option, widget);
+    setLever(nullptr);
+}
 
-    constexpr QPointF center(TileLocation::HalfSize,
-                             TileLocation::HalfSize);
+QString ACESasibLeverPanelItem::itemType() const
+{
+    return ItemType;
+}
+
+QRectF ACESasibLeverPanelItem::boundingRect() const
+{
+
+    return QRectF(0, 0, ItemWidth, ItemHeight);
+}
+
+void ACESasibLeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    const QRectF br = boundingRect();
+
+    // Background
+    painter->fillRect(br, isSelected() ? SelectedBackground : qRgb(0x7F, 0x7F, 0x7F));
+
+    const QPointF center = br.center();
 
     QRectF hole(QPointF(), holeSize);
     hole.moveCenter(QPointF(center.x(), center.y() + holeCenterOffsetY));
 
-    painter->fillRect(hole, Qt::darkGray);
+    constexpr QRgb BorderColor = qRgb(97, 97, 97);
 
-    constexpr double circleRadius = 8;
+    // Draw dark gray border around
+    QPen borderPen;
+    borderPen.setWidth(4);
+    borderPen.setColor(BorderColor);
+    borderPen.setJoinStyle(Qt::MiterJoin);
+    painter->setPen(borderPen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRect(boundingRect().adjusted(2, 2, -2, -2));
+
+    borderPen.setWidth(3);
+    painter->setPen(borderPen);
+
+    painter->fillRect(hole, Qt::lightGray);
+
+    constexpr double circleRadius = 25;
 
     QRectF circle;
     circle.setSize(QSizeF(circleRadius * 2,
@@ -82,7 +113,7 @@ void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
     pen.setColor(color);
-    pen.setWidth(8);
+    pen.setWidth(12);
 
     // Draw lever line
     painter->setPen(pen);
@@ -95,17 +126,39 @@ void ACESasibLeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     painter->drawEllipse(circle);
 
     // Draw Lever name
+    const QString leverName = mLever ? mLever->name() : tr("NULL");
+
+    QRectF textRect;
+    textRect.setLeft(10);
+    textRect.setRight(br.width() - 10.0);
+    textRect.setTop(hole.bottom() + circleRadius);
+    textRect.setBottom(br.bottom() - 4.0);
+
+    Qt::Alignment textAlign = Qt::AlignCenter;
+
+    QFont f;
+    f.setPointSizeF(18.0);
+    f.setBold(true);
+
+    QFontMetrics metrics(f, painter->device());
+    double width = metrics.horizontalAdvance(leverName, QTextOption(textAlign));
+    if(width > textRect.width())
+    {
+        f.setPointSizeF(f.pointSizeF() * textRect.width() / width * 0.9);
+    }
+
     painter->setBrush(Qt::NoBrush);
     pen.setColor(Qt::black);
     painter->setPen(pen);
-    drawName(painter,
-             mLever ? mLever->name() : tr("NULL"),
-             TileRotate::Deg90); // Put at bottom
+
+    painter->setFont(f);
+    painter->drawText(textRect, textAlign, leverName);
 }
 
-void ACESasibLeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
+void ACESasibLeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(getAbstractNode()->modeMgr()->mode() == FileMode::Simulation
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing
             && mLeverIface)
     {
         if(ev->button() == Qt::LeftButton)
@@ -117,15 +170,15 @@ void ACESasibLeverGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
         }
     }
 
-    AbstractNodeGraphItem::mousePressEvent(ev);
+    SnappablePanelItem::mousePressEvent(ev);
 }
 
-void ACESasibLeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
+void ACESasibLeverPanelItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 {
-    constexpr QPointF center(TileLocation::HalfSize,
-                             TileLocation::HalfSize);
+    const QPointF center = boundingRect().center();
 
-    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing
             && mLeverIface)
     {
         if(ev->buttons() & Qt::LeftButton)
@@ -170,12 +223,13 @@ void ACESasibLeverGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
         }
     }
 
-    AbstractNodeGraphItem::mouseMoveEvent(ev);
+    SnappablePanelItem::mouseMoveEvent(ev);
 }
 
-void ACESasibLeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
+void ACESasibLeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing)
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing)
     {
         // We don't care about button
         // Also sometimes there are already no buttons
@@ -183,10 +237,10 @@ void ACESasibLeverGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
             mLeverIface->setPressed(false);
     }
 
-    AbstractNodeGraphItem::mouseReleaseEvent(ev);
+    SnappablePanelItem::mouseReleaseEvent(ev);
 }
 
-void ACESasibLeverGraphItem::updateLeverTooltip()
+void ACESasibLeverPanelItem::updateLeverTooltip()
 {
     if(!mLeverIface)
     {
@@ -227,12 +281,12 @@ void ACESasibLeverGraphItem::updateLeverTooltip()
     setToolTip(tipText);
 }
 
-AbstractSimulationObject *ACESasibLeverGraphItem::lever() const
+AbstractSimulationObject *ACESasibLeverPanelItem::lever() const
 {
     return mLever;
 }
 
-void ACESasibLeverGraphItem::setLever(AbstractSimulationObject *newLever)
+void ACESasibLeverPanelItem::setLever(AbstractSimulationObject *newLever)
 {
     if(newLever && !newLever->getInterface<SasibACELeverExtraInterface>())
         return;
@@ -240,13 +294,13 @@ void ACESasibLeverGraphItem::setLever(AbstractSimulationObject *newLever)
     if(mLever)
     {
         disconnect(mLever, &AbstractSimulationObject::destroyed,
-                   this, &ACESasibLeverGraphItem::onLeverDestroyed);
+                   this, &ACESasibLeverPanelItem::onLeverDestroyed);
         disconnect(mLever, &AbstractSimulationObject::stateChanged,
-                   this, &ACESasibLeverGraphItem::triggerUpdate);
+                   this, &ACESasibLeverPanelItem::triggerUpdate);
         disconnect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
-                   this, &ACESasibLeverGraphItem::onInterfacePropertyChanged);
+                   this, &ACESasibLeverPanelItem::onInterfacePropertyChanged);
         disconnect(mLever, &AbstractSimulationObject::settingsChanged,
-                   this, &ACESasibLeverGraphItem::triggerUpdate);
+                   this, &ACESasibLeverPanelItem::triggerUpdate);
         mLeverIface = nullptr;
     }
 
@@ -255,61 +309,57 @@ void ACESasibLeverGraphItem::setLever(AbstractSimulationObject *newLever)
     if(mLever)
     {
         connect(mLever, &AbstractSimulationObject::destroyed,
-                this, &ACESasibLeverGraphItem::onLeverDestroyed);
+                this, &ACESasibLeverPanelItem::onLeverDestroyed);
         connect(mLever, &AbstractSimulationObject::stateChanged,
-                this, &ACESasibLeverGraphItem::triggerUpdate);
+                this, &ACESasibLeverPanelItem::triggerUpdate);
         connect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
-                this, &ACESasibLeverGraphItem::onInterfacePropertyChanged);
+                this, &ACESasibLeverPanelItem::onInterfacePropertyChanged);
         connect(mLever, &AbstractSimulationObject::settingsChanged,
-                this, &ACESasibLeverGraphItem::triggerUpdate);
+                this, &ACESasibLeverPanelItem::triggerUpdate);
 
         mLeverIface = mLever->getInterface<LeverInterface>();
     }
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
 
     updateLeverTooltip();
 
     emit leverChanged(mLever);
 }
 
-bool ACESasibLeverGraphItem::loadFromJSON(const QJsonObject &obj)
+bool ACESasibLeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
 {
-    QJsonObject objCopy = obj;
-
-    // Restore fake node type
-    objCopy["type"] = Node::NodeType;
+    if(!SnappablePanelItem::loadFromJSON(obj, mgr))
+        return false;
 
     const QString leverName = obj.value("lever").toString();
     const QString leverType = obj.value("lever_type").toString();
-    auto model = getAbstractNode()->modeMgr()->modelForType(leverType);
+    auto model = mgr->modelForType(leverType);
 
     if(model)
         setLever(model->getObjectByName(leverName));
     else
         setLever(nullptr);
 
-    return AbstractNodeGraphItem::loadFromJSON(objCopy);
+    return true;
 }
 
-void ACESasibLeverGraphItem::saveToJSON(QJsonObject &obj) const
+void ACESasibLeverPanelItem::saveToJSON(QJsonObject &obj) const
 {
-    AbstractNodeGraphItem::saveToJSON(obj);
-
-    // Replace fake node type with ours
-    obj["type"] = CustomNodeType;
+    SnappablePanelItem::saveToJSON(obj);
 
     obj["lever"] = mLever ? mLever->name() : QString();
     obj["lever_type"] = mLever ? mLever->getType() : QString();
 }
 
-void ACESasibLeverGraphItem::onLeverDestroyed()
+void ACESasibLeverPanelItem::onLeverDestroyed()
 {
-    mLever = nullptr;
-    mLeverIface = nullptr;
-    updateLeverTooltip();
-    emit leverChanged(mLever);
+    setLever(nullptr);
 }
 
-void ACESasibLeverGraphItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
+void ACESasibLeverPanelItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
 {
     if(ifaceName == LeverInterface::IfaceType)
     {
@@ -321,9 +371,4 @@ void ACESasibLeverGraphItem::onInterfacePropertyChanged(const QString &ifaceName
             updateLeverTooltip();
         }
     }
-}
-
-QString FakeLeverNode2::nodeType() const
-{
-    return FakeLeverNode2::NodeType;
 }

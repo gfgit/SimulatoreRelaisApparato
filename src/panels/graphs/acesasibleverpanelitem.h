@@ -1,5 +1,5 @@
 /**
- * src/panels/graphs/acesasiblevergraphitem.h
+ * src/panels/graphs/acesasibleverpanelitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,46 +20,35 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACESASIBLEVERGRAPHITEM_H
-#define ACESASIBLEVERGRAPHITEM_H
+#ifndef ACESasibLeverPanelItem_H
+#define ACESasibLeverPanelItem_H
 
-#include "../abstractnodegraphitem.h"
-
-#include "../../nodes/onoffswitchnode.h"
+#include "../snappablepanelitem.h"
 
 class AbstractSimulationObject;
 class LeverInterface;
 
-// TODO: this is a fake node
-class FakeLeverNode2 : public OnOffSwitchNode
-{
-public:
-    explicit FakeLeverNode2(ModeManager *mgr, QObject *parent = nullptr)
-        : OnOffSwitchNode(mgr, parent)
-    {
-
-    }
-
-    static constexpr QLatin1String NodeType = QLatin1String("ace_sasib_lever");
-    QString nodeType() const override;
-};
-
-class ACESasibLeverGraphItem : public AbstractNodeGraphItem
+class ACESasibLeverPanelItem : public SnappablePanelItem
 {
     Q_OBJECT
 public:
-    typedef FakeLeverNode2 Node;
-    static constexpr QLatin1String CustomNodeType = QLatin1String("ace_sasib_lever");
+    static constexpr double ItemWidth = 150;
+    static constexpr double ItemHeight = 250;
 
-    explicit ACESasibLeverGraphItem(OnOffSwitchNode *node_);
+    explicit ACESasibLeverPanelItem();
+    ~ACESasibLeverPanelItem();
 
+    static constexpr QLatin1String ItemType = QLatin1String("ace_sasib_lever");
+    QString itemType() const override;
+
+    QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
+
+    bool loadFromJSON(const QJsonObject& obj, ModeManager *mgr) override;
+    void saveToJSON(QJsonObject& obj) const override;
 
     AbstractSimulationObject *lever() const;
     void setLever(AbstractSimulationObject *newLever);
-
-    bool loadFromJSON(const QJsonObject& obj) override;
-    void saveToJSON(QJsonObject& obj) const override;
 
 signals:
     void leverChanged(AbstractSimulationObject *newLever);
@@ -85,9 +74,9 @@ private:
 
     QPointF mLastMousePos;
 
-    static constexpr QSizeF holeSize = {20, 58};
-    static constexpr double holeCenterOffsetY = -13;
+    static constexpr QSizeF holeSize = {50, 120};
+    static constexpr double holeCenterOffsetY = -30;
 
 };
 
-#endif // ACESASIBLEVERGRAPHITEM_H
+#endif // ACESasibLeverPanelItem_H

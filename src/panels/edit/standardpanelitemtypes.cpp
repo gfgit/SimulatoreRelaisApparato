@@ -27,9 +27,6 @@
 
 #include "../abstractpanelitem.h"
 
-// TODO: port to panel
-//#include "../graphs/special/acesasiblevergraphitem.h"
-
 // Special items
 #include "../graphs/lightrectitem.h"
 #include "../graphs/imagepanelitem.h"
@@ -37,6 +34,7 @@
 // Other items
 #include "../graphs/aceibuttonpanelitem.h"
 #include "../graphs/aceileverpanelitem.h"
+#include "../graphs/acesasibleverpanelitem.h"
 
 #include <QWidget>
 #include <QFormLayout>
@@ -430,33 +428,16 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factoryReg->registerFactory(factory);
     }
 
-    /*
-    {
-        // Light Bulb node
-        PanelItemFactory::FactoryItem factory;
-        factory.needsName = PanelItemFactory::NeedsName::Never;
-        factory.nodeType = LightBulbGraphItem::Node::NodeType;
-        factory.prettyName = tr("Light Bulb");
-        factory.create = &addNewNodeToScene<LightBulbGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
-        {
-            return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
-                                               mgr, tr("Light:"));
-        };
-
-        factoryReg->registerFactory(factory);
-    }
-
     {
         // ACE Sasib Lever
         PanelItemFactory::FactoryItem factory;
         factory.needsName = PanelItemFactory::NeedsName::Never;
-        factory.nodeType = ACESasibLeverGraphItem::CustomNodeType;
+        factory.nodeType = ACESasibLeverPanelItem::ItemType;
         factory.prettyName = tr("ACE Sasib Lever");
-        factory.create = &addNewNodeToScene<ACESasibLeverGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.create = &addNewNodeToScene<ACESasibLeverPanelItem>;
+        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
         {
-            ACESasibLeverGraphItem *specialItem = static_cast<ACESasibLeverGraphItem *>(item);
+            ACESasibLeverPanelItem *specialItem = static_cast<ACESasibLeverPanelItem *>(item);
 
             QWidget *w = new QWidget;
             QFormLayout *lay = new QFormLayout(w);
@@ -470,7 +451,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
                         mgr,
                         sasibTypes);
 
-            QObject::connect(specialItem, &ACESasibLeverGraphItem::leverChanged,
+            QObject::connect(specialItem, &ACESasibLeverPanelItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
@@ -482,6 +463,23 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             lay->addRow(tr("Lever:"), leverEdit);
 
             return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    /*
+    {
+        // Light Bulb node
+        PanelItemFactory::FactoryItem factory;
+        factory.needsName = PanelItemFactory::NeedsName::Never;
+        factory.nodeType = LightBulbGraphItem::Node::NodeType;
+        factory.prettyName = tr("Light Bulb");
+        factory.create = &addNewNodeToScene<LightBulbGraphItem>;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
+                                               mgr, tr("Light:"));
         };
 
         factoryReg->registerFactory(factory);
