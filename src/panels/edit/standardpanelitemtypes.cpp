@@ -493,11 +493,47 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             {
                 specialItem->setConsensusLever(static_cast<BEMLeverObject *>(obj));
             });
-            lay->addRow(tr("Lever:"), leverEdit);
+            lay->addRow(tr("Consensus Lever:"), leverEdit);
 
-            auto updSettings = [specialItem, leverEdit]()
+            SimulationObjectLineEdit *txButEdit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        mgr->objectFactory()->typesForInterface(ButtonInterface::IfaceType));
+            QObject::connect(txButEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setTxButton(obj);
+            });
+            lay->addRow(tr("Tx Button:"), txButEdit);
+
+            SimulationObjectLineEdit *lightButEdit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        mgr->objectFactory()->typesForInterface(ButtonInterface::IfaceType));
+            QObject::connect(lightButEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setLightButton(obj);
+            });
+            lay->addRow(tr("Light Button:"), lightButEdit);
+
+            SimulationObjectLineEdit *lightEdit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        {LightBulbObject::Type});
+            QObject::connect(lightEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setLight(static_cast<LightBulbObject *>(obj));
+            });
+            lay->addRow(tr("Light:"), lightEdit);
+
+            auto updSettings = [specialItem, leverEdit, txButEdit, lightButEdit, lightEdit]()
             {
                 leverEdit->setObject(specialItem->getConsensusLever());
+                txButEdit->setObject(specialItem->getTxButton());
+                lightButEdit->setObject(specialItem->getLightButton());
+                lightEdit->setObject(specialItem->getLight());
             };
 
             QObject::connect(specialItem, &BEMPanelItem::settingsChanged,

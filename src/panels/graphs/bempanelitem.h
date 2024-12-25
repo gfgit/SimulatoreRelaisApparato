@@ -68,8 +68,17 @@ public:
     void setTxButton(AbstractSimulationObject *newButton);
     AbstractSimulationObject *getTxButton();
 
+    void setLightButton(AbstractSimulationObject *newButton);
+    AbstractSimulationObject *getLightButton();
+
+    void setLight(LightBulbObject *newCentralLight);
+    LightBulbObject *getLight() const;
+
 private slots:
     void onTxButDestroyed();
+    void onLightButDestroyed();
+    void onLightDestroyed();
+
     void onConsLeverDestroyed();
     void onConsLeverInterfaceChanged(const QString &ifaceName, const QString &propName, const QVariant &value);
 
@@ -87,8 +96,13 @@ signals:
     void settingsChanged();
 
 private:
+    static constexpr double smallRadius = 16;
     static constexpr double innerSmallRadius = 11;
-    static constexpr QPointF LightButtonCenter = QPointF(ItemWidth - 109, 336);
+
+    static constexpr QPointF LightCenter = QPointF(93 + smallRadius,
+                                                   336 + smallRadius);
+    static constexpr QPointF LightButtonCenter = QPointF(ItemWidth - 93 - smallRadius,
+                                                         336 + smallRadius);
 
     static constexpr double artificialLiberationRadius = 25;
     static constexpr QPointF ArtLibCenter = QPointF(ItemWidth / 2, 350 + artificialLiberationRadius);

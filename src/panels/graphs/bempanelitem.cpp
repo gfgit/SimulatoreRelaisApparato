@@ -111,7 +111,6 @@ void BEMPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     painter->drawEllipse(circle);
     painter->drawEllipse(innerCircle);
 
-    const double smallRadius = 16;
     QRectF sigilloCircle(112, 230,
                          smallRadius * 2, smallRadius * 2);
 
@@ -127,10 +126,11 @@ void BEMPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 
     painter->drawRect(labelRect);
 
-    QRectF lightCircle(93, 336,
+    QRectF lightCircle(0, 0,
                        smallRadius * 2, smallRadius * 2);
 
     // Light
+    lightCircle.moveCenter(LightCenter);
     painter->setPen(Qt::white);
     QRectF innerLightCircle(0, 0, innerSmallRadius * 2, innerSmallRadius * 2);
     innerLightCircle.moveCenter(lightCircle.center());
@@ -157,6 +157,7 @@ void BEMPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     painter->setBrush(Qt::black);
     painter->drawEllipse(innerLightCircle);
 
+    // Artificial Liberation Button
     QRectF artLibCircle(0, 0,
                         artificialLiberationRadius * 2, artificialLiberationRadius * 2);
     artLibCircle.moveCenter(ArtLibCenter);
@@ -165,6 +166,18 @@ void BEMPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     painter->setBrush(Qt::darkGray);
     painter->drawEllipse(artLibCircle);
 
+    double artLibButRadius = artificialLiberationRadius * 0.7;
+    if(mArtificialLibBut && mArtificialLibBut->state() == ButtonInterface::State::Pressed)
+        artLibButRadius = artificialLiberationRadius * 0.5;
+
+    QRectF artLibInnerCircle(0, 0, artLibButRadius * 2, artLibButRadius * 2);
+    artLibInnerCircle.moveCenter(ArtLibCenter);
+
+    painter->setPen(Qt::black);
+    painter->setBrush(Qt::lightGray);
+    painter->drawEllipse(artLibInnerCircle);
+
+    // Lever Handles
     QRectF leverBase(0, 0, leverRectBaseRadius * 2, leverRectBaseRadius * 2);
     leverBase.moveCenter(ReqLeverCenter);
 
@@ -232,6 +245,19 @@ bool BEMPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
     else
         setTxButton(nullptr);
 
+    const QString lightButName = obj.value("light_button").toString();
+    const QString lightButType = obj.value("light_button_type").toString();
+    auto lightButModel = mgr->modelForType(lightButType);
+
+    if(lightButModel)
+        setLightButton(lightButModel->getObjectByName(lightButName));
+    else
+        setLightButton(nullptr);
+
+    const QString lightName = obj.value("light").toString();
+    auto lightModel = mgr->modelForType(LightBulbObject::Type);
+    setLight(static_cast<LightBulbObject *>(lightModel->getObjectByName(lightName)));
+
     return true;
 }
 
@@ -240,8 +266,14 @@ void BEMPanelItem::saveToJSON(QJsonObject &obj) const
     SnappablePanelItem::saveToJSON(obj);
 
     obj["cons_lever"] = mConsLeverObj ? mConsLeverObj->name() : QString();
+
     obj["tx_button"] = mTxButton ? mTxButton->object()->name() : QString();
     obj["tx_button_type"] = mTxButton ? mTxButton->object()->getType() : QString();
+
+    obj["light_button"] = mLightButton ? mLightButton->object()->name() : QString();
+    obj["light_button_type"] = mLightButton ? mLightButton->object()->getType() : QString();
+
+    obj["light"] = mLight ? mLight->name() : QString();
 }
 
 void BEMPanelItem::setConsensusLever(BEMLeverObject *consLever)
@@ -352,6 +384,97 @@ void BEMPanelItem::onTxButDestroyed()
     setTxButton(nullptr);
 }
 
+void BEMPanelItem::setLightButton(AbstractSimulationObject *newButton)
+{
+    ButtonInterface *butIface = newButton ? newButton->getInterface<ButtonInterface>() : nullptr;
+
+    if(butIface == mLightButton)
+        return;
+
+    if(mLightButton)
+    {
+        AbstractSimulationObject *oldBut = mLightButton->object();
+
+        disconnect(oldBut, &AbstractSimulationObject::destroyed,
+                   this, &BEMPanelItem::onLightButDestroyed);
+        disconnect(oldBut, &AbstractSimulationObject::stateChanged,
+                   this, &BEMPanelItem::triggerUpdate);
+        disconnect(oldBut, &AbstractSimulationObject::settingsChanged,
+                   this, &BEMPanelItem::triggerUpdate);
+        mLightButton = nullptr;
+    }
+
+    if(newButton && butIface)
+    {
+        connect(newButton, &AbstractSimulationObject::destroyed,
+                this, &BEMPanelItem::onLightButDestroyed);
+        connect(newButton, &AbstractSimulationObject::stateChanged,
+                this, &BEMPanelItem::triggerUpdate);
+        connect(newButton, &AbstractSimulationObject::settingsChanged,
+                this, &BEMPanelItem::triggerUpdate);
+
+        mLightButton = butIface;
+    }
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit settingsChanged();
+}
+
+AbstractSimulationObject *BEMPanelItem::getLightButton()
+{
+    return mLightButton ? mLightButton->object() : nullptr;
+}
+
+void BEMPanelItem::onLightButDestroyed()
+{
+    setLightButton(nullptr);
+}
+
+void BEMPanelItem::setLight(LightBulbObject *newCentralLight)
+{
+    if(mLight == newCentralLight)
+        return;
+
+    if(mLight)
+    {
+        disconnect(mLight, &LightBulbObject::stateChanged,
+                   this, &BEMPanelItem::triggerUpdate);
+        disconnect(mLight, &LightBulbObject::destroyed,
+                   this, &BEMPanelItem::onLightDestroyed);
+    }
+
+    mLight = newCentralLight;
+
+    if(mLight)
+    {
+        connect(mLight, &LightBulbObject::stateChanged,
+                this, &BEMPanelItem::triggerUpdate);
+        connect(mLight, &LightBulbObject::destroyed,
+                this, &BEMPanelItem::onLightDestroyed);
+    }
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit settingsChanged();
+}
+
+LightBulbObject *BEMPanelItem::getLight() const
+{
+    return mLight;
+}
+
+void BEMPanelItem::onLightDestroyed()
+{
+    setLight(nullptr);
+}
+
 void BEMPanelItem::setRequestLever(BEMLeverObject *reqLever)
 {
     if(mReqLeverObj == reqLever)
@@ -419,6 +542,16 @@ void BEMPanelItem::onConsLeverDestroyed()
     setConsensusLever(nullptr);
 }
 
+bool distanceLess(const QPointF& diff, double radius)
+{
+    // Add some tolerance
+    radius *= 1.1;
+    radius += 1;
+
+    // Pitagora
+    return (diff.x() * diff.x() + diff.y() * diff.y()) < (radius * radius);
+}
+
 void BEMPanelItem::onConsLeverInterfaceChanged(const QString &ifaceName, const QString &propName, const QVariant &value)
 {
     if(ifaceName == BEMHandleInterface::IfaceType)
@@ -464,22 +597,22 @@ void BEMPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
     {
         bool shouldAccept = true;
 
-        if((ev->pos() - LightButtonCenter).manhattanLength() < innerSmallRadius)
+        if(distanceLess(ev->pos() - LightButtonCenter, innerSmallRadius))
         {
             mMouseState = MouseState::LightButton;
             if(mLightButton)
                 mLightButton->setState(ButtonInterface::State::Pressed);
         }
-        else if((ev->pos() - ArtLibCenter).manhattanLength() < artificialLiberationRadius)
+        else if(distanceLess(ev->pos() - ArtLibCenter, artificialLiberationRadius))
         {
             mMouseState = MouseState::ArtificialLibButton;
             if(mArtificialLibBut)
                 mArtificialLibBut->setState(ButtonInterface::State::Pressed);
         }
-        else if((ev->pos() - ReqLeverCenter).manhattanLength() < (leverRectBaseRadius + leverLength))
+        else if(ev->pos().x() < (ItemWidth / 2) && distanceLess(ev->pos() - ReqLeverCenter, leverRectBaseRadius + leverLength))
         {
             // Request side
-            if((ev->pos() - ReqLeverCenter).manhattanLength() < leverRectBaseRadius)
+            if(distanceLess(ev->pos() - ReqLeverCenter, leverRectBaseRadius))
             {
                 // Tx Button 1
                 mMouseState = MouseState::TxButton;
@@ -493,10 +626,10 @@ void BEMPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
                     mReqLever->setPressed(true);
             }
         }
-        else if((ev->pos() - ConsLeverCenter).manhattanLength() < (leverRectBaseRadius + leverLength))
+        else if(ev->pos().x() > (ItemWidth / 2) && distanceLess(ev->pos() - ConsLeverCenter, leverRectBaseRadius + leverLength))
         {
             // Consensus side
-            if((ev->pos() - ConsLeverCenter).manhattanLength() < leverRectBaseRadius)
+            if(distanceLess(ev->pos() - ConsLeverCenter, leverRectBaseRadius))
             {
                 // Tx Button 2
                 mMouseState = MouseState::TxButton;
