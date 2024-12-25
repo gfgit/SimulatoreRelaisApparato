@@ -12,6 +12,9 @@ set(SIMULATORE_RELAIS_SOURCES
     panels/graphs/acesasibleverpanelitem.cpp
     panels/graphs/acesasibleverpanelitem.h
 
+    panels/graphs/bempanelitem.cpp
+    panels/graphs/bempanelitem.h
+
     panels/graphs/imagepanelitem.cpp
     panels/graphs/imagepanelitem.h
 

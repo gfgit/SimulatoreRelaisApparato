@@ -35,6 +35,7 @@
 #include "../graphs/aceibuttonpanelitem.h"
 #include "../graphs/aceileverpanelitem.h"
 #include "../graphs/acesasibleverpanelitem.h"
+#include "../graphs/bempanelitem.h"
 
 #include <QWidget>
 #include <QFormLayout>
@@ -461,6 +462,48 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             leverEdit->setObject(specialItem->lever());
 
             lay->addRow(tr("Lever:"), leverEdit);
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // BEM
+        PanelItemFactory::FactoryItem factory;
+        factory.needsName = PanelItemFactory::NeedsName::Never;
+        factory.nodeType = BEMPanelItem::ItemType;
+        factory.prettyName = tr("BEM Case");
+        factory.create = &addNewNodeToScene<BEMPanelItem>;
+        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        {
+            BEMPanelItem *specialItem = static_cast<BEMPanelItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Consensus Lever
+            SimulationObjectLineEdit *leverEdit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        {BEMLeverObject::Type});
+            QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setConsensusLever(static_cast<BEMLeverObject *>(obj));
+            });
+            lay->addRow(tr("Lever:"), leverEdit);
+
+            auto updSettings = [specialItem, leverEdit]()
+            {
+                leverEdit->setObject(specialItem->getConsensusLever());
+            };
+
+            QObject::connect(specialItem, &BEMPanelItem::settingsChanged,
+                             w, updSettings);
+
+            updSettings();
 
             return w;
         };
