@@ -10,6 +10,14 @@
     </message>
 </context>
 <context>
+    <name>ACEIButtonPanelItem</name>
+    <message>
+        <location filename="../panels/graphs/aceibuttonpanelitem.cpp" line="140"/>
+        <source>NULL</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>ACEILeverGraphItem</name>
     <message>
         <location filename="../circuits/graphs/special/aceilevergraphitem.cpp" line="163"/>
@@ -53,6 +61,34 @@
         <location filename="../objects/lever/acei/aceileverobject.cpp" line="38"/>
         <source>Right</source>
         <translation>Destra</translation>
+    </message>
+</context>
+<context>
+    <name>ACEILeverPanelItem</name>
+    <message>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="176"/>
+        <source>NULL</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="282"/>
+        <source>NO LEVER SET!!!</source>
+        <translation>NESSUNA LEVA IMPOSTATA!!!</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="303"/>
+        <source>Between&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;and&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</source>
+        <translation>Tra&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;e&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="311"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="315"/>
+        <source>ACEI Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
+        <translation>Leva ACEI: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
     </message>
 </context>
 <context>
@@ -170,6 +206,34 @@
     </message>
     <message>
         <location filename="../circuits/graphs/special/acesasiblevergraphitem.cpp" line="217"/>
+        <source>ACE Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
+        <translation>Leva ACE: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
+    </message>
+</context>
+<context>
+    <name>ACESasibLeverPanelItem</name>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="129"/>
+        <source>NULL</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="247"/>
+        <source>NO LEVER SET!!!</source>
+        <translation>NESSUNA LEVA IMPOSTATA!!!</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="259"/>
+        <source>Between&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;and&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</source>
+        <translation>Tra&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;e&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="267"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="271"/>
         <source>ACE Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
         <translation>Leva ACE: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
     </message>
@@ -597,103 +661,103 @@ Scegli un altro nome:</translation>
         <translation>Circuiti Simulatore Relè (*.simrelaisc)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="101"/>
+        <location filename="../mainwindow.cpp" line="103"/>
         <source>File</source>
         <translation>File</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="103"/>
+        <location filename="../mainwindow.cpp" line="105"/>
         <source>&amp;New</source>
         <translation>&amp;Nuovo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="104"/>
+        <location filename="../mainwindow.cpp" line="106"/>
         <source>&amp;Open</source>
         <translation>&amp;Apri</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="105"/>
+        <location filename="../mainwindow.cpp" line="107"/>
         <source>Open &amp;Recent</source>
         <translation>Apri &amp;Recente</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="107"/>
+        <location filename="../mainwindow.cpp" line="109"/>
         <source>&amp;Save</source>
         <translation>&amp;Salva</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="108"/>
+        <location filename="../mainwindow.cpp" line="110"/>
         <source>Ctrl+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="110"/>
+        <location filename="../mainwindow.cpp" line="112"/>
         <source>Sa&amp;ve As</source>
         <translation>Sa&amp;lva Come</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="111"/>
+        <location filename="../mainwindow.cpp" line="113"/>
         <source>Ctrl+Shift+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="138"/>
+        <location filename="../mainwindow.cpp" line="140"/>
         <source>View</source>
         <translation>Visualizza</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="140"/>
+        <location filename="../mainwindow.cpp" line="142"/>
         <source>Circuit list</source>
         <translation>Lista Circuiti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="144"/>
+        <location filename="../mainwindow.cpp" line="146"/>
         <source>Panel list</source>
         <translation>Lista Banchi</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="148"/>
+        <location filename="../mainwindow.cpp" line="150"/>
         <source>Object List</source>
         <translation>Lista Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="164"/>
+        <location filename="../mainwindow.cpp" line="166"/>
         <source>Edit mode</source>
         <translation>Modalità Modifica</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="192"/>
+        <location filename="../mainwindow.cpp" line="194"/>
         <source>Circuit Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="193"/>
+        <location filename="../mainwindow.cpp" line="195"/>
         <source>Circuit Tools 2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="198"/>
+        <location filename="../mainwindow.cpp" line="200"/>
         <source>New Circuit Item</source>
         <translation>Nuovo Elemento Circuito</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="209"/>
-        <location filename="../mainwindow.cpp" line="255"/>
+        <location filename="../mainwindow.cpp" line="211"/>
+        <location filename="../mainwindow.cpp" line="257"/>
         <source>%1</source>
         <translation>%1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="221"/>
+        <location filename="../mainwindow.cpp" line="223"/>
         <source>Cable</source>
         <translation>Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="240"/>
+        <location filename="../mainwindow.cpp" line="242"/>
         <source>Panel Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="244"/>
+        <location filename="../mainwindow.cpp" line="246"/>
         <source>New Panel Item</source>
         <translation>Nuovo Elemento QL</translation>
     </message>
@@ -718,29 +782,29 @@ Scegli un altro nome:</translation>
         <translation type="vanished">Nuovo Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="326"/>
+        <location filename="../mainwindow.cpp" line="328"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="380"/>
+        <location filename="../mainwindow.cpp" line="382"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="436"/>
+        <location filename="../mainwindow.cpp" line="438"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="437"/>
+        <location filename="../mainwindow.cpp" line="439"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="500"/>
+        <location filename="../mainwindow.cpp" line="502"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>
@@ -1500,68 +1564,165 @@ Scegli un altro nome:</translation>
 <context>
     <name>StandardPanelItemTypes</name>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="86"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="88"/>
         <source>Light Rect</source>
         <translation>Rettangolo Luminoso</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="99"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="101"/>
         <source>Width:</source>
         <translation>Larghezza:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="104"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="106"/>
         <source>Height:</source>
         <translation>Altezza:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="141"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="143"/>
         <source>Rotation:</source>
         <translation>Rotazione:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="173"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="175"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="529"/>
         <source>Light:</source>
         <translation>Lampadina:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="189"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="191"/>
         <source>Color:</source>
         <translation>Colore:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="202"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="204"/>
         <source>Image</source>
         <translation>Immagine</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="213"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="215"/>
         <source>Image File:</source>
         <translation>File Immagine:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="215"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="217"/>
         <source>Browse</source>
         <translation>Esplora</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="218"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="220"/>
         <source>Apply</source>
         <translation>Applica</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="233"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="235"/>
         <source>Choose PNG Image</source>
         <translation>Scegli Immagine PNG</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="242"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="244"/>
         <source>Scale:</source>
         <translation>Scala:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="245"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="247"/>
         <source>%</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="274"/>
+        <source>ACEI Button</source>
+        <translation>Pulsante ACEI</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="299"/>
+        <source>Button:</source>
+        <translation>Pulsante:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="310"/>
+        <source>Central light:</source>
+        <translation>Lampada centrale:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="321"/>
+        <source>Light Color:</source>
+        <translation>Colore Lampada:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="345"/>
+        <source>ACEI Lever</source>
+        <translation>Levetta ACEI</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="366"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="464"/>
+        <source>Lever:</source>
+        <translation>Leva:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="377"/>
+        <source>Left light:</source>
+        <translation>Lampada sinistra:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="388"/>
+        <source>Left Color:</source>
+        <translation>Colore Sinistra:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="399"/>
+        <source>Right light:</source>
+        <translation>Lampada destra:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="410"/>
+        <source>Right Color:</source>
+        <translation>Colore destra:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="437"/>
+        <source>ACE Sasib Lever</source>
+        <translation>Leva ACE Sasib</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="477"/>
+        <source>BEM Case</source>
+        <translation>Chassis BEM</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="496"/>
+        <source>Consensus Lever:</source>
+        <translation>Leva Concessione Consenso:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="507"/>
+        <source>Tx Button:</source>
+        <translation>Pulsante Corrispondenza:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="518"/>
+        <source>Light Button:</source>
+        <translation>Pulsante Lampadina:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="540"/>
+        <source>R1:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="551"/>
+        <source>C1:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="562"/>
+        <source>H:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="573"/>
+        <source>K:</source>
         <translation></translation>
     </message>
 </context>
