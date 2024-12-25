@@ -528,12 +528,64 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             });
             lay->addRow(tr("Light:"), lightEdit);
 
-            auto updSettings = [specialItem, leverEdit, txButEdit, lightButEdit, lightEdit]()
+            SimulationObjectLineEdit *R1Edit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        {AbstractRelais::Type});
+            QObject::connect(R1Edit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setR1Relay(static_cast<AbstractRelais *>(obj));
+            });
+            lay->addRow(tr("R1:"), R1Edit);
+
+            SimulationObjectLineEdit *C1Edit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        {AbstractRelais::Type});
+            QObject::connect(C1Edit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setC1Relay(static_cast<AbstractRelais *>(obj));
+            });
+            lay->addRow(tr("C1:"), C1Edit);
+
+            SimulationObjectLineEdit *HEdit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        {AbstractRelais::Type});
+            QObject::connect(HEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setOccupancyRelay(static_cast<AbstractRelais *>(obj));
+            });
+            lay->addRow(tr("H:"), HEdit);
+
+            SimulationObjectLineEdit *KEdit =
+                    new SimulationObjectLineEdit(
+                        mgr,
+                        {AbstractRelais::Type});
+            QObject::connect(KEdit, &SimulationObjectLineEdit::objectChanged,
+                             specialItem, [specialItem](AbstractSimulationObject *obj)
+            {
+                specialItem->setKConditionsRelay(static_cast<AbstractRelais *>(obj));
+            });
+            lay->addRow(tr("K:"), KEdit);
+
+            auto updSettings =
+                    [specialItem, leverEdit, txButEdit,
+                    lightButEdit, lightEdit,
+                    R1Edit, C1Edit, HEdit, KEdit]()
             {
                 leverEdit->setObject(specialItem->getConsensusLever());
                 txButEdit->setObject(specialItem->getTxButton());
                 lightButEdit->setObject(specialItem->getLightButton());
                 lightEdit->setObject(specialItem->getLight());
+
+                R1Edit->setObject(specialItem->getR1Relay());
+                C1Edit->setObject(specialItem->getC1Relay());
+                HEdit->setObject(specialItem->getOccupancyRelay());
+                KEdit->setObject(specialItem->getKConditionsRelay());
             };
 
             QObject::connect(specialItem, &BEMPanelItem::settingsChanged,

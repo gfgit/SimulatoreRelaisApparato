@@ -29,6 +29,7 @@
 #include "../../objects/interfaces/buttoninterface.h"
 #include "../../objects/interfaces/leverinterface.h"
 
+#include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/simple_activable/lightbulbobject.h"
 #include "../../objects/lever/bem/bemleverobject.h"
 
@@ -89,28 +90,90 @@ void BEMPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 
     const double circleRadius = 65;
     const double innerCircleRadius = 50;
+    const double statusCircleRadius = 30;
     QRectF circle(0, 0, circleRadius * 2, circleRadius * 2);
 
     QRectF innerCircle(0, 0, innerCircleRadius * 2, innerCircleRadius * 2);
+    QRectF statusCircle(0, 0, statusCircleRadius * 2, statusCircleRadius * 2);
 
+    QPen barPen;
+    barPen.setColor(Qt::black);
+    barPen.setWidthF(10);
+    barPen.setCapStyle(Qt::FlatCap);
+
+    const double sqrtFactor = 0.7; // 1 / sqrt(2) = cos(45)
+    const QPointF statusLineDiff(statusCircleRadius * sqrtFactor, - statusCircleRadius * sqrtFactor);
+
+    // A1
     painter->setPen(Qt::black);
     painter->setBrush(Qt::white);
-
     circle.moveCenter(QPointF(40 + circleRadius, 18 + circleRadius));
-    innerCircle.moveCenter(QPointF(40 + circleRadius, 18 + circleRadius));
+    innerCircle.moveCenter(circle.center());
+    statusCircle.moveCenter(circle.center());
     painter->drawEllipse(circle);
     painter->drawEllipse(innerCircle);
 
+    const bool hasRecvConsensus = mR1Relay && mR1Relay->state() == AbstractRelais::State::Down;
+    if(hasRecvConsensus)
+        painter->setBrush(Qt::white);
+    else
+        painter->setBrush(Qt::red);
+    painter->drawEllipse(statusCircle);
+
+    const bool canUseConsensus = mOccupancyRelay && mOccupancyRelay->state() == AbstractRelais::State::Up;
+    if(!canUseConsensus)
+    {
+        painter->setPen(barPen);
+        painter->drawLine(statusCircle.center() + statusLineDiff,
+                          statusCircle.center() - statusLineDiff);
+    }
+
+    // A2
+    painter->setPen(Qt::black);
+    painter->setBrush(Qt::white);
     circle.moveCenter(QPointF(br.right() - (40 + circleRadius), 18 + circleRadius));
-    innerCircle.moveCenter(QPointF(br.right() - (40 + circleRadius), 18 + circleRadius));
+    innerCircle.moveCenter(circle.center());
+    statusCircle.moveCenter(circle.center());
     painter->drawEllipse(circle);
     painter->drawEllipse(innerCircle);
 
+    const bool hasSentConsensus = mC1Relay && mC1Relay->state() == AbstractRelais::State::Down;
+    if(hasSentConsensus)
+        painter->setBrush(Qt::darkGreen);
+    else
+        painter->setBrush(Qt::red);
+    painter->drawEllipse(statusCircle);
+
+    const bool canSendConsensus = mKConditionsRelay && mKConditionsRelay->state() == AbstractRelais::State::Up;
+    if(!canSendConsensus)
+    {
+        painter->setPen(barPen);
+        painter->drawLine(statusCircle.center() + statusLineDiff,
+                          statusCircle.center() - statusLineDiff);
+    }
+
+    // A3
+    painter->setPen(Qt::black);
+    painter->setBrush(Qt::white);
     circle.moveCenter(QPointF(br.center().x(), 110 + circleRadius));
-    innerCircle.moveCenter(QPointF(br.center().x(), 110 + circleRadius));
+    innerCircle.moveCenter(circle.center());
+    statusCircle.moveCenter(circle.center());
     painter->drawEllipse(circle);
     painter->drawEllipse(innerCircle);
 
+    // A3 Status
+
+    // If liberation relay is not fully Up, lever stays locked
+    bool blocked = mLiberationRelay && mLiberationRelay->state() != AbstractRelais::State::Up;
+
+    if(blocked)
+        painter->setBrush(Qt::red);
+    else
+        painter->setBrush(Qt::darkGreen);
+
+    painter->drawEllipse(statusCircle);
+
+    // Sigillo
     QRectF sigilloCircle(112, 230,
                          smallRadius * 2, smallRadius * 2);
 
@@ -120,16 +183,17 @@ void BEMPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     sigilloCircle.moveRight(br.right() - sigilloCircle.left());
     painter->drawEllipse(sigilloCircle);
 
+    // Label
     QRectF labelRect(br.center().x() - 65, 265, 130, 66);
     painter->setPen(Qt::white);
     painter->setBrush(Qt::lightGray);
 
     painter->drawRect(labelRect);
 
+    // Light
     QRectF lightCircle(0, 0,
                        smallRadius * 2, smallRadius * 2);
 
-    // Light
     lightCircle.moveCenter(LightCenter);
     painter->setPen(Qt::white);
     QRectF innerLightCircle(0, 0, innerSmallRadius * 2, innerSmallRadius * 2);
@@ -258,6 +322,22 @@ bool BEMPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
     auto lightModel = mgr->modelForType(LightBulbObject::Type);
     setLight(static_cast<LightBulbObject *>(lightModel->getObjectByName(lightName)));
 
+
+    // Relays
+    auto relayModel = mgr->modelForType(AbstractRelais::Type);
+
+    const QString R1Name = obj.value("relay_R1").toString();
+    setR1Relay(static_cast<AbstractRelais *>(relayModel->getObjectByName(R1Name)));
+
+    const QString C1Name = obj.value("relay_C1").toString();
+    setC1Relay(static_cast<AbstractRelais *>(relayModel->getObjectByName(C1Name)));
+
+    const QString HName = obj.value("relay_H").toString();
+    setOccupancyRelay(static_cast<AbstractRelais *>(relayModel->getObjectByName(HName)));
+
+    const QString KName = obj.value("relay_K").toString();
+    setKConditionsRelay(static_cast<AbstractRelais *>(relayModel->getObjectByName(KName)));
+
     return true;
 }
 
@@ -274,6 +354,11 @@ void BEMPanelItem::saveToJSON(QJsonObject &obj) const
     obj["light_button_type"] = mLightButton ? mLightButton->object()->getType() : QString();
 
     obj["light"] = mLight ? mLight->name() : QString();
+
+    obj["relay_R1"] = mR1Relay ? mR1Relay->name() : QString();
+    obj["relay_C1"] = mC1Relay ? mC1Relay->name() : QString();
+    obj["relay_H"] = mOccupancyRelay ? mOccupancyRelay->name() : QString();
+    obj["relay_K"] = mKConditionsRelay ? mKConditionsRelay->name() : QString();
 }
 
 void BEMPanelItem::setConsensusLever(BEMLeverObject *consLever)
@@ -323,6 +408,10 @@ void BEMPanelItem::setConsensusLever(BEMLeverObject *consLever)
                 consLeverIface->artificialLiberation() : nullptr;
     setArtLibButton(artLibBut ? artLibBut->object() : nullptr);
 
+    AbstractRelais *libRelay = consLeverIface ?
+                consLeverIface->liberationRelay() : nullptr;
+    setLiberationRelay(libRelay);
+
     PanelScene *s = panelScene();
     if(s)
         s->modeMgr()->setFileEdited();
@@ -330,6 +419,31 @@ void BEMPanelItem::setConsensusLever(BEMLeverObject *consLever)
     //updateLeverTooltip();
 
     emit settingsChanged();
+
+    update();
+}
+
+void BEMPanelItem::setRequestLever(BEMLeverObject *reqLever)
+{
+    if(mReqLeverObj == reqLever)
+        return;
+
+    if(mReqLeverObj)
+    {
+        disconnect(mReqLeverObj, &AbstractSimulationObject::stateChanged,
+                   this, &BEMPanelItem::triggerUpdate);
+        mReqLever = nullptr;
+    }
+
+    mReqLeverObj = reqLever;
+
+    if(mReqLeverObj)
+    {
+        connect(mReqLeverObj, &AbstractSimulationObject::stateChanged,
+                this, &BEMPanelItem::triggerUpdate);
+
+        mReqLever = mReqLeverObj->getInterface<LeverInterface>();
+    }
 
     update();
 }
@@ -475,29 +589,113 @@ void BEMPanelItem::onLightDestroyed()
     setLight(nullptr);
 }
 
-void BEMPanelItem::setRequestLever(BEMLeverObject *reqLever)
+void BEMPanelItem::onRelayDestroyed()
 {
-    if(mReqLeverObj == reqLever)
+    if(sender() == mC1Relay)
+        setC1Relay(nullptr);
+    if(sender() == mR1Relay)
+        setR1Relay(nullptr);
+    if(sender() == mOccupancyRelay)
+        setOccupancyRelay(nullptr);
+    if(sender() == mKConditionsRelay)
+        setKConditionsRelay(nullptr);
+}
+
+void BEMPanelItem::setLiberationRelay(AbstractRelais *newLiberationRelay)
+{
+    if(mLiberationRelay == newLiberationRelay)
         return;
 
-    if(mReqLeverObj)
+    if(mLiberationRelay)
     {
-        disconnect(mReqLeverObj, &AbstractSimulationObject::stateChanged,
+        disconnect(mLiberationRelay, &AbstractRelais::stateChanged,
                    this, &BEMPanelItem::triggerUpdate);
-        mReqLever = nullptr;
+        disconnect(mLiberationRelay, &AbstractRelais::settingsChanged,
+                   this, &BEMPanelItem::triggerUpdate);
     }
 
-    mReqLeverObj = reqLever;
+    mLiberationRelay = newLiberationRelay;
 
-    if(mReqLeverObj)
+    if(mLiberationRelay)
     {
-        connect(mReqLeverObj, &AbstractSimulationObject::stateChanged,
+        connect(mLiberationRelay, &AbstractRelais::stateChanged,
                 this, &BEMPanelItem::triggerUpdate);
-
-        mReqLever = mReqLeverObj->getInterface<LeverInterface>();
+        connect(mLiberationRelay, &AbstractRelais::settingsChanged,
+                this, &BEMPanelItem::triggerUpdate);
     }
 
     update();
+}
+
+void BEMPanelItem::setRelayHelper(AbstractRelais *newRelay, AbstractRelais *&mRelay)
+{
+    if(mRelay == newRelay)
+        return;
+
+    if(mRelay)
+    {
+        disconnect(mRelay, &AbstractRelais::stateChanged,
+                   this, &BEMPanelItem::triggerUpdate);
+        disconnect(mRelay, &AbstractRelais::settingsChanged,
+                   this, &BEMPanelItem::triggerUpdate);
+    }
+
+    mRelay = newRelay;
+
+    if(mRelay)
+    {
+        connect(mRelay, &AbstractRelais::stateChanged,
+                this, &BEMPanelItem::triggerUpdate);
+        connect(mRelay, &AbstractRelais::settingsChanged,
+                this, &BEMPanelItem::triggerUpdate);
+    }
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit settingsChanged();
+}
+
+AbstractRelais *BEMPanelItem::getC1Relay() const
+{
+    return mC1Relay;
+}
+
+void BEMPanelItem::setC1Relay(AbstractRelais *newC1Relay)
+{
+    setRelayHelper(newC1Relay, mC1Relay);
+}
+
+AbstractRelais *BEMPanelItem::getR1Relay() const
+{
+    return mR1Relay;
+}
+
+void BEMPanelItem::setR1Relay(AbstractRelais *newR1Relay)
+{
+    setRelayHelper(newR1Relay, mR1Relay);
+}
+
+AbstractRelais *BEMPanelItem::getKConditionsRelay() const
+{
+    return mKConditionsRelay;
+}
+
+void BEMPanelItem::setKConditionsRelay(AbstractRelais *newKConditionsRelay)
+{
+    setRelayHelper(newKConditionsRelay, mKConditionsRelay);
+}
+
+AbstractRelais *BEMPanelItem::getOccupancyRelay() const
+{
+    return mOccupancyRelay;
+}
+
+void BEMPanelItem::setOccupancyRelay(AbstractRelais *newOccupancyRelay)
+{
+    setRelayHelper(newOccupancyRelay, mOccupancyRelay);
 }
 
 void BEMPanelItem::setArtLibButton(AbstractSimulationObject *newButton)
@@ -585,6 +783,10 @@ void BEMPanelItem::onConsLeverInterfaceChanged(const QString &ifaceName, const Q
         {
             ButtonInterface *artLibBut = consLeverIface->artificialLiberation();
             setArtLibButton(artLibBut ? artLibBut->object() : nullptr);
+        }
+        else if(propName == BEMHandleInterface::LibRelayPropName)
+        {
+            setArtLibButton(consLeverIface->liberationRelay());
         }
     }
 }

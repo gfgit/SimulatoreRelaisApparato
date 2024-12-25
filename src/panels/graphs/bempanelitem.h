@@ -26,12 +26,14 @@
 #include "../snappablepanelitem.h"
 
 class AbstractSimulationObject;
+class AbstractRelais;
 class BEMLeverObject;
 class LightBulbObject;
 
 class BEMHandleInterface;
 class LeverInterface;
 class ButtonInterface;
+
 
 class BEMPanelItem : public SnappablePanelItem
 {
@@ -74,10 +76,24 @@ public:
     void setLight(LightBulbObject *newCentralLight);
     LightBulbObject *getLight() const;
 
+    AbstractRelais *getOccupancyRelay() const;
+    void setOccupancyRelay(AbstractRelais *newOccupancyRelay);
+
+    AbstractRelais *getKConditionsRelay() const;
+    void setKConditionsRelay(AbstractRelais *newKConditionsRelay);
+
+    AbstractRelais *getR1Relay() const;
+    void setR1Relay(AbstractRelais *newR1Relay);
+
+    AbstractRelais *getC1Relay() const;
+    void setC1Relay(AbstractRelais *newC1Relay);
+
 private slots:
     void onTxButDestroyed();
     void onLightButDestroyed();
     void onLightDestroyed();
+
+    void onRelayDestroyed();
 
     void onConsLeverDestroyed();
     void onConsLeverInterfaceChanged(const QString &ifaceName, const QString &propName, const QVariant &value);
@@ -91,6 +107,10 @@ private:
     void setRequestLever(BEMLeverObject *reqLever);
 
     void setArtLibButton(AbstractSimulationObject *newButton);
+
+    void setLiberationRelay(AbstractRelais *newLiberationRelay);
+
+    void setRelayHelper(AbstractRelais *newRelay, AbstractRelais *& mRelay);
 
 signals:
     void settingsChanged();
@@ -126,6 +146,12 @@ private:
     ButtonInterface *mTxButton = nullptr;
     ButtonInterface *mArtificialLibBut = nullptr;
     ButtonInterface *mLightButton = nullptr;
+
+    AbstractRelais *mLiberationRelay = nullptr;
+    AbstractRelais *mOccupancyRelay = nullptr;
+    AbstractRelais *mKConditionsRelay = nullptr;
+    AbstractRelais *mR1Relay = nullptr;
+    AbstractRelais *mC1Relay = nullptr;
 
     MouseState mMouseState = MouseState::None;
     QPointF mLastMousePos;
