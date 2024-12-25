@@ -178,12 +178,18 @@ void BEMLeverObject::onInterfaceChanged(AbstractObjectInterface *iface,
 
 void BEMLeverObject::onLiberationStateChanged()
 {
+    if(!bemInterface || !leverInterface)
+        return;
+
     if(bemInterface->leverType() == BEMHandleInterface::LeverType::Consensus)
         recalculateLockedRange();
 }
 
 void BEMLeverObject::recalculateLockedRange()
 {
+    if(!bemInterface || !leverInterface)
+        return;
+
     if(bemInterface->getTwinHandle())
     {
         LeverInterface *otherLeverIface = bemInterface->getTwinHandle()->object()->getInterface<LeverInterface>();
@@ -299,10 +305,13 @@ void BEMLeverObject::recalculateLockedRange()
 
 void BEMLeverObject::fixBothInMiddlePosition()
 {
+    if(!bemInterface || !leverInterface)
+        return;
+
     if(bemInterface->leverType() != BEMHandleInterface::LeverType::Consensus)
         return;
 
-    if(bemInterface->getTwinHandle())
+    if(!bemInterface->getTwinHandle())
         return;
 
     Q_ASSERT(bemInterface->getTwinHandle()->leverType() == BEMHandleInterface::LeverType::Request);

@@ -46,6 +46,7 @@ public:
     };
 
     BEMHandleInterface(AbstractSimulationObject *obj);
+    ~BEMHandleInterface();
 
     static constexpr QLatin1String IfaceType = QLatin1String("bem_lever");
     QString ifaceType() override;
@@ -62,9 +63,11 @@ public:
     BEMHandleInterface *getTwinHandle() const;
     void setTwinHandle(BEMHandleInterface *newTwinHandle);
 
+    // TODO: when relay is destroyed, this property is not reset
     AbstractRelais *liberationRelay() const;
     void setLiberationRelay(AbstractRelais *newLiberationRelay);
 
+    // TODO: when relay is destroyed, this property is not reset
     ButtonInterface *artificialLiberation() const;
     void setArtificialLiberation(ButtonInterface *newArtificialLiberation);
 

@@ -52,6 +52,13 @@ BEMHandleInterface::BEMHandleInterface(AbstractSimulationObject *obj)
 
 }
 
+BEMHandleInterface::~BEMHandleInterface()
+{
+    setTwinHandle(nullptr);
+    setArtificialLiberation(nullptr);
+    setLiberationRelay(nullptr);
+}
+
 QString BEMHandleInterface::ifaceType()
 {
     return IfaceType;
