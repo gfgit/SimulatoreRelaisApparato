@@ -140,8 +140,8 @@ void ViewManager::updateDockName(CircuitWidget *w)
         return;
 
     auto namePair = getCircuitUniqueName(w);
-    dock->dockWidget()->setUniqueName(namePair.first);
-    dock->setTitle(namePair.second);
+    dock->dockWidget()->setUniqueName(QLatin1String("circuit_") + namePair.first);
+    dock->setTitle(tr("Circuit %1").arg(namePair.second));
 }
 
 int ViewManager::getUniqueNum(CircuitScene *scene, CircuitWidget *self) const
@@ -263,8 +263,8 @@ void ViewManager::updateDockName(PanelWidget *w)
         return;
 
     auto namePair = getPanelUniqueName(w);
-    dock->dockWidget()->setUniqueName(namePair.first);
-    dock->setTitle(namePair.second);
+    dock->dockWidget()->setUniqueName(QLatin1String("panel_") + namePair.first);
+    dock->setTitle(tr("Panel %1").arg(namePair.second));
 }
 
 int ViewManager::getUniqueNum(PanelScene *scene, PanelWidget *self) const
