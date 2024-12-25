@@ -120,7 +120,7 @@ bool AbstractPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
 
     setObjectName(obj.value("name").toString());
 
-    QPointF pt(obj.value("x").toInt(), obj.value("y").toInt());
+    QPointF pt(obj.value("x").toDouble(), obj.value("y").toDouble());
     setPos(pt);
 
     return true;
