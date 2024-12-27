@@ -710,23 +710,56 @@ void PanelScene::saveToJSON(QJsonObject &obj) const
     obj["name"] = panelName();
     obj["long_name"] = panelLongName();
 
+    // Sort nodes by position
+    // NOTE: since 2 items can have same position, we use stable_sort() variant
+    QVector<AbstractPanelItem *> sortedItems = mOtherPanelItems;
+    std::stable_sort(sortedItems.begin(),
+                     sortedItems.end(),
+                     [](AbstractPanelItem *a, AbstractPanelItem *b) -> bool
+    {
+        QPointF locA = a->pos();
+        QPointF locB = b->pos();
+
+        // Order by Y, then by X
+        if(qFuzzyCompare(locA.y(), locB.y()))
+            return locA.x() < locB.x();
+        return locA.y() < locB.y();
+    });
+
     QJsonArray nodes;
-    for(const AbstractPanelItem *item : mOtherPanelItems)
+    for(const AbstractPanelItem *item : sortedItems)
     {
         QJsonObject nodeObj;
         item->saveToJSON(nodeObj);
         nodes.append(nodeObj);
     }
+    sortedItems.clear();
+    sortedItems.squeeze();
 
     obj["nodes"] = nodes;
 
+    QVector<LightRectItem *> sortedLights = mLightRects;
+    std::stable_sort(sortedLights.begin(),
+                     sortedLights.end(),
+                     [](LightRectItem *a, LightRectItem *b) -> bool
+    {
+        QPointF locA = a->pos();
+        QPointF locB = b->pos();
+
+        if(qFuzzyCompare(locA.y(), locB.y()))
+            return locA.x() < locB.x();
+        return locA.y() < locB.y();
+    });
+
     QJsonArray lights;
-    for(const AbstractPanelItem *item : mLightRects)
+    for(const AbstractPanelItem *item : sortedLights)
     {
         QJsonObject nodeObj;
         item->saveToJSON(nodeObj);
         lights.append(nodeObj);
     }
+    sortedLights.clear();
+    sortedLights.squeeze();
 
     obj["lights"] = lights;
 }

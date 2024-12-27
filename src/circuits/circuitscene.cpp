@@ -2017,11 +2017,44 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
     obj["name"] = circuitSheetName();
     obj["long_name"] = circuitSheetLongName();
 
-    QJsonArray cables;
+    // Sort cables by start position
+    QVector<CableGraphItem *> sortedCables;
+    sortedCables.reserve(mCables.size());
+
     for(const auto& it : mCables)
     {
         CableGraphItem *item = it.second;
 
+        // Do not save zero length cables
+        // They can be automatically generated at load
+        if(!item->cableZeroLength())
+            sortedCables.append(item);
+    }
+
+    std::sort(sortedCables.begin(),
+              sortedCables.end(),
+              [](CableGraphItem *a, CableGraphItem *b) -> bool
+    {
+        // Do not use sideA() because it adds startDirection() to TileLocation
+        TileLocation startA = a->cablePath().first();
+        TileLocation startB = b->cablePath().first();
+
+        // Orded by Y, then by X, the by direction
+        if(startA.y == startB.y)
+        {
+            if(startA.x == startB.x)
+            {
+                return a->directionA() < b->directionA();
+            }
+
+            return startA.x < startB.x;
+        }
+        return startA.y < startB.y;
+    });
+
+    QJsonArray cables;
+    for(CableGraphItem *item : std::as_const(sortedCables))
+    {
         QJsonObject cableObj;
         item->saveToJSON(cableObj);
         cables.append(cableObj);
@@ -2029,10 +2062,32 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
 
     obj["cables"] = cables;
 
-    QJsonArray nodes;
+    // Sort nodes by position
+    QVector<AbstractNodeGraphItem *> sortedNodes;
+    sortedNodes.reserve(mItemMap.size());
+
     for(const auto& it : mItemMap)
     {
         AbstractNodeGraphItem *item = it.second;
+        sortedNodes.append(item);
+    }
+
+    std::sort(sortedNodes.begin(),
+              sortedNodes.end(),
+              [](AbstractNodeGraphItem *a, AbstractNodeGraphItem *b) -> bool
+    {
+        TileLocation locA = a->location();
+        TileLocation locB = b->location();
+
+        // Order by Y, then by X
+        if(locA.y == locB.y)
+            return locA.x < locB.x;
+        return locA.y < locB.y;
+    });
+
+    QJsonArray nodes;
+    for(AbstractNodeGraphItem *item : std::as_const(sortedNodes))
+    {
         QJsonObject nodeObj;
         item->saveToJSON(nodeObj);
         nodes.append(nodeObj);
