@@ -2027,7 +2027,7 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
 
         // Do not save zero length cables
         // They can be automatically generated at load
-        if(!item->cableZeroLength())
+        if(!item->cableZeroLength() && item->cablePath().isComplete())
             sortedCables.append(item);
     }
 
