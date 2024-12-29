@@ -39,6 +39,12 @@
 #include "../graphs/relaiscontactgraphitem.h"
 #include "../nodes/relaiscontactnode.h"
 
+#include "../graphs/screenrelaiscontactgraphitem.h"
+#include "../nodes/screenrelaiscontactnode.h"
+
+#include "../graphs/screenrelaispowergraphitem.h"
+#include "../nodes/screenrelaispowernode.h"
+
 #include "../graphs/buttoncontactgraphitem.h"
 #include "../nodes/buttoncontactnode.h"
 
@@ -88,6 +94,7 @@
 #include "../../objects/simple_activable/lightbulbobject.h"
 
 #include "../../objects/relais/model/abstractrelais.h"
+#include "../../objects/screen_relais/model/screenrelais.h"
 #include "../../objects/lever/acei/aceileverobject.h"
 
 #include "../../objects/lever/model/levercontactconditionsmodel.h"
@@ -420,6 +427,95 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             };
 
             QObject::connect(node, &RelaisContactNode::shapeChanged,
+                             w, updLambda);
+            updLambda();
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Screen Relais Power
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = ScreenRelaisPowerGraphItem::Node::NodeType;
+        factory.prettyName = tr("Screen Relay Power");
+        factory.create = &addNewNodeToScene<ScreenRelaisPowerGraphItem>;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            ScreenRelaisPowerNode *node = static_cast<ScreenRelaisPowerNode *>(item->getAbstractNode());
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Screen Relay
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr, {ScreenRelais::Type});
+            QObject::connect(node, &ScreenRelaisPowerNode::relayChanged,
+                             relayEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
+                             node, [node](AbstractSimulationObject *obj)
+            {
+                node->setScreenRelais(static_cast<ScreenRelais *>(obj));
+            });
+
+            relayEdit->setObject(node->screenRelais());
+            lay->addRow(tr("Screen Relay:"), relayEdit);
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Screen Relais Contact
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = ScreenRelaisContactGraphItem::Node::NodeType;
+        factory.prettyName = tr("Screen Relay Contact");
+        factory.create = &addNewNodeToScene<ScreenRelaisContactGraphItem>;
+        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        {
+            ScreenRelaisContactNode *node = static_cast<ScreenRelaisContactNode *>(item->getAbstractNode());
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Relay
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr, {ScreenRelais::Type});
+            QObject::connect(node, &ScreenRelaisContactNode::relayChanged,
+                             relayEdit, &SimulationObjectLineEdit::setObject);
+            QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
+                             node, [node](AbstractSimulationObject *obj)
+            {
+                node->setScreenRelais(static_cast<ScreenRelais *>(obj));
+            });
+
+            relayEdit->setObject(node->screenRelais());
+            lay->addRow(tr("Screen Relay:"), relayEdit);
+
+            // Deviator
+            lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
+                                               mgr));
+
+            QCheckBox *contactA = new QCheckBox(tr("Contact A"));
+            lay->addWidget(contactA);
+
+            QObject::connect(contactA, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setIsContactA(val);
+            });
+
+            auto updLambda =
+                    [contactA, node]()
+            {
+                contactA->setChecked(node->isContactA());
+            };
+
+            QObject::connect(node, &ScreenRelaisContactNode::shapeChanged,
                              w, updLambda);
             updLambda();
 
