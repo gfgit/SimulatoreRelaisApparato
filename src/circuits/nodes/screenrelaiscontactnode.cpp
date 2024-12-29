@@ -32,7 +32,8 @@
 ScreenRelaisContactNode::ScreenRelaisContactNode(ModeManager *mgr, QObject *parent)
     : AbstractDeviatorNode{mgr, parent}
 {
-
+    setHasCentralConnector(true);
+    setCanChangeCentralConnector(false);
 }
 
 ScreenRelaisContactNode::~ScreenRelaisContactNode()
@@ -42,7 +43,7 @@ ScreenRelaisContactNode::~ScreenRelaisContactNode()
 
 bool ScreenRelaisContactNode::loadFromJSON(const QJsonObject &obj)
 {
-    if(!AbstractCircuitNode::loadFromJSON(obj))
+    if(!AbstractDeviatorNode::loadFromJSON(obj))
         return false;
 
     auto model = modeMgr()->modelForType(ScreenRelais::Type);
@@ -62,7 +63,7 @@ bool ScreenRelaisContactNode::loadFromJSON(const QJsonObject &obj)
 
 void ScreenRelaisContactNode::saveToJSON(QJsonObject &obj) const
 {
-    AbstractCircuitNode::saveToJSON(obj);
+    AbstractDeviatorNode::saveToJSON(obj);
 
     obj["screen_relais"] = mScreenRelais ? mScreenRelais->name() : QString();
     obj["contact_a"] = isContactA();
