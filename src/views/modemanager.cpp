@@ -290,6 +290,11 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
         rootObj = convertOldFileFormat(obj);
     }
 
+    for(auto model : mObjectModels)
+    {
+        model->clear();
+    }
+
     const QJsonObject pool = rootObj.value("objects").toObject();
     for(auto model : mObjectModels)
     {

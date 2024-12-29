@@ -4,6 +4,7 @@ add_subdirectory(interfaces)
 add_subdirectory(button)
 add_subdirectory(lever)
 add_subdirectory(relais)
+add_subdirectory(screen_relais)
 add_subdirectory(simple_activable)
 
 set(SIMULATORE_RELAIS_SOURCES

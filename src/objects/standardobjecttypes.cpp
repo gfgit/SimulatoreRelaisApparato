@@ -28,6 +28,9 @@
 #include "relais/model/relaismodel.h"
 #include "relais/view/abstractrelayoptionswidget.h"
 
+#include "screen_relais/model/screenrelais.h"
+#include "screen_relais/view/screenrelaisoptionswidget.h"
+
 #include "lever/acei/aceileverobject.h"
 #include "lever/view/genericleveroptionswidget.h"
 
@@ -365,6 +368,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &createEditWidget<AbstractRelais, AbstractRelayOptionsWidget>;
         item.objectType = AbstractRelais::Type;
         item.prettyName = tr("Relais");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Screen Relais
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<ScreenRelais>;
+        item.edit = &createEditWidget<ScreenRelais, ScreenRelaisOptionsWidget>;
+        item.objectType = ScreenRelais::Type;
+        item.prettyName = tr("Screen Relais");
 
         factory->registerFactory(item);
     }

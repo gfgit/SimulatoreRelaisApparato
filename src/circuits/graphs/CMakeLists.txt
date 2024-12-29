@@ -31,6 +31,12 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/relaiscontactgraphitem.h
     circuits/graphs/relaispowergraphitem.cpp
     circuits/graphs/relaispowergraphitem.h
+
+    circuits/graphs/screenrelaiscontactgraphitem.cpp
+    circuits/graphs/screenrelaiscontactgraphitem.h
+    circuits/graphs/screenrelaispowergraphitem.cpp
+    circuits/graphs/screenrelaispowergraphitem.h
+
     circuits/graphs/simplenodegraphitem.cpp
     circuits/graphs/simplenodegraphitem.h
     circuits/graphs/simpleactivationgraphitem.cpp
