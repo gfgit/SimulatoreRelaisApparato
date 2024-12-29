@@ -270,9 +270,9 @@ ScreenRelais::ContactState ScreenRelais::getContactStateA() const
     {
     case ScreenType::CenteredScreen:
     {
-        if(mPosition < -0.5)
+        if(mPosition > 0.5)
             return ContactState::Reversed;
-        if(mPosition < -0.2)
+        if(mPosition > 0.2)
             return ContactState::Middle;
 
         return ContactState::Straight;
@@ -290,9 +290,9 @@ ScreenRelais::ContactState ScreenRelais::getContactStateB() const
     {
     case ScreenType::CenteredScreen:
     {
-        if(mPosition > 0.5)
+        if(mPosition < -0.5)
             return ContactState::Reversed;
-        if(mPosition > 0.2)
+        if(mPosition < -0.2)
             return ContactState::Middle;
 
         return ContactState::Straight;
