@@ -120,13 +120,21 @@ void ScreenRelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     painter->setBrush(Qt::black);
     painter->drawPie(screenCircleRect, (30) * 16, 120 * 16);
 
-    painter->setBrush(Qt::red);
-    painter->drawEllipse(QPointF(0, -glassOffset), glassCircleRadius, glassCircleRadius);
+    const Qt::GlobalColor GlassColorArr[] =
+    {
+        Qt::black,
+        Qt::red,
+        Qt::yellow,
+        Qt::darkGreen
+    };
 
-    painter->setBrush(Qt::yellow);
+    painter->setBrush(GlassColorArr[mScreenRelay ? int(mScreenRelay->getColorAt(0)) : 0]);
     painter->drawEllipse(QPointF(-13, -glassOffset + 4), glassCircleRadius, glassCircleRadius);
 
-    painter->setBrush(Qt::darkGreen);
+    painter->setBrush(GlassColorArr[mScreenRelay ? int(mScreenRelay->getColorAt(1)) : 0]);
+    painter->drawEllipse(QPointF(0, -glassOffset), glassCircleRadius, glassCircleRadius);
+
+    painter->setBrush(GlassColorArr[mScreenRelay ? int(mScreenRelay->getColorAt(2)) : 0]);
     painter->drawEllipse(QPointF(+13, -glassOffset + 4), glassCircleRadius, glassCircleRadius);
 
     painter->restore();
@@ -161,6 +169,8 @@ void ScreenRelaisPowerGraphItem::updateRelay()
     {
         disconnect(mScreenRelay, &ScreenRelais::stateChanged,
                    this, &ScreenRelaisPowerGraphItem::triggerUpdate);
+        disconnect(mScreenRelay, &ScreenRelais::settingsChanged,
+                   this, &ScreenRelaisPowerGraphItem::triggerUpdate);
     }
 
     mScreenRelay = node()->screenRelais();
@@ -168,6 +178,8 @@ void ScreenRelaisPowerGraphItem::updateRelay()
     if(mScreenRelay)
     {
         connect(mScreenRelay, &ScreenRelais::stateChanged,
+                this, &ScreenRelaisPowerGraphItem::triggerUpdate);
+        connect(mScreenRelay, &ScreenRelais::settingsChanged,
                 this, &ScreenRelaisPowerGraphItem::triggerUpdate);
     }
 

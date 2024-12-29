@@ -30,6 +30,8 @@ class ScreenRelaisContactNode;
 
 class QJsonObject;
 
+class EnumDesc;
+
 class ScreenRelais : public AbstractSimulationObject
 {
     Q_OBJECT
@@ -58,6 +60,15 @@ public:
         NTypes
     };
 
+    enum class GlassColor
+    {
+        Black  = 0,
+        Red    = 1,
+        Yellow = 2,
+        Green  = 3,
+        NColors
+    };
+
     static QString getScreenTypeName(ScreenType t);
 
     explicit ScreenRelais(AbstractSimulationObjectModel *m);
@@ -80,6 +91,16 @@ public:
 
     ContactState getContactStateA() const;
     ContactState getContactStateB() const;
+
+    static const EnumDesc &getGlassColorDesc();
+
+    inline GlassColor getColorAt(int idx) const
+    {
+        Q_ASSERT(idx >= 0 && idx <= 2);
+        return mColors[idx];
+    }
+
+    void setColorAt(int idx, GlassColor newColor);
 
 signals:
     void typeChanged(ScreenRelais *self, ScreenType s);
@@ -110,6 +131,10 @@ private:
     ScreenRelaisPowerNode *mPowerNode = nullptr;
 
     QVector<ScreenRelaisContactNode *> mContactNodes;
+
+    GlassColor mColors[3] = {GlassColor::Yellow,
+                             GlassColor::Red,
+                             GlassColor::Green};
 };
 
 #endif // SCREEN_RELAIS_H

@@ -25,11 +25,9 @@
 #include "../model/screenrelais.h"
 
 #include <QFormLayout>
-#include <QCheckBox>
 #include <QComboBox>
-#include <QSpinBox>
 
-#include <QStringListModel>
+#include "../../../utils/enumvaluesmodel.h"
 
 ScreenRelaisOptionsWidget::ScreenRelaisOptionsWidget(ScreenRelais *relay,
                                                      QWidget *parent)
@@ -38,5 +36,52 @@ ScreenRelaisOptionsWidget::ScreenRelaisOptionsWidget(ScreenRelais *relay,
 {
     QFormLayout *lay = new QFormLayout(this);
 
+    // Glass Colors
+    EnumValuesModel *colorModel = new EnumValuesModel(this);
+    colorModel->setEnumDescFull(ScreenRelais::getGlassColorDesc(), false);
 
+    QComboBox *colorCombo0 = new QComboBox;
+    colorCombo0->setModel(colorModel);
+
+    QComboBox *colorCombo1 = new QComboBox;
+    colorCombo1->setModel(colorModel);
+
+    QComboBox *colorCombo2 = new QComboBox;
+    colorCombo2->setModel(colorModel);
+
+    QObject::connect(colorCombo0, &QComboBox::activated,
+                     this, [this, colorModel](int idx)
+    {
+        mRelay->setColorAt(0, ScreenRelais::GlassColor(colorModel->valueAt(idx)));
+    });
+
+    lay->addRow(tr("Color 0:"), colorCombo0);
+
+    QObject::connect(colorCombo1, &QComboBox::activated,
+                     this, [this, colorModel](int idx)
+    {
+        mRelay->setColorAt(1, ScreenRelais::GlassColor(colorModel->valueAt(idx)));
+    });
+
+    lay->addRow(tr("Color 1:"), colorCombo1);
+
+    QObject::connect(colorCombo2, &QComboBox::activated,
+                     this, [this, colorModel](int idx)
+    {
+        mRelay->setColorAt(2, ScreenRelais::GlassColor(colorModel->valueAt(idx)));
+    });
+
+    lay->addRow(tr("Color 2:"), colorCombo2);
+
+    auto updateSettings = [this, colorCombo0, colorCombo1, colorCombo2, colorModel]()
+    {
+        colorCombo0->setCurrentIndex(colorModel->rowForValue(int(mRelay->getColorAt(0))));
+        colorCombo1->setCurrentIndex(colorModel->rowForValue(int(mRelay->getColorAt(1))));
+        colorCombo2->setCurrentIndex(colorModel->rowForValue(int(mRelay->getColorAt(2))));
+    };
+
+    QObject::connect(mRelay, &ScreenRelais::settingsChanged,
+                     this, updateSettings);
+
+    updateSettings();
 }

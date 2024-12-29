@@ -25,6 +25,8 @@
 #include "../../../circuits/nodes/screenrelaiscontactnode.h"
 #include "../../../circuits/nodes/screenrelaispowernode.h"
 
+#include "../../../utils/enum_desc.h"
+
 #include <QTimerEvent>
 
 #include <QJsonObject>
@@ -44,6 +46,37 @@ QString ScreenRelais::getScreenTypeName(ScreenType t)
     }
 
     return QString();
+}
+
+static const EnumDesc screen_glass_color_desc =
+{
+    int(ScreenRelais::GlassColor::Black),
+    int(ScreenRelais::GlassColor::Green),
+    int(ScreenRelais::GlassColor::Red),
+    "ScreenRelais",
+    {
+        QT_TRANSLATE_NOOP("ScreenRelais", "Black"),
+        QT_TRANSLATE_NOOP("ScreenRelais", "Red"),
+        QT_TRANSLATE_NOOP("ScreenRelais", "Yellow"),
+        QT_TRANSLATE_NOOP("ScreenRelais", "Green")
+    }
+};
+
+const EnumDesc &ScreenRelais::getGlassColorDesc()
+{
+    return screen_glass_color_desc;
+}
+
+void ScreenRelais::setColorAt(int idx, GlassColor newColor)
+{
+    Q_ASSERT(idx >= 0 && idx <= 2);
+    if(mColors[idx] == newColor)
+        return;
+
+    mColors[idx] = newColor;
+
+    emit settingsChanged(this);
+    emit typeChanged(this, mType);
 }
 
 ScreenRelais::ScreenRelais(AbstractSimulationObjectModel *m)
@@ -84,6 +117,10 @@ bool ScreenRelais::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 
     setScreenType(ScreenType(obj.value("screen_type").toInt(int(ScreenType::CenteredScreen))));
 
+    setColorAt(0, GlassColor(obj.value("color_0").toInt(int(GlassColor::Yellow))));
+    setColorAt(1, GlassColor(obj.value("color_1").toInt(int(GlassColor::Red))));
+    setColorAt(2, GlassColor(obj.value("color_2").toInt(int(GlassColor::Green))));
+
     return true;
 }
 
@@ -92,6 +129,10 @@ void ScreenRelais::saveToJSON(QJsonObject &obj) const
     AbstractSimulationObject::saveToJSON(obj);
 
     obj["screen_type"] = int(screenType());
+
+    obj["color_0"] = int(getColorAt(0));
+    obj["color_1"] = int(getColorAt(1));
+    obj["color_2"] = int(getColorAt(2));
 }
 
 QVector<AbstractCircuitNode *> ScreenRelais::nodes() const
