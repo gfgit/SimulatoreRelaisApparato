@@ -24,6 +24,8 @@
 
 #include "../electriccircuit.h"
 
+#include <QTimer>
+
 static RemoteCableCircuitNode *otherRemote = nullptr;
 
 RemoteCableCircuitNode::RemoteCableCircuitNode(ModeManager *mgr, QObject *parent)
@@ -96,6 +98,9 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
         {
             if(before == AnyCircuitType::None && after == AnyCircuitType::Open)
             {
+                const auto items = circuit->getNode(this);
+                mSendPole = items.first().fromPole;
+
                 setMode(Mode::SendCurrentOpen);
             }
             break;
@@ -261,7 +266,7 @@ void RemoteCableCircuitNode::setLocalPeer(RemoteCableCircuitNode *newLocalPeer)
     if(mLocalPeer)
     {
         mLocalPeer->mLocalPeer = nullptr;
-        mLocalPeer->onPeerModeChanged(Mode::None);
+        mLocalPeer->onPeerModeChanged(Mode::None, mSendPole);
         emit mLocalPeer->peerChanged(mLocalPeer);
 
         mLocalPeer = nullptr;
@@ -274,7 +279,7 @@ void RemoteCableCircuitNode::setLocalPeer(RemoteCableCircuitNode *newLocalPeer)
         if(mLocalPeer->mLocalPeer)
         {
             mLocalPeer->mLocalPeer->mLocalPeer = nullptr;
-            mLocalPeer->mLocalPeer->onPeerModeChanged(Mode::None);
+            mLocalPeer->mLocalPeer->onPeerModeChanged(Mode::None, mSendPole);
             emit mLocalPeer->mLocalPeer->peerChanged(mLocalPeer);
 
             mLocalPeer->mLocalPeer = nullptr;
@@ -284,9 +289,9 @@ void RemoteCableCircuitNode::setLocalPeer(RemoteCableCircuitNode *newLocalPeer)
 
         // Sync state
         if(isSendSide())
-            mLocalPeer->onPeerModeChanged(mode());
+            mLocalPeer->onPeerModeChanged(mode(), mSendPole);
         else if(mLocalPeer->isSendSide())
-            onPeerModeChanged(mLocalPeer->mode());
+            onPeerModeChanged(mLocalPeer->mode(), mSendPole);
 
         emit mLocalPeer->peerChanged(mLocalPeer);
     }
@@ -335,7 +340,7 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
     {
         // Leave circuit open until we get response
         if(oldMode == Mode::None)
-            ElectricCircuit::createCircuitsFromPowerNode(this);
+            ElectricCircuit::createCircuitsFromPowerNode(this, mRecvPole);
     }
     else if(mMode == Mode::ReceiveCurrentWaitClosed
             && oldMode == Mode::ReceiveCurrentClosed)
@@ -412,16 +417,30 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
 
         if(mLocalPeer)
         {
-            QMetaObject::invokeMethod(mLocalPeer,
-                                      &RemoteCableCircuitNode::onPeerModeChanged,
-                                      Qt::QueuedConnection,
-                                      mMode);
+            // QMetaObject::invokeMethod(mLocalPeer,
+            //                           &RemoteCableCircuitNode::onPeerModeChanged,
+            //                           Qt::QueuedConnection,
+            //                           mMode, mSendPole);
+
+            // Simulate network latency for when it will transmit to other PC
+            const Mode currMode = mMode;
+            const CircuitPole currSendPole = mSendPole;
+            QTimer::singleShot(200, Qt::VeryCoarseTimer,
+                               this, [this, currMode, currSendPole]()
+            {
+                if(mLocalPeer)
+                {
+                    mLocalPeer->onPeerModeChanged(currMode, currSendPole);
+                }
+            });
         }
     }
 }
 
-void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode)
+void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole)
 {
+    mRecvPole = peerSendPole;
+
     switch (peerMode)
     {
     case Mode::None:

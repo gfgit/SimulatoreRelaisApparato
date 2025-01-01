@@ -110,7 +110,7 @@ signals:
     void modeChanged(Mode newMode);
 
 private:
-    void onPeerModeChanged(Mode peerMode);
+    void onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole);
 
     void scheduleStateRefresh();
     void refreshState();
@@ -122,6 +122,9 @@ private:
     bool mStateDirty = false;
     Mode mMode = Mode::None;
     Mode mLastPeerMode = Mode::None;
+
+    CircuitPole mSendPole = CircuitPole::First;
+    CircuitPole mRecvPole = CircuitPole::First;
 };
 
 #endif // REMOTE_CABLE_CIRCUIT_NODE_H
