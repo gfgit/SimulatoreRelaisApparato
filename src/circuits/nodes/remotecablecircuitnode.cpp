@@ -141,7 +141,7 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
     {
         if(after == AnyCircuitType::None)
         {
-            if(before == AnyCircuitType::Closed && mMode == Mode::SendCurrentClosed)
+            if(before == AnyCircuitType::Closed)
             {
                 // When a closed circuit is interrupted AFTER passing this node
                 // it is removed and then an open circuit replacement is added
@@ -150,7 +150,12 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
                 // So we cannot yet set Mode to None, otherwise when open circuit
                 // gets registered it will be cut, as node will not be active.
                 // Still tell peer we do not have closed circuit anymore
-                setMode(Mode::SendCurrentWaitClosed);
+
+                if(mMode == Mode::SendCurrentClosed)
+                    setMode(Mode::SendCurrentWaitClosed);
+                else if(mMode == Mode::ReceiveCurrentClosed)
+                    setMode(Mode::ReceiveCurrentOpen);
+
                 scheduleStateRefresh();
                 return;
             }
