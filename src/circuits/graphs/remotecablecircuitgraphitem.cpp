@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/remotecablecircuitgraph.cpp
+ * src/circuits/graphs/remotecablecircuitgraphitem.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
