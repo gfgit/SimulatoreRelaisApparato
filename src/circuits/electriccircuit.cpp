@@ -63,17 +63,17 @@ void ElectricCircuit::enableCircuit()
     }
 
     // Duplicate of different type. This really should not happen!
-    CircuitType otherType = type() == CircuitType::Closed ? CircuitType::Open : CircuitType::Closed;
-    for(ElectricCircuit *other : source->getCircuits(otherType))
-    {
-        if(other->mItems == mItems)
-        {
-            // We are a duplicate
-            qDebug() << "DUPLICATE CIRCUIT OF OPPOSITE TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
-            delete this;
-            return;
-        }
-    }
+    // CircuitType otherType = type() == CircuitType::Closed ? CircuitType::Open : CircuitType::Closed;
+    // for(ElectricCircuit *other : source->getCircuits(otherType))
+    // {
+    //     if(other->mItems == mItems)
+    //     {
+    //         // We are a duplicate
+    //         qDebug() << "DUPLICATE CIRCUIT OF OPPOSITE TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
+    //         delete this;
+    //         return;
+    //     }
+    // }
 
     for(int i = 0; i < mItems.size(); i++)
     {
@@ -379,6 +379,31 @@ AbstractCircuitNode *ElectricCircuit::getSource() const
     return item.node.node;
 }
 
+AbstractCircuitNode *ElectricCircuit::getEnd() const
+{
+    if(mItems.size() < 3) // Start + cable + End
+        return nullptr;
+
+    const Item& item = mItems.last();
+    if(!item.isNode)
+        return nullptr;
+
+    return item.node.node;
+}
+
+ElectricCircuit *ElectricCircuit::cloneToOppositeType()
+{
+    ElectricCircuit *other = new ElectricCircuit;
+    other->mItems = mItems;
+
+    if(mType == CircuitType::Closed)
+        other->mType = CircuitType::Open;
+    else
+        other->mType = CircuitType::Closed;
+
+    return other;
+}
+
 void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source)
 {
     auto contact = source->getContacts().first();
@@ -415,7 +440,7 @@ void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source)
             return;
         }
 
-        // Depth 1 because we already passed PowerSource node
+        // Depth 1 because we already passed power source node
         passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 1);
     }
     else
@@ -487,7 +512,12 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = items;
             circuit->mItems.append(nodeItem);
-            circuit->mType = CircuitType::Closed;
+
+            if(circuit->getSource()->sourceDoNotCloseCircuits())
+                circuit->mType = CircuitType::Open;
+            else
+                circuit->mType = CircuitType::Closed;
+
             circuit->enableCircuit();
             return {0, 1};
         }

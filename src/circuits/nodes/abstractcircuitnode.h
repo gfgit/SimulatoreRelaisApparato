@@ -118,6 +118,8 @@ public:
 
     virtual bool isSourceNode() const;
 
+    virtual bool sourceDoNotCloseCircuits() const;
+
     inline const QVector<NodeContact> &getContacts() const
     {
         return mContacts;

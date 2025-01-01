@@ -83,6 +83,9 @@ public:
     bool isLastNode(AbstractCircuitNode *node) const;
 
     AbstractCircuitNode *getSource() const;
+    AbstractCircuitNode *getEnd() const;
+
+    ElectricCircuit *cloneToOppositeType();
 
     static void createCircuitsFromPowerNode(AbstractCircuitNode *source);
     static void createCircuitsFromOtherNode(AbstractCircuitNode *node);

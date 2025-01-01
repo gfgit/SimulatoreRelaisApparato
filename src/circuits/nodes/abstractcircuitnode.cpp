@@ -207,6 +207,11 @@ bool AbstractCircuitNode::isSourceNode() const
     return false;
 }
 
+bool AbstractCircuitNode::sourceDoNotCloseCircuits() const
+{
+    return false;
+}
+
 void AbstractCircuitNode::detachCable(int contactIdx)
 {
     NodeContact& contact = mContacts[contactIdx];
