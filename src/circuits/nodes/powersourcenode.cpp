@@ -44,6 +44,11 @@ QString PowerSourceNode::nodeType() const
     return NodeType;
 }
 
+bool PowerSourceNode::isSourceNode() const
+{
+    return true;
+}
+
 bool PowerSourceNode::getEnabled() const
 {
     if(enabled && modeMgr()->mode() == FileMode::Editing)

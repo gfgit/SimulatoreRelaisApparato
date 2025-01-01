@@ -22,8 +22,8 @@
 
 #include "electriccircuit.h"
 
+#include "nodes/abstractcircuitnode.h"
 #include "nodes/circuitcable.h"
-#include "nodes/powersourcenode.h"
 
 #include <QSet>
 #include <QVarLengthArray>
@@ -494,7 +494,7 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
         return {};
     }
 
-    if(qobject_cast<PowerSourceNode *>(node))
+    if(node->isSourceNode())
     {
         // Error, different power source connected
         return {};
@@ -953,7 +953,7 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
 
 void ElectricCircuit::extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items)
 {
-    if(qobject_cast<PowerSourceNode *>(node))
+    if(node->isSourceNode())
     {
         // Error, different power source connected
         //Q_ASSERT(false);
