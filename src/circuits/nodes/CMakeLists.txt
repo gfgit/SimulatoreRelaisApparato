@@ -31,6 +31,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/relaiscontactnode.h
     circuits/nodes/relaispowernode.cpp
     circuits/nodes/relaispowernode.h
+    circuits/nodes/remotecablecircuitnode.cpp
+    circuits/nodes/remotecablecircuitnode.h
     circuits/nodes/screenrelaiscontactnode.cpp
     circuits/nodes/screenrelaiscontactnode.h
     circuits/nodes/screenrelaispowernode.cpp

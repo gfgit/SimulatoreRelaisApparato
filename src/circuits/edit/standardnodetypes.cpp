@@ -69,6 +69,9 @@
 #include "../graphs/diodegraphitem.h"
 #include "../nodes/diodecircuitnode.h"
 
+#include "../graphs/remotecablecircuitgraphitem.h"
+#include "../nodes/remotecablecircuitnode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -963,6 +966,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = DiodeGraphItem::Node::NodeType;
         factory.prettyName = tr("Diode");
         factory.create = &addNewNodeToScene<DiodeGraphItem>;
+        factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Remote Cable Circuit node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+        factory.nodeType = RemoteCableCircuitGraphItem::Node::NodeType;
+        factory.prettyName = tr("Remote Connection");
+        factory.create = &addNewNodeToScene<RemoteCableCircuitGraphItem>;
         factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
