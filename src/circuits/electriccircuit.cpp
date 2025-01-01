@@ -404,7 +404,7 @@ ElectricCircuit *ElectricCircuit::cloneToOppositeType()
     return other;
 }
 
-void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source)
+void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, CircuitPole startPole)
 {
     auto contact = source->getContacts().first();
 
@@ -412,15 +412,16 @@ void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source)
     firstItem.isNode = true;
     firstItem.node.node = source;
     firstItem.node.fromContact = NodeItem::InvalidContact;
-    firstItem.node.fromPole = CircuitPole::First;
+    firstItem.node.fromPole = startPole;
     firstItem.node.toContact = 0; // First
-    firstItem.node.toPole = CircuitPole::First;
+    firstItem.node.toPole = startPole;
 
     if(contact.cable)
     {
         Item nextCable;
         nextCable.cable.cable = contact.cable;
         nextCable.cable.side = contact.cableSide;
+        nextCable.cable.pole = firstItem.node.toPole;
 
         QVector<Item> items;
         items.append(firstItem);
