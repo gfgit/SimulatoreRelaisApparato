@@ -350,14 +350,14 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
                 replacementCircuits.append(openClone);
         }
 
-        // Delete closed circuits
-        disableCircuits(closedCopy, this);
-
         // Enable their replacments
         for(ElectricCircuit *open : std::as_const(replacementCircuits))
         {
             open->enableCircuit();
         }
+
+        // Delete closed circuits
+        disableCircuits(closedCopy, this);
     }
     else if(mMode == Mode::ReceiveCurrentClosed
             && oldMode == Mode::ReceiveCurrentWaitClosed)
@@ -485,7 +485,7 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode)
     }
     case Mode::ReceiveCurrentWaitClosed:
     {
-        if(mMode != Mode::SendCurrentOpen)
+        if(mMode != Mode::SendCurrentOpen && mMode != Mode::SendCurrentWaitClosed)
         {
             // Reject change
             setMode(Mode::None);
