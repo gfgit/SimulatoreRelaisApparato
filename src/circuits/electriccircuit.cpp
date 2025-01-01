@@ -50,7 +50,7 @@ void ElectricCircuit::enableCircuit()
 
     // Check for duplicate circuits
     // TODO: this should not happen
-    PowerSourceNode *source = getSource();
+    AbstractCircuitNode *source = getSource();
     for(ElectricCircuit *other : source->getCircuits(type()))
     {
         if(other->mItems == mItems)
@@ -247,7 +247,7 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
     {
         for(const ElectricCircuit *duplicate : std::as_const(deduplacteList))
         {
-            PowerSourceNode *otherSource = duplicate->getSource();
+            AbstractCircuitNode *otherSource = duplicate->getSource();
             if(!otherSource || otherSource != getSource())
                 continue; // Different sources, cannot be duplicate
 
@@ -367,7 +367,7 @@ bool ElectricCircuit::isLastNode(AbstractCircuitNode *node) const
     return false;
 }
 
-PowerSourceNode *ElectricCircuit::getSource() const
+AbstractCircuitNode *ElectricCircuit::getSource() const
 {
     if(mItems.isEmpty())
         return nullptr;
@@ -376,10 +376,10 @@ PowerSourceNode *ElectricCircuit::getSource() const
     if(!item.isNode)
         return nullptr;
 
-    return qobject_cast<PowerSourceNode *>(item.node.node);
+    return item.node.node;
 }
 
-void ElectricCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
+void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source)
 {
     auto contact = source->getContacts().first();
 
