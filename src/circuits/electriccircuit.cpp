@@ -473,15 +473,17 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
     if(node == items.first().node.node)
     {
-        if(nodeItem.node.fromPole == CircuitPole::Second)
+        if(nodeItem.node.fromPole == ~items.first().node.toPole)
         {
+            // We returned to same source, on opposite pole
+            // The circuits is closed
             if(mode.testFlag(PassModes::ReverseVoltagePassed))
             {
                 //qWarning() << "Closed circuit with reverse voltage!";
                 return {};
             }
 
-            // We closed the circuit
+            // Register closed circuit
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = items;
             circuit->mItems.append(nodeItem);
