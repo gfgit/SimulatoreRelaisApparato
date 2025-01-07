@@ -520,6 +520,19 @@ void RemoteCableCircuitNode::setIsNodeA(bool newIsNodeA)
     modeMgr()->setFileEdited();
 }
 
+QString RemoteCableCircuitNode::getDescription() const
+{
+    if(!mRemote)
+        return tr("BRIDGE!!!");
+
+    // We show description of our peer node
+    QString str = mRemote->getNodeDescription(!mIsNodeA);
+    if(str.isEmpty())
+        return tr("EMPTY!!!");
+
+    return str;
+}
+
 RemoteCircuitBridge *RemoteCableCircuitNode::remote() const
 {
     return mRemote;

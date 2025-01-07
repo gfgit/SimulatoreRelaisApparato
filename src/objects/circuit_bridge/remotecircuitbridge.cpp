@@ -26,6 +26,8 @@
 
 #include <QTimer>
 
+#include <QJsonObject>
+
 RemoteCircuitBridge::RemoteCircuitBridge(AbstractSimulationObjectModel *m)
     : AbstractSimulationObject{m}
 {
@@ -52,9 +54,44 @@ QString RemoteCircuitBridge::getType() const
     return Type;
 }
 
+bool RemoteCircuitBridge::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
+{
+    if(!AbstractSimulationObject::loadFromJSON(obj, phase))
+        return false;
+
+    mNodeDescriptionA = obj.value("node_descr_A").toString();
+    mNodeDescriptionB = obj.value("node_descr_B").toString();
+
+    return true;
+}
+
+void RemoteCircuitBridge::saveToJSON(QJsonObject &obj) const
+{
+    AbstractSimulationObject::saveToJSON(obj);
+
+    obj["node_descr_A"] = mNodeDescriptionA;
+    obj["node_descr_B"] = mNodeDescriptionB;
+}
+
 RemoteCableCircuitNode *RemoteCircuitBridge::getNode(bool isA) const
 {
     return isA ? mNodeA : mNodeB;
+}
+
+void RemoteCircuitBridge::setNodeDescription(bool isA, const QString &newDescr)
+{
+    if(newDescr == getNodeDescription(isA))
+        return;
+
+    QString &target = isA ? mNodeDescriptionA : mNodeDescriptionB;
+    target = newDescr;
+
+    // Trigger opposite node update
+    RemoteCableCircuitNode *other = getNode(!isA);
+    if(other)
+        emit other->shapeChanged();
+
+    emit settingsChanged(this);
 }
 
 void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)

@@ -360,6 +360,68 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
     return w;
 }
 
+QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item)
+{
+    RemoteCircuitBridge *bridge = static_cast<RemoteCircuitBridge *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Node Description
+    QLineEdit *nodeDescrA = new QLineEdit;
+    QLineEdit *nodeDescrB = new QLineEdit;
+
+    QObject::connect(nodeDescrA, &QLineEdit::textEdited,
+                     bridge, [bridge, nodeDescrA]()
+    {
+        bridge->setNodeDescription(true, nodeDescrA->text());
+    });
+
+    QObject::connect(nodeDescrB, &QLineEdit::textEdited,
+                     bridge, [bridge, nodeDescrB]()
+    {
+        bridge->setNodeDescription(false, nodeDescrB->text());
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Description A:"), nodeDescrA);
+    lay->addRow(StandardObjectTypes::tr("Description B:"), nodeDescrB);
+
+    nodeDescrA->setPlaceholderText(StandardObjectTypes::tr("Shown on node B"));
+    nodeDescrB->setPlaceholderText(StandardObjectTypes::tr("Shown on node A"));
+
+    QPalette normalPalette = nodeDescrA->palette();
+    QPalette redTextPalette = normalPalette;
+    redTextPalette.setColor(QPalette::Text, Qt::red);
+
+    auto updateSettings = [bridge, normalPalette, redTextPalette, nodeDescrA, nodeDescrB]()
+    {
+        const QString descrA = bridge->getNodeDescription(true);
+        if(nodeDescrA->text() != descrA)
+            nodeDescrA->setText(descrA);
+
+        const QString descrB = bridge->getNodeDescription(false);
+        if(nodeDescrB->text() != descrB)
+            nodeDescrB->setText(descrB);
+
+        const bool hasNodeA = bridge->getNode(true);
+        nodeDescrA->setPalette(hasNodeA ? normalPalette : redTextPalette);
+        nodeDescrA->setToolTip(hasNodeA ? QString()
+                                        : StandardObjectTypes::tr("Node A not set!"));
+
+        const bool hasNodeB = bridge->getNode(false);
+        nodeDescrB->setPalette(hasNodeB ? normalPalette : redTextPalette);
+        nodeDescrB->setToolTip(hasNodeB ? QString()
+                                        : StandardObjectTypes::tr("Node B not set!"));
+    };
+
+    QObject::connect(bridge, &RemoteCircuitBridge::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
 void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
 {
     {
@@ -506,7 +568,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = nullptr;
         item.create = &createObject<RemoteCircuitBridge>;
-        item.edit = nullptr;
+        item.edit = &defaultCircuitBridgeEdit;
         item.objectType = RemoteCircuitBridge::Type;
         item.prettyName = tr("Circuit Bridge");
 

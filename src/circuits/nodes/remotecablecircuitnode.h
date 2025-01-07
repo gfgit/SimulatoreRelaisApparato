@@ -111,6 +111,8 @@ public:
 
     inline CircuitPole getSendPole() const { return mSendPole; }
 
+    QString getDescription() const;
+
 signals:
     void modeChanged(Mode newMode);
 

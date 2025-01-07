@@ -37,7 +37,17 @@ public:
     static constexpr QLatin1String Type = QLatin1String("circuit_bridge");
     QString getType() const override;
 
+    bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
+    void saveToJSON(QJsonObject& obj) const override;
+
     RemoteCableCircuitNode *getNode(bool isA) const;
+
+    inline QString getNodeDescription(bool isA) const
+    {
+        return isA ? mNodeDescriptionA : mNodeDescriptionB;
+    }
+
+    void setNodeDescription(bool isA, const QString& newDescr);
 
 private:
     friend class RemoteCableCircuitNode;
@@ -48,6 +58,9 @@ private:
 private:
     RemoteCableCircuitNode *mNodeA = nullptr;
     RemoteCableCircuitNode *mNodeB = nullptr;
+
+    QString mNodeDescriptionA;
+    QString mNodeDescriptionB;
 
 };
 

@@ -1017,7 +1017,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
     {
         // Remote Cable Circuit node
         NodeEditFactory::FactoryItem factory;
-        factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = RemoteCableCircuitGraphItem::Node::NodeType;
         factory.prettyName = tr("Remote Connection");
         factory.create = &addNewNodeToScene<RemoteCableCircuitGraphItem>;

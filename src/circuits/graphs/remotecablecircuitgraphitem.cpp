@@ -37,7 +37,6 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
     AbstractNodeGraphItem::paint(painter, option, widget);
 
     QLineF commonLine;
-    QLineF remoteLine;
 
     const auto cableDirection = toConnectorDirection(rotate());
     switch (cableDirection)
@@ -51,11 +50,9 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
                                  TileLocation::Size));
 
         // From center to North
-        remoteLine.setP1(commonLine.p1());
-        remoteLine.setP2(QPointF(TileLocation::HalfSize, 0));
-
         if(cableDirection == Connector::Direction::North)
-            std::swap(commonLine, remoteLine);
+            commonLine.setP2(QPointF(TileLocation::HalfSize,
+                                     0));
 
         break;
 
@@ -68,11 +65,8 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
                                  TileLocation::HalfSize));
 
         // From center to West
-        remoteLine.setP1(commonLine.p1());
-        remoteLine.setP2(QPointF(0, TileLocation::HalfSize));
-
         if(cableDirection == Connector::Direction::West)
-            std::swap(commonLine, remoteLine);
+            commonLine.setP2(QPointF(0, TileLocation::HalfSize));
         break;
     default:
         break;
@@ -90,16 +84,21 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
     QPen pen;
     pen.setWidthF(5.0);
     pen.setCapStyle(Qt::FlatCap);
+    pen.setStyle(Qt::DashLine);
 
-    // Draw common contact (0)
+    // Draw common line dashed (0)
     pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
-    // Draw remote line
-    pen.setStyle(Qt::DashLine);
-    painter->setPen(pen);
-    painter->drawLine(remoteLine);
+    // Draw description below cable
+    TileRotate textRotate = TileRotate::Deg90;
+
+    painter->setPen(Qt::black);
+    painter->setBrush(Qt::NoBrush);
+    drawName(painter,
+             node()->getDescription(),
+             textRotate);
 }
 
 void RemoteCableCircuitGraphItem::getConnectors(std::vector<Connector> &connectors) const
