@@ -73,6 +73,20 @@ void RemoteCircuitBridge::saveToJSON(QJsonObject &obj) const
     obj["node_descr_B"] = mNodeDescriptionB;
 }
 
+QVector<AbstractCircuitNode *> RemoteCircuitBridge::nodes() const
+{
+    QVector<AbstractCircuitNode *> result;
+    result.reserve(2);
+
+    if(mNodeA)
+        result.append(mNodeA);
+
+    if(mNodeB)
+        result.append(mNodeB);
+
+    return result;
+}
+
 RemoteCableCircuitNode *RemoteCircuitBridge::getNode(bool isA) const
 {
     return isA ? mNodeA : mNodeB;
