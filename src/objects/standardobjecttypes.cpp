@@ -47,6 +47,8 @@
 
 #include "button/genericbuttonobject.h"
 
+#include "circuit_bridge/remotecircuitbridge.h"
+
 // TODO: extract names in separate header
 #include "interfaces/leverinterface.h"
 #include "interfaces/mechanicalinterface.h"
@@ -495,6 +497,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
             LeverInterface::IfaceType
         };
         item.prettyName = tr("BEM Handle");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Remote Circuit Bridge
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<RemoteCircuitBridge>;
+        item.edit = nullptr;
+        item.objectType = RemoteCircuitBridge::Type;
+        item.prettyName = tr("Circuit Bridge");
 
         factory->registerFactory(item);
     }

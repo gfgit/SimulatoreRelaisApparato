@@ -24,35 +24,23 @@
 
 #include "../electriccircuit.h"
 
-#include <QTimer>
+#include "../../objects/abstractsimulationobjectmodel.h"
+#include "../../objects/circuit_bridge/remotecircuitbridge.h"
 
-static RemoteCableCircuitNode *otherRemote = nullptr;
+#include "../../views/modemanager.h"
+
+#include <QJsonObject>
 
 RemoteCableCircuitNode::RemoteCableCircuitNode(ModeManager *mgr, QObject *parent)
     : AbstractCircuitNode{mgr, true, parent}
 {
     // 1 side
     mContacts.append(NodeContact("1", "2"));
-
-    // TODO: HACK
-    if(otherRemote)
-    {
-        setLocalPeer(otherRemote);
-        otherRemote = nullptr;
-    }
-    else
-    {
-        otherRemote = this;
-    }
 }
 
 RemoteCableCircuitNode::~RemoteCableCircuitNode()
 {
-    setLocalPeer(nullptr);
-
-    // TODO: HACK
-    if(otherRemote == this)
-        otherRemote = nullptr;
+    setRemote(nullptr);
 }
 
 QVector<CableItem> RemoteCableCircuitNode::getActiveConnections(CableItem source, bool invertDir)
@@ -221,6 +209,21 @@ bool RemoteCableCircuitNode::loadFromJSON(const QJsonObject &obj)
     if(!AbstractCircuitNode::loadFromJSON(obj))
         return false;
 
+    auto model = modeMgr()->modelForType(RemoteCircuitBridge::Type);
+    if(model)
+    {
+        const QString remoteName = obj.value("remote").toString();
+        AbstractSimulationObject *remoteObj = model->getObjectByName(remoteName);
+
+        mIsNodeA = obj.value("node_A").toBool(true);
+
+        // Do not auto swap based on remote nodes.
+        // We do it only for newly created items during editing
+        setRemote(static_cast<RemoteCircuitBridge *>(remoteObj), false);
+    }
+    else
+        setRemote(nullptr);
+
     return true;
 }
 
@@ -228,7 +231,8 @@ void RemoteCableCircuitNode::saveToJSON(QJsonObject &obj) const
 {
     AbstractCircuitNode::saveToJSON(obj);
 
-
+    obj["remote"] = mRemote ? mRemote->name() : QString();
+    obj["node_A"] = mIsNodeA;
 }
 
 QString RemoteCableCircuitNode::nodeType() const
@@ -248,61 +252,6 @@ bool RemoteCableCircuitNode::sourceDoNotCloseCircuits() const
         return true;
 
     return false;
-}
-
-RemoteCableCircuitNode *RemoteCableCircuitNode::localPeer() const
-{
-    return mLocalPeer;
-}
-
-void RemoteCableCircuitNode::setLocalPeer(RemoteCableCircuitNode *newLocalPeer)
-{
-    if(mLocalPeer == newLocalPeer)
-        return;
-
-    if(newLocalPeer == this)
-        return;
-
-    if(mLocalPeer)
-    {
-        mLocalPeer->mLocalPeer = nullptr;
-        mLocalPeer->onPeerModeChanged(Mode::None, mSendPole);
-        emit mLocalPeer->peerChanged(mLocalPeer);
-
-        mLocalPeer = nullptr;
-    }
-
-    mLocalPeer = newLocalPeer;
-
-    if(mLocalPeer)
-    {
-        if(mLocalPeer->mLocalPeer)
-        {
-            mLocalPeer->mLocalPeer->mLocalPeer = nullptr;
-            mLocalPeer->mLocalPeer->onPeerModeChanged(Mode::None, mSendPole);
-            emit mLocalPeer->mLocalPeer->peerChanged(mLocalPeer);
-
-            mLocalPeer->mLocalPeer = nullptr;
-        }
-
-        mLocalPeer->mLocalPeer = this;
-
-        // Sync state
-        if(isSendSide())
-            mLocalPeer->onPeerModeChanged(mode(), mSendPole);
-        else if(mLocalPeer->isSendSide())
-            onPeerModeChanged(mLocalPeer->mode(), mSendPole);
-
-        emit mLocalPeer->peerChanged(mLocalPeer);
-    }
-    else
-    {
-        // Allow only None and SendCurrentOpen
-        if(mMode != Mode::SendCurrentOpen)
-            setMode(Mode::None);
-    }
-
-    emit peerChanged(this);
 }
 
 RemoteCableCircuitNode::Mode RemoteCableCircuitNode::mode() const
@@ -415,24 +364,9 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
     {
         emit modeChanged(mMode);
 
-        if(mLocalPeer)
+        if(mRemote)
         {
-            // QMetaObject::invokeMethod(mLocalPeer,
-            //                           &RemoteCableCircuitNode::onPeerModeChanged,
-            //                           Qt::QueuedConnection,
-            //                           mMode, mSendPole);
-
-            // Simulate network latency for when it will transmit to other PC
-            const Mode currMode = mMode;
-            const CircuitPole currSendPole = mSendPole;
-            QTimer::singleShot(200, Qt::VeryCoarseTimer,
-                               this, [this, currMode, currSendPole]()
-            {
-                if(mLocalPeer)
-                {
-                    mLocalPeer->onPeerModeChanged(currMode, currSendPole);
-                }
-            });
+            mRemote->onNodeModeChanged(this);
         }
     }
 }
@@ -557,4 +491,76 @@ void RemoteCableCircuitNode::refreshState()
     }
 
     mStateDirty = false;
+}
+
+bool RemoteCableCircuitNode::isNodeA() const
+{
+    return mIsNodeA;
+}
+
+void RemoteCableCircuitNode::setIsNodeA(bool newIsNodeA)
+{
+    if(mIsNodeA == newIsNodeA)
+        return;
+
+    if(mRemote)
+    {
+        // Swap nodes
+        RemoteCableCircuitNode *other = mRemote->getNode(!mIsNodeA);
+        mRemote->setNode(nullptr, mIsNodeA);
+        mRemote->setNode(nullptr, !mIsNodeA);
+
+        mRemote->setNode(this, newIsNodeA);
+        mRemote->setNode(other, !newIsNodeA);
+    }
+
+    mIsNodeA = newIsNodeA;
+
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
+}
+
+RemoteCircuitBridge *RemoteCableCircuitNode::remote() const
+{
+    return mRemote;
+}
+
+void RemoteCableCircuitNode::setRemote(RemoteCircuitBridge *newRemote, bool autoSwap)
+{
+    if(mRemote == newRemote)
+        return;
+
+    if(mRemote)
+    {
+        mRemote->setNode(nullptr, mIsNodeA);
+    }
+
+    mRemote = newRemote;
+
+    if(mRemote)
+    {
+        // Try to set where there is no node set
+        if(autoSwap && !mRemote->getNode(!mIsNodeA))
+        {
+            if(mRemote->getNode(mIsNodeA))
+            {
+                // Our slot is taken, other is free, swap
+                mIsNodeA = !mIsNodeA;
+            }
+            else
+            {
+                // Both slots are free, use A first
+                mIsNodeA = true;
+            }
+        }
+
+        mRemote->setNode(this, mIsNodeA);
+    }
+    else
+    {
+        setMode(Mode::None);
+    }
+
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
 }

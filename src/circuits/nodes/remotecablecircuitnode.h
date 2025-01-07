@@ -25,6 +25,8 @@
 
 #include "abstractcircuitnode.h"
 
+class RemoteCircuitBridge;
+
 /*!
  * \brief The RemoteCableCircuitNode class
  *
@@ -68,9 +70,6 @@ public:
 
     bool sourceDoNotCloseCircuits() const override;
 
-    RemoteCableCircuitNode *localPeer() const;
-    void setLocalPeer(RemoteCableCircuitNode *newLocalPeer);
-
     Mode mode() const;
     void setMode(Mode newMode);
 
@@ -104,19 +103,27 @@ public:
         return false;
     }
 
-signals:
-    void peerChanged(AbstractCircuitNode *self);
+    RemoteCircuitBridge *remote() const;
+    void setRemote(RemoteCircuitBridge *newRemote, bool autoSwap = true);
 
+    bool isNodeA() const;
+    void setIsNodeA(bool newIsNodeA);
+
+    inline CircuitPole getSendPole() const { return mSendPole; }
+
+signals:
     void modeChanged(Mode newMode);
 
 private:
+    friend class RemoteCircuitBridge;
     void onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole);
 
     void scheduleStateRefresh();
     void refreshState();
 
 private:
-    RemoteCableCircuitNode *mLocalPeer = nullptr;
+    RemoteCircuitBridge *mRemote = nullptr;
+    bool mIsNodeA = true;
 
     int mFakeClosedCircuitsCount = 0;
     bool mStateDirty = false;
