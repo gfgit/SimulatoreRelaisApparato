@@ -117,6 +117,12 @@ void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
     if(mObject == newObject)
         return;
 
+    if(mObject)
+    {
+        disconnect(mObject, &AbstractSimulationObject::nameChanged,
+                   this, &SimulationObjectLineEdit::updateObjectName);
+    }
+
     mObject = newObject;
 
     if(mObject)
@@ -124,16 +130,15 @@ void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
         if(!mMultiModel)
             setType(mTypes.indexOf(mObject->getType()));
 
-        if(mLineEdit->text() != mObject->name())
-            mLineEdit->setText(mObject->name());
+        connect(mObject, &AbstractSimulationObject::nameChanged,
+                this, &SimulationObjectLineEdit::updateObjectName);
     }
     else
     {
         setType(0);
-
-        if(!mLineEdit->text().isEmpty())
-            mLineEdit->setText(QString());
     }
+
+    updateObjectName();
 
     emit objectChanged(mObject);
 }
@@ -169,5 +174,19 @@ void SimulationObjectLineEdit::setType(int idx)
     {
         mModel = modeMgr->modelForType(type);
         mCompleter->setModel(mModel);
+    }
+}
+
+void SimulationObjectLineEdit::updateObjectName()
+{
+    if(mObject)
+    {
+        if(mLineEdit->text() != mObject->name())
+            mLineEdit->setText(mObject->name());
+    }
+    else
+    {
+        if(!mLineEdit->text().isEmpty())
+            mLineEdit->setText(QString());
     }
 }

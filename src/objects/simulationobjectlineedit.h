@@ -60,6 +60,8 @@ signals:
 private slots:
     void setType(int idx);
 
+    void updateObjectName();
+
 private:
     ModeManager *modeMgr = nullptr;
 
