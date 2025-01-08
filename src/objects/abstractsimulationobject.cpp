@@ -122,13 +122,19 @@ bool AbstractSimulationObject::setName(const QString &newName)
 
     emit nameChanged(mName);
 
-    for(AbstractCircuitNode *node : nodes())
+    int nodesCount = getReferencingNodes(nullptr);
+    QVector<AbstractCircuitNode *> nodesVec;
+    nodesVec.reserve(nodesCount);
+
+    getReferencingNodes(&nodesVec);
+
+    for(AbstractCircuitNode *node : nodesVec)
     {
-        // Trigger drawind update
+        // Trigger drawing update
         // TODO: find better way
         // NOTE: we want to avoid having to connecto to nameChanged()
         // in each node since there are many
-        emit node->circuitsChanged();
+        emit node->shapeChanged();
     }
 
     return isValid;
@@ -149,16 +155,16 @@ void AbstractSimulationObject::setDescription(const QString &newDescription)
     emit descriptionChanged(mDescription);
 }
 
-QVector<AbstractCircuitNode *> AbstractSimulationObject::nodes() const
+int AbstractSimulationObject::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    QVector<AbstractCircuitNode *> result;
+    int nodesCount = 0;
 
     for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
     {
-        result.append(iface->nodes());
+        nodesCount += iface->getReferencingNodes(result);
     }
 
-    return result;
+    return nodesCount;
 }
 
 void AbstractSimulationObject::onTrackedObjectDestroyed_slot(QObject *obj)

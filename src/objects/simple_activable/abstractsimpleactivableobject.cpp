@@ -39,13 +39,19 @@ AbstractSimpleActivableObject::~AbstractSimpleActivableObject()
     }
 }
 
-QVector<AbstractCircuitNode *> AbstractSimpleActivableObject::nodes() const
+int AbstractSimpleActivableObject::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    QVector<AbstractCircuitNode *> result;
-    result.reserve(mNodes.size());
-    for(auto item : mNodes)
-        result.append(item);
-    return result;
+    int nodesCount = AbstractSimulationObject::getReferencingNodes(result);
+
+    nodesCount += mNodes.size();
+
+    if(result)
+    {
+        for(auto item : mNodes)
+            result->append(item);
+    }
+
+    return nodesCount;
 }
 
 void AbstractSimpleActivableObject::addNode(SimpleActivationNode *node)
@@ -55,7 +61,7 @@ void AbstractSimpleActivableObject::addNode(SimpleActivationNode *node)
 
     mNodes.append(node);
 
-    emit nodesChanged();
+    emit nodesChanged(this);
 }
 
 void AbstractSimpleActivableObject::removeNode(SimpleActivationNode *node)
@@ -67,7 +73,7 @@ void AbstractSimpleActivableObject::removeNode(SimpleActivationNode *node)
 
     mNodes.removeOne(node);
 
-    emit nodesChanged();
+    emit nodesChanged(this);
 }
 
 void AbstractSimpleActivableObject::onNodeStateChanged(SimpleActivationNode *node, bool val)

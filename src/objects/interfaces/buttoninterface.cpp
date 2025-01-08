@@ -62,13 +62,15 @@ QString ButtonInterface::ifaceType()
     return IfaceType;
 }
 
-QVector<AbstractCircuitNode *> ButtonInterface::nodes() const
+int ButtonInterface::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    QVector<AbstractCircuitNode *> result;
-    result.reserve(mContactNodes.size());
-    for(auto item : mContactNodes)
-        result.append(item);
-    return result;
+    if(result)
+    {
+        for(auto item : mContactNodes)
+            result->append(item);
+    }
+
+    return mContactNodes.size();
 }
 
 bool ButtonInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
@@ -128,7 +130,7 @@ void ButtonInterface::addContactNode(ButtonContactNode *c)
 
     mContactNodes.append(c);
 
-    emit mObject->nodesChanged();
+    emit mObject->nodesChanged(mObject);
 }
 
 void ButtonInterface::removeContactNode(ButtonContactNode *c)
@@ -138,7 +140,7 @@ void ButtonInterface::removeContactNode(ButtonContactNode *c)
 
     mContactNodes.removeOne(c);
 
-    emit mObject->nodesChanged();
+    emit mObject->nodesChanged(mObject);
 }
 
 ButtonInterface::Mode ButtonInterface::mode() const

@@ -42,7 +42,7 @@ public:
 
     virtual QString ifaceType() = 0;
 
-    virtual QVector<AbstractCircuitNode*> nodes() const;
+    virtual int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const;
 
     virtual bool loadFromJSON(const QJsonObject &obj, LoadPhase phase);
     virtual void saveToJSON(QJsonObject &obj) const;

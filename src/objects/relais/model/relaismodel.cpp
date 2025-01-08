@@ -40,7 +40,7 @@ QVariant RelaisModel::data(const QModelIndex &idx, int role) const
 {
     const AbstractRelais *relay = static_cast<AbstractRelais *>(objectAt(idx.row()));
 
-    if(relay && idx.column() == 0 && role == Qt::DecorationRole)
+    if(relay && idx.column() == NameCol && role == Qt::DecorationRole)
     {
         // Show a little colored square based on relay state
         QColor color = Qt::black;

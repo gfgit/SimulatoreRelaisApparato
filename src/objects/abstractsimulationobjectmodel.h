@@ -40,6 +40,13 @@ class AbstractSimulationObjectModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
+    enum Columns
+    {
+        NameCol = 0,
+        NodesCol,
+        NCols
+    };
+
     AbstractSimulationObjectModel(ModeManager *mgr,
                                   const QString& objTypeName,
                                   QObject *parent = nullptr);

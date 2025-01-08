@@ -118,15 +118,21 @@ void AbstractRelais::saveToJSON(QJsonObject &obj) const
     obj["relay_type"] = int(relaisType());
 }
 
-QVector<AbstractCircuitNode *> AbstractRelais::nodes() const
+int AbstractRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    QVector<AbstractCircuitNode *> result;
-    result.reserve(mPowerNodes.size() + mContactNodes.size());
-    for(auto item : mPowerNodes)
-        result.append(item);
-    for(auto item : mContactNodes)
-        result.append(item);
-    return result;
+    int nodesCount = AbstractSimulationObject::getReferencingNodes(result);
+
+    nodesCount += mContactNodes.size() + mPowerNodes.size();
+
+    if(result)
+    {
+        for(auto item : mContactNodes)
+            result->append(item);
+        for(auto item : mPowerNodes)
+            result->append(item);
+    }
+
+    return nodesCount;
 }
 
 bool AbstractRelais::isStateIndependent(RelaisType t)
@@ -178,7 +184,7 @@ void AbstractRelais::addPowerNode(RelaisPowerNode *p)
 
     mPowerNodes.append(p);
 
-    emit nodesChanged();
+    emit nodesChanged(this);
 }
 
 void AbstractRelais::removePowerNode(RelaisPowerNode *p)
@@ -190,7 +196,7 @@ void AbstractRelais::removePowerNode(RelaisPowerNode *p)
 
     mPowerNodes.removeOne(p);
 
-    emit nodesChanged();
+    emit nodesChanged(this);
 }
 
 void AbstractRelais::addContactNode(RelaisContactNode *c)
@@ -200,7 +206,7 @@ void AbstractRelais::addContactNode(RelaisContactNode *c)
 
     mContactNodes.append(c);
 
-    emit nodesChanged();
+    emit nodesChanged(this);
 }
 
 void AbstractRelais::removeContactNode(RelaisContactNode *c)
@@ -212,7 +218,7 @@ void AbstractRelais::removeContactNode(RelaisContactNode *c)
 
     mContactNodes.removeOne(c);
 
-    emit nodesChanged();
+    emit nodesChanged(this);
 }
 
 void AbstractRelais::timerEvent(QTimerEvent *e)

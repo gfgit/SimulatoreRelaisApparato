@@ -78,7 +78,8 @@ public:
     }
 
     // Nodes in which this object is referenced
-    virtual QVector<AbstractCircuitNode *> nodes() const;
+    // If result is nullptr, it just returns number of referencing getReferencingNodes
+    virtual int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const;
 
 signals:
     void nameChanged(const QString& name);
@@ -86,12 +87,12 @@ signals:
 
     void settingsChanged(AbstractSimulationObject *self);
     void stateChanged(AbstractSimulationObject *self);
+    void nodesChanged(AbstractSimulationObject *self);
 
     void interfacePropertyChanged(const QString& ifaceName,
                                   const QString& propName,
                                   const QVariant& value);
 
-    void nodesChanged();
 
 private slots:
     void onTrackedObjectDestroyed_slot(QObject *obj);

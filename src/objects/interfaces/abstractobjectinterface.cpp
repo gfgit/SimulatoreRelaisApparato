@@ -35,9 +35,10 @@ AbstractObjectInterface::~AbstractObjectInterface()
     mObject->removeInterface(this);
 }
 
-QVector<AbstractCircuitNode *> AbstractObjectInterface::nodes() const
+int AbstractObjectInterface::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    return {};
+    Q_UNUSED(result);
+    return 0;
 }
 
 bool AbstractObjectInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)

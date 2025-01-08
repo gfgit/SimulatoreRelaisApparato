@@ -135,18 +135,26 @@ void ScreenRelais::saveToJSON(QJsonObject &obj) const
     obj["color_2"] = int(getColorAt(2));
 }
 
-QVector<AbstractCircuitNode *> ScreenRelais::nodes() const
+int ScreenRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    QVector<AbstractCircuitNode *> result;
-    result.reserve(mContactNodes.size() + 1);
+    int nodesCount = AbstractSimulationObject::getReferencingNodes(result);
+
+    nodesCount += mContactNodes.size();
+
+    if(result)
+    {
+        for(auto item : mContactNodes)
+            result->append(item);
+    }
 
     if(mPowerNode)
-        result.append(mPowerNode);
+    {
+        nodesCount++;
+        if(result)
+            result->append(mPowerNode);
+    }
 
-    for(auto item : mContactNodes)
-        result.append(item);
-
-    return result;
+    return nodesCount;
 }
 
 void ScreenRelais::timerEvent(QTimerEvent *e)
@@ -316,7 +324,7 @@ void ScreenRelais::setPowerNode(ScreenRelaisPowerNode *node)
         setPowerState(PowerState::None);
     }
 
-    emit nodesChanged();
+    emit nodesChanged(this);
     emit settingsChanged(this);
 }
 
@@ -330,7 +338,7 @@ void ScreenRelais::addContactNode(ScreenRelaisContactNode *node)
     const ContactState s = node->isContactA() ? getContactStateA() : getContactStateB();
     node->setState(ScreenRelaisContactNode::ContactState(s));
 
-    emit nodesChanged();
+    emit nodesChanged(this);
     emit settingsChanged(this);
 }
 
@@ -343,5 +351,5 @@ void ScreenRelais::removeContactNode(ScreenRelaisContactNode *node)
 
     mContactNodes.removeOne(node);
 
-    emit nodesChanged();
+    emit nodesChanged(this);
 }

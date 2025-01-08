@@ -80,7 +80,7 @@ public:
     static constexpr QLatin1String IfaceType = QLatin1String("lever");
     QString ifaceType() override;
 
-    QVector<AbstractCircuitNode*> nodes() const override;
+    int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
 
     bool loadFromJSON(const QJsonObject &obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject &obj) const override;

@@ -73,18 +73,25 @@ void RemoteCircuitBridge::saveToJSON(QJsonObject &obj) const
     obj["node_descr_B"] = mNodeDescriptionB;
 }
 
-QVector<AbstractCircuitNode *> RemoteCircuitBridge::nodes() const
+int RemoteCircuitBridge::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    QVector<AbstractCircuitNode *> result;
-    result.reserve(2);
+    int nodesCount = AbstractSimulationObject::getReferencingNodes(result);
 
     if(mNodeA)
-        result.append(mNodeA);
+    {
+        nodesCount++;
+        if(result)
+            result->append(mNodeA);
+    }
 
     if(mNodeB)
-        result.append(mNodeB);
+    {
+        nodesCount++;
+        if(result)
+            result->append(mNodeB);
+    }
 
-    return result;
+    return nodesCount;
 }
 
 RemoteCableCircuitNode *RemoteCircuitBridge::getNode(bool isA) const
@@ -140,6 +147,7 @@ void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
         target->setMode(RemoteCableCircuitNode::Mode::None);
     }
 
+    emit nodesChanged(this);
     emit settingsChanged(this);
 }
 

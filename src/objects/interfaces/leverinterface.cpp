@@ -53,13 +53,15 @@ QString LeverInterface::ifaceType()
     return IfaceType;
 }
 
-QVector<AbstractCircuitNode *> LeverInterface::nodes() const
+int LeverInterface::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    QVector<AbstractCircuitNode *> result;
-    result.reserve(mContactNodes.size());
-    for(auto item : mContactNodes)
-        result.append(item);
-    return result;
+    if(result)
+    {
+        for(auto item : mContactNodes)
+            result->append(item);
+    }
+
+    return mContactNodes.size();
 }
 
 bool LeverInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
@@ -540,7 +542,7 @@ void LeverInterface::addContactNode(LeverContactNode *c)
 
     mContactNodes.append(c);
 
-    emit mObject->nodesChanged();
+    emit mObject->nodesChanged(mObject);
 }
 
 void LeverInterface::removeContactNode(LeverContactNode *c)
@@ -550,7 +552,7 @@ void LeverInterface::removeContactNode(LeverContactNode *c)
 
     mContactNodes.removeOne(c);
 
-    emit mObject->nodesChanged();
+    emit mObject->nodesChanged(mObject);
 }
 
 void LeverInterface::setCanWarpAroundZero(bool newCanWarpAroundZero)

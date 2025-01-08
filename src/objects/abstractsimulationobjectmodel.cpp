@@ -32,6 +32,9 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include <QFont>
+#include <QColor>
+
 
 AbstractSimulationObjectModel::AbstractSimulationObjectModel(ModeManager *mgr,
                                                              const QString &objTypeName,
@@ -55,8 +58,10 @@ QVariant AbstractSimulationObjectModel::headerData(int section, Qt::Orientation 
     {
         switch (section)
         {
-        case 0:
+        case NameCol:
             return tr("Name");
+        case NodesCol:
+            return tr("Nodes");
         default:
             break;
         }
@@ -73,11 +78,7 @@ int AbstractSimulationObjectModel::rowCount(const QModelIndex &p) const
 
 int AbstractSimulationObjectModel::columnCount(const QModelIndex &p) const
 {
-    if (p.isValid())
-        return 0;
-
-    // FIXME: Implement me!
-    return 1;
+    return p.isValid() ? 0 : NCols;
 }
 
 QVariant AbstractSimulationObjectModel::data(const QModelIndex &idx, int role) const
@@ -85,11 +86,69 @@ QVariant AbstractSimulationObjectModel::data(const QModelIndex &idx, int role) c
     if (!idx.isValid() || idx.row() >= mObjects.size())
         return QVariant();
 
-    switch (role)
+    AbstractSimulationObject *item = mObjects.at(idx.row());
+
+    switch (idx.column())
     {
-    case Qt::DisplayRole:
-    case Qt::EditRole:
-        return mObjects.at(idx.row())->name();
+    case NameCol:
+    {
+        switch (role)
+        {
+        case Qt::DisplayRole:
+        case Qt::EditRole:
+            return item->name();
+        default:
+            break;
+        }
+        break;
+    }
+    case NodesCol:
+    {
+        switch (role)
+        {
+        case Qt::DisplayRole:
+        case Qt::EditRole:
+            return item->getReferencingNodes(nullptr);
+        case Qt::TextAlignmentRole:
+            return Qt::AlignRight;
+        case Qt::FontRole:
+        {
+            int nodesCount = item->getReferencingNodes(nullptr);
+            if(nodesCount == 0)
+            {
+                // Highlight objects not referenced by nodes
+                // Bold font
+                QFont f;
+                f.setBold(true);
+                return f;
+            }
+
+            break;
+        }
+        case Qt::BackgroundRole:
+        {
+            int nodesCount = item->getReferencingNodes(nullptr);
+            if(nodesCount == 0)
+            {
+                // Highlight objects not referenced by nodes
+                // Light red background
+                return QColor(qRgb(255, 140, 140));
+            }
+
+            break;
+        }
+        case Qt::ToolTipRole:
+        {
+            int nodesCount = item->getReferencingNodes(nullptr);
+
+            return tr("Object <b>%1</b> is referenced in <b>%2</b> nodes.")
+                    .arg(item->name()).arg(nodesCount);
+        }
+        default:
+            break;
+        }
+        break;
+    }
     default:
         break;
     }
@@ -363,6 +422,8 @@ void AbstractSimulationObjectModel::addObjectInternal(AbstractSimulationObject *
             this, &AbstractSimulationObjectModel::onObjectChanged);
     connect(item, &AbstractSimulationObject::stateChanged,
             this, &AbstractSimulationObjectModel::onObjectStateChanged);
+    connect(item, &AbstractSimulationObject::nodesChanged,
+            this, &AbstractSimulationObjectModel::onObjectStateChanged);
 }
 
 void AbstractSimulationObjectModel::removeObjectInternal(AbstractSimulationObject *item)
@@ -372,5 +433,7 @@ void AbstractSimulationObjectModel::removeObjectInternal(AbstractSimulationObjec
     disconnect(item, &AbstractSimulationObject::settingsChanged,
                this, &AbstractSimulationObjectModel::onObjectChanged);
     disconnect(item, &AbstractSimulationObject::stateChanged,
+               this, &AbstractSimulationObjectModel::onObjectStateChanged);
+    disconnect(item, &AbstractSimulationObject::nodesChanged,
                this, &AbstractSimulationObjectModel::onObjectStateChanged);
 }
