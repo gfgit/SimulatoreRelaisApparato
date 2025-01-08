@@ -709,7 +709,6 @@ void BEMPanelItem::setArtLibButton(AbstractSimulationObject *newButton)
     {
         AbstractSimulationObject *oldBut = mArtificialLibBut->object();
 
-        // TODO: destroyed should not be needed because BEM Handle resets button property
         disconnect(oldBut, &AbstractSimulationObject::stateChanged,
                    this, &BEMPanelItem::triggerUpdate);
         disconnect(oldBut, &AbstractSimulationObject::settingsChanged,

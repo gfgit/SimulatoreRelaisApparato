@@ -58,7 +58,22 @@ bool AbstractObjectInterface::timerEvent(const int timerId)
     return false;
 }
 
+void AbstractObjectInterface::onTrackedObjectDestroyed(AbstractSimulationObject *obj)
+{
+    Q_UNUSED(obj)
+}
+
 void AbstractObjectInterface::emitChanged(const QString &propName, const QVariant &value)
 {
     mObject->onInterfaceChanged(this, propName, value);
+}
+
+void AbstractObjectInterface::trackObject(AbstractSimulationObject *obj)
+{
+    mObject->trackObject(obj);
+}
+
+void AbstractObjectInterface::untrackObject(AbstractSimulationObject *obj)
+{
+    mObject->untrackObject(obj);
 }

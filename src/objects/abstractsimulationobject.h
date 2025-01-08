@@ -25,6 +25,7 @@
 
 #include <QObject>
 #include <QVector>
+#include <QHash>
 
 #include "../enums/loadphase.h"
 
@@ -92,6 +93,9 @@ signals:
 
     void nodesChanged();
 
+private slots:
+    void onTrackedObjectDestroyed_slot(QObject *obj);
+
 protected:
     void timerEvent(QTimerEvent *e) override;
 
@@ -103,6 +107,11 @@ protected:
                                     const QString &propName,
                                     const QVariant &value);
 
+    void trackObject(AbstractSimulationObject *obj);
+    void untrackObject(AbstractSimulationObject *obj);
+
+    virtual void onTrackedObjectDestroyed(AbstractSimulationObject *obj);
+
 private:
     AbstractSimulationObjectModel *mModel;
 
@@ -110,6 +119,8 @@ private:
     QString mDescription;
 
     QVector<AbstractObjectInterface *> mInterfaces;
+
+    QHash<AbstractSimulationObject *, int> mTrackedObjects;
 };
 
 #endif // ABSTRACTSIMULATIONOBJECT_H

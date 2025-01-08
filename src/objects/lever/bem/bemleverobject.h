@@ -67,7 +67,6 @@ public:
     static constexpr QLatin1String Type = QLatin1String("bem_lever");
     QString getType() const override;
 
-    // TODO: not reset when relay is destroyed
     ButtonInterface *artificialLiberationBut() const;
     void setArtificialLiberationBut(ButtonInterface *newArtificialLiberationBut);
 

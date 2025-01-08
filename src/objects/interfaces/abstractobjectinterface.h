@@ -56,7 +56,12 @@ protected:
     friend class AbstractSimulationObject;
     virtual bool timerEvent(const int timerId);
 
+    virtual void onTrackedObjectDestroyed(AbstractSimulationObject *obj);
+
     void emitChanged(const QString& propName, const QVariant& value);
+
+    void trackObject(AbstractSimulationObject *obj);
+    void untrackObject(AbstractSimulationObject *obj);
 
 protected:
     AbstractSimulationObject * const mObject;

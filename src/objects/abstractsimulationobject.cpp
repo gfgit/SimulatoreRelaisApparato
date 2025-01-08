@@ -44,6 +44,8 @@ AbstractSimulationObject::~AbstractSimulationObject()
     for(AbstractObjectInterface *iface : ifaceListCopy)
         delete iface;
     Q_ASSERT(mInterfaces.isEmpty());
+
+    Q_ASSERT(mTrackedObjects.isEmpty());
 }
 
 AbstractObjectInterface *AbstractSimulationObject::getAbstractInterface(const QString &ifaceType) const
@@ -159,6 +161,15 @@ QVector<AbstractCircuitNode *> AbstractSimulationObject::nodes() const
     return result;
 }
 
+void AbstractSimulationObject::onTrackedObjectDestroyed_slot(QObject *obj)
+{
+    AbstractSimulationObject *simObj = static_cast<AbstractSimulationObject *>(obj);
+
+    onTrackedObjectDestroyed(simObj);
+
+    Q_ASSERT(!mTrackedObjects.contains(simObj));
+}
+
 void AbstractSimulationObject::timerEvent(QTimerEvent *e)
 {
     for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
@@ -185,4 +196,41 @@ void AbstractSimulationObject::onInterfaceChanged(AbstractObjectInterface *iface
     emit interfacePropertyChanged(iface->ifaceType(),
                                   propName,
                                   value);
+}
+
+void AbstractSimulationObject::trackObject(AbstractSimulationObject *obj)
+{
+    Q_ASSERT(obj != this);
+
+    auto it = mTrackedObjects.find(obj);
+    if(it == mTrackedObjects.end())
+    {
+        connect(obj, &AbstractSimulationObject::destroyed,
+                this, &AbstractSimulationObject::onTrackedObjectDestroyed_slot);
+        it = mTrackedObjects.insert(obj, 0);
+    }
+
+    it.value()++;
+}
+
+void AbstractSimulationObject::untrackObject(AbstractSimulationObject *obj)
+{
+    auto it = mTrackedObjects.find(obj);
+    Q_ASSERT(it != mTrackedObjects.end());
+
+    it.value()--;
+    if(it.value() == 0)
+    {
+        disconnect(obj, &AbstractSimulationObject::destroyed,
+                   this, &AbstractSimulationObject::onTrackedObjectDestroyed_slot);
+        mTrackedObjects.erase(it);
+    }
+}
+
+void AbstractSimulationObject::onTrackedObjectDestroyed(AbstractSimulationObject *obj)
+{
+    for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
+    {
+        iface->onTrackedObjectDestroyed(obj);
+    }
 }

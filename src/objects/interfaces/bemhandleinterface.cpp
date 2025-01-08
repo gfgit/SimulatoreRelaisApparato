@@ -215,7 +215,14 @@ void BEMHandleInterface::setLiberationRelay(AbstractRelais *newLiberationRelay)
     if(mLiberationRelay == newLiberationRelay)
         return;
 
+    if(mLiberationRelay)
+        untrackObject(mLiberationRelay);
+
     mLiberationRelay = newLiberationRelay;
+
+    if(mLiberationRelay)
+        trackObject(mLiberationRelay);
+
     emitChanged(LibRelayPropName, QVariant());
     emit mObject->settingsChanged(mObject);
 }
@@ -230,7 +237,22 @@ void BEMHandleInterface::setArtificialLiberation(ButtonInterface *newArtificialL
     if(mArtificialLiberation == newArtificialLiberation)
         return;
 
+    if(mArtificialLiberation)
+        untrackObject(mArtificialLiberation->object());
+
     mArtificialLiberation = newArtificialLiberation;
+
+    if(mArtificialLiberation)
+        trackObject(mArtificialLiberation->object());
+
     emitChanged(ArtificialLibButPropName, QVariant());
     emit mObject->settingsChanged(mObject);
+}
+
+void BEMHandleInterface::onTrackedObjectDestroyed(AbstractSimulationObject *obj)
+{
+    if(obj == mLiberationRelay)
+        setLiberationRelay(nullptr);
+    else if(mArtificialLiberation && obj == mArtificialLiberation->object())
+        setArtificialLiberation(nullptr);
 }
