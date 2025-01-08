@@ -222,7 +222,7 @@ QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ModeManager *mg
         node->setRemote(static_cast<RemoteCircuitBridge *>(obj));
     });
 
-    lay->addRow(StandardNodeTypes::tr("Remote:"), objectEdit);
+    lay->addRow(StandardNodeTypes::tr("Bridge:"), objectEdit);
 
     // Node A/B
     QCheckBox *nodeACheck = new QCheckBox(StandardNodeTypes::tr("Node A"));
