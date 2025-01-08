@@ -116,6 +116,12 @@ public:
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
 
+    // Source methods
+    virtual bool isSourceNode(bool onlyCurrentState) const;
+    virtual bool sourceDoNotCloseCircuits() const;
+    virtual bool isSourceEnabled() const;
+    virtual void setSourceEnabled(bool newEnabled);
+
     inline const QVector<NodeContact> &getContacts() const
     {
         return mContacts;

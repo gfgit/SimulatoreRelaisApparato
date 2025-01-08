@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/screenScreenRelaisPowerGraphItem.cpp
+ * src/circuits/graphs/screenrelaispowergraphitem.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

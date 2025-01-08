@@ -1,9 +1,9 @@
 /**
- * src/circuits/nodes/powersourcenode.h
+ * src/circuits/graphs/remotecablecircuitgraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,32 +20,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef POWERSOURCENODE_H
-#define POWERSOURCENODE_H
+#ifndef REMOTE_CABLE_CIRCUIT_GRAPHITEM_H
+#define REMOTE_CABLE_CIRCUIT_GRAPHITEM_H
 
-#include "abstractcircuitnode.h"
+#include "abstractnodegraphitem.h"
 
-class PowerSourceNode : public AbstractCircuitNode
+class RemoteCableCircuitNode;
+
+class RemoteCableCircuitGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    explicit PowerSourceNode(ModeManager *mgr, QObject *parent = nullptr);
+    typedef RemoteCableCircuitNode Node;
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    explicit RemoteCableCircuitGraphItem(RemoteCableCircuitNode *node_);
 
-    static constexpr QLatin1String NodeType = QLatin1String("power_source");
-    QString nodeType() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    bool isSourceNode(bool onlyCurrentState) const override;
+    void getConnectors(std::vector<Connector>& connectors) const final;
 
-    bool isSourceEnabled() const override;
-    void setSourceEnabled(bool newEnabled) override;
-
-signals:
-    void enabledChanged(bool val);
-
-private:
-    bool enabled = false;
+    RemoteCableCircuitNode *node() const;
 };
 
-#endif // POWERSOURCENODE_H
+#endif // REMOTE_CABLE_CIRCUIT_GRAPHITEM_H

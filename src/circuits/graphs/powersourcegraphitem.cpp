@@ -40,7 +40,7 @@ void PowerSourceGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     AbstractNodeGraphItem::paint(painter, option, widget);
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(node()->getEnabled() ? Qt::red : Qt::darkGreen);
+    painter->setBrush(node()->isSourceEnabled() ? Qt::red : Qt::darkGreen);
 
     // Draw a triangle
     const QPointF *triangle = nullptr;
@@ -84,8 +84,8 @@ void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
     if(s && s->mode() == FileMode::Simulation)
     {
         // Toggle on double click
-        bool val = node()->getEnabled();
-        node()->setEnabled(!val);
+        bool val = node()->isSourceEnabled();
+        node()->setSourceEnabled(!val);
     }
 }
 

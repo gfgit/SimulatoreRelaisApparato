@@ -22,8 +22,8 @@
 
 #include "electriccircuit.h"
 
+#include "nodes/abstractcircuitnode.h"
 #include "nodes/circuitcable.h"
-#include "nodes/powersourcenode.h"
 
 #include <QSet>
 #include <QVarLengthArray>
@@ -50,7 +50,7 @@ void ElectricCircuit::enableCircuit()
 
     // Check for duplicate circuits
     // TODO: this should not happen
-    PowerSourceNode *source = getSource();
+    AbstractCircuitNode *source = getSource();
     for(ElectricCircuit *other : source->getCircuits(type()))
     {
         if(other->mItems == mItems)
@@ -63,17 +63,17 @@ void ElectricCircuit::enableCircuit()
     }
 
     // Duplicate of different type. This really should not happen!
-    CircuitType otherType = type() == CircuitType::Closed ? CircuitType::Open : CircuitType::Closed;
-    for(ElectricCircuit *other : source->getCircuits(otherType))
-    {
-        if(other->mItems == mItems)
-        {
-            // We are a duplicate
-            qDebug() << "DUPLICATE CIRCUIT OF OPPOSITE TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
-            delete this;
-            return;
-        }
-    }
+    // CircuitType otherType = type() == CircuitType::Closed ? CircuitType::Open : CircuitType::Closed;
+    // for(ElectricCircuit *other : source->getCircuits(otherType))
+    // {
+    //     if(other->mItems == mItems)
+    //     {
+    //         // We are a duplicate
+    //         qDebug() << "DUPLICATE CIRCUIT OF OPPOSITE TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
+    //         delete this;
+    //         return;
+    //     }
+    // }
 
     for(int i = 0; i < mItems.size(); i++)
     {
@@ -247,7 +247,7 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
     {
         for(const ElectricCircuit *duplicate : std::as_const(deduplacteList))
         {
-            PowerSourceNode *otherSource = duplicate->getSource();
+            AbstractCircuitNode *otherSource = duplicate->getSource();
             if(!otherSource || otherSource != getSource())
                 continue; // Different sources, cannot be duplicate
 
@@ -367,7 +367,7 @@ bool ElectricCircuit::isLastNode(AbstractCircuitNode *node) const
     return false;
 }
 
-PowerSourceNode *ElectricCircuit::getSource() const
+AbstractCircuitNode *ElectricCircuit::getSource() const
 {
     if(mItems.isEmpty())
         return nullptr;
@@ -376,10 +376,35 @@ PowerSourceNode *ElectricCircuit::getSource() const
     if(!item.isNode)
         return nullptr;
 
-    return qobject_cast<PowerSourceNode *>(item.node.node);
+    return item.node.node;
 }
 
-void ElectricCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
+AbstractCircuitNode *ElectricCircuit::getEnd() const
+{
+    if(mItems.size() < 3) // Start + cable + End
+        return nullptr;
+
+    const Item& item = mItems.last();
+    if(!item.isNode)
+        return nullptr;
+
+    return item.node.node;
+}
+
+ElectricCircuit *ElectricCircuit::cloneToOppositeType()
+{
+    ElectricCircuit *other = new ElectricCircuit;
+    other->mItems = mItems;
+
+    if(mType == CircuitType::Closed)
+        other->mType = CircuitType::Open;
+    else
+        other->mType = CircuitType::Closed;
+
+    return other;
+}
+
+void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, CircuitPole startPole)
 {
     auto contact = source->getContacts().first();
 
@@ -387,15 +412,16 @@ void ElectricCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
     firstItem.isNode = true;
     firstItem.node.node = source;
     firstItem.node.fromContact = NodeItem::InvalidContact;
-    firstItem.node.fromPole = CircuitPole::First;
+    firstItem.node.fromPole = startPole;
     firstItem.node.toContact = 0; // First
-    firstItem.node.toPole = CircuitPole::First;
+    firstItem.node.toPole = startPole;
 
     if(contact.cable)
     {
         Item nextCable;
         nextCable.cable.cable = contact.cable;
         nextCable.cable.side = contact.cableSide;
+        nextCable.cable.pole = firstItem.node.toPole;
 
         QVector<Item> items;
         items.append(firstItem);
@@ -415,7 +441,7 @@ void ElectricCircuit::createCircuitsFromPowerNode(PowerSourceNode *source)
             return;
         }
 
-        // Depth 1 because we already passed PowerSource node
+        // Depth 1 because we already passed power source node
         passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 1);
     }
     else
@@ -473,26 +499,33 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
     if(node == items.first().node.node)
     {
-        if(nodeItem.node.fromPole == CircuitPole::Second)
+        if(nodeItem.node.fromPole == ~items.first().node.toPole)
         {
+            // We returned to same source, on opposite pole
+            // The circuits is closed
             if(mode.testFlag(PassModes::ReverseVoltagePassed))
             {
                 //qWarning() << "Closed circuit with reverse voltage!";
                 return {};
             }
 
-            // We closed the circuit
+            // Register closed circuit
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = items;
             circuit->mItems.append(nodeItem);
-            circuit->mType = CircuitType::Closed;
+
+            if(circuit->getSource()->sourceDoNotCloseCircuits())
+                circuit->mType = CircuitType::Open;
+            else
+                circuit->mType = CircuitType::Closed;
+
             circuit->enableCircuit();
             return {0, 1};
         }
         return {};
     }
 
-    if(qobject_cast<PowerSourceNode *>(node))
+    if(node->isSourceNode(true))
     {
         // Error, different power source connected
         return {};
@@ -951,7 +984,7 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
 
 void ElectricCircuit::extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items)
 {
-    if(qobject_cast<PowerSourceNode *>(node))
+    if(node->isSourceNode(true))
     {
         // Error, different power source connected
         //Q_ASSERT(false);

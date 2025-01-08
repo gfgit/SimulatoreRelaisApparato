@@ -69,6 +69,9 @@
 #include "../graphs/diodegraphitem.h"
 #include "../nodes/diodecircuitnode.h"
 
+#include "../graphs/remotecablecircuitgraphitem.h"
+#include "../nodes/remotecablecircuitnode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -103,6 +106,8 @@
 
 // TODO: remove BEM
 #include "../../objects/lever/bem/bemleverobject.h"
+
+#include "../../objects/circuit_bridge/remotecircuitbridge.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -198,6 +203,47 @@ QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ModeManage
 
     objectEdit->setObject(node->object());
     lay->addRow(objFieldName, objectEdit);
+
+    return w;
+}
+
+QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ModeManager *mgr)
+{
+    RemoteCableCircuitNode *node = static_cast<RemoteCableCircuitNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Remote Connection Object
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(mgr, {RemoteCircuitBridge::Type});
+    QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+    {
+        node->setRemote(static_cast<RemoteCircuitBridge *>(obj));
+    });
+
+    lay->addRow(StandardNodeTypes::tr("Bridge:"), objectEdit);
+
+    // Node A/B
+    QCheckBox *nodeACheck = new QCheckBox(StandardNodeTypes::tr("Node A"));
+    lay->addRow(nodeACheck);
+
+    QObject::connect(nodeACheck, &QCheckBox::toggled,
+                     node, [node, nodeACheck](bool val)
+    {
+        node->setIsNodeA(val);
+    });
+
+    auto updLambda =
+            [objectEdit, nodeACheck, node]()
+    {
+        objectEdit->setObject(node->remote());
+        nodeACheck->setChecked(node->isNodeA());
+    };
+
+    QObject::connect(node, &RemoteCableCircuitNode::shapeChanged,
+                     w, updLambda);
+    updLambda();
 
     return w;
 }
@@ -964,6 +1010,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.prettyName = tr("Diode");
         factory.create = &addNewNodeToScene<DiodeGraphItem>;
         factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Remote Cable Circuit node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = RemoteCableCircuitGraphItem::Node::NodeType;
+        factory.prettyName = tr("Remote Connection");
+        factory.create = &addNewNodeToScene<RemoteCableCircuitGraphItem>;
+        factory.edit = &defaultRemoteCableNodeEdit;
 
         factoryReg->registerFactory(factory);
     }

@@ -201,7 +201,7 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
     DockWidget *dock = new DockWidget(namePair.first,
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
-    dock->setTitle(namePair.second);
+    dock->setTitle(tr("Circuit %1").arg(namePair.second));
 
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
 
@@ -335,7 +335,7 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
     DockWidget *dock = new DockWidget(namePair.first,
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
-    dock->setTitle(namePair.second);
+    dock->setTitle(tr("Panel %1").arg(namePair.second));
 
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
 

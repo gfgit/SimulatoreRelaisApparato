@@ -82,9 +82,13 @@ public:
 
     bool isLastNode(AbstractCircuitNode *node) const;
 
-    PowerSourceNode *getSource() const;
+    AbstractCircuitNode *getSource() const;
+    AbstractCircuitNode *getEnd() const;
 
-    static void createCircuitsFromPowerNode(PowerSourceNode *source);
+    ElectricCircuit *cloneToOppositeType();
+
+    static void createCircuitsFromPowerNode(AbstractCircuitNode *source,
+                                            CircuitPole startPole = CircuitPole::First);
     static void createCircuitsFromOtherNode(AbstractCircuitNode *node);
 
     static void tryReachNextOpenCircuit(AbstractCircuitNode *goalNode,

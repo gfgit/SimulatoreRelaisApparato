@@ -33,7 +33,6 @@
 
 class AbstractCircuitNode;
 class AbstractNodeGraphItem;
-class PowerSourceGraphItem;
 class Connector;
 class CircuitCable;
 class CableGraphItem;
@@ -240,7 +239,7 @@ private:
 
     std::unordered_map<TileLocation, AbstractNodeGraphItem *, TileLocationHash> mItemMap;
 
-    QVector<PowerSourceGraphItem *> mPowerSources;
+    QVector<AbstractCircuitNode *> mPowerSources;
 
     std::unordered_map<CircuitCable *, CableGraphItem *> mCables;
 

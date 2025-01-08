@@ -28,9 +28,7 @@
 #include "graphs/abstractnodegraphitem.h"
 #include "graphs/cablegraphitem.h"
 #include "nodes/circuitcable.h"
-
-#include "graphs/powersourcegraphitem.h"
-#include "nodes/powersourcenode.h"
+#include "nodes/abstractcircuitnode.h"
 
 #include <QGraphicsPathItem>
 #include <QPen>
@@ -187,9 +185,9 @@ void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
     }
 
     const bool powerSourceEnabled = newMode == FileMode::Simulation;
-    for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
+    for(AbstractCircuitNode *powerSource : std::as_const(mPowerSources))
     {
-        powerSource->node()->setEnabled(powerSourceEnabled);
+        powerSource->setSourceEnabled(powerSourceEnabled);
     }
 
     // Background changes between modes
@@ -211,11 +209,12 @@ void CircuitScene::addNode(AbstractNodeGraphItem *item)
     // Add item after having inserted it in the map
     addItem(item);
 
-    PowerSourceGraphItem *powerSource = qobject_cast<PowerSourceGraphItem *>(item);
-    if(powerSource)
+    AbstractCircuitNode *node = item->getAbstractNode();
+
+    if(node->isSourceNode(false))
     {
-        powerSource->node()->setEnabled(false);
-        mPowerSources.append(powerSource);
+        node->setSourceEnabled(false);
+        mPowerSources.append(node);
     }
 
     setHasUnsavedChanges(true);
@@ -232,14 +231,14 @@ void CircuitScene::removeNode(AbstractNodeGraphItem *item)
     removeItem(item);
     mItemMap.erase(item->location());
 
-    PowerSourceGraphItem *powerSource = qobject_cast<PowerSourceGraphItem *>(item);
-    if(powerSource)
+    AbstractCircuitNode *node = item->getAbstractNode();
+
+    if(node->isSourceNode(false))
     {
-        powerSource->node()->setEnabled(false);
-        mPowerSources.removeOne(powerSource);
+        node->setSourceEnabled(false);
+        mPowerSources.removeOne(node);
     }
 
-    auto *node = item->getAbstractNode();
     delete item;
     delete node;
 
@@ -1923,9 +1922,9 @@ void CircuitScene::removeAllItems()
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     // Disable all circuits
-    for(PowerSourceGraphItem *powerSource : std::as_const(mPowerSources))
+    for(AbstractCircuitNode *powerSource : std::as_const(mPowerSources))
     {
-        powerSource->node()->setEnabled(false);
+        powerSource->setSourceEnabled(false);
     }
 
     const auto cableCopy = mCables;

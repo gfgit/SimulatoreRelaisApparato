@@ -202,6 +202,27 @@ void AbstractCircuitNode::saveToJSON(QJsonObject &obj) const
     obj["name"] = objectName();
 }
 
+bool AbstractCircuitNode::isSourceNode(bool onlyCurrentState) const
+{
+    Q_UNUSED(onlyCurrentState)
+    return false;
+}
+
+bool AbstractCircuitNode::sourceDoNotCloseCircuits() const
+{
+    return false;
+}
+
+bool AbstractCircuitNode::isSourceEnabled() const
+{
+    return false;
+}
+
+void AbstractCircuitNode::setSourceEnabled(bool newEnabled)
+{
+    Q_UNUSED(newEnabled)
+}
+
 void AbstractCircuitNode::detachCable(int contactIdx)
 {
     NodeContact& contact = mContacts[contactIdx];

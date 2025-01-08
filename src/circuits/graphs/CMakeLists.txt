@@ -32,6 +32,9 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/relaispowergraphitem.cpp
     circuits/graphs/relaispowergraphitem.h
 
+    circuits/graphs/remotecablecircuitgraphitem.cpp
+    circuits/graphs/remotecablecircuitgraphitem.h
+
     circuits/graphs/screenrelaiscontactgraphitem.cpp
     circuits/graphs/screenrelaiscontactgraphitem.h
     circuits/graphs/screenrelaispowergraphitem.cpp
