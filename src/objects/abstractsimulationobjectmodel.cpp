@@ -278,8 +278,9 @@ void AbstractSimulationObjectModel::removeObject(AbstractSimulationObject *item)
 
     beginRemoveRows(QModelIndex(), row, row);
 
-    addObjectInternal(item);
+    removeObjectInternal(item);
     mObjects.removeAt(row);
+    delete item;
 
     endRemoveRows();
 
