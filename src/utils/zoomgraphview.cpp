@@ -40,6 +40,8 @@ void ZoomGraphView::setZoom(double val)
 
     mZoomFactor = val;
 
+    QPointF targetScenePos = mapToScene(targetViewportPos.toPoint());
+
     setTransform(QTransform::fromScale(mZoomFactor, mZoomFactor));
     centerOn(targetScenePos);
 
@@ -62,7 +64,6 @@ bool ZoomGraphView::viewportEvent(QEvent *e)
         if (qAbs(delta.x()) > 5 || qAbs(delta.y()) > 5)
         {
             targetViewportPos = mouseEv->pos();
-            targetScenePos = mapToScene(mouseEv->pos());
         }
     }
     else if (e->type() == QEvent::Wheel)
@@ -90,4 +91,9 @@ void ZoomGraphView::zoomBy(double factor)
 double ZoomGraphView::zoomFactor() const
 {
     return mZoomFactor;
+}
+
+QPointF ZoomGraphView::getTargetScenePos() const
+{
+    return mapToScene(targetViewportPos.toPoint());
 }

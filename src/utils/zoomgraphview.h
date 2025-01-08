@@ -36,10 +36,7 @@ public:
 
     double zoomFactor() const;
 
-    inline QPointF getTargetScenePos() const
-    {
-        return targetScenePos;
-    }
+    QPointF getTargetScenePos() const;
 
 signals:
     void zoomChanged(double val);
@@ -59,7 +56,7 @@ private:
 
     double mZoomFactor = 1.0;
 
-    QPointF targetScenePos, targetViewportPos;
+    QPointF targetViewportPos;
 };
 
 #endif // ZOOMGRAPHVIEW_H
