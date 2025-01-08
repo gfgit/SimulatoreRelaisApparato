@@ -92,7 +92,10 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
     painter->drawLine(commonLine);
 
     // Draw description below cable
+    // unless cable is in Center-South direction
     TileRotate textRotate = TileRotate::Deg90;
+    if(rotate() == TileRotate::Deg0)
+        textRotate = TileRotate::Deg270; // Description above
 
     painter->setPen(Qt::black);
     painter->setBrush(Qt::NoBrush);
