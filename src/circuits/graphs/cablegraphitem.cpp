@@ -36,7 +36,7 @@
 
 #include <QGraphicsSceneMouseEvent>
 
-static QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen)
+static QPainterPath _qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen)
 {
     // We unfortunately need this hack as QPainterPathStroker will set a width of 1.0
     // if we pass a value of 0.0 to QPainterPathStroker::setWidth()
@@ -51,8 +51,12 @@ static QPainterPath qt_graphicsItem_shapeFromPath(const QPainterPath &path, cons
         ps.setWidth(pen.widthF());
     ps.setJoinStyle(pen.joinStyle());
     ps.setMiterLimit(pen.miterLimit());
+
+    // NOTE: do not add path to p (result of stroke)
+    // otherwhise it tries to close path
+    // So an L-shape path becomes a triangle
+    // We do not want that
     QPainterPath p = ps.createStroke(path);
-    p.addPath(path);
     return p;
 }
 
@@ -76,19 +80,26 @@ QRectF CableGraphItem::boundingRect() const
 {
     if (mBoundingRect.isNull())
     {
+        QRectF br = mPath.controlPointRect();
+
+        // Round to tile size
+        TileLocation topLeftTile = TileLocation::fromPointFloor(br.topLeft());
+        TileLocation bottomRightTile = TileLocation::fromPointFloor(br.bottomRight());
+
+        br.setTopLeft(topLeftTile.toPoint());
+
+        // Conside whole tile so +1, +1
+        br.setBottomRight(bottomRightTile.adjusted(1, 1).toPoint());
+
         CableGraphItem *self = const_cast<CableGraphItem*>(this);
-        qreal pw = pen.style() == Qt::NoPen ? qreal(0) : pen.widthF();
-        if (pw == 0.0)
-            self->mBoundingRect = mPath.controlPointRect();
-        else
-            self->mBoundingRect = shape().controlPointRect();
+        self->mBoundingRect = br;
     }
     return mBoundingRect;
 }
 
 QPainterPath CableGraphItem::shape() const
 {
-    return qt_graphicsItem_shapeFromPath(mPath, pen);
+    return _qt_graphicsItem_shapeFromPath(mPath, pen);
 }
 
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
