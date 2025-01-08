@@ -36,10 +36,10 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("power_source");
     QString nodeType() const override;
 
-    bool isSourceNode() const override;
+    bool isSourceNode(bool onlyCurrentState) const override;
 
-    bool getEnabled() const;
-    void setEnabled(bool newEnabled);
+    bool isSourceEnabled() const override;
+    void setSourceEnabled(bool newEnabled) override;
 
 signals:
     void enabledChanged(bool val);

@@ -66,16 +66,19 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("remove_cable_node");
     QString nodeType() const override;
 
-    bool isSourceNode() const override;
+    bool isSourceNode(bool onlyCurrentState) const override;
 
     bool sourceDoNotCloseCircuits() const override;
+
+    bool isSourceEnabled() const override;
+    void setSourceEnabled(bool newEnabled) override;
 
     Mode mode() const;
     void setMode(Mode newMode);
 
-    inline bool isReceiveSide() const
+    static inline bool isReceiveMode(Mode m)
     {
-        switch (mode())
+        switch (m)
         {
         case Mode::ReceiveCurrentOpen:
         case Mode::ReceiveCurrentWaitClosed:
@@ -88,9 +91,9 @@ public:
         return false;
     }
 
-    inline bool isSendSide() const
+    static inline bool isSendMode(Mode m)
     {
-        switch (mode())
+        switch (m)
         {
         case Mode::SendCurrentOpen:
         case Mode::SendCurrentWaitClosed:
@@ -101,6 +104,16 @@ public:
         }
 
         return false;
+    }
+
+    inline bool isReceiveSide() const
+    {
+        return isReceiveMode(mode());
+    }
+
+    inline bool isSendSide() const
+    {
+        return isSendMode(mode());
     }
 
     RemoteCircuitBridge *remote() const;
@@ -126,6 +139,7 @@ private:
 private:
     RemoteCircuitBridge *mRemote = nullptr;
     bool mIsNodeA = true;
+    bool mIsEnabled = false;
 
     int mFakeClosedCircuitsCount = 0;
     bool mStateDirty = false;

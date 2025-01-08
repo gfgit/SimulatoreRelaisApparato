@@ -44,19 +44,20 @@ QString PowerSourceNode::nodeType() const
     return NodeType;
 }
 
-bool PowerSourceNode::isSourceNode() const
+bool PowerSourceNode::isSourceNode(bool onlyCurrentState) const
 {
+    Q_UNUSED(onlyCurrentState)
     return true;
 }
 
-bool PowerSourceNode::getEnabled() const
+bool PowerSourceNode::isSourceEnabled() const
 {
     if(enabled && modeMgr()->mode() == FileMode::Editing)
         return false; // Act as Off during Editing
     return enabled;
 }
 
-void PowerSourceNode::setEnabled(bool newEnabled)
+void PowerSourceNode::setSourceEnabled(bool newEnabled)
 {
     if(modeMgr()->mode() == FileMode::Editing && newEnabled)
         return; // Prevent enabling during editing

@@ -240,8 +240,11 @@ QString RemoteCableCircuitNode::nodeType() const
     return NodeType;
 }
 
-bool RemoteCableCircuitNode::isSourceNode() const
+bool RemoteCableCircuitNode::isSourceNode(bool onlyCurrentState) const
 {
+    if(!onlyCurrentState)
+        return true;
+
     // Receive side acts as fake source controlled by send side
     return isReceiveSide();
 }
@@ -254,6 +257,36 @@ bool RemoteCableCircuitNode::sourceDoNotCloseCircuits() const
     return false;
 }
 
+bool RemoteCableCircuitNode::isSourceEnabled() const
+{
+    return mIsEnabled;
+}
+
+void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled)
+{
+    if(modeMgr()->mode() == FileMode::Editing && newEnabled)
+        return; // Prevent enabling during editing
+
+    if (mIsEnabled == newEnabled)
+        return;
+    mIsEnabled = newEnabled;
+
+    if(mIsEnabled)
+    {
+        const AnyCircuitType after = hasAnyCircuit(0);
+
+        if(after == AnyCircuitType::Open)
+        {
+            setMode(Mode::SendCurrentOpen);
+        }
+    }
+    else
+    {
+        // Disable circuits
+        setMode(Mode::None);
+    }
+}
+
 RemoteCableCircuitNode::Mode RemoteCableCircuitNode::mode() const
 {
     return mMode;
@@ -261,6 +294,14 @@ RemoteCableCircuitNode::Mode RemoteCableCircuitNode::mode() const
 
 void RemoteCableCircuitNode::setMode(Mode newMode)
 {
+    if(!mIsEnabled)
+    {
+        if(isReceiveMode(newMode))
+            newMode = Mode::None; // Cannot receive if not enabled
+        else if(newMode == Mode::SendCurrentWaitClosed || newMode == Mode::SendCurrentClosed)
+            newMode = Mode::SendCurrentOpen; // Cannot close if not enabled
+    }
+
     if(mMode == newMode)
         return;
 

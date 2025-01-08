@@ -525,7 +525,7 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
         return {};
     }
 
-    if(node->isSourceNode())
+    if(node->isSourceNode(true))
     {
         // Error, different power source connected
         return {};
@@ -984,7 +984,7 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
 
 void ElectricCircuit::extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items)
 {
-    if(node->isSourceNode())
+    if(node->isSourceNode(true))
     {
         // Error, different power source connected
         //Q_ASSERT(false);
