@@ -48,6 +48,7 @@
 #include <QFileDialog>
 
 #include "../../views/modemanager.h"
+#include "../../views/viewmanager.h"
 
 #include "../../objects/simulationobjectlineedit.h"
 #include "../../objects/simulationobjectfactory.h"
@@ -87,7 +88,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.nodeType = LightRectItem::ItemType;
         factory.prettyName = tr("Light Rect");
         factory.create = &addNewNodeToScene<LightRectItem>;
-        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractPanelItem *item, ViewManager *viewMgr) -> QWidget*
         {
             LightRectItem *node = static_cast<LightRectItem *>(item);
 
@@ -159,7 +160,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             });
 
             // Light
-            SimulationObjectLineEdit *lightEdit = new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+            SimulationObjectLineEdit *lightEdit = new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
             QObject::connect(node, &LightRectItem::lightChanged,
                              lightEdit, [node, lightEdit]()
             {
@@ -203,7 +204,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.nodeType = ImagePanelItem::ItemType;
         factory.prettyName = tr("Image");
         factory.create = &addNewNodeToScene<ImagePanelItem>;
-        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractPanelItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ImagePanelItem *node = static_cast<ImagePanelItem *>(item);
 
@@ -273,7 +274,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.nodeType = ACEIButtonPanelItem::ItemType;
         factory.prettyName = tr("ACEI Button");
         factory.create = &addNewNodeToScene<ACEIButtonPanelItem>;
-        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractPanelItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ACEIButtonPanelItem *buttonItem = static_cast<ACEIButtonPanelItem *>(item);
 
@@ -281,11 +282,11 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Button
-            const QStringList buttonTypes = mgr->objectFactory()
+            const QStringList buttonTypes = viewMgr->modeMgr()->objectFactory()
                     ->typesForInterface(ButtonInterface::IfaceType);
 
             SimulationObjectLineEdit *buttonEdit =
-                    new SimulationObjectLineEdit(mgr, buttonTypes);
+                    new SimulationObjectLineEdit(viewMgr, buttonTypes);
 
             QObject::connect(buttonItem, &ACEIButtonPanelItem::buttonChanged,
                              buttonEdit, &SimulationObjectLineEdit::setObject);
@@ -300,7 +301,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             // Central Light
             SimulationObjectLineEdit *centralLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
             QObject::connect(centralLightEdit, &SimulationObjectLineEdit::objectChanged,
                              buttonItem, [buttonItem](AbstractSimulationObject *obj)
             {
@@ -344,7 +345,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.nodeType = ACEILeverPanelItem::ItemType;
         factory.prettyName = tr("ACEI Lever");
         factory.create = &addNewNodeToScene<ACEILeverPanelItem>;
-        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractPanelItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ACEILeverPanelItem *leverItem = static_cast<ACEILeverPanelItem *>(item);
 
@@ -353,7 +354,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             // Lever
             // TODO: remove BEM
-            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr, {ACEILeverObject::Type, BEMLeverObject::Type});
+            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(viewMgr, {ACEILeverObject::Type, BEMLeverObject::Type});
             QObject::connect(leverItem, &ACEILeverPanelItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
@@ -367,7 +368,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             // Left Light
             SimulationObjectLineEdit *leftLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
             QObject::connect(leftLightEdit, &SimulationObjectLineEdit::objectChanged,
                              leverItem, [leverItem](AbstractSimulationObject *obj)
             {
@@ -389,7 +390,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             // Right Light
             SimulationObjectLineEdit *rightLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
             QObject::connect(rightLightEdit, &SimulationObjectLineEdit::objectChanged,
                              leverItem, [leverItem](AbstractSimulationObject *obj)
             {
@@ -436,7 +437,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.nodeType = ACESasibLeverPanelItem::ItemType;
         factory.prettyName = tr("ACE Sasib Lever");
         factory.create = &addNewNodeToScene<ACESasibLeverPanelItem>;
-        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractPanelItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ACESasibLeverPanelItem *specialItem = static_cast<ACESasibLeverPanelItem *>(item);
 
@@ -444,12 +445,12 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            const QStringList sasibTypes = mgr->objectFactory()
+            const QStringList sasibTypes = viewMgr->modeMgr()->objectFactory()
                     ->typesForInterface(SasibACELeverExtraInterface::IfaceType);
 
             SimulationObjectLineEdit *leverEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         sasibTypes);
 
             QObject::connect(specialItem, &ACESasibLeverPanelItem::leverChanged,
@@ -476,7 +477,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.nodeType = BEMPanelItem::ItemType;
         factory.prettyName = tr("BEM Case");
         factory.create = &addNewNodeToScene<BEMPanelItem>;
-        factory.edit = [](AbstractPanelItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractPanelItem *item, ViewManager *viewMgr) -> QWidget*
         {
             BEMPanelItem *specialItem = static_cast<BEMPanelItem *>(item);
 
@@ -486,7 +487,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             // Consensus Lever
             SimulationObjectLineEdit *leverEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         {BEMLeverObject::Type});
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
@@ -497,8 +498,8 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             SimulationObjectLineEdit *txButEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
-                        mgr->objectFactory()->typesForInterface(ButtonInterface::IfaceType));
+                        viewMgr,
+                        viewMgr->modeMgr()->objectFactory()->typesForInterface(ButtonInterface::IfaceType));
             QObject::connect(txButEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
             {
@@ -508,8 +509,8 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             SimulationObjectLineEdit *lightButEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
-                        mgr->objectFactory()->typesForInterface(ButtonInterface::IfaceType));
+                        viewMgr,
+                        viewMgr->modeMgr()->objectFactory()->typesForInterface(ButtonInterface::IfaceType));
             QObject::connect(lightButEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
             {
@@ -519,7 +520,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             SimulationObjectLineEdit *lightEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         {LightBulbObject::Type});
             QObject::connect(lightEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
@@ -530,7 +531,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             SimulationObjectLineEdit *R1Edit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         {AbstractRelais::Type});
             QObject::connect(R1Edit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
@@ -541,7 +542,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             SimulationObjectLineEdit *C1Edit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         {AbstractRelais::Type});
             QObject::connect(C1Edit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
@@ -552,7 +553,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             SimulationObjectLineEdit *HEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         {AbstractRelais::Type});
             QObject::connect(HEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
@@ -563,7 +564,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             SimulationObjectLineEdit *KEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         {AbstractRelais::Type});
             QObject::connect(KEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
@@ -607,10 +608,10 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.nodeType = LightBulbGraphItem::Node::NodeType;
         factory.prettyName = tr("Light Bulb");
         factory.create = &addNewNodeToScene<LightBulbGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
-                                               mgr, tr("Light:"));
+                                               viewMgr, tr("Light:"));
         };
 
         factoryReg->registerFactory(factory);

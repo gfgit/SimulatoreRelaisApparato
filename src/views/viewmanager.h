@@ -30,6 +30,7 @@
 #include "../enums/filemodes.h"
 
 class MainWindow;
+class ModeManager;
 
 class CircuitWidget;
 class CircuitScene;
@@ -82,6 +83,8 @@ public:
 
     ViewType currentViewType() const;
 
+    ModeManager *modeMgr() const;
+
 signals:
     void currentViewTypeChanged(ViewType newVal);
     void activeViewChanged();
@@ -104,7 +107,7 @@ private slots:
     void onFileModeChanged(FileMode mode, FileMode oldMode);
 
 private:
-    MainWindow *mainWin();
+    MainWindow *mainWin() const;
 
     void setCurrentViewType(ViewType newCurrentViewType);
 

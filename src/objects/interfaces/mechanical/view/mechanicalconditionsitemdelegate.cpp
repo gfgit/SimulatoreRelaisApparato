@@ -28,14 +28,15 @@
 #include "../model/mechanicalconditionsmodel.h"
 
 #include "../../../../views/modemanager.h"
+#include "../../../../views/viewmanager.h"
 #include "../../../simulationobjectfactory.h"
 
 #include "../../../simulationobjectlineedit.h"
 #include <QComboBox>
 
-MechanicalConditionsItemDelegate::MechanicalConditionsItemDelegate(ModeManager *mgr, QObject *parent)
+MechanicalConditionsItemDelegate::MechanicalConditionsItemDelegate(ViewManager *viewMgr, QObject *parent)
     : QStyledItemDelegate{parent}
-    , modeMgr(mgr)
+    , mViewMgr(viewMgr)
 {
 
 }
@@ -49,10 +50,10 @@ QWidget *MechanicalConditionsItemDelegate::createEditor(QWidget *parent,
 
     if(index.column() == MechanicalConditionsModel::ObjectCol)
     {
-        QStringList objTypes = modeMgr->objectFactory()
+        QStringList objTypes = mViewMgr->modeMgr()->objectFactory()
                 ->typesForInterface(MechanicalInterface::IfaceType);
         SimulationObjectLineEdit *objEdit
-                = new SimulationObjectLineEdit(modeMgr, objTypes, parent);
+                = new SimulationObjectLineEdit(mViewMgr, objTypes, parent);
         return objEdit;
     }
     else if(index.column() == MechanicalConditionsModel::TypeCol ||

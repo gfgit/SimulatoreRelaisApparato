@@ -29,7 +29,7 @@
 #include <QTreeView>
 #include <QPushButton>
 
-MechanicalConditionsView::MechanicalConditionsView(ModeManager *mgr, QWidget *parent)
+MechanicalConditionsView::MechanicalConditionsView(ViewManager *viewMgr, QWidget *parent)
     : QWidget{parent}
 {
     QVBoxLayout *lay = new QVBoxLayout(this);
@@ -51,7 +51,7 @@ MechanicalConditionsView::MechanicalConditionsView(ModeManager *mgr, QWidget *pa
     mView = new QTreeView;
     lay->addWidget(mView);
 
-    mView->setItemDelegate(new MechanicalConditionsItemDelegate(mgr, this));
+    mView->setItemDelegate(new MechanicalConditionsItemDelegate(viewMgr, this));
 
     connect(addBut, &QPushButton::clicked,
             this, &MechanicalConditionsView::addCondition);

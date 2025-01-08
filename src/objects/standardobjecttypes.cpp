@@ -86,12 +86,13 @@ AbstractSimulationObject *createObject(AbstractSimulationObjectModel *model)
 }
 
 template <typename T, typename W>
-QWidget *createEditWidget(AbstractSimulationObject *item)
+QWidget *createEditWidget(AbstractSimulationObject *item, ViewManager *mgr)
 {
+    Q_UNUSED(mgr)
     return new W(static_cast<T*>(item));
 }
 
-QWidget *defaultLeverEdit(AbstractSimulationObject *item)
+QWidget *defaultLeverEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     // Generic lever options
     GenericLeverOptionsWidget *genericW
@@ -99,16 +100,16 @@ QWidget *defaultLeverEdit(AbstractSimulationObject *item)
     return genericW;
 }
 
-QWidget *defaultMechanicalEdit(AbstractSimulationObject *item)
+QWidget *defaultMechanicalEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     // Generic mechanical options
     GenericMechanicalOptionsWidget *genericW
-            = new GenericMechanicalOptionsWidget(item->model()->modeMgr(),
+            = new GenericMechanicalOptionsWidget(mgr,
                                                  item->getInterface<MechanicalInterface>());
     return genericW;
 }
 
-QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
+QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     ACESasibLeverCommonObject *lever = static_cast<ACESasibLeverCommonObject *>(item);
 
@@ -116,15 +117,15 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
     QFormLayout *lay = new QFormLayout(w);
 
     // Generic lever options
-    lay->addRow(defaultLeverEdit(item));
+    lay->addRow(defaultLeverEdit(item, mgr));
 
     // Generic mechanical options
-    lay->addRow(defaultMechanicalEdit(item));
+    lay->addRow(defaultMechanicalEdit(item, mgr));
 
     // Electro Magnet
     SimulationObjectLineEdit *magnetEdit
             = new SimulationObjectLineEdit(
-                item->model()->modeMgr(),
+                mgr,
                 {
                     ElectroMagnetObject::Type
                 });
@@ -146,7 +147,7 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item)
     return w;
 }
 
-QWidget *defaultButtonEdit(AbstractSimulationObject *item)
+QWidget *defaultButtonEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     ButtonInterface *buttonIface = item->getInterface<ButtonInterface>();
 
@@ -204,7 +205,7 @@ QWidget *defaultButtonEdit(AbstractSimulationObject *item)
     return w;
 }
 
-QWidget *soundObjectEdit(AbstractSimulationObject *item)
+QWidget *soundObjectEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     SoundObject *sound = static_cast<SoundObject *>(item);
 
@@ -252,7 +253,7 @@ QWidget *soundObjectEdit(AbstractSimulationObject *item)
     return w;
 }
 
-QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
+QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     BEMLeverObject *lever = static_cast<BEMLeverObject *>(item);
     BEMHandleInterface *bemIface = lever->getInterface<BEMHandleInterface>();
@@ -261,7 +262,7 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
     QFormLayout *lay = new QFormLayout(w);
 
     // Generic lever options
-    lay->addRow(defaultLeverEdit(item));
+    lay->addRow(defaultLeverEdit(item, mgr));
 
     // BEM Interface
 
@@ -282,7 +283,7 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
     // Twin Handle
     SimulationObjectLineEdit *twinEdit
             = new SimulationObjectLineEdit(
-                item->model()->modeMgr(),
+                mgr,
                 {
                     BEMLeverObject::Type
                 });
@@ -305,7 +306,7 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
     // Liberation Relay
     SimulationObjectLineEdit *relayEdit
             = new SimulationObjectLineEdit(
-                item->model()->modeMgr(),
+                mgr,
                 {
                     AbstractRelais::Type
                 });
@@ -321,7 +322,7 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
     // Artificial Liberation Button
     SimulationObjectLineEdit *butEdit
             = new SimulationObjectLineEdit(
-                item->model()->modeMgr(),
+                mgr,
                 item->model()->modeMgr()->objectFactory()
                 ->typesForInterface(ButtonInterface::IfaceType));
 
@@ -360,7 +361,7 @@ QWidget *defaultBEMLeverEdit(AbstractSimulationObject *item)
     return w;
 }
 
-QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item)
+QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     RemoteCircuitBridge *bridge = static_cast<RemoteCircuitBridge *>(item);
 

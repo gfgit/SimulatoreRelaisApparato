@@ -65,7 +65,7 @@ AbstractPanelItem *PanelItemFactory::createItem(const QString &nodeType,
     return item;
 }
 
-void PanelItemFactory::editItem(QWidget *parent, AbstractPanelItem *item)
+void PanelItemFactory::editItem(QWidget *parent, AbstractPanelItem *item, ViewManager *viewMgr)
 {
     const FactoryItem *factory = getItemForType(item->itemType());
     if(!factory)
@@ -149,8 +149,7 @@ void PanelItemFactory::editItem(QWidget *parent, AbstractPanelItem *item)
 
     if(factory->edit)
     {
-        QWidget *customWidget = factory->edit(item,
-                                              item->panelScene()->panelsModel()->modeMgr());
+        QWidget *customWidget = factory->edit(item, viewMgr);
         if(customWidget)
             lay->addWidget(customWidget);
     }

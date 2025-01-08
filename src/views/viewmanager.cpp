@@ -74,7 +74,7 @@ ViewManager::~ViewManager()
     closeAll();
 }
 
-MainWindow *ViewManager::mainWin()
+MainWindow *ViewManager::mainWin() const
 {
     return static_cast<MainWindow *>(parent());
 }
@@ -305,6 +305,11 @@ ViewManager::ViewType ViewManager::currentViewType() const
     return mCurrentViewType;
 }
 
+ModeManager *ViewManager::modeMgr() const
+{
+    return mainWin()->modeMgr();
+}
+
 void ViewManager::setCurrentViewType(ViewType newCurrentViewType)
 {
     mCurrentViewType = newCurrentViewType;
@@ -405,7 +410,7 @@ void ViewManager::showObjectEdit(AbstractSimulationObject *item)
     SimulationObjectFactory *factory = mainWin()->modeMgr()->objectFactory();
 
     // Create new edit window
-    SimulationObjectOptionsWidget *w = factory->createEditWidget(nullptr, item);
+    SimulationObjectOptionsWidget *w = factory->createEditWidget(nullptr, item, this);
 
     DockWidget *dock = new DockWidget(item->name(),
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
@@ -626,7 +631,7 @@ void ViewManager::nodeEditRequested(AbstractNodeGraphItem *item)
 
     // Allow delete or custom node options
     auto editFactory = mainWin()->modeMgr()->circuitFactory();
-    editFactory->editItem(dock, item);
+    editFactory->editItem(dock, item, this);
 }
 
 void ViewManager::cableEditRequested(CableGraphItem *item)
@@ -670,7 +675,7 @@ void ViewManager::panelItemEditRequested(AbstractPanelItem *item)
 
     // Allow delete or custom node options
     auto editFactory = mainWin()->modeMgr()->panelFactory();
-    editFactory->editItem(dock, item);
+    editFactory->editItem(dock, item, this);
 }
 
 void ViewManager::onFileModeChanged(FileMode mode, FileMode oldMode)

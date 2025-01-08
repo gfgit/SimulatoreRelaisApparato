@@ -30,19 +30,21 @@ class QStringListModel;
 class QComboBox;
 class QLineEdit;
 class QCompleter;
+class QPushButton;
 
 class AbstractSimulationObjectModel;
 class AbstractSimulationObject;
 
 class SimulationObjectMultiTypeModel;
 
+class ViewManager;
 class ModeManager;
 
 class SimulationObjectLineEdit : public QWidget
 {
     Q_OBJECT
 public:
-    SimulationObjectLineEdit(ModeManager *mgr,
+    SimulationObjectLineEdit(ViewManager *viewMgr,
                              const QStringList& types,
                              QWidget *parent = nullptr);
 
@@ -51,8 +53,13 @@ public:
         return mObject;
     }
 
+    void setObjectEditAllowed(bool allow);
+    bool isObjectEditAllowed() const;
+
 public slots:
     void setObject(AbstractSimulationObject *newObject);
+
+    void editCurrentObject();
 
 signals:
     void objectChanged(AbstractSimulationObject *obj);
@@ -63,7 +70,8 @@ private slots:
     void updateObjectName();
 
 private:
-    ModeManager *modeMgr = nullptr;
+    ViewManager *mViewMgr = nullptr;
+    ModeManager *mModeMgr = nullptr;
 
     AbstractSimulationObjectModel *mModel = nullptr;
     AbstractSimulationObject *mObject = nullptr;
@@ -75,6 +83,8 @@ private:
 
     QLineEdit *mLineEdit = nullptr;
     QCompleter *mCompleter = nullptr;
+
+    QPushButton *mEditObjectBut = nullptr;
 
     QStringList mTypes;
 };

@@ -35,6 +35,7 @@ class AbstractCircuitNode;
 class CircuitScene;
 
 class ModeManager;
+class ViewManager;
 
 class QWidget;
 
@@ -45,7 +46,7 @@ public:
     NodeEditFactory(QObject *parent);
 
     typedef AbstractNodeGraphItem *(*CreateFunc)(CircuitScene *parent, ModeManager *mgr);
-    typedef QWidget*(*EditFunc)(AbstractNodeGraphItem *item, ModeManager *mgr);
+    typedef QWidget*(*EditFunc)(AbstractNodeGraphItem *item, ViewManager *mgr);
 
     enum class NeedsName
     {
@@ -68,7 +69,7 @@ public:
 
     AbstractNodeGraphItem *createItem(const QString& nodeType,
                                       CircuitScene *scene);
-    void editItem(QWidget *parent, AbstractNodeGraphItem *item);
+    void editItem(QWidget *parent, AbstractNodeGraphItem *item, ViewManager *viewMgr);
     void editCable(QWidget *parent, CableGraphItem *item);
 
     QString prettyName(const QString& nodeType) const;

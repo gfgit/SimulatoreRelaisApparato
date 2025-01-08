@@ -32,6 +32,7 @@ class AbstractSimulationObject;
 class SimulationObjectOptionsWidget;
 
 class ModeManager;
+class ViewManager;
 
 class QWidget;
 
@@ -40,7 +41,7 @@ class SimulationObjectFactory
 public:
     typedef AbstractSimulationObjectModel *(*CreateModelFunc)(ModeManager *);
     typedef AbstractSimulationObject *(*CreateObjectFunc)(AbstractSimulationObjectModel *);
-    typedef QWidget*(*EditFunc)(AbstractSimulationObject *);
+    typedef QWidget*(*EditFunc)(AbstractSimulationObject *, ViewManager *);
 
     SimulationObjectFactory();
 
@@ -59,7 +60,9 @@ public:
 
     AbstractSimulationObject *createItem(AbstractSimulationObjectModel *model) const;
 
-    SimulationObjectOptionsWidget *createEditWidget(QWidget *parent, AbstractSimulationObject *item) const;
+    SimulationObjectOptionsWidget *createEditWidget(QWidget *parent,
+                                                    AbstractSimulationObject *item,
+                                                    ViewManager *viewMgr) const;
 
     // Info
     QStringList getRegisteredTypes() const;

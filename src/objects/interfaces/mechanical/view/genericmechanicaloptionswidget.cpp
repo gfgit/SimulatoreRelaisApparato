@@ -36,7 +36,7 @@
 #include <QLabel>
 #include <QPushButton>
 
-GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(ModeManager *mgr,
+GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(ViewManager *viewMgr,
                                                                MechanicalInterface *iface,
                                                                QWidget *parent)
     : QWidget{parent}
@@ -119,7 +119,7 @@ GenericMechanicalOptionsWidget::GenericMechanicalOptionsWidget(ModeManager *mgr,
         item.title = cond.title;
         item.model = new MechanicalConditionsModel(this);
         item.model->setConditionTree(cond.conditions.rootCondition);
-        item.view = new MechanicalConditionsView(mgr);
+        item.view = new MechanicalConditionsView(viewMgr);
         item.view->setModel(item.model);
         mConditionViews.append(item);
 

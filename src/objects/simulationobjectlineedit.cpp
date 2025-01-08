@@ -30,6 +30,7 @@
 #include "simulationobjectfactory.h"
 
 #include "../views/modemanager.h"
+#include "../views/viewmanager.h"
 
 #include <QCompleter>
 #include <QAbstractProxyModel>
@@ -38,16 +39,20 @@
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QPushButton>
 
-SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStringList &types, QWidget *parent)
+SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
+                                                   const QStringList &types,
+                                                   QWidget *parent)
     : QWidget(parent)
-    , modeMgr(mgr)
+    , mViewMgr(viewMgr)
+    , mModeMgr(mViewMgr->modeMgr())
     , mTypes(types)
 {
     QHBoxLayout *lay = new QHBoxLayout(this);
     lay->setContentsMargins(QMargins());
 
-    SimulationObjectFactory *factory = modeMgr->objectFactory();
+    SimulationObjectFactory *factory = mModeMgr->objectFactory();
 
     // Add "Auto" for when there are more possibilities
     const bool addAutoMode = mTypes.size() > 1;
@@ -82,6 +87,11 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
     mLineEdit->setCompleter(mCompleter);
     lay->addWidget(mLineEdit);
 
+    mEditObjectBut = new QPushButton(tr("..."));
+    mEditObjectBut->setEnabled(false);
+    mEditObjectBut->setToolTip(tr("Show Object Properties"));
+    lay->addWidget(mEditObjectBut);
+
     // Default to Auto type
     setType(0);
 
@@ -110,6 +120,19 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ModeManager *mgr, const QStri
         if(mLineEdit->text().isEmpty())
             setObject(nullptr);
     });
+
+    connect(mEditObjectBut, &QPushButton::clicked,
+            this, &SimulationObjectLineEdit::editCurrentObject);
+}
+
+void SimulationObjectLineEdit::setObjectEditAllowed(bool allow)
+{
+    mEditObjectBut->setVisible(allow);
+}
+
+bool SimulationObjectLineEdit::isObjectEditAllowed() const
+{
+    return mEditObjectBut->isVisible();
 }
 
 void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
@@ -140,7 +163,17 @@ void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
 
     updateObjectName();
 
+    mEditObjectBut->setEnabled(mObject != nullptr);
+
     emit objectChanged(mObject);
+}
+
+void SimulationObjectLineEdit::editCurrentObject()
+{
+    if(!mObject)
+        return;
+
+    mViewMgr->showObjectEdit(mObject);
 }
 
 void SimulationObjectLineEdit::setType(int idx)
@@ -155,7 +188,7 @@ void SimulationObjectLineEdit::setType(int idx)
         // Auto mode
         QStringList types = mTypes;
         types.removeFirst();
-        mMultiModel = new SimulationObjectMultiTypeModel(modeMgr,
+        mMultiModel = new SimulationObjectMultiTypeModel(mModeMgr,
                                                          types, this);
     }
     else if(!type.isEmpty() && mMultiModel)
@@ -172,7 +205,7 @@ void SimulationObjectLineEdit::setType(int idx)
     }
     else
     {
-        mModel = modeMgr->modelForType(type);
+        mModel = mModeMgr->modelForType(type);
         mCompleter->setModel(mModel);
     }
 }

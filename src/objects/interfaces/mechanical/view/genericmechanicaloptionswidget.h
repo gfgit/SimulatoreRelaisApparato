@@ -36,13 +36,13 @@ class QTabWidget;
 class MechanicalConditionsView;
 class MechanicalConditionsModel;
 
-class ModeManager;
+class ViewManager;
 
 class GenericMechanicalOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
-    GenericMechanicalOptionsWidget(ModeManager *mgr,
+    GenericMechanicalOptionsWidget(ViewManager *viewMgr,
                                    MechanicalInterface *iface,
                                    QWidget *parent = nullptr);
     ~GenericMechanicalOptionsWidget();

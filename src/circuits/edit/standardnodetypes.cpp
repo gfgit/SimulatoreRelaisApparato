@@ -85,6 +85,7 @@
 #include <QLabel>
 
 #include "../../views/modemanager.h"
+#include "../../views/viewmanager.h"
 
 #include "../../objects/simulationobjectlineedit.h"
 #include "../../objects/simulationobjectfactory.h"
@@ -118,7 +119,7 @@ AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
     return graph;
 }
 
-QWidget *defaultDeviatorEdit(AbstractDeviatorGraphItem *item, ModeManager *mgr)
+QWidget *defaultDeviatorEdit(AbstractDeviatorGraphItem *item, ViewManager *viewMgr)
 {
     AbstractDeviatorNode *node = item->deviatorNode();
 
@@ -183,7 +184,7 @@ QWidget *defaultDeviatorEdit(AbstractDeviatorGraphItem *item, ModeManager *mgr)
     return w;
 }
 
-QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ModeManager *mgr,
+QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ViewManager *viewMgr,
                                      const QString& objFieldName)
 {
     SimpleActivationNode *node = static_cast<SimpleActivationNode *>(item->getAbstractNode());
@@ -192,7 +193,7 @@ QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ModeManage
     QFormLayout *lay = new QFormLayout(w);
 
     // Activation Object
-    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(mgr, {node->allowedObjectType()});
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(viewMgr, {node->allowedObjectType()});
     QObject::connect(node, &SimpleActivationNode::objectChanged,
                      objectEdit, &SimulationObjectLineEdit::setObject);
     QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
@@ -207,7 +208,7 @@ QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ModeManage
     return w;
 }
 
-QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ModeManager *mgr)
+QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
 {
     RemoteCableCircuitNode *node = static_cast<RemoteCableCircuitNode *>(item->getAbstractNode());
 
@@ -215,7 +216,7 @@ QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ModeManager *mg
     QFormLayout *lay = new QFormLayout(w);
 
     // Remote Connection Object
-    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(mgr, {RemoteCircuitBridge::Type});
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(viewMgr, {RemoteCircuitBridge::Type});
     QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
                      node, [node](AbstractSimulationObject *obj)
     {
@@ -257,7 +258,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = OnOffGraphItem::Node::NodeType;
         factory.prettyName = tr("On/Off switch");
         factory.create = &addNewNodeToScene<OnOffGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             OnOffSwitchNode *node = static_cast<OnOffSwitchNode *>(item->getAbstractNode());
 
@@ -306,7 +307,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = SimpleNodeGraphItem::Node::NodeType;
         factory.prettyName = tr("Simple Node");
         factory.create = &addNewNodeToScene<SimpleNodeGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             SimpleCircuitNode *node = static_cast<SimpleCircuitNode *>(item->getAbstractNode());
 
@@ -346,7 +347,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = RelaisPowerGraphItem::Node::NodeType;
         factory.prettyName = tr("Relay Power");
         factory.create = &addNewNodeToScene<RelaisPowerGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             RelaisPowerNode *node = static_cast<RelaisPowerNode *>(item->getAbstractNode());
 
@@ -354,7 +355,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(viewMgr, {AbstractRelais::Type});
             QObject::connect(node, &RelaisPowerNode::relayChanged,
                              relayEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
@@ -433,7 +434,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = RelaisContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Relay Contact");
         factory.create = &addNewNodeToScene<RelaisContactGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             RelaisContactNode *node = static_cast<RelaisContactNode *>(item->getAbstractNode());
 
@@ -441,7 +442,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(viewMgr, {AbstractRelais::Type});
             QObject::connect(node, &RelaisContactNode::relayChanged,
                              relayEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
@@ -455,7 +456,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Deviator
             lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
-                                               mgr));
+                                               viewMgr));
 
             QCheckBox *hideRelayNormal = new QCheckBox(tr("Hide relay normal state"));
             lay->addWidget(hideRelayNormal);
@@ -489,7 +490,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ScreenRelaisPowerGraphItem::Node::NodeType;
         factory.prettyName = tr("Screen Relay Power");
         factory.create = &addNewNodeToScene<ScreenRelaisPowerGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ScreenRelaisPowerNode *node = static_cast<ScreenRelaisPowerNode *>(item->getAbstractNode());
 
@@ -497,7 +498,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Screen Relay
-            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr, {ScreenRelais::Type});
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(viewMgr, {ScreenRelais::Type});
             QObject::connect(node, &ScreenRelaisPowerNode::relayChanged,
                              relayEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
@@ -522,7 +523,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ScreenRelaisContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Screen Relay Contact");
         factory.create = &addNewNodeToScene<ScreenRelaisContactGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ScreenRelaisContactNode *node = static_cast<ScreenRelaisContactNode *>(item->getAbstractNode());
 
@@ -530,7 +531,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Relay
-            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(mgr, {ScreenRelais::Type});
+            SimulationObjectLineEdit *relayEdit = new SimulationObjectLineEdit(viewMgr, {ScreenRelais::Type});
             QObject::connect(node, &ScreenRelaisContactNode::relayChanged,
                              relayEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
@@ -544,7 +545,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Deviator
             lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
-                                               mgr));
+                                               viewMgr));
 
             QCheckBox *contactA = new QCheckBox(tr("Contact A"));
             lay->addWidget(contactA);
@@ -578,7 +579,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ButtonContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Button Contact");
         factory.create = &addNewNodeToScene<ButtonContactGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ButtonContactNode *node = static_cast<ButtonContactNode *>(item->getAbstractNode());
 
@@ -587,14 +588,14 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Deviator
             lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
-                                               mgr));
+                                               viewMgr));
 
             // Button
-            const QStringList buttonTypes = mgr->objectFactory()
+            const QStringList buttonTypes = viewMgr->modeMgr()->objectFactory()
                     ->typesForInterface(ButtonInterface::IfaceType);
 
             SimulationObjectLineEdit *buttonEdit =
-                    new SimulationObjectLineEdit(mgr, buttonTypes);
+                    new SimulationObjectLineEdit(viewMgr, buttonTypes);
 
             QObject::connect(node, &ButtonContactNode::buttonChanged,
                              buttonEdit, &SimulationObjectLineEdit::setObject);
@@ -676,10 +677,10 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = LightBulbGraphItem::Node::NodeType;
         factory.prettyName = tr("Light Bulb");
         factory.create = &addNewNodeToScene<LightBulbGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
-                                               mgr, tr("Light:"));
+                                               viewMgr, tr("Light:"));
         };
 
         factoryReg->registerFactory(factory);
@@ -692,10 +693,10 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ElectroMagnetGraphItem::Node::NodeType;
         factory.prettyName = tr("Electromagnet");
         factory.create = &addNewNodeToScene<ElectroMagnetGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
-                                               mgr, tr("Magnet:"));
+                                               viewMgr, tr("Magnet:"));
         };
 
         factoryReg->registerFactory(factory);
@@ -708,7 +709,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ACEIButtonGraphItem::CustomNodeType;
         factory.prettyName = tr("ACEI Button");
         factory.create = &addNewNodeToScene<ACEIButtonGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ACEIButtonGraphItem *specialItem = static_cast<ACEIButtonGraphItem *>(item);
 
@@ -716,11 +717,11 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Button
-            const QStringList buttonTypes = mgr->objectFactory()
+            const QStringList buttonTypes = viewMgr->modeMgr()->objectFactory()
                     ->typesForInterface(ButtonInterface::IfaceType);
 
             SimulationObjectLineEdit *buttonEdit =
-                    new SimulationObjectLineEdit(mgr, buttonTypes);
+                    new SimulationObjectLineEdit(viewMgr, buttonTypes);
 
             QObject::connect(specialItem, &ACEIButtonGraphItem::buttonChanged,
                              buttonEdit, &SimulationObjectLineEdit::setObject);
@@ -735,7 +736,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Central Light
             SimulationObjectLineEdit *centralLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
             QObject::connect(centralLightEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
             {
@@ -767,7 +768,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ACEILeverGraphItem::CustomNodeType;
         factory.prettyName = tr("ACEI Lever");
         factory.create = &addNewNodeToScene<ACEILeverGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ACEILeverGraphItem *specialItem = static_cast<ACEILeverGraphItem *>(item);
 
@@ -776,7 +777,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Lever
             // TODO: remove BEM
-            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(mgr, {ACEILeverObject::Type, BEMLeverObject::Type});
+            SimulationObjectLineEdit *leverEdit = new SimulationObjectLineEdit(viewMgr, {ACEILeverObject::Type, BEMLeverObject::Type});
             QObject::connect(specialItem, &ACEILeverGraphItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
@@ -790,7 +791,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Left Light
             SimulationObjectLineEdit *leftLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
             QObject::connect(leftLightEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
             {
@@ -801,7 +802,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Right Light
             SimulationObjectLineEdit *rightLightEdit =
-                    new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
             QObject::connect(rightLightEdit, &SimulationObjectLineEdit::objectChanged,
                              specialItem, [specialItem](AbstractSimulationObject *obj)
             {
@@ -834,7 +835,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = ACESasibLeverGraphItem::CustomNodeType;
         factory.prettyName = tr("ACE Sasib Lever");
         factory.create = &addNewNodeToScene<ACESasibLeverGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             ACESasibLeverGraphItem *specialItem = static_cast<ACESasibLeverGraphItem *>(item);
 
@@ -842,12 +843,12 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            const QStringList sasibTypes = mgr->objectFactory()
+            const QStringList sasibTypes = viewMgr->modeMgr()->objectFactory()
                     ->typesForInterface(SasibACELeverExtraInterface::IfaceType);
 
             SimulationObjectLineEdit *leverEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         sasibTypes);
 
             QObject::connect(specialItem, &ACESasibLeverGraphItem::leverChanged,
@@ -874,7 +875,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = LeverContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Lever Contact");
         factory.create = &addNewNodeToScene<LeverContactGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             LeverContactNode *node = static_cast<LeverContactNode *>(item->getAbstractNode());
 
@@ -882,12 +883,12 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QFormLayout *lay = new QFormLayout(w);
 
             // Lever
-            const QStringList leverTypes = mgr->objectFactory()
+            const QStringList leverTypes = viewMgr->modeMgr()->objectFactory()
                     ->typesForInterface(LeverInterface::IfaceType);
 
             SimulationObjectLineEdit *leverEdit =
                     new SimulationObjectLineEdit(
-                        mgr,
+                        viewMgr,
                         leverTypes);
 
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
@@ -900,7 +901,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             // Deviator
             lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
-                                               mgr));
+                                               viewMgr));
 
             // Conditions
             LeverContactConditionsModel *conditionsModel =
@@ -993,9 +994,9 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = SoundCircuitGraphItem::Node::NodeType;
         factory.prettyName = tr("Sound Node");
         factory.create = &addNewNodeToScene<SoundCircuitGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ModeManager *mgr) -> QWidget*
+        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
-            return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item), mgr,
+            return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item), viewMgr,
                                                tr("Sound Object"));
         };
 

@@ -25,13 +25,13 @@
 
 #include <QStyledItemDelegate>
 
-class ModeManager;
+class ViewManager;
 
 class MechanicalConditionsItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit MechanicalConditionsItemDelegate(ModeManager *mgr,
+    explicit MechanicalConditionsItemDelegate(ViewManager *viewMgr,
                                               QObject *parent = nullptr);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &options,
@@ -44,7 +44,7 @@ private slots:
     //void onItemClicked();
 
 private:
-    ModeManager *modeMgr = nullptr;
+    ViewManager *mViewMgr = nullptr;
 };
 
 #endif // MECHANICAL_CONDITIONS_ITEMDELEGATE_H

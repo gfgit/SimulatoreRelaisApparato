@@ -33,6 +33,7 @@ class AbstractPanelItem;
 class PanelScene;
 
 class ModeManager;
+class ViewManager;
 
 class QWidget;
 
@@ -43,7 +44,7 @@ public:
     PanelItemFactory(QObject *parent);
 
     typedef AbstractPanelItem *(*CreateFunc)(PanelScene *parent, ModeManager *mgr);
-    typedef QWidget*(*EditFunc)(AbstractPanelItem *item, ModeManager *mgr);
+    typedef QWidget*(*EditFunc)(AbstractPanelItem *item, ViewManager *mgr);
 
     enum class NeedsName
     {
@@ -66,7 +67,9 @@ public:
 
     AbstractPanelItem *createItem(const QString& nodeType,
                                   PanelScene *scene);
-    void editItem(QWidget *parent, AbstractPanelItem *item);
+    void editItem(QWidget *parent,
+                  AbstractPanelItem *item,
+                  ViewManager *viewMgr);
 
     QString prettyName(const QString& nodeType) const;
     NeedsName needsName(const QString &nodeType) const;

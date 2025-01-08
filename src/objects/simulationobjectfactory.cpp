@@ -57,7 +57,9 @@ AbstractSimulationObject *SimulationObjectFactory::createItem(AbstractSimulation
     return item;
 }
 
-SimulationObjectOptionsWidget *SimulationObjectFactory::createEditWidget(QWidget *parent, AbstractSimulationObject *item) const
+SimulationObjectOptionsWidget *SimulationObjectFactory::createEditWidget(QWidget *parent,
+                                                                         AbstractSimulationObject *item,
+                                                                         ViewManager *viewMgr) const
 {
     const FactoryItem *factory = getItemForType(item->getType());
     if(!factory)
@@ -68,7 +70,7 @@ SimulationObjectOptionsWidget *SimulationObjectFactory::createEditWidget(QWidget
 
     if(factory->edit)
     {
-        QWidget *customWidget = factory->edit(item);
+        QWidget *customWidget = factory->edit(item, viewMgr);
         if(customWidget)
             optionsWidget->addCustomWidget(customWidget);
     }

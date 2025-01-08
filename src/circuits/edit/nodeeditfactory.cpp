@@ -66,7 +66,7 @@ AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType,
     return item;
 }
 
-void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
+void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item, ViewManager *viewMgr)
 {
     const FactoryItem *factory = getItemForType(item->getAbstractNode()->nodeType());
     if(!factory)
@@ -106,8 +106,7 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item)
 
     if(factory->edit)
     {
-        QWidget *customWidget = factory->edit(item,
-                                              item->circuitScene()->circuitsModel()->modeMgr());
+        QWidget *customWidget = factory->edit(item, viewMgr);
         if(customWidget)
             lay->addWidget(customWidget);
     }

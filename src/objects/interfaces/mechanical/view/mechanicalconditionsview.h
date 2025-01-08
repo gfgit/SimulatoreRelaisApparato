@@ -30,13 +30,13 @@ class MechanicalConditionsModel;
 class QPushButton;
 class QTreeView;
 
-class ModeManager;
+class ViewManager;
 
 class MechanicalConditionsView : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MechanicalConditionsView(ModeManager *mgr, QWidget *parent = nullptr);
+    explicit MechanicalConditionsView(ViewManager *viewMgr, QWidget *parent = nullptr);
 
     MechanicalConditionsModel *model() const;
     void setModel(MechanicalConditionsModel *newModel);
