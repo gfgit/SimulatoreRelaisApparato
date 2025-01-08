@@ -586,7 +586,12 @@ void RemoteCableCircuitNode::setRemote(RemoteCircuitBridge *newRemote, bool auto
 
     if(mRemote)
     {
-        mRemote->setNode(nullptr, mIsNodeA);
+        // RemoteCircuitBridge::setNode() can call us again
+        // So we reset mRemote first and call it just after.
+        // This way next setRemote() call will return on first if line.
+        RemoteCircuitBridge *oldRemote = mRemote;
+        mRemote = nullptr;
+        oldRemote->setNode(nullptr, mIsNodeA);
     }
 
     mRemote = newRemote;
