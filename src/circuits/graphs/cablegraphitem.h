@@ -72,6 +72,8 @@ public:
 
     bool removeLastLine();
 
+    bool isPointInsideCableTiles(const QPointF& pos) const;
+
     QPainterPath generatePath() const;
 
     inline bool isZeroLength() const
@@ -151,6 +153,7 @@ public:
 
 protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *ev) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;

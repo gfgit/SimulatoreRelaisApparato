@@ -142,6 +142,18 @@ void CableGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
     QGraphicsObject::mouseMoveEvent(ev);
 }
 
+void CableGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
+{
+    if(!mCablePath.isPointInsideCableTiles(ev->pos()))
+    {
+        // We care only about clicks inside cable tiles
+        ev->ignore();
+        return;
+    }
+
+    QGraphicsObject::mousePressEvent(ev);
+}
+
 void CableGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
@@ -159,6 +171,13 @@ void CableGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 
 void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
+    if(!mCablePath.isPointInsideCableTiles(ev->pos()))
+    {
+        // We care only about clicks inside cable tiles
+        ev->ignore();
+        return;
+    }
+
     CircuitScene *s = circuitScene();
     if(s && ev->button() == Qt::LeftButton)
     {
@@ -539,6 +558,22 @@ bool CableGraphPath::removeLastLine()
     }
 
     return true;
+}
+
+bool CableGraphPath::isPointInsideCableTiles(const QPointF &pos) const
+{
+    // This is smaller than total bounding rects (Think L-shaped cables)
+    // But it's more than shape (Which has just pen width)
+    for(const TileLocation& tile : mTiles)
+    {
+        const QRectF tileRect(tile.toPoint(),
+                              QSizeF(TileLocation::Size,
+                                     TileLocation::Size));
+        if(tileRect.contains(pos))
+            return true;
+    }
+
+    return false;
 }
 
 QPainterPath CableGraphPath::generatePath() const

@@ -34,6 +34,7 @@ CircuitsView::CircuitsView(QWidget *parent)
     : ZoomGraphView{parent}
 {
     setDragMode(RubberBandDrag);
+    setRubberBandSelectionMode(Qt::IntersectsItemShape);
 }
 
 CircuitScene *CircuitsView::circuitScene() const

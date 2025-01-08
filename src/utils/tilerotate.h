@@ -133,7 +133,7 @@ struct TileLocation
                 static_cast<int16_t>(std::floor(p.y() / Size))};
     }
 
-    QPointF toPoint() const
+    inline QPointF toPoint() const
     {
         return QPointF(double(x) * Size,
                        double(y) * Size);
