@@ -11,6 +11,8 @@ set(SIMULATORE_RELAIS_SOURCES
     network/peerclient.h
     network/peerserver.cpp
     network/peerserver.h
+    network/remotemanager.cpp
+    network/remotemanager.h
 
     PARENT_SCOPE
 )

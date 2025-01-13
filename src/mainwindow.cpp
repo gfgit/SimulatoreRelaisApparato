@@ -41,6 +41,7 @@
 
 #include "views/viewmanager.h"
 #include "views/modemanager.h"
+#include "network/remotemanager.h"
 
 #include "circuits/edit/nodeeditfactory.h"
 #include "panels/edit/panelitemfactory.h"
@@ -190,10 +191,12 @@ void MainWindow::buildMenuBar()
     // Menu Network
     QMenu *menuNetwork = menuBar()->addMenu(tr("Network"));
 
+    RemoteManager *remoteMgr = mModeMgr->getRemoteManager();
+
     actionSessionName = menuNetwork->addAction(tr("Change Session Name"));
     actionSessionName->setEnabled(mModeMgr->mode() == FileMode::Editing);
     connect(actionSessionName, &QAction::triggered,
-            this, [this]()
+            remoteMgr, [this, remoteMgr]()
     {
         while(true)
         {
@@ -202,7 +205,7 @@ void MainWindow::buildMenuBar()
             newName = QInputDialog::getText(this, tr("Session Name"),
                                             tr("Name:"),
                                             QLineEdit::Normal,
-                                            mModeMgr->sessionName(),
+                                            remoteMgr->sessionName(),
                                             &ok);
 
             if(!ok)
@@ -217,7 +220,7 @@ void MainWindow::buildMenuBar()
                 continue;
             }
 
-            mModeMgr->setSessionName(newName);
+            remoteMgr->setSessionName(newName);
             break;
         }
     });
@@ -227,14 +230,14 @@ void MainWindow::buildMenuBar()
     actionSetOnline->setChecked(false);
     actionSetOnline->setEnabled(mModeMgr->mode() == FileMode::Simulation);
     connect(actionSetOnline, &QAction::toggled,
-            this, [this](bool val)
+            remoteMgr, [this, remoteMgr](bool val)
     {
-        mModeMgr->setOnline(val);
-        if(val && !mModeMgr->isOnline())
+        remoteMgr->setOnline(val);
+        if(val && !remoteMgr->isOnline())
         {
             actionSetOnline->setChecked(false);
 
-            if(mModeMgr->sessionName().isEmpty())
+            if(remoteMgr->sessionName().isEmpty())
             {
                 QMessageBox::warning(this,
                                      tr("Empty Session Name"),
@@ -246,21 +249,21 @@ void MainWindow::buildMenuBar()
     actionNetworkDiscovery = menuNetwork->addAction(tr("Discoverable"));
     actionNetworkDiscovery->setCheckable(true);
     actionNetworkDiscovery->setChecked(false);
-    actionNetworkDiscovery->setEnabled(mModeMgr->isOnline());
+    actionNetworkDiscovery->setEnabled(remoteMgr->isOnline());
     connect(actionNetworkDiscovery, &QAction::toggled,
-            this, [this](bool val)
+            remoteMgr, [this, remoteMgr](bool val)
     {
-        mModeMgr->setDiscoveryEnabled(val);
-        if(val && !mModeMgr->isDiscoveryEnabled())
+        remoteMgr->setDiscoveryEnabled(val);
+        if(val && !remoteMgr->isDiscoveryEnabled())
             actionNetworkDiscovery->setChecked(false);
     });
 
-    connect(mModeMgr, &ModeManager::networkStateChanged,
-            this, [this]()
+    connect(remoteMgr, &RemoteManager::networkStateChanged,
+            this, [this, remoteMgr]()
     {
-        actionSetOnline->setChecked(mModeMgr->isOnline());
-        actionNetworkDiscovery->setChecked(mModeMgr->isDiscoveryEnabled());
-        actionNetworkDiscovery->setEnabled(mModeMgr->isOnline());
+        actionSetOnline->setChecked(remoteMgr->isOnline());
+        actionNetworkDiscovery->setChecked(remoteMgr->isDiscoveryEnabled());
+        actionNetworkDiscovery->setEnabled(remoteMgr->isOnline());
     });
 }
 

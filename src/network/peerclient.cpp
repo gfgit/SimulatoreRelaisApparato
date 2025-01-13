@@ -1,6 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+#include "remotemanager.h"
 #include "peerclient.h"
 #include "peerconnection.h"
 #include "peermanager.h"
@@ -9,7 +10,7 @@
 
 #include <QHostInfo>
 
-PeerClient::PeerClient(ModeManager *mgr)
+PeerClient::PeerClient(RemoteManager *mgr)
     : QObject(mgr)
 {
     peerManager = new PeerManager(this, mgr);
@@ -81,7 +82,7 @@ void PeerClient::setCommunicationEnabled(bool val)
 
     emit enabledChanged();
 
-    emit peerManager->modeMgr()->networkStateChanged();
+    emit peerManager->remoteMgr()->networkStateChanged();
 }
 
 bool PeerClient::isCommunicationEnabled() const

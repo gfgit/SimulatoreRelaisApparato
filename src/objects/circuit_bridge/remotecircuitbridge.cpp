@@ -22,7 +22,12 @@
 
 #include "remotecircuitbridge.h"
 
+#include "../abstractsimulationobjectmodel.h"
+
 #include "../../circuits/nodes/remotecablecircuitnode.h"
+
+#include "../../views/modemanager.h"
+#include "../../network/remotemanager.h"
 
 #include <QTimer>
 
@@ -47,6 +52,8 @@ RemoteCircuitBridge::~RemoteCircuitBridge()
         mNodeB->setRemote(nullptr);
         mNodeB = nullptr;
     }
+
+    setRemote(false);
 }
 
 QString RemoteCircuitBridge::getType() const
@@ -62,6 +69,12 @@ bool RemoteCircuitBridge::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     mNodeDescriptionA = obj.value("node_descr_A").toString();
     mNodeDescriptionB = obj.value("node_descr_B").toString();
 
+    mPeerSession = obj.value("remote_session").toString().simplified();
+    mPeerNodeName = obj.value("remote_node").toString().trimmed();
+
+    bool canRemote = !mPeerSession.isEmpty() && !mPeerNodeName.isEmpty();
+    setRemote(canRemote);
+
     return true;
 }
 
@@ -71,6 +84,12 @@ void RemoteCircuitBridge::saveToJSON(QJsonObject &obj) const
 
     obj["node_descr_A"] = mNodeDescriptionA;
     obj["node_descr_B"] = mNodeDescriptionB;
+
+    if(mIsRemote)
+    {
+        obj["remote_session"] = mPeerSession;
+        obj["remote_node"] = mPeerNodeName;
+    }
 }
 
 int RemoteCircuitBridge::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
@@ -115,6 +134,57 @@ void RemoteCircuitBridge::setNodeDescription(bool isA, const QString &newDescr)
     emit settingsChanged(this);
 }
 
+void RemoteCircuitBridge::setRemote(bool val)
+{
+    if(mNodeA && mNodeB)
+        val = false;
+
+    if(mIsRemote == val)
+        return;
+
+    mIsRemote = val;
+
+    if(val && !mNodeA && mNodeB)
+    {
+        // Swap nodes and descriptions
+        qSwap(mNodeDescriptionA, mNodeDescriptionB);
+        mNodeB->setIsNodeA(true);
+    }
+
+    RemoteManager *remoteMgr = model()->modeMgr()->getRemoteManager();
+
+    if(mIsRemote)
+        remoteMgr->addRemoteBridge(this, mPeerSession);
+    else
+        remoteMgr->removeRemoteBridge(this, mPeerSession);
+
+    emit settingsChanged(this);
+}
+
+void RemoteCircuitBridge::setRemoteSessionName(const QString &name)
+{
+    QString str = name.simplified();
+    if(mPeerSession == str)
+        return;
+
+    RemoteManager *remoteMgr = model()->modeMgr()->getRemoteManager();
+
+    if(mIsRemote)
+        remoteMgr->removeRemoteBridge(this, mPeerSession);
+
+    mPeerSession = str;
+
+    if(mIsRemote)
+        remoteMgr->addRemoteBridge(this, mPeerSession);
+
+    emit settingsChanged(this);
+}
+
+void RemoteCircuitBridge::onRemoteSessionRenamed(const QString &toName)
+{
+    mPeerSession = toName;
+}
+
 void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
 {
     if(mNodeA == newNode || mNodeB == newNode)
@@ -146,6 +216,9 @@ void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
     {
         target->setMode(RemoteCableCircuitNode::Mode::None);
     }
+
+    if(mNodeA && mNodeB)
+        setRemote(false);
 
     emit nodesChanged(this);
     emit settingsChanged(this);

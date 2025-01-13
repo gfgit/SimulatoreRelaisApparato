@@ -2,6 +2,7 @@
 // Copyright (C) 2018 Intel Corporation.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+#include "remotemanager.h"
 #include "peerclient.h"
 #include "peerconnection.h"
 #include "peermanager.h"
@@ -16,9 +17,9 @@
 static const qint32 BroadcastInterval = 2000;
 static const unsigned broadcastPort = 45000;
 
-PeerManager::PeerManager(PeerClient *client, ModeManager *mgr)
+PeerManager::PeerManager(PeerClient *client, RemoteManager *mgr)
     : QObject(client)
-    , mModeMgr(mgr)
+    , mRemoteMgr(mgr)
     , mClient(client)
 {
     // We generate a unique per-process identifier so we can avoid multiple
@@ -169,6 +170,10 @@ void PeerManager::readBroadcastDatagram()
                 || peerSessionName == localSessionName)
             continue;
 
+        // Auto-connect only to interesting sessions
+        if(!mRemoteMgr->isSessionReferenced(peerSessionName))
+            continue;
+
         if (!mClient->hasConnection(peerUniqueId, peerSessionName))
         {
             PeerConnection *connection = new PeerConnection(this);
@@ -206,7 +211,7 @@ bool PeerManager::isDiscoveryEnabled() const
 
 void PeerManager::setDiscoveryEnabled(bool newEnabled)
 {
-    if(mModeMgr->mode() != FileMode::Simulation || localSessionName.isEmpty())
+    if(mRemoteMgr->modeMgr()->mode() != FileMode::Simulation || localSessionName.isEmpty())
         newEnabled = false; // Can discover only during simulation
 
     if(mEnabled == newEnabled)
@@ -239,5 +244,10 @@ void PeerManager::setDiscoveryEnabled(bool newEnabled)
 
     emit enabledChanged();
 
-    emit mModeMgr->networkStateChanged();
+    emit mRemoteMgr->networkStateChanged();
+}
+
+ModeManager *PeerManager::modeMgr() const
+{
+    return mRemoteMgr->modeMgr();
 }

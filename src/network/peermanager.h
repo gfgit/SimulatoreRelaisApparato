@@ -11,6 +11,7 @@
 #include <QUdpSocket>
 
 class ModeManager;
+class RemoteManager;
 class PeerClient;
 class PeerConnection;
 
@@ -19,7 +20,7 @@ class PeerManager : public QObject
     Q_OBJECT
 
 public:
-    explicit PeerManager(PeerClient *client, ModeManager *mgr);
+    explicit PeerManager(PeerClient *client, RemoteManager *mgr);
 
     void setServerPort(int port);
 
@@ -36,9 +37,11 @@ public:
     bool isDiscoveryEnabled() const;
     void setDiscoveryEnabled(bool newEnabled);
 
-    inline ModeManager *modeMgr() const
+    ModeManager *modeMgr() const;
+
+    inline RemoteManager *remoteMgr() const
     {
-        return mModeMgr;
+        return mRemoteMgr;
     }
 
 signals:
@@ -56,7 +59,7 @@ private:
     void updateAddresses();
 
 private:
-    ModeManager *mModeMgr = nullptr;
+    RemoteManager *mRemoteMgr = nullptr;
     PeerClient *mClient = nullptr;
     QList<QHostAddress> broadcastAddresses;
     QList<QHostAddress> ipAddresses;

@@ -36,8 +36,7 @@
 
 #include "../enums/loadphase.h"
 
-#include "../network/peerclient.h"
-#include "../network/peermanager.h"
+#include "../network/remotemanager.h"
 
 #include <QJsonObject>
 #include <QJsonArray>
@@ -189,13 +188,13 @@ ModeManager::ModeManager(QObject *parent)
         mObjectModels.insert(objType, model);
     }
 
-    mPeerClient = new PeerClient(this);
-    mPeerManager = mPeerClient->getPeerManager();
+    mRemoteMgr = new RemoteManager(this);
 }
 
 ModeManager::~ModeManager()
 {
-    mPeerClient->setCommunicationEnabled(false);
+    // Disable network communication
+    mRemoteMgr->setOnline(false);
 
     // Delete circuits and factory
     // before objects
@@ -215,6 +214,11 @@ ModeManager::~ModeManager()
     qDeleteAll(mObjectModels);
     mObjectModels.clear();
 
+    // Delete remote connections AFTER deleting objects
+    delete mRemoteMgr;
+    mRemoteMgr = nullptr;
+
+    // Delete object factory as last
     delete mObjectFactory;
     mObjectFactory = nullptr;
 }
@@ -235,7 +239,7 @@ void ModeManager::setMode(FileMode newMode)
     if(newMode != FileMode::Simulation)
     {
         // Stop network connections if not in Simulation mode
-        mPeerClient->setCommunicationEnabled(false);
+        mRemoteMgr->setOnline(false);
     }
 
     mMode = newMode;
@@ -304,7 +308,7 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
         rootObj = convertOldFileFormat(obj);
     }
 
-    setSessionName(obj.value("session_name").toString());
+    mRemoteMgr->setSessionName(obj.value("session_name").toString());
 
     for(auto model : mObjectModels)
     {
@@ -356,7 +360,7 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
 
     obj["file_version"] = FileVersion::V1;
 
-    obj["session_name"] = sessionName();
+    obj["session_name"] = mRemoteMgr->sessionName();
 
     obj["objects"] = pool;
 
@@ -374,7 +378,7 @@ void ModeManager::clearAll()
     for(auto model : mObjectModels)
         model->clear();
 
-    setSessionName(QString());
+    mRemoteMgr->setSessionName(QString());
 
     resetFileEdited();
 
@@ -415,39 +419,4 @@ QString ModeManager::filePath() const
 void ModeManager::setFilePath(const QString &newFilePath)
 {
     mFilePath = newFilePath;
-}
-
-QString ModeManager::sessionName() const
-{
-    return mPeerManager->sessionName();
-}
-
-void ModeManager::setSessionName(const QString &newSessionName)
-{
-    mPeerManager->setSessionName(newSessionName);
-    setFileEdited();
-}
-
-void ModeManager::setOnline(bool val)
-{
-    mPeerClient->setCommunicationEnabled(val);
-    if(val)
-        setDiscoveryEnabled(true);
-}
-
-bool ModeManager::isOnline() const
-{
-    return mPeerClient->isCommunicationEnabled();
-}
-
-void ModeManager::setDiscoveryEnabled(bool val)
-{
-    if(!mPeerClient->isCommunicationEnabled())
-        val = false;
-    mPeerManager->setDiscoveryEnabled(val);
-}
-
-bool ModeManager::isDiscoveryEnabled() const
-{
-    return mPeerManager->isDiscoveryEnabled();
 }
