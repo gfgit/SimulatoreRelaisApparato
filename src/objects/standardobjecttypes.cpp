@@ -387,8 +387,8 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     lay->addRow(StandardObjectTypes::tr("Description A:"), nodeDescrA);
     lay->addRow(StandardObjectTypes::tr("Description B:"), nodeDescrB);
 
-    nodeDescrA->setPlaceholderText(StandardObjectTypes::tr("Shown on node B"));
-    nodeDescrB->setPlaceholderText(StandardObjectTypes::tr("Shown on node A"));
+    nodeDescrA->setPlaceholderText(StandardObjectTypes::tr("Shown on node A"));
+    nodeDescrB->setPlaceholderText(StandardObjectTypes::tr("Shown on node B"));
 
     QPalette normalPalette = nodeDescrA->palette();
     QPalette redTextPalette = normalPalette;
