@@ -66,6 +66,7 @@ public:
 
     void onRemoteNodeModeChanged(qint8 mode, qint8 pole);
     void onRemoteDisconnected();
+    void onRemoteStarted();
 
     QString peerNodeName() const;
     void setPeerNodeName(const QString &newPeerNodeName);

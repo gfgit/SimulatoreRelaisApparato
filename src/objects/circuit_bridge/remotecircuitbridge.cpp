@@ -228,9 +228,6 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
 {
     RemoteCableCircuitNode *other = node == mNodeA ? mNodeB : mNodeA;
 
-    if(!other && !mPeerSessionId)
-        return;
-
     const RemoteCableCircuitNode::Mode currMode = node->mode();
     const CircuitPole currSendPole = node->getSendPole();
 
@@ -286,4 +283,21 @@ void RemoteCircuitBridge::onRemoteDisconnected()
     if(mNodeA)
         mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::None,
                                   CircuitPole::First);
+}
+
+void RemoteCircuitBridge::onRemoteStarted()
+{
+    if(mPeerSessionId && mPeerNodeId && mNodeA)
+    {
+        const RemoteCableCircuitNode::Mode currMode = mNodeA->mode();
+        const CircuitPole currSendPole = mNodeA->getSendPole();
+
+        if(!RemoteCableCircuitNode::isSendMode(currMode))
+            return;
+
+        // Send to remote session
+        RemoteManager *remoteMgr = model()->modeMgr()->getRemoteManager();
+        remoteMgr->onLocalBridgeModeChanged(mPeerSessionId, mPeerNodeId,
+                                            qint8(currMode), qint8(currSendPole));
+    }
 }

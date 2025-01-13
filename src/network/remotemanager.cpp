@@ -181,6 +181,8 @@ void RemoteManager::onRemoteBridgeListReceived(PeerConnection *conn, const QVect
             map.insert(item.peerNodeId, it.value().size());
             it.value().append(obj);
         }
+
+        obj->onRemoteStarted();
     }
 
     QCborArray msg;
@@ -218,6 +220,7 @@ void RemoteManager::onRemoteBridgeResponseReceived(PeerConnection *conn, const B
             continue;
 
         bridge->mPeerNodeId = m.value();
+        bridge->onRemoteStarted();
     }
 }
 
