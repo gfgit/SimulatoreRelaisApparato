@@ -738,48 +738,48 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../mainwindow.cpp" line="192"/>
         <source>Network</source>
-        <translation type="unfinished"></translation>
+        <translation>Rete</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="196"/>
         <source>Change Session Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Modifica Nome Sessione</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="205"/>
         <location filename="../mainwindow.cpp" line="218"/>
         <source>Session Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nome Sessione</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="206"/>
         <source>Name:</source>
-        <translation type="unfinished">Nome:</translation>
+        <translation>Nome:</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="219"/>
         <source>Session Name cannot be empty!</source>
-        <translation type="unfinished"></translation>
+        <translation>Il Nome della Sessione non può essre vuoto!</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="228"/>
         <source>Online</source>
-        <translation type="unfinished"></translation>
+        <translation>Online</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="243"/>
         <source>Empty Session Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nome Sessione Vuoto</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="244"/>
         <source>Please set Session Name first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Per favore imposta prima il Nome della Sessione</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="249"/>
         <source>Discoverable</source>
-        <translation type="unfinished"></translation>
+        <translation>Raggiungibile</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="276"/>
@@ -1165,14 +1165,14 @@ Scegli un altro nome:</translation>
 <context>
     <name>PeerConnection</name>
     <message>
-        <location filename="../network/peerconnection.h" line="75"/>
+        <location filename="../network/peerconnection.h" line="94"/>
         <source>undefined</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="../network/peerconnection.h" line="76"/>
+        <location filename="../network/peerconnection.h" line="95"/>
         <source>unknown</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -1721,77 +1721,92 @@ Scegli un altro nome:</translation>
         <translation>Descrizione B:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="390"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="391"/>
         <source>Shown on node B</source>
         <translation>Mostrato sul nodo B</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="391"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="390"/>
         <source>Shown on node A</source>
         <translation>Mostrato sul nodo A</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="410"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="398"/>
+        <source>To Remote Node</source>
+        <translation>Ad un Nodo Remoto</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="408"/>
+        <source>Peer Session:</source>
+        <translation>Sessione compagna:</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="416"/>
+        <source>Peer Node:</source>
+        <translation>Nodo compagno:</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="438"/>
         <source>Node A not set!</source>
         <translation>Nodo A non impostato!</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="415"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="443"/>
         <source>Node B not set!</source>
         <translation>Nodo B non impostato!</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="435"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="477"/>
         <source>Relais</source>
         <translation>Relè</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="447"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="489"/>
         <source>Screen Relais</source>
         <translation>Relè Schermo</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="462"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="504"/>
         <source>ACEI Lever</source>
         <translation>Leva ACEI</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="474"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="516"/>
         <source>Ligth bulb</source>
         <translation>Lampada</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="486"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="528"/>
         <source>Electromagnet</source>
         <translation>Elettromagnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="502"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="544"/>
         <source>ACE Sasib 5 Lever</source>
         <translation>Leva ACE Sasib 5</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="519"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="561"/>
         <source>ACE Sasib 7 Lever</source>
         <translation>Leva ACE Sasib 7</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="534"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="576"/>
         <source>Generic Button</source>
         <translation>Pulsante Generico</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="546"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="588"/>
         <source>Sound Object</source>
         <translation>Oggetto Sonoro</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="562"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="604"/>
         <source>BEM Handle</source>
         <translation>Maniglia BEM</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="574"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="616"/>
         <source>Circuit Bridge</source>
         <translation>Ponte Circuito</translation>
     </message>
