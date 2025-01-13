@@ -552,7 +552,13 @@ void RemoteCableCircuitNode::setIsNodeA(bool newIsNodeA)
         mRemote->setNode(nullptr, !mIsNodeA);
 
         mRemote->setNode(this, newIsNodeA);
-        mRemote->setNode(other, !newIsNodeA);
+        if(other)
+        {
+            // We call setIsNodeA() while remote is still not set
+            // to avoid recursion
+            other->setIsNodeA(!newIsNodeA);
+            mRemote->setNode(other, !newIsNodeA);
+        }
     }
 
     mIsNodeA = newIsNodeA;
@@ -566,8 +572,8 @@ QString RemoteCableCircuitNode::getDescription() const
     if(!mRemote)
         return tr("BRIDGE!!!");
 
-    // We show description of our peer node
-    QString str = mRemote->getNodeDescription(!mIsNodeA);
+    // We show description of our local node
+    QString str = mRemote->getNodeDescription(mIsNodeA);
     if(str.isEmpty())
         return tr("EMPTY!!!");
 

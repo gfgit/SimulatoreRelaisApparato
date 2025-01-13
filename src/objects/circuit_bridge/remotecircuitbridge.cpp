@@ -107,10 +107,10 @@ void RemoteCircuitBridge::setNodeDescription(bool isA, const QString &newDescr)
     QString &target = isA ? mNodeDescriptionA : mNodeDescriptionB;
     target = newDescr;
 
-    // Trigger opposite node update
-    RemoteCableCircuitNode *other = getNode(!isA);
-    if(other)
-        emit other->shapeChanged();
+    // Trigger node update
+    RemoteCableCircuitNode *targetNode = getNode(isA);
+    if(targetNode)
+        emit targetNode->shapeChanged();
 
     emit settingsChanged(this);
 }
