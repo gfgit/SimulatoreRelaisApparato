@@ -48,6 +48,7 @@ find_package(Qt6 REQUIRED
     Core
     Gui
     Widgets
+    Network
     Svg
     Multimedia
     LinguistTools)

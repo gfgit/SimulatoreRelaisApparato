@@ -15,6 +15,7 @@ endif()
 
 add_subdirectory(circuits)
 add_subdirectory(enums)
+add_subdirectory(network)
 add_subdirectory(objects)
 add_subdirectory(panels)
 add_subdirectory(translations)
