@@ -11,6 +11,8 @@
 #include <QNetworkInterface>
 #include <QUuid>
 
+#include "info.h"
+
 static const qint32 BroadcastInterval = 2000;
 static const unsigned broadcastPort = 45000;
 
@@ -41,7 +43,7 @@ void PeerManager::setServerPort(int port)
 
 QString PeerManager::sessionName() const
 {
-    return mSessionName;
+    return localSessionName;
 }
 
 void PeerManager::setSessionName(const QString &str)
@@ -50,10 +52,10 @@ void PeerManager::setSessionName(const QString &str)
         return; // Name can be changed only when offline
 
     QString newName = str.simplified();
-    if(mSessionName == newName)
+    if(localSessionName == newName)
         return;
 
-    mSessionName = newName;
+    localSessionName = newName;
 
     emit sessionNameChanged(newName);
 }
@@ -86,9 +88,10 @@ void PeerManager::sendBroadcastDatagram()
     QByteArray datagram;
     {
         QCborStreamWriter writer(&datagram);
-        writer.startArray(3);
+        writer.startArray(4);
+        writer.append(AppVersion);
+        writer.append(localSessionName);
         writer.append(localUniqueId);
-        writer.append(mSessionName);
         writer.append(serverPort);
         writer.endArray();
     }
@@ -119,20 +122,36 @@ void PeerManager::readBroadcastDatagram()
         if(!mEnabled)
             continue; // Read all but ignore contents
 
-        int senderServerPort;
-        QByteArray peerUniqueId;
+        QString peerAppVersion;
         QString peerSessionName;
+        QByteArray peerUniqueId;
+        int senderServerPort;
         {
             // decode the datagram
             QCborStreamReader reader(datagram);
             if (reader.lastError() != QCborError::NoError || !reader.isArray())
                 continue;
-            if (!reader.isLengthKnown() || reader.length() != 3)
+            if (!reader.isLengthKnown() || reader.length() != 4)
                 continue;
 
             reader.enterContainer();
-            if (reader.lastError() != QCborError::NoError || !reader.isByteArray())
+            if (reader.lastError() != QCborError::NoError || !reader.isString())
                 continue;
+
+            auto strResult = reader.readString();
+            while (strResult.status == QCborStreamReader::Ok)
+            {
+                peerAppVersion = strResult.data;
+                strResult = reader.readString();
+            }
+
+            strResult = reader.readString();
+            while (strResult.status == QCborStreamReader::Ok)
+            {
+                peerSessionName = strResult.data;
+                strResult = reader.readString();
+            }
+
             auto r = reader.readByteArray();
             while (r.status == QCborStreamReader::Ok)
             {
@@ -140,19 +159,14 @@ void PeerManager::readBroadcastDatagram()
                 r = reader.readByteArray();
             }
 
-            auto r2 = reader.readString();
-            while (r2.status == QCborStreamReader::Ok)
-            {
-                peerSessionName = r2.data;
-                r2 = reader.readString();
-            }
-
             if (reader.lastError() != QCborError::NoError || !reader.isUnsignedInteger())
                 continue;
             senderServerPort = reader.toInteger();
         }
 
-        if (peerUniqueId == localUniqueId)
+        if (peerAppVersion != AppVersion
+                || peerUniqueId == localUniqueId
+                || peerSessionName == localSessionName)
             continue;
 
         if (!mClient->hasConnection(peerUniqueId, peerSessionName))
@@ -192,7 +206,7 @@ bool PeerManager::isDiscoveryEnabled() const
 
 void PeerManager::setDiscoveryEnabled(bool newEnabled)
 {
-    if(mModeMgr->mode() != FileMode::Simulation || mSessionName.isEmpty())
+    if(mModeMgr->mode() != FileMode::Simulation || localSessionName.isEmpty())
         newEnabled = false; // Can discover only during simulation
 
     if(mEnabled == newEnabled)

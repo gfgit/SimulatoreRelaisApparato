@@ -63,7 +63,7 @@ private:
     QUdpSocket broadcastSocket;
     QTimer broadcastTimer;
 
-    QString mSessionName;
+    QString localSessionName;
     QByteArray localUniqueId;
 
     int serverPort = 0;
