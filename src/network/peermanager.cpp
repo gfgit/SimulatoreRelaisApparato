@@ -6,38 +6,19 @@
 #include "peerconnection.h"
 #include "peermanager.h"
 
+#include "../views/modemanager.h"
+
 #include <QNetworkInterface>
 #include <QUuid>
 
 static const qint32 BroadcastInterval = 2000;
 static const unsigned broadcastPort = 45000;
 
-static QString getDefaultSessionName()
+PeerManager::PeerManager(PeerClient *client, ModeManager *mgr)
+    : QObject(client)
+    , mModeMgr(mgr)
+    , mClient(client)
 {
-    static const char *envVariables[] = {
-        "USERNAME", "USER", "USERDOMAIN", "HOSTNAME", "DOMAINNAME"
-    };
-
-    QString sessionName;
-
-    for (const char *varname : envVariables)
-    {
-        sessionName = qEnvironmentVariable(varname);
-        if (!sessionName.isNull())
-            break;
-    }
-
-    if (sessionName.isEmpty())
-        sessionName = "unknown";
-
-    return sessionName;
-}
-
-PeerManager::PeerManager(PeerClient *client)
-    : QObject(client), client(client)
-{
-    setSessionName(getDefaultSessionName());
-
     // We generate a unique per-process identifier so we can avoid multiple
     // connections to/from the same remote peer as well as ignore our own
     // broadcasts.
@@ -65,7 +46,7 @@ QString PeerManager::sessionName() const
 
 void PeerManager::setSessionName(const QString &str)
 {
-    if(client->isCommunicationEnabled())
+    if(mClient->isCommunicationEnabled())
         return; // Name can be changed only when offline
 
     QString newName = str.simplified();
@@ -174,7 +155,7 @@ void PeerManager::readBroadcastDatagram()
         if (peerUniqueId == localUniqueId)
             continue;
 
-        if (!client->hasConnection(peerUniqueId, peerSessionName))
+        if (!mClient->hasConnection(peerUniqueId, peerSessionName))
         {
             PeerConnection *connection = new PeerConnection(this);
             connection->setSide(PeerConnection::Side::Client);
@@ -211,6 +192,9 @@ bool PeerManager::isDiscoveryEnabled() const
 
 void PeerManager::setDiscoveryEnabled(bool newEnabled)
 {
+    if(mModeMgr->mode() != FileMode::Simulation || mSessionName.isEmpty())
+        newEnabled = false; // Can discover only during simulation
+
     if(mEnabled == newEnabled)
         return;
 
@@ -221,9 +205,9 @@ void PeerManager::setDiscoveryEnabled(bool newEnabled)
         // Start broadcasting
 
         // Ensure server is running
-        client->setCommunicationEnabled(true);
+        mClient->setCommunicationEnabled(true);
 
-        setServerPort(client->getServerPort());
+        setServerPort(mClient->getServerPort());
 
         broadcastSocket.bind(QHostAddress::Any, broadcastPort, QUdpSocket::ShareAddress
                              | QUdpSocket::ReuseAddressHint);
@@ -240,4 +224,6 @@ void PeerManager::setDiscoveryEnabled(bool newEnabled)
     }
 
     emit enabledChanged();
+
+    emit mModeMgr->networkStateChanged();
 }

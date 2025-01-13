@@ -25,6 +25,7 @@
 #include <QAction>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QInputDialog>
 
 #include <QStandardPaths>
 #include <QSettings>
@@ -36,6 +37,7 @@
 
 #include <QMenuBar>
 #include <QToolBar>
+
 
 #include "views/viewmanager.h"
 #include "views/modemanager.h"
@@ -49,7 +51,7 @@ static constexpr const char *allFiles =
 static constexpr const char *jsonFiles =
         QT_TRANSLATE_NOOP("MainWindow", "JSON Files (*.json)");
 static constexpr const char *simraFormat =
-  QT_TRANSLATE_NOOP("MainWindow", "Simulatore Relais Circuits (*.simrelaisc)");
+        QT_TRANSLATE_NOOP("MainWindow", "Simulatore Relais Circuits (*.simrelaisc)");
 
 MainWindow::MainWindow(const QString& uniqueName_, const QString& settingsFile_, QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
@@ -183,6 +185,83 @@ void MainWindow::buildMenuBar()
         actionEditMode->setChecked(true);
         buildEditToolBar();
     }
+
+
+    // Menu Network
+    QMenu *menuNetwork = menuBar()->addMenu(tr("Network"));
+
+    actionSessionName = menuNetwork->addAction(tr("Change Session Name"));
+    actionSessionName->setEnabled(mModeMgr->mode() == FileMode::Editing);
+    connect(actionSessionName, &QAction::triggered,
+            this, [this]()
+    {
+        while(true)
+        {
+            QString newName;
+            bool ok = false;
+            newName = QInputDialog::getText(this, tr("Session Name"),
+                                            tr("Name:"),
+                                            QLineEdit::Normal,
+                                            mModeMgr->sessionName(),
+                                            &ok);
+
+            if(!ok)
+                break;
+
+            newName = newName.simplified();
+            if(newName.isEmpty())
+            {
+                QMessageBox::warning(this,
+                                     tr("Session Name"),
+                                     tr("Session Name cannot be empty!"));
+                continue;
+            }
+
+            mModeMgr->setSessionName(newName);
+            break;
+        }
+    });
+
+    actionSetOnline = menuNetwork->addAction(tr("Online"));
+    actionSetOnline->setCheckable(true);
+    actionSetOnline->setChecked(false);
+    actionSetOnline->setEnabled(mModeMgr->mode() == FileMode::Simulation);
+    connect(actionSetOnline, &QAction::toggled,
+            this, [this](bool val)
+    {
+        mModeMgr->setOnline(val);
+        if(val && !mModeMgr->isOnline())
+        {
+            actionSetOnline->setChecked(false);
+
+            if(mModeMgr->sessionName().isEmpty())
+            {
+                QMessageBox::warning(this,
+                                     tr("Empty Session Name"),
+                                     tr("Please set Session Name first."));
+            }
+        }
+    });
+
+    actionNetworkDiscovery = menuNetwork->addAction(tr("Discoverable"));
+    actionNetworkDiscovery->setCheckable(true);
+    actionNetworkDiscovery->setChecked(false);
+    actionNetworkDiscovery->setEnabled(mModeMgr->isOnline());
+    connect(actionNetworkDiscovery, &QAction::toggled,
+            this, [this](bool val)
+    {
+        mModeMgr->setDiscoveryEnabled(val);
+        if(val && !mModeMgr->isDiscoveryEnabled())
+            actionNetworkDiscovery->setChecked(false);
+    });
+
+    connect(mModeMgr, &ModeManager::networkStateChanged,
+            this, [this]()
+    {
+        actionSetOnline->setChecked(mModeMgr->isOnline());
+        actionNetworkDiscovery->setChecked(mModeMgr->isDiscoveryEnabled());
+        actionNetworkDiscovery->setEnabled(mModeMgr->isOnline());
+    });
 }
 
 void MainWindow::buildEditToolBar()
@@ -531,6 +610,8 @@ ModeManager *MainWindow::modeMgr() const
 void MainWindow::onFileModeChanged(FileMode mode, FileMode oldMode)
 {
     actionEditMode->setChecked(mode == FileMode::Editing);
+    actionSessionName->setEnabled(mode == FileMode::Editing);
+    actionSetOnline->setEnabled(mode == FileMode::Simulation);
 
     if(mode == FileMode::Editing)
         buildEditToolBar();

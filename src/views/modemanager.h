@@ -40,6 +40,9 @@ class AbstractSimulationObjectModel;
 
 class QJsonObject;
 
+class PeerClient;
+class PeerManager;
+
 class ModeManager : public QObject
 {
     Q_OBJECT
@@ -92,11 +95,22 @@ public:
     QString filePath() const;
     void setFilePath(const QString &newFilePath);
 
+    QString sessionName() const;
+    void setSessionName(const QString &newSessionName);
+
+    void setOnline(bool val);
+    bool isOnline() const;
+
+    void setDiscoveryEnabled(bool val);
+    bool isDiscoveryEnabled() const;
+
 signals:
     void modeChanged(FileMode newMode, FileMode oldMode);
     void fileEdited(bool val);
 
     void editingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode);
+
+    void networkStateChanged();
 
 private:
     FileMode mMode = FileMode::Editing;
@@ -111,6 +125,9 @@ private:
     QHash<QString, AbstractSimulationObjectModel*> mObjectModels;
 
     SimulationObjectFactory *mObjectFactory;
+
+    PeerClient *mPeerClient = nullptr;
+    PeerManager *mPeerManager = nullptr;
 
     bool mFileWasEdited = false;
 

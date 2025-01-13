@@ -5,15 +5,14 @@
 #include "peerconnection.h"
 #include "peermanager.h"
 
+#include "../views/modemanager.h"
+
 #include <QHostInfo>
 
-#include <algorithm>
-#include <functional>
-
-PeerClient::PeerClient()
+PeerClient::PeerClient(ModeManager *mgr)
+    : QObject(mgr)
 {
-    peerManager = new PeerManager(this);
-    peerManager->startBroadcasting();
+    peerManager = new PeerManager(this, mgr);
 
     connect(peerManager, &PeerManager::newConnection,
             this, &PeerClient::newConnection);
@@ -55,6 +54,10 @@ bool PeerClient::hasConnection(const QByteArray &peerUniqueId, const QString& se
 
 void PeerClient::setCommunicationEnabled(bool val)
 {
+    if(peerManager->modeMgr()->mode() != FileMode::Simulation
+            || peerManager->sessionName().isEmpty())
+        val = false; // Can communicate only during simulation
+
     if(val == mEnabled)
         return;
 
@@ -77,6 +80,8 @@ void PeerClient::setCommunicationEnabled(bool val)
     emit nickNameChanged();
 
     emit enabledChanged();
+
+    emit peerManager->modeMgr()->networkStateChanged();
 }
 
 bool PeerClient::isCommunicationEnabled() const
@@ -133,7 +138,8 @@ void PeerClient::connectionError(QAbstractSocket::SocketError /* socketError */)
 
 void PeerClient::removeConnection(PeerConnection *connection)
 {
-    if (peers.remove(connection->uniqueId())) {
+    if (peers.remove(connection->uniqueId()))
+    {
         QString nick = connection->nickName();
         if (!nick.isEmpty())
             emit participantLeft(nick);

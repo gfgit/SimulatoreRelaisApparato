@@ -36,6 +36,9 @@
 
 #include "../enums/loadphase.h"
 
+#include "../network/peerclient.h"
+#include "../network/peermanager.h"
+
 #include <QJsonObject>
 #include <QJsonArray>
 
@@ -185,10 +188,15 @@ ModeManager::ModeManager(QObject *parent)
         model->setParent(this); // Ownership for cleanup
         mObjectModels.insert(objType, model);
     }
+
+    mPeerClient = new PeerClient(this);
+    mPeerManager = mPeerClient->getPeerManager();
 }
 
 ModeManager::~ModeManager()
 {
+    mPeerClient->setCommunicationEnabled(false);
+
     // Delete circuits and factory
     // before objects
     delete mCircuitList;
@@ -222,6 +230,12 @@ void ModeManager::setMode(FileMode newMode)
     {
         // Reset sub editing mode to default
         setEditingSubMode(EditingSubMode::Default);
+    }
+
+    if(newMode != FileMode::Simulation)
+    {
+        // Stop network connections if not in Simulation mode
+        mPeerClient->setCommunicationEnabled(false);
     }
 
     mMode = newMode;
@@ -290,6 +304,8 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
         rootObj = convertOldFileFormat(obj);
     }
 
+    setSessionName(obj.value("session_name").toString());
+
     for(auto model : mObjectModels)
     {
         model->clear();
@@ -340,6 +356,8 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
 
     obj["file_version"] = FileVersion::V1;
 
+    obj["session_name"] = sessionName();
+
     obj["objects"] = pool;
 
     obj["circuits"] = circuits;
@@ -355,6 +373,8 @@ void ModeManager::clearAll()
 
     for(auto model : mObjectModels)
         model->clear();
+
+    setSessionName(QString());
 
     resetFileEdited();
 
@@ -395,4 +415,39 @@ QString ModeManager::filePath() const
 void ModeManager::setFilePath(const QString &newFilePath)
 {
     mFilePath = newFilePath;
+}
+
+QString ModeManager::sessionName() const
+{
+    return mPeerManager->sessionName();
+}
+
+void ModeManager::setSessionName(const QString &newSessionName)
+{
+    mPeerManager->setSessionName(newSessionName);
+    setFileEdited();
+}
+
+void ModeManager::setOnline(bool val)
+{
+    mPeerClient->setCommunicationEnabled(val);
+    if(val)
+        setDiscoveryEnabled(true);
+}
+
+bool ModeManager::isOnline() const
+{
+    return mPeerClient->isCommunicationEnabled();
+}
+
+void ModeManager::setDiscoveryEnabled(bool val)
+{
+    if(!mPeerClient->isCommunicationEnabled())
+        val = false;
+    mPeerManager->setDiscoveryEnabled(val);
+}
+
+bool ModeManager::isDiscoveryEnabled() const
+{
+    return mPeerManager->isDiscoveryEnabled();
 }

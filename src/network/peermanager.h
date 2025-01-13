@@ -10,6 +10,7 @@
 #include <QTimer>
 #include <QUdpSocket>
 
+class ModeManager;
 class PeerClient;
 class PeerConnection;
 
@@ -18,7 +19,7 @@ class PeerManager : public QObject
     Q_OBJECT
 
 public:
-    explicit PeerManager(PeerClient *client);
+    explicit PeerManager(PeerClient *client, ModeManager *mgr);
 
     void setServerPort(int port);
 
@@ -35,6 +36,11 @@ public:
     bool isDiscoveryEnabled() const;
     void setDiscoveryEnabled(bool newEnabled);
 
+    inline ModeManager *modeMgr() const
+    {
+        return mModeMgr;
+    }
+
 signals:
     void sessionNameChanged(const QString& newName);
 
@@ -49,7 +55,9 @@ private slots:
 private:
     void updateAddresses();
 
-    PeerClient *client = nullptr;
+private:
+    ModeManager *mModeMgr = nullptr;
+    PeerClient *mClient = nullptr;
     QList<QHostAddress> broadcastAddresses;
     QList<QHostAddress> ipAddresses;
     QUdpSocket broadcastSocket;

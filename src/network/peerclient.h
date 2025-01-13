@@ -10,6 +10,7 @@
 #include <QHash>
 #include <QHostAddress>
 
+class ModeManager;
 class PeerManager;
 
 class PeerClient : public QObject
@@ -17,7 +18,7 @@ class PeerClient : public QObject
     Q_OBJECT
 
 public:
-    PeerClient();
+    PeerClient(ModeManager *mgr);
 
     void sendMessage(const QString &message);
     QString nickName() const;

@@ -83,6 +83,9 @@ private:
     QAction *actionSave_As;
 
     QAction *actionEditMode;
+    QAction *actionSessionName;
+    QAction *actionSetOnline;
+    QAction *actionNetworkDiscovery;
 
     // Edit toolbar
     QToolBar *circuitEditToolbar1 = nullptr;
