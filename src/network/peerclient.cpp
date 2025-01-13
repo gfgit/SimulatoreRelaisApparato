@@ -118,6 +118,8 @@ void PeerClient::readyForUse()
     QString nick = connection->nickName();
     if (!nick.isEmpty())
         emit newParticipant(nick, connection->side() == PeerConnection::Side::Server);
+
+    peerManager->remoteMgr()->addConnection(connection);
 }
 
 void PeerClient::onSessionNameChanged()
@@ -141,6 +143,7 @@ void PeerClient::removeConnection(PeerConnection *connection)
 {
     if (peers.remove(connection->uniqueId()))
     {
+        peerManager->remoteMgr()->removeConnection(connection);
         QString nick = connection->nickName();
         if (!nick.isEmpty())
             emit participantLeft(nick);

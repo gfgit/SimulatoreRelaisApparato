@@ -407,7 +407,7 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
 
         if(mRemote)
         {
-            mRemote->onNodeModeChanged(this);
+            mRemote->onLocalNodeModeChanged(this);
         }
     }
 }

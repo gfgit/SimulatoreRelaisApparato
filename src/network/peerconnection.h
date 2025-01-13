@@ -13,6 +13,8 @@
 #include <QTcpSocket>
 #include <QTimer>
 
+class RemoteManager;
+
 class PeerConnection : public QTcpSocket
 {
     Q_OBJECT
@@ -29,6 +31,9 @@ public:
         Ping,
         Pong,
         Greeting,
+        BridgeStatus,
+        BridgeList,
+        BridgeResponse,
         Undefined
     };
 
@@ -53,6 +58,19 @@ public:
     Side side() const;
     void setSide(Side newSide);
 
+    inline quint64 getHashedSessionName() const
+    {
+        return hashedSessionName;
+    }
+
+    inline void setRemoteMgr(RemoteManager *mgr)
+    {
+        remoteMgr = mgr;
+    }
+
+    void sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole);
+    void sendCustonMsg(DataType t, const QCborValue& v);
+
 signals:
     void readyForUse();
     void newMessage(const QString &from, const QString &message);
@@ -70,6 +88,7 @@ private:
     void processGreeting();
     void processData();
 
+    RemoteManager *remoteMgr = nullptr;
     QCborStreamReader reader;
     QCborStreamWriter writer;
     QString greetingMessage = tr("undefined");
@@ -78,12 +97,15 @@ private:
     QTimer pingTimer;
     QElapsedTimer pongTime;
     QString buffer;
+    QByteArray byteBuffer;
     QByteArray localUniqueId;
     QByteArray peerUniqueId;
     ConnectionState state = WaitingForGreeting;
     DataType currentDataType = Undefined;
     QBasicTimer transferTimer;
     bool isGreetingMessageSent = false;
+
+    quint64 hashedSessionName = 0;
 
     Side mSide = Side::Server;
 };

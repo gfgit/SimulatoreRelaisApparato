@@ -4,7 +4,11 @@
 
 #include "peerconnection.h"
 
+#include "remotemanager.h"
+
 #include <QTimerEvent>
+
+#include <QCborValue>
 
 using namespace std::chrono_literals;
 
@@ -90,6 +94,25 @@ bool PeerConnection::sendMessage(const QString &message)
     return true;
 }
 
+void PeerConnection::sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole)
+{
+    const quint64 arr[2] = {quint64(peerNodeId), quint64(mode | (pole << 8))};
+
+    writer.startMap(1);
+    writer.append(BridgeStatus);
+    writer.append(QByteArray::fromRawData(reinterpret_cast<const char *>(&arr),
+                                          2 * sizeof(quint64)));
+    writer.endMap();
+}
+
+void PeerConnection::sendCustonMsg(DataType t, const QCborValue &v)
+{
+    writer.startMap(1);
+    writer.append(t);
+    v.toCbor(writer);
+    writer.endMap();
+}
+
 void PeerConnection::timerEvent(QTimerEvent *timerEvent)
 {
     if (timerEvent->timerId() == transferTimer.timerId())
@@ -171,10 +194,121 @@ void PeerConnection::processReadyRead()
                 if (state == ProcessingGreeting)
                     continue;
             }
+            else if (currentDataType == BridgeList)
+            {
+                if(!reader.isMap())
+                    break; // protocol error
+
+                QVector<RemoteManager::BridgeListItem> list;
+                if(reader.isLengthKnown())
+                    list.reserve(reader.length());
+
+                reader.enterContainer();
+                while (reader.lastError() == QCborError::NoError && reader.hasNext())
+                {
+                    RemoteManager::BridgeListItem item;
+                    item.peerNodeId = reader.toUnsignedInteger();
+                    reader.next();
+
+                    reader.enterContainer();
+                    auto strResult = reader.readString();
+                    while (strResult.status == QCborStreamReader::Ok)
+                    {
+                        item.peerNodeName = strResult.data;
+                        strResult = reader.readString();
+                    }
+
+                    strResult = reader.readString();
+                    while (strResult.status == QCborStreamReader::Ok)
+                    {
+                        item.localNodeName = strResult.data;
+                        strResult = reader.readString();
+                    }
+                    reader.leaveContainer();
+
+                    list.append(item);
+                }
+
+                if (reader.lastError() == QCborError::NoError)
+                {
+                    reader.leaveContainer();
+
+                    if(remoteMgr)
+                    {
+                        remoteMgr->onRemoteBridgeListReceived(this, list);
+                    }
+                }
+            }
+            else if (currentDataType == BridgeResponse)
+            {
+                if(!reader.isArray())
+                    break; // protocol error
+
+                reader.enterContainer();
+
+                RemoteManager::BridgeResponse msg;
+
+                {
+                    if(!reader.isArray())
+                        break;
+
+                    if(reader.isLengthKnown())
+                        msg.failedIds.reserve(reader.length());
+
+                    reader.enterContainer();
+
+                    while (reader.lastError() == QCborError::NoError && reader.hasNext())
+                    {
+                        msg.failedIds.append(reader.toUnsignedInteger());
+                        reader.next();
+                    }
+
+                    reader.leaveContainer();
+                }
+
+                {
+                    if(!reader.isMap())
+                        break;
+
+                    if(reader.isLengthKnown())
+                        msg.newMappings.reserve(reader.length());
+
+                    reader.enterContainer();
+
+                    while (reader.lastError() == QCborError::NoError && reader.hasNext())
+                    {
+                        quint64 localNodeId = reader.toUnsignedInteger();
+                        reader.next();
+                        quint64 peerNodeId = reader.toUnsignedInteger();
+                        reader.next();
+
+                        msg.newMappings.insert(localNodeId, peerNodeId);
+                    }
+
+                    reader.leaveContainer();
+                }
+
+                if (reader.lastError() == QCborError::NoError)
+                {
+                    reader.leaveContainer();
+
+                    if(remoteMgr)
+                    {
+                        remoteMgr->onRemoteBridgeResponseReceived(this, msg);
+                    }
+                }
+            }
             else if (reader.isString())
             {
                 auto r = reader.readString();
                 buffer += r.data;
+                if (r.status != QCborStreamReader::EndOfString)
+                    continue;
+            }
+            else if (reader.isByteArray())
+            {
+                auto r = reader.readByteArray();
+                byteBuffer += r.data;
                 if (r.status != QCborStreamReader::EndOfString)
                     continue;
             }
@@ -236,6 +370,8 @@ void PeerConnection::sendGreetingMessage()
 void PeerConnection::processGreeting()
 {
     peerSessionName = buffer;
+    hashedSessionName = qHash(peerSessionName);
+
     peerNickName = peerSessionName + '@' + peerAddress().toString() + ':'
             + QString::number(peerPort());
     currentDataType = Undefined;
@@ -263,6 +399,20 @@ void PeerConnection::processData()
     case PlainText:
         emit newMessage(peerNickName, buffer);
         break;
+    case BridgeStatus:
+    {
+        if(remoteMgr && size_t(byteBuffer.size()) >= 2 * sizeof(quint64))
+        {
+            const quint64 *arr = reinterpret_cast<const quint64 *>(byteBuffer.constData());
+            quint64 localNodeId = arr[0];
+            qint8 mode = qint8(arr[1] & 0xFF);
+            qint8 pole = qint8(arr[1] >> 8);
+            remoteMgr->onRemoteBridgeModeChanged(hashedSessionName,
+                                                 localNodeId,
+                                                 mode, pole);
+        }
+        break;
+    }
     case Ping:
         writer.startMap(1);
         writer.append(Pong);
@@ -277,6 +427,7 @@ void PeerConnection::processData()
     }
 
     currentDataType = Undefined;
+    byteBuffer.clear();
     buffer.clear();
 }
 

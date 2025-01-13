@@ -69,8 +69,8 @@ bool RemoteCircuitBridge::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     mNodeDescriptionA = obj.value("node_descr_A").toString();
     mNodeDescriptionB = obj.value("node_descr_B").toString();
 
-    mPeerSession = obj.value("remote_session").toString().simplified();
     mPeerNodeName = obj.value("remote_node").toString().trimmed();
+    setRemoteSessionName(obj.value("remote_session").toString().simplified());
 
     bool canRemote = !mPeerSession.isEmpty() && !mPeerNodeName.isEmpty();
     setRemote(canRemote);
@@ -203,9 +203,9 @@ void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
         if(target)
         {
             if(target->isSendSide())
-                onNodeModeChanged(target);
+                onLocalNodeModeChanged(target);
             else if(other->isSendSide())
-                onNodeModeChanged(other);
+                onLocalNodeModeChanged(other);
         }
         else
         {
@@ -224,32 +224,66 @@ void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
     emit settingsChanged(this);
 }
 
-void RemoteCircuitBridge::onNodeModeChanged(RemoteCableCircuitNode *node)
+void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
 {
     RemoteCableCircuitNode *other = node == mNodeA ? mNodeB : mNodeA;
-    if(!other)
+
+    if(!other && !mPeerSessionId)
         return;
 
-    // NOTE: we cannot directly call onPeerModeChanged()
-    // because it triggers circuit add/remove from inside
-    // another circuit add/remove.
-    // So use Qt::QueuedConnection
-
-    // QMetaObject::invokeMethod(mLocalPeer,
-    //                           &RemoteCableCircuitNode::onPeerModeChanged,
-    //                           Qt::QueuedConnection,
-    //                           mMode, mSendPole);
-
-    // Simulate network latency for when it will transmit to other PC
     const RemoteCableCircuitNode::Mode currMode = node->mode();
     const CircuitPole currSendPole = node->getSendPole();
 
-    QTimer::singleShot(200, Qt::VeryCoarseTimer,
-                       this, [this, currMode, currSendPole, other]()
+    if(other)
     {
-        if(other != mNodeA && other != mNodeB)
-            return; // Node was deleted/unlinked
+        // NOTE: we cannot directly call onPeerModeChanged()
+        // because it triggers circuit add/remove from inside
+        // another circuit add/remove.
+        // So use Qt::QueuedConnection
 
-        other->onPeerModeChanged(currMode, currSendPole);
-    });
+        QMetaObject::invokeMethod(other,
+                                  &RemoteCableCircuitNode::onPeerModeChanged,
+                                  Qt::QueuedConnection,
+                                  currMode, currSendPole);
+    }
+    else if(mPeerSessionId && mPeerNodeId)
+    {
+        // Send to remote session
+        RemoteManager *remoteMgr = model()->modeMgr()->getRemoteManager();
+        remoteMgr->onLocalBridgeModeChanged(mPeerSessionId, mPeerNodeId,
+                                            qint8(currMode), qint8(currSendPole));
+    }
+}
+
+QString RemoteCircuitBridge::peerNodeName() const
+{
+    return mPeerNodeName;
+}
+
+void RemoteCircuitBridge::setPeerNodeName(const QString &newPeerNodeName)
+{
+    if(mPeerNodeName == newPeerNodeName)
+        return;
+
+    mPeerNodeName = newPeerNodeName;
+
+    emit settingsChanged(this);
+}
+
+void RemoteCircuitBridge::onRemoteNodeModeChanged(qint8 mode, qint8 pole)
+{
+    const RemoteCableCircuitNode::Mode currMode = RemoteCableCircuitNode::Mode(mode);
+    const CircuitPole currSendPole = CircuitPole(pole);
+
+    if(!mNodeA)
+        return;
+
+    mNodeA->onPeerModeChanged(currMode, currSendPole);
+}
+
+void RemoteCircuitBridge::onRemoteDisconnected()
+{
+    if(mNodeA)
+        mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::None,
+                                  CircuitPole::First);
 }
