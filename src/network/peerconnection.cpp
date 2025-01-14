@@ -64,13 +64,17 @@ PeerConnection::PeerConnection(QObject *parent)
     connect(&pingTimer, &QTimer::timeout,
             this, &PeerConnection::sendPing);
     connect(this, &QTcpSocket::connected,
-            this, &PeerConnection::sendGreetingMessage);
+            this, &PeerConnection::onConnected);
 }
 
 PeerConnection::PeerConnection(qintptr socketDescriptor, QObject *parent)
     : PeerConnection(parent)
 {
     setSocketDescriptor(socketDescriptor);
+
+    // Server side
+    setSocketOption(QTcpSocket::LowDelayOption, 1);
+
     reader.setDevice(this);
 }
 
@@ -142,6 +146,14 @@ void PeerConnection::timerEvent(QTimerEvent *timerEvent)
         abort();
         transferTimer.stop();
     }
+}
+
+void PeerConnection::onConnected()
+{
+    // Client side
+    setSocketOption(QTcpSocket::LowDelayOption, 1);
+
+    sendGreetingMessage();
 }
 
 void PeerConnection::processReadyRead()

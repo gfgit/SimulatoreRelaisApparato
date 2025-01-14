@@ -101,6 +101,7 @@ protected:
     void timerEvent(QTimerEvent *timerEvent) override;
 
 private slots:
+    void onConnected();
     void processReadyRead();
     void sendPing();
     void sendGreetingMessage();
