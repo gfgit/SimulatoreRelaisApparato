@@ -137,7 +137,7 @@ void CircuitsView::keyReleaseEvent(QKeyEvent *ev)
                                   tileHint);
                 return;
             }
-            else if(letter == 'C')
+            else if(letter.toUpper() == 'C')
             {
                 circuitScene()->startEditNewCable();
                 return;
