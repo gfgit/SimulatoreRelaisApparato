@@ -222,8 +222,37 @@ NodeEditFactory::NeedsName NodeEditFactory::needsName(const QString &nodeType) c
     return factory->needsName;
 }
 
+QChar NodeEditFactory::letterForType(const QString &nodeType) const
+{
+    const FactoryItem *factory = getItemForType(nodeType);
+    if(!factory)
+        return QChar();
+
+    return factory->shortcutLetter;
+}
+
+QString NodeEditFactory::typeForShortcutLetter(QChar letter) const
+{
+    if(!letter.isLetter())
+        return QString();
+
+    letter = letter.toLower();
+
+    for(const FactoryItem& item : std::as_const(mItems))
+    {
+        if(item.shortcutLetter.toLower() == letter)
+            return item.nodeType;
+    }
+    return QString();
+}
+
 void NodeEditFactory::registerFactory(const FactoryItem &factory)
 {
+    Q_ASSERT(!factory.nodeType.isEmpty()
+             && !getItemForType(factory.nodeType));
+    Q_ASSERT(!factory.shortcutLetter.isLetter()
+             || typeForShortcutLetter(factory.shortcutLetter).isEmpty());
+
     mItems.append(factory);
 }
 

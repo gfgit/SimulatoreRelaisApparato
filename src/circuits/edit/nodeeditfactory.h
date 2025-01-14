@@ -61,6 +61,7 @@ public:
         QString prettyName;
         CreateFunc create = nullptr;
         EditFunc edit = nullptr;
+        QChar shortcutLetter;
 
         NeedsName needsName = NeedsName::OnlyOnEditing;
     };
@@ -74,6 +75,9 @@ public:
 
     QString prettyName(const QString& nodeType) const;
     NeedsName needsName(const QString &nodeType) const;
+    QChar letterForType(const QString& nodeType) const;
+
+    QString typeForShortcutLetter(QChar letter) const;
 
     void registerFactory(const FactoryItem& factory);
 

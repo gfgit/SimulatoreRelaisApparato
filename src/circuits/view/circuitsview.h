@@ -26,6 +26,8 @@
 #include "../../utils/zoomgraphview.h"
 
 class CircuitScene;
+struct TileLocation;
+class NodeEditFactory;
 
 class CircuitsView : public ZoomGraphView
 {
@@ -35,8 +37,13 @@ public:
 
     CircuitScene *circuitScene() const;
 
+    void addNodeAtLocation(NodeEditFactory *editFactory,
+                           const QString &nodeType,
+                           const TileLocation& tileHint);
+
 protected:
     void keyPressEvent(QKeyEvent *ev) override;
+    void keyReleaseEvent(QKeyEvent *ev) override;
 
 private:
     void deleteSelectedItems();

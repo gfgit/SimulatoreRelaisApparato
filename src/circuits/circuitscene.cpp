@@ -2369,7 +2369,7 @@ void CircuitScene::keyReleaseEvent(QKeyEvent *e)
         modeMgr()->setEditingSubMode(EditingSubMode::Default);
         break;
     case Qt::Key_S:
-        if(e->modifiers() == Qt::NoModifier && modeMgr()->mode() == FileMode::Editing)
+        if(e->modifiers() == Qt::ShiftModifier && modeMgr()->mode() == FileMode::Editing)
             modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
         break;
     case Qt::Key_Enter:

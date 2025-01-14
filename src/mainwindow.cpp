@@ -289,10 +289,18 @@ void MainWindow::buildEditToolBar()
 
     auto circuitEditFactory = mModeMgr->circuitFactory();
     for(const QString& nodeType : circuitEditFactory->getRegisteredTypes())
-    {
-        QString title = tr("%1").arg(circuitEditFactory->prettyName(nodeType));
+    {        
+        QString prettyName = circuitEditFactory->prettyName(nodeType);
+        QChar letter = circuitEditFactory->letterForType(nodeType);
 
-        QAction *act = newCircuitItemMenu->addAction(title);
+        QString tooltipStr = prettyName;
+        if(letter.isLetter())
+        {
+            tooltipStr = QLatin1String("<b>(%1)</b> %2").arg(letter).arg(prettyName);
+        }
+
+        QAction *act = newCircuitItemMenu->addAction(prettyName);
+        act->setToolTip(tooltipStr);
         connect(act, &QAction::triggered, mViewMgr,
                 [nodeType, this]()
         {
@@ -303,6 +311,7 @@ void MainWindow::buildEditToolBar()
     }
 
     QAction *newCableAct = newCircuitItemMenu->addAction(tr("Cable"));
+    newCableAct->setToolTip(tr("<b>(C)</b> Cable"));
     connect(newCableAct, &QAction::triggered,
             mViewMgr, &ViewManager::startEditNewCableOnActiveView);
 
