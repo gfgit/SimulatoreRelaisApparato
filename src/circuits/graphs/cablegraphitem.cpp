@@ -36,7 +36,7 @@
 
 #include <QGraphicsSceneMouseEvent>
 
-static QPainterPath _qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen)
+static QPainterPath _qt_graphicsItem_shapeFromPath(const QPainterPath &path, const QPen &pen, const qreal widthF)
 {
     // We unfortunately need this hack as QPainterPathStroker will set a width of 1.0
     // if we pass a value of 0.0 to QPainterPathStroker::setWidth()
@@ -45,10 +45,10 @@ static QPainterPath _qt_graphicsItem_shapeFromPath(const QPainterPath &path, con
         return path;
     QPainterPathStroker ps;
     ps.setCapStyle(pen.capStyle());
-    if (pen.widthF() <= 0.0)
+    if (widthF <= 0.0)
         ps.setWidth(penWidthZero);
     else
-        ps.setWidth(pen.widthF());
+        ps.setWidth(widthF);
     ps.setJoinStyle(pen.joinStyle());
     ps.setMiterLimit(pen.miterLimit());
 
@@ -66,6 +66,7 @@ CableGraphItem::CableGraphItem(CircuitCable *cable_)
 {
     setParent(mCable);
 
+    pen.setCapStyle(Qt::FlatCap);
     pen.setColor(Qt::black);
     pen.setWidthF(5.0);
 
@@ -99,7 +100,9 @@ QRectF CableGraphItem::boundingRect() const
 
 QPainterPath CableGraphItem::shape() const
 {
-    return _qt_graphicsItem_shapeFromPath(mPath, pen);
+    // Return a bigger shape to get mouse clicks in around cable drawing.
+    // Otherwise it's too difficult to select it.
+    return _qt_graphicsItem_shapeFromPath(mPath, pen, pen.widthF() * 3.0);
 }
 
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -155,11 +158,28 @@ void CableGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 
 void CableGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(!mCablePath.isPointInsideCableTiles(ev->pos()))
+    CircuitScene *s = circuitScene();
+    if(!s)
     {
-        // We care only about clicks inside cable tiles
+        QGraphicsObject::mousePressEvent(ev);
+        return;
+    }
+
+    if(!isMouseInsideShapePluseExtra(ev->pos()))
+    {
         ev->ignore();
         return;
+    }
+
+    if(s->modeMgr()->editingSubMode() == EditingSubMode::Default)
+    {
+        if(ev->buttons() & Qt::LeftButton && ev->modifiers() == Qt::ShiftModifier)
+        {
+            // Shift + click, edit cable path
+            ev->accept();
+            s->startEditCable(this);
+            return;
+        }
     }
 
     QGraphicsObject::mousePressEvent(ev);
@@ -182,14 +202,19 @@ void CableGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 
 void CableGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
-    if(!mCablePath.isPointInsideCableTiles(ev->pos()))
+    CircuitScene *s = circuitScene();
+    if(!s)
     {
-        // We care only about clicks inside cable tiles
+        QGraphicsObject::mouseDoubleClickEvent(ev);
+        return;
+    }
+
+    if(!isMouseInsideShapePluseExtra(ev->pos()))
+    {
         ev->ignore();
         return;
     }
 
-    CircuitScene *s = circuitScene();
     if(s && ev->button() == Qt::LeftButton)
     {
         s->requestEditCable(this);
@@ -302,6 +327,66 @@ void CableGraphItem::setCablePathInternal(const CableGraphPath &newCablePath, bo
     }
 
     update();
+}
+
+bool CableGraphItem::isMouseInsideShapePluseExtra(const QPointF &p) const
+{
+    if(!mCablePath.isPointInsideCableTiles(p))
+    {
+        // We care only about clicks inside cable tiles
+        return false;
+    }
+
+    CircuitScene *s = circuitScene();
+    if(!s)
+        return false;
+
+    // We have a bigger shape than real drawing. This is good for catching also
+    // mouse press sligthly outside of our real shape.
+    // But it's bad when 2 cables cross each other, as the wrong cable can receive the click
+    // because it's stacked above and extra shape area covers the other cable.
+    // So manually check that!
+
+    TileLocation tile = TileLocation::invalid;
+    bool isEdge = false;
+    Connector::Direction direction = CircuitScene::getTileAndDirection(p, tile, isEdge);
+
+    // Move origin to tile topleft corner
+    const QPointF posInTile = p - tile.toPoint();
+
+    if(qAbs(posInTile.x() - TileLocation::HalfSize) * 2 < pen.widthF() &&
+            qAbs(posInTile.y() - TileLocation::HalfSize) * 2 < pen.widthF())
+    {
+        // We are at tile center so cable stacked on top wins and receives the event
+        return true;
+    }
+
+    CircuitScene::TileCablePair pair = s->getCablesAt(tile);
+
+    CableGraphItem *otherCrossCable = nullptr;
+    if(pair.first == this)
+        otherCrossCable = pair.second;
+    else
+        otherCrossCable = pair.first;
+
+    if(!otherCrossCable || otherCrossCable == this)
+        return true; // No other cable, or ourselves passing 2 times on same tile
+
+    // We cross a cable in the tile clicked, and it's not ourself passing 2 times
+    // on same tile
+
+    const int tileIdx = mCablePath.tiles().indexOf(tile);
+    const Connector::Direction startDir = mCablePath.getEnterDirection(tileIdx);
+
+    if(startDir == direction || startDir == ~direction)
+    {
+        // Mouse is in our direction, we win and consume the event
+        return true;
+    }
+
+    // If mouse is not in our direction, ignore the event
+    // CircuitScene will then deliver the event to the correct cable
+    return false;
 }
 
 void CableGraphItem::updatePen()
