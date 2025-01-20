@@ -484,7 +484,14 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
     }
     case Mode::ReceiveCurrentWaitClosed:
     {
-        if(mMode != Mode::SendCurrentOpen && mMode != Mode::SendCurrentWaitClosed)
+        // FIXME: if 2 requests are sent rapidly
+        // we might change our mMode twice and then receive response to old request
+        // so we are compering new mMode with old peer mode
+        // this leads to `setMode(Mode::None)` which breaks functioning
+        // TODO: maybe implement a sort of pending response queue
+        if(mMode != Mode::SendCurrentOpen &&
+                mMode != Mode::SendCurrentWaitClosed &&
+                mMode != Mode::SendCurrentClosed)
         {
             // Reject change
             setMode(Mode::None);
