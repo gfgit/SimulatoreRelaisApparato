@@ -77,6 +77,7 @@ public:
     void terminateHere(AbstractCircuitNode *goalNode, QVector<ElectricCircuit *>& deduplacteList);
 
     inline CircuitType type() const { return mType; }
+    inline bool isEnabled() const { return enabled; }
 
     NodeOccurences getNode(AbstractCircuitNode *node) const;
 

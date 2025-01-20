@@ -186,6 +186,9 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
                 item.node.node->removeCircuit(this, items);
                 nodes.insert(item.node.node);
             }
+
+            Q_ASSERT_X(!item.node.node->getCircuits(CircuitType::Closed).contains(this),
+                       "ElectricCircuit::disableOrTerminate()", "Circuit still on node!");
         }
         else
         {

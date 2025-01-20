@@ -239,6 +239,11 @@ void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
 {
     for(ElectricCircuit *circuit : listCopy)
     {
+        Q_ASSERT(circuit->type() == CircuitType::Closed);
+    }
+
+    for(ElectricCircuit *circuit : listCopy)
+    {
         circuit->disableOrTerminate(node);
     }
 }
@@ -247,6 +252,11 @@ void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
                                           AbstractCircuitNode *node,
                                           const int contact)
 {
+    for(ElectricCircuit *circuit : listCopy)
+    {
+        Q_ASSERT(circuit->type() == CircuitType::Closed);
+    }
+
     for(ElectricCircuit *circuit : listCopy)
     {
         const auto items = circuit->getNode(this);
