@@ -160,7 +160,10 @@ void RemoteManager::onRemoteBridgeListReceived(PeerConnection *conn, const QVect
 {
     auto it = mRemoteBridges.find(conn->sessionName());
     if(it == mRemoteBridges.end())
-        return;
+    {
+        // Create new connection bridge list
+        it = mRemoteBridges.insert(conn->sessionName(), {});
+    }
 
     QCborArray failedIds;
     QCborMap map;
@@ -299,6 +302,12 @@ void RemoteManager::removeConnection(PeerConnection *conn)
 void RemoteManager::sendBridgesTo(PeerConnection *conn)
 {
     auto it = mRemoteBridges.find(conn->sessionName());
+    if(it == mRemoteBridges.end())
+    {
+        // ERROR: Send empty map
+        conn->sendCustonMsg(PeerConnection::BridgeList, QCborMap{});
+        return;
+    }
 
     QCborMap map;
 
