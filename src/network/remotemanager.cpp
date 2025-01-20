@@ -34,6 +34,23 @@
 #include <QCborMap>
 #include <QCborArray>
 
+/* Protocol
+ *
+ * Server:
+ * - Send bridges list
+ * - Wait response
+ * - Wait client bridge list
+ * - Send response
+ * - Send bridge initial status
+ *
+ * Client:
+ * - Wait client bridge list
+ * - Send response
+ * - Send bridges list
+ * - Wait response
+ * - Send bridge initial status
+ */
+
 RemoteManager::RemoteManager(ModeManager *mgr)
     : QObject(mgr)
 {
@@ -206,8 +223,6 @@ void RemoteManager::onRemoteBridgeListReceived(PeerConnection *conn, const QVect
             map.insert(item.peerNodeId, it.value().size());
             it.value().append(obj);
         }
-
-        obj->onRemoteStarted();
     }
 
     QCborArray msg;
@@ -218,6 +233,11 @@ void RemoteManager::onRemoteBridgeListReceived(PeerConnection *conn, const QVect
     if(conn->side() == PeerConnection::Side::Client)
     {
         sendBridgesTo(conn);
+    }
+    else
+    {
+        // Server side has finished, send initial state
+        sendBridgesStatusTo(conn);
     }
 }
 
@@ -245,7 +265,12 @@ void RemoteManager::onRemoteBridgeResponseReceived(PeerConnection *conn, const B
             continue;
 
         bridge->mPeerNodeId = m.value();
-        bridge->onRemoteStarted();
+    }
+
+    if(conn->side() == PeerConnection::Side::Client)
+    {
+        // Client side has finished, send bridge initial status
+        sendBridgesStatusTo(conn);
     }
 }
 
@@ -326,4 +351,20 @@ void RemoteManager::sendBridgesTo(PeerConnection *conn)
     }
 
     conn->sendCustonMsg(PeerConnection::BridgeList, map);
+}
+
+void RemoteManager::sendBridgesStatusTo(PeerConnection *conn)
+{
+    auto it = mRemoteBridges.find(conn->sessionName());
+    if(it == mRemoteBridges.end())
+        return;
+
+    // TODO: maybe make a single big message with a list of all bridges
+    for(RemoteCircuitBridge *bridge : it.value())
+    {
+        if(bridge->mPeerSessionId == 0 || bridge->mPeerNodeId == 0)
+            continue;
+
+        bridge->onRemoteStarted();
+    }
 }

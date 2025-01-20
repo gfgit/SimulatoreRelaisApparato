@@ -94,6 +94,7 @@ private:
     void removeConnection(PeerConnection *conn);
 
     void sendBridgesTo(PeerConnection *conn);
+    void sendBridgesStatusTo(PeerConnection *conn);
 
 private:
     PeerClient *mPeerClient = nullptr;
