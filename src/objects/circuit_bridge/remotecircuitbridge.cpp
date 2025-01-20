@@ -187,10 +187,13 @@ void RemoteCircuitBridge::onRemoteSessionRenamed(const QString &toName)
 
 void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
 {
-    if(mNodeA == newNode || mNodeB == newNode)
+    if(newNode && (mNodeA == newNode || mNodeB == newNode))
         return;
 
     RemoteCableCircuitNode *&target = isA ? mNodeA : mNodeB;
+    if(newNode == target)
+        return;
+
     RemoteCableCircuitNode *other = getNode(!isA);
 
     if(target)
@@ -212,7 +215,7 @@ void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
             other->setMode(RemoteCableCircuitNode::Mode::None);
         }
     }
-    else
+    else if(target)
     {
         target->setMode(RemoteCableCircuitNode::Mode::None);
     }
