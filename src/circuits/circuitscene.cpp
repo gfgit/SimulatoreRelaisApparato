@@ -260,17 +260,22 @@ void CircuitScene::addCable(CableGraphItem *item)
     // Add cable tiles
     addCableTiles(item);
 
-    setHasUnsavedChanges(true);
+    if(!item->cableZeroLength())
+        setHasUnsavedChanges(true);
 }
 
 void CircuitScene::removeCable(CircuitCable *cable)
 {
+    bool zeroLength = false;
+
     auto it = mCables.find(cable);
     if(it != mCables.end())
     {
         // Delete graph item
         CableGraphItem *item = it->second;
         mCables.erase(it);
+
+        zeroLength = item->cableZeroLength();
 
         removeCableTiles(item);
 
@@ -282,7 +287,8 @@ void CircuitScene::removeCable(CircuitCable *cable)
 
     delete cable;
 
-    setHasUnsavedChanges(true);
+    if(!zeroLength)
+        setHasUnsavedChanges(true);
 }
 
 CableGraphItem *CircuitScene::graphForCable(CircuitCable *cable) const
