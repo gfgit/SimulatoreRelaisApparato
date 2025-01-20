@@ -112,10 +112,16 @@ bool RemoteManager::renameRemoteSession(const QString &fromName, const QString &
     if(isOnline())
         return false;
 
-    if(!mRemoteBridges.contains(fromName) || mRemoteBridges.contains(toName))
+    const quint64 fromConnId = qHash(fromName);
+    const quint64 toConnId = qHash(toName);
+
+    if(fromConnId == toConnId)
         return false;
 
-    const auto vec = mRemoteBridges.take(fromName);
+    if(!mRemoteBridges.contains(fromConnId) || mRemoteBridges.contains(toConnId))
+        return false;
+
+    const auto vec = mRemoteBridges.take(fromConnId);
 
     for(RemoteCircuitBridge *bridge : vec)
     {
@@ -123,23 +129,27 @@ bool RemoteManager::renameRemoteSession(const QString &fromName, const QString &
             bridge->onRemoteSessionRenamed(toName);
     }
 
-    mRemoteBridges.insert(toName, vec);
+    mRemoteBridges.insert(toConnId, vec);
 
     return true;
 }
 
 void RemoteManager::addRemoteBridge(RemoteCircuitBridge *bridge, const QString &peerSession)
 {
-    auto it = mRemoteBridges.find(peerSession);
+    const quint64 peerConnId = qHash(peerSession);
+
+    auto it = mRemoteBridges.find(peerConnId);
     if(it == mRemoteBridges.end())
-        it = mRemoteBridges.insert(peerSession, {});
+        it = mRemoteBridges.insert(peerConnId, {});
 
     it.value().append(bridge);
 }
 
 void RemoteManager::removeRemoteBridge(RemoteCircuitBridge *bridge, const QString &peerSession)
 {
-    auto it = mRemoteBridges.find(peerSession);
+    const quint64 peerConnId = qHash(peerSession);
+
+    auto it = mRemoteBridges.find(peerConnId);
     Q_ASSERT(it != mRemoteBridges.end());
 
     it.value().removeOne(bridge);
@@ -164,7 +174,7 @@ void RemoteManager::onRemoteBridgeModeChanged(quint64 peerSessionId, quint64 loc
     if(!conn)
         return;
 
-    auto it = mRemoteBridges.find(conn->sessionName());
+    auto it = mRemoteBridges.find(conn->getHashedSessionName());
     if(it == mRemoteBridges.end())
         return;
 
@@ -175,11 +185,11 @@ void RemoteManager::onRemoteBridgeModeChanged(quint64 peerSessionId, quint64 loc
 
 void RemoteManager::onRemoteBridgeListReceived(PeerConnection *conn, const QVector<BridgeListItem> &list)
 {
-    auto it = mRemoteBridges.find(conn->sessionName());
+    auto it = mRemoteBridges.find(conn->getHashedSessionName());
     if(it == mRemoteBridges.end())
     {
         // Create new connection bridge list
-        it = mRemoteBridges.insert(conn->sessionName(), {});
+        it = mRemoteBridges.insert(conn->getHashedSessionName(), {});
     }
 
     QCborArray failedIds;
@@ -243,7 +253,7 @@ void RemoteManager::onRemoteBridgeListReceived(PeerConnection *conn, const QVect
 
 void RemoteManager::onRemoteBridgeResponseReceived(PeerConnection *conn, const BridgeResponse &msg)
 {
-    auto it = mRemoteBridges.find(conn->sessionName());
+    auto it = mRemoteBridges.find(conn->getHashedSessionName());
     if(it == mRemoteBridges.end())
         return;
 
@@ -282,7 +292,7 @@ void RemoteManager::addConnection(PeerConnection *conn)
 
     mConnections.insert(remoteSessionHash, conn);
 
-    auto it = mRemoteBridges.find(remoteSessionName);
+    auto it = mRemoteBridges.find(remoteSessionHash);
     if(it != mRemoteBridges.end())
     {
         for(RemoteCircuitBridge *bridge : it.value())
@@ -302,7 +312,7 @@ void RemoteManager::removeConnection(PeerConnection *conn)
     conn->setRemoteMgr(nullptr);
     mConnections.remove(conn->getHashedSessionName());
 
-    auto it = mRemoteBridges.find(conn->sessionName());
+    auto it = mRemoteBridges.find(conn->getHashedSessionName());
     if(it != mRemoteBridges.end())
     {
         QVector<RemoteCircuitBridge *> &vec = it.value();
@@ -326,7 +336,7 @@ void RemoteManager::removeConnection(PeerConnection *conn)
 
 void RemoteManager::sendBridgesTo(PeerConnection *conn)
 {
-    auto it = mRemoteBridges.find(conn->sessionName());
+    auto it = mRemoteBridges.find(conn->getHashedSessionName());
     if(it == mRemoteBridges.end())
     {
         // ERROR: Send empty map
@@ -355,7 +365,7 @@ void RemoteManager::sendBridgesTo(PeerConnection *conn)
 
 void RemoteManager::sendBridgesStatusTo(PeerConnection *conn)
 {
-    auto it = mRemoteBridges.find(conn->sessionName());
+    auto it = mRemoteBridges.find(conn->getHashedSessionName());
     if(it == mRemoteBridges.end())
         return;
 

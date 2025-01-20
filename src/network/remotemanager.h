@@ -66,7 +66,8 @@ public:
 
     inline bool isSessionReferenced(const QString& name) const
     {
-        return mRemoteBridges.contains(name);
+        const quint64 peerConnId = qHash(name);
+        return mRemoteBridges.contains(peerConnId);
     }
 
     struct BridgeListItem
@@ -99,7 +100,7 @@ private:
 private:
     PeerClient *mPeerClient = nullptr;
     PeerManager *mPeerManager = nullptr;
-    QHash<QString, QVector<RemoteCircuitBridge *>> mRemoteBridges;
+    QHash<quint64, QVector<RemoteCircuitBridge *>> mRemoteBridges;
 
     QHash<quint64, PeerConnection *> mConnections;
 };
