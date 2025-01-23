@@ -73,7 +73,16 @@ public:
     bool isSourceEnabled() const override;
     void setSourceEnabled(bool newEnabled) override;
 
-    Mode mode() const;
+    inline Mode mode() const
+    {
+        return mMode;
+    }
+
+    inline Mode lastPeerMode() const
+    {
+        return mLastPeerMode;
+    }
+
     void setMode(Mode newMode);
 
     static inline bool isReceiveMode(Mode m)

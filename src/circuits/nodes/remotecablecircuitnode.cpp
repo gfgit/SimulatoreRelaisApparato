@@ -287,11 +287,6 @@ void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled)
     }
 }
 
-RemoteCableCircuitNode::Mode RemoteCableCircuitNode::mode() const
-{
-    return mMode;
-}
-
 void RemoteCableCircuitNode::setMode(Mode newMode)
 {
     if(!mIsEnabled)
