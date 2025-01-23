@@ -552,6 +552,9 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
     for(const auto& conn : connections)
     {
+        // Remove new items before going to next loop iteration
+        items.resize(oldVectorSize);
+
         nodeItem.node.toContact = conn.nodeContact;
         nodeItem.node.toPole = conn.cable.pole;
 
@@ -685,11 +688,11 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
                                           newMode);
         }
 
-        // Remove new items before going to next loop iteration
-        items.resize(oldVectorSize);
-
         result += nextResult;
     }
+
+    // Remove new items after last loop iteration
+    items.resize(oldVectorSize);
 
     if(circuitEndsHere)
     {
