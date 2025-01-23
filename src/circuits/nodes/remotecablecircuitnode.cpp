@@ -124,6 +124,8 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
 
 void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
 {
+    insideRemoveCircuit = true;
+
     const AnyCircuitType before = hasAnyCircuit(0);
 
     AbstractCircuitNode::removeCircuit(circuit, items);
@@ -150,10 +152,14 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
                     setMode(Mode::ReceiveCurrentOpen);
 
                 scheduleStateRefresh();
+
+                insideRemoveCircuit = false;
                 return;
             }
 
             setMode(Mode::None);
+
+            insideRemoveCircuit = false;
             return;
         }
 
@@ -182,6 +188,7 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
             break;
         }
 
+        insideRemoveCircuit = false;
         return;
     }
 }
@@ -305,14 +312,22 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
 
     if(mMode == Mode::None || (mMode == Mode::SendCurrentOpen && oldMode != Mode::None))
     {
-        // Disable previous circuits
-        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-        disableCircuits(closedCopy, this);
+        if(insideRemoveCircuit)
+        {
+            // Cannot disable circuits if inside removeCircuit()
+            scheduleStateRefresh();
+        }
+        else
+        {
+            // Disable previous circuits
+            const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+            disableCircuits(closedCopy, this);
 
-        const CircuitList openCopy = getCircuits(CircuitType::Open);
-        truncateCircuits(openCopy, this);
+            const CircuitList openCopy = getCircuits(CircuitType::Open);
+            truncateCircuits(openCopy, this);
 
-        ElectricCircuit::defaultReachNextOpenCircuit(this);
+            ElectricCircuit::defaultReachNextOpenCircuit(this);
+        }
     }
     else if(mMode == Mode::SendCurrentWaitClosed || mMode == Mode::SendCurrentClosed)
     {
@@ -525,6 +540,18 @@ void RemoteCableCircuitNode::refreshState()
     if(hasAnyCircuit(0) == AnyCircuitType::None)
     {
         setMode(Mode::None);
+    }
+
+    if(mMode == Mode::None || mMode == Mode::SendCurrentOpen)
+    {
+        // Disable previous circuits, out of removeCircuit()
+        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+        disableCircuits(closedCopy, this);
+
+        const CircuitList openCopy = getCircuits(CircuitType::Open);
+        truncateCircuits(openCopy, this);
+
+        ElectricCircuit::defaultReachNextOpenCircuit(this);
     }
 
     mStateDirty = false;

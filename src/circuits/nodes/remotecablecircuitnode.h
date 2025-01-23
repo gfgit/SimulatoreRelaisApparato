@@ -155,6 +155,8 @@ private:
     Mode mMode = Mode::None;
     Mode mLastPeerMode = Mode::None;
 
+    bool insideRemoveCircuit = false;
+
     CircuitPole mSendPole = CircuitPole::First;
     CircuitPole mRecvPole = CircuitPole::First;
 };
