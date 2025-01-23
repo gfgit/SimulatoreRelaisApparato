@@ -233,6 +233,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
 
     const RemoteCableCircuitNode::Mode currMode = node->mode();
     const CircuitPole currSendPole = node->getSendPole();
+    const RemoteCableCircuitNode::Mode replyToMode = node->lastPeerMode();
 
     if(other)
     {
@@ -251,7 +252,8 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
         // Send to remote session
         RemoteManager *remoteMgr = model()->modeMgr()->getRemoteManager();
         remoteMgr->onLocalBridgeModeChanged(mPeerSessionId, mPeerNodeId,
-                                            qint8(currMode), qint8(currSendPole));
+                                            qint8(currMode), qint8(currSendPole),
+                                            qint8(replyToMode));
     }
 }
 
@@ -270,12 +272,21 @@ void RemoteCircuitBridge::setPeerNodeName(const QString &newPeerNodeName)
     emit settingsChanged(this);
 }
 
-void RemoteCircuitBridge::onRemoteNodeModeChanged(qint8 mode, qint8 pole)
+void RemoteCircuitBridge::onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode)
 {
     const RemoteCableCircuitNode::Mode currMode = RemoteCableCircuitNode::Mode(mode);
     const CircuitPole currSendPole = CircuitPole(pole);
+    const RemoteCableCircuitNode::Mode replyMode = RemoteCableCircuitNode::Mode(replyToMode);
 
     if(!mNodeA)
+        return;
+
+    // NOTE: If 2 requests are quickly sent on after another,
+    // we might get response to first one after we already sent the second one
+    // so here we ignore old replies by comparing which mode generated them with
+    // our current state
+    if(mNodeA->mode() != replyMode &&
+            RemoteCableCircuitNode::isReceiveMode(currMode))
         return;
 
     mNodeA->onPeerModeChanged(currMode, currSendPole);
@@ -294,6 +305,7 @@ void RemoteCircuitBridge::onRemoteStarted()
     {
         const RemoteCableCircuitNode::Mode currMode = mNodeA->mode();
         const CircuitPole currSendPole = mNodeA->getSendPole();
+        const RemoteCableCircuitNode::Mode replyToMode = RemoteCableCircuitNode::Mode::None;
 
         if(!RemoteCableCircuitNode::isSendMode(currMode))
             return;
@@ -301,6 +313,7 @@ void RemoteCircuitBridge::onRemoteStarted()
         // Send to remote session
         RemoteManager *remoteMgr = model()->modeMgr()->getRemoteManager();
         remoteMgr->onLocalBridgeModeChanged(mPeerSessionId, mPeerNodeId,
-                                            qint8(currMode), qint8(currSendPole));
+                                            qint8(currMode), qint8(currSendPole),
+                                            qint8(replyToMode));
     }
 }

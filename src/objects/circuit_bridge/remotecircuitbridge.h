@@ -64,7 +64,7 @@ public:
 
     void onRemoteSessionRenamed(const QString& toName);
 
-    void onRemoteNodeModeChanged(qint8 mode, qint8 pole);
+    void onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode);
     void onRemoteDisconnected();
     void onRemoteStarted();
 

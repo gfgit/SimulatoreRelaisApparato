@@ -158,17 +158,17 @@ void RemoteManager::removeRemoteBridge(RemoteCircuitBridge *bridge, const QStrin
 }
 
 void RemoteManager::onLocalBridgeModeChanged(quint64 peerSessionId, quint64 peerNodeId,
-                                             qint8 mode, qint8 pole)
+                                             qint8 mode, qint8 pole, qint8 replyToMode)
 {
     PeerConnection *conn = mConnections.value(peerSessionId, nullptr);
     if(!conn)
         return;
 
-    conn->sendBridgeStatus(peerNodeId, mode, pole);
+    conn->sendBridgeStatus(peerNodeId, mode, pole, replyToMode);
 }
 
 void RemoteManager::onRemoteBridgeModeChanged(quint64 peerSessionId, quint64 localNodeId,
-                                              qint8 mode, qint8 pole)
+                                              qint8 mode, qint8 pole, qint8 replyToMode)
 {
     PeerConnection *conn = mConnections.value(peerSessionId, nullptr);
     if(!conn)
@@ -180,7 +180,7 @@ void RemoteManager::onRemoteBridgeModeChanged(quint64 peerSessionId, quint64 loc
 
     RemoteCircuitBridge *bridge = it.value().value(localNodeId - 1, nullptr);
     if(bridge)
-        bridge->onRemoteNodeModeChanged(mode, pole);
+        bridge->onRemoteNodeModeChanged(mode, pole, replyToMode);
 }
 
 void RemoteManager::onRemoteBridgeListReceived(PeerConnection *conn, const QVector<BridgeListItem> &list)

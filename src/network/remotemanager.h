@@ -59,10 +59,10 @@ public:
     void removeRemoteBridge(RemoteCircuitBridge *bridge, const QString& peerSession);
 
     void onLocalBridgeModeChanged(quint64 peerSessionId, quint64 peerNodeId,
-                                  qint8 mode, qint8 pole);
+                                  qint8 mode, qint8 pole, qint8 replyToMode);
 
     void onRemoteBridgeModeChanged(quint64 peerSessionId, quint64 localNodeId,
-                                   qint8 mode, qint8 pole);
+                                   qint8 mode, qint8 pole, qint8 replyToMode);
 
     inline bool isSessionReferenced(const QString& name) const
     {

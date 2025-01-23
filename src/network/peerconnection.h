@@ -90,7 +90,7 @@ public:
         remoteMgr = mgr;
     }
 
-    void sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole);
+    void sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode);
     void sendCustonMsg(DataType t, const QCborValue& v);
 
 signals:
