@@ -34,6 +34,10 @@
 
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QFileDialog>
+
+#include <QPainter>
+#include <QSvgGenerator>
 
 CircuitsView::CircuitsView(QWidget *parent)
     : ZoomGraphView{parent}
@@ -145,6 +149,17 @@ void CircuitsView::keyReleaseEvent(QKeyEvent *ev)
             }
         }
     }
+    else if(ev->key() == Qt::Key_R && ev->modifiers() == Qt::ControlModifier)
+    {
+        // Render scene to SVG
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Render To SVG"),
+                                                        QLatin1String("%1.svg").arg(circuitScene()->circuitSheetName()),
+                                                        tr("Scalable Vector Graphics (*.svg)"));
+        if(!fileName.isEmpty())
+        {
+            renderToSVG(fileName);
+        }
+    }
 
     ZoomGraphView::keyReleaseEvent(ev);
 }
@@ -166,4 +181,22 @@ void CircuitsView::deleteSelectedItems()
     {
         s->removeSelectedItems();
     }
+}
+
+void CircuitsView::renderToSVG(const QString &fileName)
+{
+    QSvgGenerator svg(QSvgGenerator::SvgVersion::SvgTiny12);
+    svg.setTitle(circuitScene()->circuitSheetName());
+    svg.setDescription(tr("Simulatore Relais Apparato"));
+    svg.setFileName(fileName);
+
+    QRectF bounds = circuitScene()->itemsBoundingRect();
+    bounds.adjust(-TileLocation::Size, -TileLocation::Size,
+                  TileLocation::Size, TileLocation::Size);
+    svg.setSize(bounds.size().toSize());
+
+    QPainter p(&svg);
+
+    p.translate(-bounds.topLeft());
+    circuitScene()->render(&p);
 }

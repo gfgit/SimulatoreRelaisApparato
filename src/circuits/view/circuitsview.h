@@ -47,6 +47,8 @@ protected:
 
 private:
     void deleteSelectedItems();
+
+    void renderToSVG(const QString& fileName);
 };
 
 #endif // CIRCUITSVIEW_H
