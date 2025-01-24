@@ -118,6 +118,7 @@ void CircuitsView::keyPressEvent(QKeyEvent *ev)
 void CircuitsView::keyReleaseEvent(QKeyEvent *ev)
 {
     if(ev->modifiers() == Qt::NoModifier &&
+            circuitScene()->modeMgr()->mode() == FileMode::Editing &&
             circuitScene()->modeMgr()->editingSubMode() == EditingSubMode::Default)
     {
         // Try with letter shortcut
