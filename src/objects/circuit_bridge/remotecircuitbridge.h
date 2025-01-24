@@ -51,11 +51,31 @@ public:
 
     void setNodeDescription(bool isA, const QString& newDescr);
 
+    void setRemote(bool val);
+
+    inline QString remoteSessionName() const
+    {
+        return mPeerSession;
+    }
+
+    void setRemoteSessionName(const QString& name);
+
+    inline bool isRemote() const { return mIsRemote; }
+
+    void onRemoteSessionRenamed(const QString& toName);
+
+    void onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode);
+    void onRemoteDisconnected();
+    void onRemoteStarted();
+
+    QString peerNodeName() const;
+    void setPeerNodeName(const QString &newPeerNodeName);
+
 private:
     friend class RemoteCableCircuitNode;
     void setNode(RemoteCableCircuitNode *newNode, bool isA);
 
-    void onNodeModeChanged(RemoteCableCircuitNode *node);
+    void onLocalNodeModeChanged(RemoteCableCircuitNode *node);
 
 private:
     RemoteCableCircuitNode *mNodeA = nullptr;
@@ -64,6 +84,13 @@ private:
     QString mNodeDescriptionA;
     QString mNodeDescriptionB;
 
+    bool mIsRemote = false;
+    QString mPeerSession;
+    QString mPeerNodeName;
+
+    friend class RemoteManager;
+    size_t mPeerSessionId = 0;
+    size_t mPeerNodeId = 0;
 };
 
 #endif // REMOTE_CIRCUIT_BRIDGE_H

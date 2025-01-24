@@ -46,6 +46,8 @@ AbstractSimulationObject::~AbstractSimulationObject()
     Q_ASSERT(mInterfaces.isEmpty());
 
     Q_ASSERT(mTrackedObjects.isEmpty());
+
+    emit destroyed(this);
 }
 
 AbstractObjectInterface *AbstractSimulationObject::getAbstractInterface(const QString &ifaceType) const

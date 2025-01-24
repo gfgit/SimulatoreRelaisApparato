@@ -36,6 +36,8 @@
 
 #include "../enums/loadphase.h"
 
+#include "../network/remotemanager.h"
+
 #include <QJsonObject>
 #include <QJsonArray>
 
@@ -185,10 +187,15 @@ ModeManager::ModeManager(QObject *parent)
         model->setParent(this); // Ownership for cleanup
         mObjectModels.insert(objType, model);
     }
+
+    mRemoteMgr = new RemoteManager(this);
 }
 
 ModeManager::~ModeManager()
 {
+    // Disable network communication
+    mRemoteMgr->setOnline(false);
+
     // Delete circuits and factory
     // before objects
     delete mCircuitList;
@@ -207,6 +214,11 @@ ModeManager::~ModeManager()
     qDeleteAll(mObjectModels);
     mObjectModels.clear();
 
+    // Delete remote connections AFTER deleting objects
+    delete mRemoteMgr;
+    mRemoteMgr = nullptr;
+
+    // Delete object factory as last
     delete mObjectFactory;
     mObjectFactory = nullptr;
 }
@@ -222,6 +234,12 @@ void ModeManager::setMode(FileMode newMode)
     {
         // Reset sub editing mode to default
         setEditingSubMode(EditingSubMode::Default);
+    }
+
+    if(newMode != FileMode::Simulation)
+    {
+        // Stop network connections if not in Simulation mode
+        mRemoteMgr->setOnline(false);
     }
 
     mMode = newMode;
@@ -290,6 +308,8 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
         rootObj = convertOldFileFormat(obj);
     }
 
+    mRemoteMgr->setSessionName(obj.value("session_name").toString());
+
     for(auto model : mObjectModels)
     {
         model->clear();
@@ -340,6 +360,8 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
 
     obj["file_version"] = FileVersion::V1;
 
+    obj["session_name"] = mRemoteMgr->sessionName();
+
     obj["objects"] = pool;
 
     obj["circuits"] = circuits;
@@ -355,6 +377,8 @@ void ModeManager::clearAll()
 
     for(auto model : mObjectModels)
         model->clear();
+
+    mRemoteMgr->setSessionName(QString());
 
     resetFileEdited();
 

@@ -1,9 +1,9 @@
 /**
- * src/circuits/view/circuitsview.h
+ * src/network/peerserver.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,33 +20,34 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef CIRCUITSVIEW_H
-#define CIRCUITSVIEW_H
+// Copyright (C) 2016 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include "../../utils/zoomgraphview.h"
+#ifndef PEER_SERVER_H
+#define PEER_SERVER_H
 
-class CircuitScene;
-struct TileLocation;
-class NodeEditFactory;
+#include <QTcpServer>
 
-class CircuitsView : public ZoomGraphView
+class PeerConnection;
+
+class PeerServer : public QTcpServer
 {
     Q_OBJECT
+
 public:
-    explicit CircuitsView(QWidget *parent = nullptr);
+    explicit PeerServer(QObject *parent = nullptr);
 
-    CircuitScene *circuitScene() const;
+    bool isEnabled() const;
+    void setEnabled(bool newEnabled);
 
-    void addNodeAtLocation(NodeEditFactory *editFactory,
-                           const QString &nodeType,
-                           const TileLocation& tileHint);
+signals:
+    void newConnection(PeerConnection *connection);
 
 protected:
-    void keyPressEvent(QKeyEvent *ev) override;
-    void keyReleaseEvent(QKeyEvent *ev) override;
+    void incomingConnection(qintptr socketDescriptor) override;
 
 private:
-    void deleteSelectedItems();
+    bool mEnabled = false;
 };
 
-#endif // CIRCUITSVIEW_H
+#endif // PEER_SERVER_H

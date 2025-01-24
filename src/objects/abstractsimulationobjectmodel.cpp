@@ -110,7 +110,7 @@ QVariant AbstractSimulationObjectModel::data(const QModelIndex &idx, int role) c
         case Qt::EditRole:
             return item->getReferencingNodes(nullptr);
         case Qt::TextAlignmentRole:
-            return Qt::AlignRight;
+            return int(Qt::AlignRight | Qt::AlignVCenter);
         case Qt::FontRole:
         {
             int nodesCount = item->getReferencingNodes(nullptr);

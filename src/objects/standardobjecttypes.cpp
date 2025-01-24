@@ -387,14 +387,42 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     lay->addRow(StandardObjectTypes::tr("Description A:"), nodeDescrA);
     lay->addRow(StandardObjectTypes::tr("Description B:"), nodeDescrB);
 
-    nodeDescrA->setPlaceholderText(StandardObjectTypes::tr("Shown on node B"));
-    nodeDescrB->setPlaceholderText(StandardObjectTypes::tr("Shown on node A"));
+    nodeDescrA->setPlaceholderText(StandardObjectTypes::tr("Shown on node A"));
+    nodeDescrB->setPlaceholderText(StandardObjectTypes::tr("Shown on node B"));
 
     QPalette normalPalette = nodeDescrA->palette();
     QPalette redTextPalette = normalPalette;
     redTextPalette.setColor(QPalette::Text, Qt::red);
 
-    auto updateSettings = [bridge, normalPalette, redTextPalette, nodeDescrA, nodeDescrB]()
+    // Remote session
+    QCheckBox *remoteCB = new QCheckBox(StandardObjectTypes::tr("To Remote Node"));
+    lay->addRow(remoteCB);
+
+    QObject::connect(remoteCB, &QCheckBox::toggled,
+                     bridge, [bridge](bool val)
+    {
+        bridge->setRemote(val);
+    });
+
+    QLineEdit *sessionEdit = new QLineEdit;
+    lay->addRow(StandardObjectTypes::tr("Peer Session:"), sessionEdit);
+    QObject::connect(sessionEdit, &QLineEdit::textEdited,
+                     bridge, [bridge, sessionEdit]()
+    {
+        bridge->setRemoteSessionName(sessionEdit->text());
+    });
+
+    QLineEdit *peerNodeEdit = new QLineEdit;
+    lay->addRow(StandardObjectTypes::tr("Peer Node:"), peerNodeEdit);
+    QObject::connect(peerNodeEdit, &QLineEdit::textEdited,
+                     bridge, [bridge, peerNodeEdit]()
+    {
+        bridge->setPeerNodeName(peerNodeEdit->text());
+    });
+
+    auto updateSettings = [bridge, normalPalette, redTextPalette,
+            nodeDescrA, nodeDescrB,
+            remoteCB, sessionEdit, peerNodeEdit]()
     {
         const QString descrA = bridge->getNodeDescription(true);
         if(nodeDescrA->text() != descrA)
@@ -413,6 +441,20 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
         nodeDescrB->setPalette(hasNodeB ? normalPalette : redTextPalette);
         nodeDescrB->setToolTip(hasNodeB ? QString()
                                         : StandardObjectTypes::tr("Node B not set!"));
+
+        remoteCB->setChecked(bridge->isRemote());
+        remoteCB->setEnabled(!hasNodeA || !hasNodeB);
+
+        sessionEdit->setEnabled(remoteCB->isChecked());
+        peerNodeEdit->setEnabled(remoteCB->isChecked());
+
+        QString str = bridge->remoteSessionName();
+        if(str != sessionEdit->text())
+            sessionEdit->setText(str);
+
+        str = bridge->peerNodeName();
+        if(str != peerNodeEdit->text())
+            peerNodeEdit->setText(str);
     };
 
     QObject::connect(bridge, &RemoteCircuitBridge::settingsChanged,

@@ -260,17 +260,22 @@ void CircuitScene::addCable(CableGraphItem *item)
     // Add cable tiles
     addCableTiles(item);
 
-    setHasUnsavedChanges(true);
+    if(!item->cableZeroLength())
+        setHasUnsavedChanges(true);
 }
 
 void CircuitScene::removeCable(CircuitCable *cable)
 {
+    bool zeroLength = false;
+
     auto it = mCables.find(cable);
     if(it != mCables.end())
     {
         // Delete graph item
         CableGraphItem *item = it->second;
         mCables.erase(it);
+
+        zeroLength = item->cableZeroLength();
 
         removeCableTiles(item);
 
@@ -282,7 +287,8 @@ void CircuitScene::removeCable(CircuitCable *cable)
 
     delete cable;
 
-    setHasUnsavedChanges(true);
+    if(!zeroLength)
+        setHasUnsavedChanges(true);
 }
 
 CableGraphItem *CircuitScene::graphForCable(CircuitCable *cable) const
@@ -1562,6 +1568,36 @@ void CircuitScene::invertSelection()
     }
 }
 
+Connector::Direction CircuitScene::getTileAndDirection(const QPointF &p, TileLocation &outLocation, bool &isEdge)
+{
+    outLocation = TileLocation::fromPointFloor(p);
+
+    // Move origin to tile topleft corner
+    const QPointF posInTile = p - outLocation.toPoint();
+    const double maxCenterDistance = TileLocation::HalfSize / 2;
+
+
+    const bool isEdgeX = qAbs(posInTile.x() - TileLocation::HalfSize) > maxCenterDistance;
+    const bool isEdgeY = qAbs(posInTile.y() - TileLocation::HalfSize) > maxCenterDistance;
+
+    // Edge if one and only one coordinate is at tile edge
+    isEdge = (isEdgeX || isEdgeY) && (isEdgeX != isEdgeY);
+
+    // Divide tile square into 4 triangles and check the diagonals
+    const bool isNorthOrEast = posInTile.y() < posInTile.x(); // y = x
+    const bool isNorthOrWest = posInTile.y() < (TileLocation::Size - posInTile.x()); // y = 100 - x
+
+    Connector::Direction direction = Connector::Direction::North;
+    if(isNorthOrEast && !isNorthOrWest)
+        direction = Connector::Direction::East;
+    else if(!isNorthOrEast && isNorthOrWest)
+        direction = Connector::Direction::West;
+    else if(!isNorthOrEast && !isNorthOrWest)
+        direction = Connector::Direction::South;
+
+    return direction;
+}
+
 bool CircuitScene::insertFragment(const TileLocation &tileHint,
                                   const QJsonObject &fragmentRoot,
                                   NodeEditFactory *factory,
@@ -2215,48 +2251,10 @@ void CircuitScene::endEditCable(bool apply)
 
 void CircuitScene::editCableAddPoint(const QPointF &p, bool allowEdge)
 {
-    int16_t hx = static_cast<int16_t>(std::round(p.x() / TileLocation::HalfSize));
-    int16_t hy = static_cast<int16_t>(std::round(p.y() / TileLocation::HalfSize));
+    TileLocation location = TileLocation::invalid;
 
-    TileLocation location{int16_t(hx / 2), int16_t(hy / 2)};
-
-    QPointF realPoint(hx * TileLocation::HalfSize,
-                      hy * TileLocation::HalfSize);
-
-    const bool isEdge = (hy % 2) != (hx % 2);
-
-    Connector::Direction direction = Connector::Direction::North;
-    if(std::abs(hy) % 2 == 1)
-    {
-        if(isEdge)
-            direction = Connector::Direction::West;
-        location.y = (hy - 1) / 2;
-    }
-    else
-    {
-        location.y = hy / 2;
-        if(p.y() < realPoint.y())
-        {
-            location.y--;
-            if(isEdge)
-                direction = Connector::Direction::South;
-        }
-    }
-
-    if(std::abs(hx) % 2 == 1)
-    {
-        location.x = (hx - 1) / 2;
-    }
-    else
-    {
-        location.x = hx / 2;
-        if(p.x() < realPoint.x())
-        {
-            location.x--;
-            if(isEdge)
-                direction = Connector::Direction::East;
-        }
-    }
+    bool isEdge = false;
+    Connector::Direction direction = getTileAndDirection(p, location, isEdge);
 
     QPointF tileCenter = location.toPoint();
     tileCenter.rx() += TileLocation::HalfSize;
@@ -2369,7 +2367,7 @@ void CircuitScene::keyReleaseEvent(QKeyEvent *e)
         modeMgr()->setEditingSubMode(EditingSubMode::Default);
         break;
     case Qt::Key_S:
-        if(e->modifiers() == Qt::NoModifier && modeMgr()->mode() == FileMode::Editing)
+        if(e->modifiers() == Qt::ShiftModifier && modeMgr()->mode() == FileMode::Editing)
             modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
         break;
     case Qt::Key_Enter:

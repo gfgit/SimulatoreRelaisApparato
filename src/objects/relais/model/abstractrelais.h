@@ -139,7 +139,7 @@ private:
 
     State mState = State::Down;
     State mInternalState = State::Down;
-    bool mNormallyUp = true;
+    bool mNormallyUp = false;
 
     quint32 mCustomUpMS = 0;
     quint32 mCustomDownMS = 0;

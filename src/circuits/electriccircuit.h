@@ -27,6 +27,7 @@
 #include "../enums/circuittypes.h"
 
 #include <QFlags>
+#include <QVarLengthArray>
 
 class AbstractCircuitNode;
 class PowerSourceNode;
@@ -48,6 +49,7 @@ public:
         SkipLoads = 1 << 1,
         ReverseVoltagePassed = 1 << 2
     };
+    Q_DECLARE_FLAGS(PassMode, PassModes)
 
     struct PassNodeResult
     {
@@ -67,7 +69,7 @@ public:
         }
     };
 
-    Q_DECLARE_FLAGS(PassMode, PassModes)
+    typedef QVarLengthArray<Item, 256> ItemVector;
 
     explicit ElectricCircuit();
     ~ElectricCircuit();
@@ -77,6 +79,7 @@ public:
     void terminateHere(AbstractCircuitNode *goalNode, QVector<ElectricCircuit *>& deduplacteList);
 
     inline CircuitType type() const { return mType; }
+    inline bool isEnabled() const { return enabled; }
 
     NodeOccurences getNode(AbstractCircuitNode *node) const;
 
@@ -101,14 +104,14 @@ private:
     bool tryReachOpen(AbstractCircuitNode *goalNode);
 
     static PassNodeResult passCircuitNode(AbstractCircuitNode *node, int nodeContact,
-                                          const QVector<Item>& items, int depth,
+                                          ItemVector& items, int depth,
                                           PassMode mode = PassModes::None);
 
-    static void searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items, int depth);
+    static void searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, ItemVector &items, int depth);
 
-    static void extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items);
+    static void extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const ItemVector &items);
 
-    static void extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const QVector<Item> &items,
+    static void extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const ItemVector &items,
                                               const CableContact& lastCable, ElectricCircuit *otherCircuit);
 
     void checkReverseVoltageSiblings();

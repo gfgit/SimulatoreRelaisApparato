@@ -124,6 +124,8 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
 
 void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
 {
+    insideRemoveCircuit = true;
+
     const AnyCircuitType before = hasAnyCircuit(0);
 
     AbstractCircuitNode::removeCircuit(circuit, items);
@@ -150,10 +152,14 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
                     setMode(Mode::ReceiveCurrentOpen);
 
                 scheduleStateRefresh();
+
+                insideRemoveCircuit = false;
                 return;
             }
 
             setMode(Mode::None);
+
+            insideRemoveCircuit = false;
             return;
         }
 
@@ -182,6 +188,7 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
             break;
         }
 
+        insideRemoveCircuit = false;
         return;
     }
 }
@@ -287,11 +294,6 @@ void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled)
     }
 }
 
-RemoteCableCircuitNode::Mode RemoteCableCircuitNode::mode() const
-{
-    return mMode;
-}
-
 void RemoteCableCircuitNode::setMode(Mode newMode)
 {
     if(!mIsEnabled)
@@ -310,14 +312,22 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
 
     if(mMode == Mode::None || (mMode == Mode::SendCurrentOpen && oldMode != Mode::None))
     {
-        // Disable previous circuits
-        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-        disableCircuits(closedCopy, this);
+        if(insideRemoveCircuit)
+        {
+            // Cannot disable circuits if inside removeCircuit()
+            scheduleStateRefresh();
+        }
+        else
+        {
+            // Disable previous circuits
+            const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+            disableCircuits(closedCopy, this);
 
-        const CircuitList openCopy = getCircuits(CircuitType::Open);
-        truncateCircuits(openCopy, this);
+            const CircuitList openCopy = getCircuits(CircuitType::Open);
+            truncateCircuits(openCopy, this);
 
-        ElectricCircuit::defaultReachNextOpenCircuit(this);
+            ElectricCircuit::defaultReachNextOpenCircuit(this);
+        }
     }
     else if(mMode == Mode::SendCurrentWaitClosed || mMode == Mode::SendCurrentClosed)
     {
@@ -407,7 +417,7 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
 
         if(mRemote)
         {
-            mRemote->onNodeModeChanged(this);
+            mRemote->onLocalNodeModeChanged(this);
         }
     }
 }
@@ -415,6 +425,7 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
 void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole)
 {
     mRecvPole = peerSendPole;
+    mLastPeerMode = peerMode;
 
     switch (peerMode)
     {
@@ -484,7 +495,9 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
     }
     case Mode::ReceiveCurrentWaitClosed:
     {
-        if(mMode != Mode::SendCurrentOpen && mMode != Mode::SendCurrentWaitClosed)
+        if(mMode != Mode::SendCurrentOpen &&
+                mMode != Mode::SendCurrentWaitClosed &&
+                mMode != Mode::SendCurrentClosed)
         {
             // Reject change
             setMode(Mode::None);
@@ -507,8 +520,6 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
     default:
         break;
     }
-
-    mLastPeerMode = peerMode;
 }
 
 void RemoteCableCircuitNode::scheduleStateRefresh()
@@ -529,6 +540,18 @@ void RemoteCableCircuitNode::refreshState()
     if(hasAnyCircuit(0) == AnyCircuitType::None)
     {
         setMode(Mode::None);
+    }
+
+    if(mMode == Mode::None || mMode == Mode::SendCurrentOpen)
+    {
+        // Disable previous circuits, out of removeCircuit()
+        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+        disableCircuits(closedCopy, this);
+
+        const CircuitList openCopy = getCircuits(CircuitType::Open);
+        truncateCircuits(openCopy, this);
+
+        ElectricCircuit::defaultReachNextOpenCircuit(this);
     }
 
     mStateDirty = false;
@@ -552,7 +575,13 @@ void RemoteCableCircuitNode::setIsNodeA(bool newIsNodeA)
         mRemote->setNode(nullptr, !mIsNodeA);
 
         mRemote->setNode(this, newIsNodeA);
-        mRemote->setNode(other, !newIsNodeA);
+        if(other)
+        {
+            // We call setIsNodeA() while remote is still not set
+            // to avoid recursion
+            other->setIsNodeA(!newIsNodeA);
+            mRemote->setNode(other, !newIsNodeA);
+        }
     }
 
     mIsNodeA = newIsNodeA;
@@ -566,8 +595,8 @@ QString RemoteCableCircuitNode::getDescription() const
     if(!mRemote)
         return tr("BRIDGE!!!");
 
-    // We show description of our peer node
-    QString str = mRemote->getNodeDescription(!mIsNodeA);
+    // We show description of our local node
+    QString str = mRemote->getNodeDescription(mIsNodeA);
     if(str.isEmpty())
         return tr("EMPTY!!!");
 

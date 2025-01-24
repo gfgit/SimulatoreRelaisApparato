@@ -165,6 +165,8 @@ private:
     void setCablePathInternal(const CableGraphPath &newCablePath,
                               bool registerTiles);
 
+    bool isMouseInsideShapePluseExtra(const QPointF& p) const;
+
 private slots:
     void updatePen();
     void triggerUpdate();

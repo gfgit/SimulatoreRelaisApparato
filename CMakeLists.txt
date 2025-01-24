@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SimulatoreRelaisApparato VERSION 0.2.0 LANGUAGES CXX)
+project(SimulatoreRelaisApparato VERSION 0.5.0 LANGUAGES CXX)
 
 option(UPDATE_TS_KEEP_OBSOLETE "Keep obsolete entries when updating translations" ON)
 option(BUILD_DOXYGEN "Build Doxygen documentation" OFF)
@@ -48,6 +48,7 @@ find_package(Qt6 REQUIRED
     Core
     Gui
     Widgets
+    Network
     Svg
     Multimedia
     LinguistTools)

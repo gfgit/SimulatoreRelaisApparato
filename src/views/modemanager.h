@@ -40,6 +40,8 @@ class AbstractSimulationObjectModel;
 
 class QJsonObject;
 
+class RemoteManager;
+
 class ModeManager : public QObject
 {
     Q_OBJECT
@@ -92,6 +94,11 @@ public:
     QString filePath() const;
     void setFilePath(const QString &newFilePath);
 
+    inline RemoteManager *getRemoteManager() const
+    {
+        return mRemoteMgr;
+    }
+
 signals:
     void modeChanged(FileMode newMode, FileMode oldMode);
     void fileEdited(bool val);
@@ -111,6 +118,8 @@ private:
     QHash<QString, AbstractSimulationObjectModel*> mObjectModels;
 
     SimulationObjectFactory *mObjectFactory;
+
+    RemoteManager *mRemoteMgr = nullptr;
 
     bool mFileWasEdited = false;
 

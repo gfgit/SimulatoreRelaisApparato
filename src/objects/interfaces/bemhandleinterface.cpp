@@ -171,7 +171,7 @@ void BEMHandleInterface::setTwinHandle(BEMHandleInterface *newTwinHandle)
     {
         twinHandle->twinHandle = nullptr;
         twinHandle->emitChanged(TwinLeverPropName, QVariant());
-        emit twinHandle->mObject->settingsChanged(mObject);
+        emit twinHandle->mObject->settingsChanged(twinHandle->mObject);
         twinHandle = nullptr;
     }
 
@@ -183,7 +183,7 @@ void BEMHandleInterface::setTwinHandle(BEMHandleInterface *newTwinHandle)
         {
             twinHandle->twinHandle->twinHandle = nullptr;
             twinHandle->twinHandle->emitChanged(TwinLeverPropName, QVariant());
-            emit twinHandle->twinHandle->mObject->settingsChanged(mObject);
+            emit twinHandle->twinHandle->mObject->settingsChanged(twinHandle->twinHandle->mObject);
             twinHandle->twinHandle = nullptr;
         }
 
@@ -198,7 +198,7 @@ void BEMHandleInterface::setTwinHandle(BEMHandleInterface *newTwinHandle)
 
         twinHandle->twinHandle = this;
         twinHandle->emitChanged(TwinLeverPropName, QVariant());
-        emit twinHandle->mObject->settingsChanged(mObject);
+        emit twinHandle->mObject->settingsChanged(twinHandle->mObject);
     }
 
     emitChanged(TwinLeverPropName, QVariant());

@@ -257,6 +257,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Always;
         factory.nodeType = OnOffGraphItem::Node::NodeType;
         factory.prettyName = tr("On/Off switch");
+        factory.shortcutLetter = 'O';
         factory.create = &addNewNodeToScene<OnOffGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -295,6 +296,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         NodeEditFactory::FactoryItem factory;
         factory.nodeType = PowerSourceGraphItem::Node::NodeType;
         factory.prettyName = tr("Power Source");
+        factory.shortcutLetter = 'P';
         factory.create = &addNewNodeToScene<PowerSourceGraphItem>;
         factory.edit = nullptr;
 
@@ -306,6 +308,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         NodeEditFactory::FactoryItem factory;
         factory.nodeType = SimpleNodeGraphItem::Node::NodeType;
         factory.prettyName = tr("Simple Node");
+        factory.shortcutLetter = 'F';
         factory.create = &addNewNodeToScene<SimpleNodeGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -346,6 +349,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = RelaisPowerGraphItem::Node::NodeType;
         factory.prettyName = tr("Relay Power");
+        factory.shortcutLetter = 'E';
         factory.create = &addNewNodeToScene<RelaisPowerGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -433,6 +437,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = RelaisContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Relay Contact");
+        factory.shortcutLetter = 'R';
         factory.create = &addNewNodeToScene<RelaisContactGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -489,6 +494,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = ScreenRelaisPowerGraphItem::Node::NodeType;
         factory.prettyName = tr("Screen Relay Power");
+        factory.shortcutLetter = 'V';
         factory.create = &addNewNodeToScene<ScreenRelaisPowerGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -522,6 +528,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = ScreenRelaisContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Screen Relay Contact");
+        factory.shortcutLetter = 'X';
         factory.create = &addNewNodeToScene<ScreenRelaisContactGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -578,6 +585,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = ButtonContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Button Contact");
+        factory.shortcutLetter = 'B';
         factory.create = &addNewNodeToScene<ButtonContactGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -676,6 +684,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = LightBulbGraphItem::Node::NodeType;
         factory.prettyName = tr("Light Bulb");
+        factory.shortcutLetter = 'L';
         factory.create = &addNewNodeToScene<LightBulbGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -692,6 +701,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = ElectroMagnetGraphItem::Node::NodeType;
         factory.prettyName = tr("Electromagnet");
+        factory.shortcutLetter = 'M';
         factory.create = &addNewNodeToScene<ElectroMagnetGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -874,6 +884,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = LeverContactGraphItem::Node::NodeType;
         factory.prettyName = tr("Lever Contact");
+        factory.shortcutLetter = 'K';
         factory.create = &addNewNodeToScene<LeverContactGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -969,6 +980,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
         factory.nodeType = PolarityInversionGraphItem::Node::NodeType;
         factory.prettyName = tr("Polarity Inversion");
+        factory.shortcutLetter = 'I';
         factory.create = &addNewNodeToScene<PolarityInversionGraphItem>;
         factory.edit = nullptr;
 
@@ -993,6 +1005,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = SoundCircuitGraphItem::Node::NodeType;
         factory.prettyName = tr("Sound Node");
+        factory.shortcutLetter = 'U';
         factory.create = &addNewNodeToScene<SoundCircuitGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
@@ -1009,6 +1022,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
         factory.nodeType = DiodeGraphItem::Node::NodeType;
         factory.prettyName = tr("Diode");
+        factory.shortcutLetter = 'D';
         factory.create = &addNewNodeToScene<DiodeGraphItem>;
         factory.edit = nullptr;
 
@@ -1021,6 +1035,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::Never;
         factory.nodeType = RemoteCableCircuitGraphItem::Node::NodeType;
         factory.prettyName = tr("Remote Connection");
+        factory.shortcutLetter = 'T';
         factory.create = &addNewNodeToScene<RemoteCableCircuitGraphItem>;
         factory.edit = &defaultRemoteCableNodeEdit;
 

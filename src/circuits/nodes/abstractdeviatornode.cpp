@@ -256,6 +256,22 @@ void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
         truncateCircuits(openCopy, this, 2); // Disable contact 2
     }
 
+    {
+        const CircuitList closedCopy = getCircuits(CircuitType::Closed);
+        for(ElectricCircuit *circuit : closedCopy)
+        {
+            Q_ASSERT(circuit->type() == CircuitType::Closed);
+            Q_ASSERT(circuit->isEnabled());
+        }
+
+        const CircuitList openCopy = getCircuits(CircuitType::Open);
+        for(ElectricCircuit *circuit : openCopy)
+        {
+            Q_ASSERT(circuit->type() == CircuitType::Open);
+            Q_ASSERT(circuit->isEnabled());
+        }
+    }
+
     if(hasNewConnections)
     {
         // Scan for new circuits

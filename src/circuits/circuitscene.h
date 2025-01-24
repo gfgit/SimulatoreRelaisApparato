@@ -119,6 +119,9 @@ public:
     void selectAll();
     void invertSelection();
 
+    static Connector::Direction getTileAndDirection(const QPointF& pos,
+                                                    TileLocation &outLocation, bool &isEdge);
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);

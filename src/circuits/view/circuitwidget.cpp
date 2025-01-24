@@ -24,10 +24,6 @@
 #include "circuitsview.h"
 
 #include "../circuitscene.h"
-#include "../edit/nodeeditfactory.h"
-
-#include "../graphs/abstractnodegraphitem.h"
-#include "../nodes/abstractcircuitnode.h"
 
 #include "../../views/viewmanager.h"
 
@@ -37,8 +33,6 @@
 #include <QVBoxLayout>
 
 #include <QKeyEvent>
-
-#include <QInputDialog>
 
 CircuitWidget::CircuitWidget(ViewManager *mgr, QWidget *parent)
     : QWidget{parent}
@@ -213,36 +207,11 @@ void CircuitWidget::keyPressEvent(QKeyEvent *ev)
 void CircuitWidget::addNodeToCenter(NodeEditFactory *editFactory,
                                     const QString &nodeType)
 {
-    if(!mScene)
-        return;
-
-    const auto needsName = editFactory->needsName(nodeType);
-    QString name;
-    if(needsName == NodeEditFactory::NeedsName::Always)
-    {
-        name = QInputDialog::getText(this,
-                                     tr("Choose Item Name"),
-                                     tr("Name:"));
-        if(name.isEmpty())
-            return;
-    }
-
     QPoint vpCenter = mCircuitView->viewport()->rect().center();
     QPointF sceneCenter = mCircuitView->mapToScene(vpCenter);
     TileLocation hint = TileLocation::fromPoint(sceneCenter);
 
-    auto item = editFactory->createItem(nodeType, mScene);
-
-    if(needsName == NodeEditFactory::NeedsName::Always)
-        item->getAbstractNode()->setObjectName(name);
-
-    // Set location hint, then scene might change it if not free
-    item->setLocation(hint);
-
-    // Add node to scene
-    scene()->addNode(item);
-
-    mCircuitView->ensureVisible(item);
+    mCircuitView->addNodeAtLocation(editFactory, nodeType, hint);
 }
 
 void CircuitWidget::toggleStatusBar()
