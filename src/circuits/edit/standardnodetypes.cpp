@@ -308,7 +308,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         NodeEditFactory::FactoryItem factory;
         factory.nodeType = SimpleNodeGraphItem::Node::NodeType;
         factory.prettyName = tr("Simple Node");
-        factory.shortcutLetter = 'S';
+        factory.shortcutLetter = 'F';
         factory.create = &addNewNodeToScene<SimpleNodeGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
