@@ -805,54 +805,54 @@ Scegli un altro nome:</translation>
         <translation>Nuovo Elemento Circuito</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="314"/>
+        <location filename="../mainwindow.cpp" line="315"/>
         <source>&lt;b&gt;(C)&lt;/b&gt; Cable</source>
         <translation>&lt;b&gt;(C)&lt;/b&gt; Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="348"/>
+        <location filename="../mainwindow.cpp" line="349"/>
         <source>%1</source>
         <translation>%1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="313"/>
+        <location filename="../mainwindow.cpp" line="314"/>
         <source>Cable</source>
         <translation>Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="333"/>
+        <location filename="../mainwindow.cpp" line="334"/>
         <source>Panel Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="337"/>
+        <location filename="../mainwindow.cpp" line="338"/>
         <source>New Panel Item</source>
         <translation>Nuovo Elemento QL</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="419"/>
+        <location filename="../mainwindow.cpp" line="420"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="473"/>
+        <location filename="../mainwindow.cpp" line="479"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="529"/>
+        <location filename="../mainwindow.cpp" line="535"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="530"/>
+        <location filename="../mainwindow.cpp" line="536"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="593"/>
+        <location filename="../mainwindow.cpp" line="599"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>
@@ -934,50 +934,50 @@ Vuoi salvarle ora?</translation>
 <context>
     <name>NodeEditFactory</name>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="80"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="82"/>
         <source>Edit %1</source>
         <translation>Modifica %1</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="83"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="85"/>
         <source>Type</source>
         <translation>Tipo</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="104"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="106"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="114"/>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="179"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="116"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="187"/>
         <source>Delete</source>
         <translation>Elimina</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="122"/>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="187"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="124"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="195"/>
         <source>Delete Item?</source>
         <translation>Eliminare Elementi?</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="123"/>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="188"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="125"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="196"/>
         <source>Are you sure?</source>
         <translation>Sei sicuro?</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="135"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="137"/>
         <source>Ok</source>
         <translation>Ok</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="158"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="166"/>
         <source>Edit Cable</source>
         <translation>Modifica Cavo</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="160"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="168"/>
         <source>Edit Path</source>
         <translation>Modifica Percorso</translation>
     </message>
@@ -1268,6 +1268,16 @@ Scegli un altro nome:</translation>
         <source>Show Object Properties</source>
         <translation>Mostra Proprietà Oggetto</translation>
     </message>
+    <message>
+        <location filename="../objects/simulationobjectlineedit.cpp" line="95"/>
+        <source>New</source>
+        <translation>Nuovo</translation>
+    </message>
+    <message>
+        <location filename="../objects/simulationobjectlineedit.cpp" line="96"/>
+        <source>Create new Object</source>
+        <translation>Crea nuovo Oggetto</translation>
+    </message>
 </context>
 <context>
     <name>SimulationObjectListWidget</name>
@@ -1282,34 +1292,48 @@ Scegli un altro nome:</translation>
         <translation>Elimina %1</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectlistwidget.cpp" line="115"/>
+        <location filename="../objects/simulationobjectlistwidget.cpp" line="106"/>
         <source>New %1</source>
         <translation>Nuovo %1</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectlistwidget.cpp" line="117"/>
-        <source>Choose name:</source>
-        <translation>Scegli nome:</translation>
+        <location filename="../objects/simulationobjectlistwidget.cpp" line="108"/>
+        <source>New %1
+Choose name:</source>
+        <translation>Nuovo %1
+Scegli nome:</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectlistwidget.cpp" line="118"/>
-        <source>Name is not available.
+        <location filename="../objects/simulationobjectlistwidget.cpp" line="110"/>
+        <source>New %1
+Name is not available.
 Choose another name:</source>
-        <translation>Il nome non è disponibile.
+        <translation>Nuovo %1
+Il nome non è disponibile.
 Scegli un altro nome:</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectlistwidget.cpp" line="155"/>
+        <source>Choose name:</source>
+        <translation type="vanished">Scegli nome:</translation>
+    </message>
+    <message>
+        <source>Name is not available.
+Choose another name:</source>
+        <translation type="vanished">Il nome non è disponibile.
+Scegli un altro nome:</translation>
+    </message>
+    <message>
+        <location filename="../objects/simulationobjectlistwidget.cpp" line="164"/>
         <source>Delete %1?</source>
         <translation>Eliminare %1?</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectlistwidget.cpp" line="156"/>
+        <location filename="../objects/simulationobjectlistwidget.cpp" line="165"/>
         <source>Are you sure to delete &lt;b&gt;%1&lt;/b&gt;?</source>
         <translation>Sei sicuro di voler eliminare &lt;b&gt;%1&lt;/b&gt;?</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectlistwidget.cpp" line="178"/>
+        <location filename="../objects/simulationobjectlistwidget.cpp" line="187"/>
         <source>Edit</source>
         <translation>Modifica</translation>
     </message>
@@ -1973,32 +1997,32 @@ Scegli un altro nome:</translation>
     </message>
     <message>
         <location filename="../views/viewmanager.cpp" line="267"/>
-        <location filename="../views/viewmanager.cpp" line="343"/>
+        <location filename="../views/viewmanager.cpp" line="352"/>
         <source>Panel %1</source>
         <translation>Pannello %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="375"/>
+        <location filename="../views/viewmanager.cpp" line="384"/>
         <source>Edit Panel %1</source>
         <translation>Modifica Banco %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="421"/>
+        <location filename="../views/viewmanager.cpp" line="430"/>
         <source>Edit %1 %2</source>
         <translation>Modifica %1 %2</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="501"/>
+        <location filename="../views/viewmanager.cpp" line="510"/>
         <source>Circuit Sheets</source>
         <translation>Fogli Circuiti</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="521"/>
+        <location filename="../views/viewmanager.cpp" line="530"/>
         <source>Panel Sheets</source>
         <translation>Fogli Banco</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="550"/>
+        <location filename="../views/viewmanager.cpp" line="559"/>
         <source>%1 List</source>
         <translation>Lista %1</translation>
     </message>
