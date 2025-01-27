@@ -1,11 +1,18 @@
 # Keyboard Shorcuts
 
+[Versione in italiano](SHORTCUTS_it.md)
+
 ## View status bar
 
 When you have keyboard focus on a view like Circuit View or Panel view,
 you can use `Shift + Z` to toggle toolbar visibility.
 
 This way you can save some screen space when many views are visible at same time.
+
+## View zoom
+
+You can zoom in/out by pressing `Ctrl` and rotate mouse wheel.
+Or you can enter zoom level in view's status bar.
 
 ## Render View to SVG
 
@@ -16,31 +23,37 @@ Press `Ctrl+R` on an active view, a file dialog will appear for chosing destinat
 ### Default
 
 You can:
-- Add/delete nodes in circuits
-- Rotate nodes (`Right click` or `Shift + Right click`)
-- Add/Edit/Remove cables
+- Add/delete nodes in circuits.
+- Rotate nodes (`Right click` or `Shift + Right click`).
+- Add/Remove cables.
+
+You can move only one node at a time by dragging it. You cannot move cables.
+To place the node over an existing cable, hold `Shift` while releasing mouse. Cable will be splitted into 2 segments.
+
+Double click on a node/cable to show editing dialog.
 
 This is default mode. If you are in another mode, press `Esc` to return to Default mode.
 
 ### Cable editing
 
 When in cable editing you create the path for a cable by:
-- `Left click` on a cell edge to start the cable. A little green line will appear
-- `Left click` on other cells to make cable go horizontal or vertical from its last point
-- `Right click` on cell edge to finish a cable. It will become red
+- `Left click` on a cell edge to start the cable. A little green line will appear.
+- `Left click` on other cells to make cable go horizontal or vertical from its last point.
+- `Right click` on cell edge to finish a cable. It will become red.
 - Press `Enter` to confirm or `Esc` to cancel.
 
-Use `Ctrl + Z` during editing to go back to undo last cable segment.
+Use `Ctrl + Z` during editing to undo last cable segment.
 
 When in Default mode you can enter Cable Editing by:
-- `Shift + Left click` on a existing cable
+- `Shift + Left click` on a existing cable.
 - `Double click` on an existing cable, then `Edit Path` in the dialog.
-- Press `Cable` on edit toolbar to create a new cable
-- Press `C` shortcut to create a new cable
+- Press `Cable` on edit toolbar to create a new cable.
+- Press `C` shortcut to create a new cable.
 
 ### Selection mode
 
 In this mode you can select multiple nodes and cables to delete them, move them, or copy paste them.
+You cannot rotate nodes or edit cable path.
 
 From default mode you can enter selection by pressing `Shift + S` inside a Circuit View.
 
