@@ -322,10 +322,6 @@
 <context>
     <name>BEMLeverObject</name>
     <message>
-        <source>Vertical</source>
-        <translation type="obsolete">Verticale</translation>
-    </message>
-    <message>
         <location filename="../objects/interfaces/bemhandleinterface.cpp" line="44"/>
         <location filename="../objects/lever/bem/bemleverobject.cpp" line="43"/>
         <source>Consensus</source>
@@ -463,37 +459,41 @@ Scegli un altro nome:</translation>
     </message>
 </context>
 <context>
-    <name>CircuitWidget</name>
-    <message>
-        <source>Choose Item Name</source>
-        <translation type="vanished">Scegli Nome Elemento</translation>
-    </message>
-    <message>
-        <source>Name:</source>
-        <translation type="vanished">Nome:</translation>
-    </message>
-</context>
-<context>
     <name>CircuitsView</name>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="62"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="66"/>
         <source>Choose Item Name</source>
         <translation>Scegli Nome Elemento</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="63"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="67"/>
         <source>Name:</source>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="161"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="155"/>
+        <source>Render To SVG</source>
+        <translation>Renderizza su SVG</translation>
+    </message>
+    <message>
+        <location filename="../circuits/view/circuitsview.cpp" line="157"/>
+        <source>Scalable Vector Graphics (*.svg)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../circuits/view/circuitsview.cpp" line="177"/>
         <source>Delete Items</source>
         <translation>Elimina Elementi</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="162"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="178"/>
         <source>Delete selected items?Are you sure?</source>
         <translation>Eliminare elementi selezionati? Sei sicuro?</translation>
+    </message>
+    <message>
+        <location filename="../circuits/view/circuitsview.cpp" line="190"/>
+        <source>Simulatore Relais Apparato</source>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -830,26 +830,6 @@ Scegli un altro nome:</translation>
         <translation>Nuovo Elemento QL</translation>
     </message>
     <message>
-        <source>Edit Tools 1</source>
-        <translation type="vanished">Strumenti Modifica 1</translation>
-    </message>
-    <message>
-        <source>Edit Tools 2</source>
-        <translation type="vanished">Strumenti Modifica 2</translation>
-    </message>
-    <message>
-        <source>New Item</source>
-        <translation type="vanished">Nuovo Elemento</translation>
-    </message>
-    <message>
-        <source>New %1</source>
-        <translation type="vanished">Nuovo %1</translation>
-    </message>
-    <message>
-        <source>New Cable</source>
-        <translation type="vanished">Nuovo Cavo</translation>
-    </message>
-    <message>
         <location filename="../mainwindow.cpp" line="419"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
@@ -1066,18 +1046,6 @@ Vuoi salvarle ora?</translation>
 <context>
     <name>PanelListWidget</name>
     <message>
-        <source>Add Circuit</source>
-        <translation type="obsolete">Aggiungi Circuito</translation>
-    </message>
-    <message>
-        <source>Remove Circuit</source>
-        <translation type="obsolete">Rimuovi Circuito</translation>
-    </message>
-    <message>
-        <source>New Circuit Sheet</source>
-        <translation type="obsolete">Nuovo Foglio Circuito</translation>
-    </message>
-    <message>
         <location filename="../panels/view/panellistwidget.cpp" line="56"/>
         <source>Add Panel</source>
         <translation>Aggiungi Banco</translation>
@@ -1206,12 +1174,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RemoteCableCircuitNode</name>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="573"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="596"/>
         <source>BRIDGE!!!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="578"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="601"/>
         <source>EMPTY!!!</source>
         <translation></translation>
     </message>
@@ -1559,28 +1527,24 @@ Scegli un altro nome:</translation>
         <translation>Pulsante ACEI</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1007"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1008"/>
         <source>Sound Node</source>
         <translation>Suoneria</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1013"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1014"/>
         <source>Sound Object</source>
         <translation>Oggetto Sonoro</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1024"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1025"/>
         <source>Diode</source>
         <translation>Diodo</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1037"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1038"/>
         <source>Remote Connection</source>
         <translation>Connessione Remota</translation>
-    </message>
-    <message>
-        <source>Apply</source>
-        <translation type="obsolete">Applica</translation>
     </message>
     <message>
         <location filename="../circuits/edit/standardnodetypes.cpp" line="686"/>
