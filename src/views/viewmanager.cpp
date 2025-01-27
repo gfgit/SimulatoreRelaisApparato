@@ -310,6 +310,15 @@ ModeManager *ViewManager::modeMgr() const
     return mainWin()->modeMgr();
 }
 
+AbstractSimulationObject *ViewManager::createNewObjectDlg(const QString &objType, QWidget *parent)
+{
+    AbstractSimulationObjectModel *model = mainWin()->modeMgr()->modelForType(objType);
+    if(!model)
+        return nullptr;
+
+    return SimulationObjectListWidget::addObjectHelper(model, parent);
+}
+
 void ViewManager::setCurrentViewType(ViewType newCurrentViewType)
 {
     mCurrentViewType = newCurrentViewType;

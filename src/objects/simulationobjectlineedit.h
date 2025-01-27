@@ -54,7 +54,11 @@ public:
     }
 
     void setObjectEditAllowed(bool allow);
-    bool isObjectEditAllowed() const;
+
+    inline bool isObjectEditAllowed() const
+    {
+        return mObjectEditAllowed;
+    }
 
 public slots:
     void setObject(AbstractSimulationObject *newObject);
@@ -70,6 +74,8 @@ private slots:
     void setType(int idx);
 
     void updateObjectName();
+
+    void onNewObject();
 
 private:
     ViewManager *mViewMgr = nullptr;
@@ -87,10 +93,12 @@ private:
     QCompleter *mCompleter = nullptr;
 
     QPushButton *mEditObjectBut = nullptr;
+    QPushButton *mNewObjectBut = nullptr;
 
     QStringList mTypes;
 
     bool mObjectIsDirty = false;
+    bool mObjectEditAllowed = true;
 };
 
 #endif // SIMULATION_OBJECT_LINEEDIT_H

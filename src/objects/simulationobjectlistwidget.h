@@ -27,6 +27,7 @@
 
 #include "../enums/filemodes.h"
 
+class AbstractSimulationObject;
 class AbstractSimulationObjectModel;
 class QSortFilterProxyModel;
 
@@ -44,6 +45,9 @@ public:
                                QWidget *parent = nullptr);
 
     AbstractSimulationObjectModel *model() const;
+
+    static AbstractSimulationObject *addObjectHelper(AbstractSimulationObjectModel *model,
+                                                     QWidget *parent);
 
 private slots:
     void onFileModeChanged(FileMode mode);

@@ -92,6 +92,10 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
     mEditObjectBut->setToolTip(tr("Show Object Properties"));
     lay->addWidget(mEditObjectBut);
 
+    mNewObjectBut = new QPushButton(tr("New"));
+    mNewObjectBut->setToolTip(tr("Create new Object"));
+    lay->addWidget(mNewObjectBut);
+
     // Default to Auto type
     setType(0);
 
@@ -142,16 +146,20 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
 
     connect(mEditObjectBut, &QPushButton::clicked,
             this, &SimulationObjectLineEdit::editCurrentObject);
+
+    connect(mNewObjectBut, &QPushButton::clicked,
+            this, &SimulationObjectLineEdit::onNewObject);
 }
 
 void SimulationObjectLineEdit::setObjectEditAllowed(bool allow)
 {
-    mEditObjectBut->setVisible(allow);
-}
+    if(mObjectEditAllowed == allow)
+        return;
 
-bool SimulationObjectLineEdit::isObjectEditAllowed() const
-{
-    return mEditObjectBut->isVisible();
+    mObjectEditAllowed = allow;
+
+    mEditObjectBut->setVisible(mObjectEditAllowed);
+    mNewObjectBut->setVisible(mObjectEditAllowed && !mObject);
 }
 
 void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
@@ -185,6 +193,7 @@ void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
     updateObjectName();
 
     mEditObjectBut->setEnabled(mObject != nullptr);
+    mNewObjectBut->setVisible(mObjectEditAllowed && !mObject);
 
     emit objectChanged(mObject);
 }
@@ -245,4 +254,30 @@ void SimulationObjectLineEdit::updateObjectName()
         if(!mLineEdit->text().isEmpty())
             mLineEdit->setText(QString());
     }
+}
+
+void SimulationObjectLineEdit::onNewObject()
+{
+    QString type = mTypes.at(mTypesCombo->currentIndex());
+
+    if(type.isEmpty() && mTypes.size() > 2)
+    {
+        // We are in "Auto" mode and there are more types
+        // So we cannot know which type of object user wants to create
+        // Popup type combo to let user explicitly choose type.
+        mTypesCombo->showPopup();
+        return;
+    }
+
+    if(type.isEmpty())
+        type = mTypes.value(1, QString()); // Default to first type
+
+    if(type.isEmpty())
+        return;
+
+    AbstractSimulationObject *obj = mViewMgr->createNewObjectDlg(type, this);
+    if(!obj)
+        return;
+
+    setObject(obj);
 }

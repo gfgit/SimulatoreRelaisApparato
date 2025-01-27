@@ -90,6 +90,46 @@ AbstractSimulationObjectModel *SimulationObjectListWidget::model() const
     return mModel;
 }
 
+AbstractSimulationObject *SimulationObjectListWidget::addObjectHelper(AbstractSimulationObjectModel *model, QWidget *parent)
+{
+    if(model->modeMgr()->mode() != FileMode::Editing)
+        return nullptr;
+
+    const QString prettyName = model->getObjectPrettyName();
+
+    QString name;
+
+    bool first = true;
+    while(true)
+    {
+        name = QInputDialog::getText(parent,
+                                     tr("New %1").arg(prettyName),
+                                     first ?
+                                         tr("New %1\n"
+                                            "Choose name:").arg(prettyName) :
+                                         tr("New %1\n"
+                                            "Name is not available.\n"
+                                            "Choose another name:").arg(prettyName),
+                                     QLineEdit::Normal,
+                                     name);
+        if(name.isEmpty())
+            return nullptr;
+
+        if(model->isNameAvailable(name))
+            break;
+
+        first = false;
+    }
+
+    SimulationObjectFactory *factory = model->modeMgr()->objectFactory();
+    AbstractSimulationObject *item = factory->createItem(model);
+
+    item->setName(name);
+    model->addObject(item);
+
+    return item;
+}
+
 void SimulationObjectListWidget::onFileModeChanged(FileMode mode)
 {
     const bool canEdit = mode == FileMode::Editing;
@@ -101,38 +141,7 @@ void SimulationObjectListWidget::onFileModeChanged(FileMode mode)
 
 void SimulationObjectListWidget::addObject()
 {
-    if(mModel->modeMgr()->mode() != FileMode::Editing)
-        return;
-
-    const QString prettyName = mModel->getObjectPrettyName();
-
-    QString name;
-
-    bool first = true;
-    while(true)
-    {
-        name = QInputDialog::getText(this,
-                                     tr("New %1").arg(prettyName),
-                                     first ?
-                                         tr("Choose name:") :
-                                         tr("Name is not available.\n"
-                                            "Choose another name:"),
-                                     QLineEdit::Normal,
-                                     name);
-        if(name.isEmpty())
-            return;
-
-        if(mModel->isNameAvailable(name))
-            break;
-
-        first = false;
-    }
-
-    SimulationObjectFactory *factory = mModel->modeMgr()->objectFactory();
-    AbstractSimulationObject *item = factory->createItem(mModel);
-
-    item->setName(name);
-    mModel->addObject(item);
+    addObjectHelper(mModel, this);
 }
 
 void SimulationObjectListWidget::removeCurrentObject()

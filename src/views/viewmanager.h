@@ -85,6 +85,9 @@ public:
 
     ModeManager *modeMgr() const;
 
+    AbstractSimulationObject *createNewObjectDlg(const QString &objType,
+                                                 QWidget *parent);
+
 signals:
     void currentViewTypeChanged(ViewType newVal);
     void activeViewChanged();

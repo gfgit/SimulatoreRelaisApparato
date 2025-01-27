@@ -54,6 +54,10 @@ QWidget *MechanicalConditionsItemDelegate::createEditor(QWidget *parent,
                 ->typesForInterface(MechanicalInterface::IfaceType);
         SimulationObjectLineEdit *objEdit
                 = new SimulationObjectLineEdit(mViewMgr, objTypes, parent);
+
+        // Save some space
+        objEdit->setObjectEditAllowed(false);
+
         return objEdit;
     }
     else if(index.column() == MechanicalConditionsModel::TypeCol ||
