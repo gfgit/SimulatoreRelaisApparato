@@ -431,11 +431,16 @@ void MainWindow::updateRecentFileActions()
 
 void MainWindow::addFileToRecents(const QString &fileName)
 {
+    QFileInfo info(fileName);
+    const QString canonicalFileName = info.canonicalFilePath();
+    if(canonicalFileName.isEmpty())
+        return;
+
     // Store in recent files
     QSettings settings(settingsFile, QSettings::IniFormat);
     QStringList files = settings.value("recent_files").toStringList();
-    files.removeAll(fileName);
-    files.prepend(fileName);
+    files.removeAll(canonicalFileName);
+    files.prepend(canonicalFileName);
     while (files.size() > MaxRecentFiles)
         files.removeLast();
 
