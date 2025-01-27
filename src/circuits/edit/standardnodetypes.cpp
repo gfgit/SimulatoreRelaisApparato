@@ -993,6 +993,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
         factory.nodeType = BifilarizatorGraphItem::Node::NodeType;
         factory.prettyName = tr("BiFiLar1zaT0R");
+        factory.shortcutLetter = 'Q';
         factory.create = &addNewNodeToScene<BifilarizatorGraphItem>;
         factory.edit = nullptr;
 
