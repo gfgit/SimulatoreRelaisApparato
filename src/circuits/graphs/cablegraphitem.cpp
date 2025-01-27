@@ -123,7 +123,7 @@ QPainterPath CableGraphItem::shape() const
 {
     // Return a bigger shape to get mouse clicks in around cable drawing.
     // Otherwise it's too difficult to select it.
-    return _qt_graphicsItem_shapeFromPath(mPath, pen, pen.widthF() * 3.0);
+    return _qt_graphicsItem_shapeFromPath(mPath, pen, pen.widthF() * 4.0);
 }
 
 void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
