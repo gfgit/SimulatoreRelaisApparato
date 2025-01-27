@@ -281,6 +281,7 @@ void MainWindow::buildEditToolBar()
 
     QAction *newCircuitItem = new QAction(tr("New Circuit Item"));
     QMenu *newCircuitItemMenu = new QMenu;
+    newCircuitItemMenu->setToolTipsVisible(true);
     newCircuitItem->setMenu(newCircuitItemMenu);
     circuitEditToolbar1->addAction(newCircuitItem);
     circuitEditToolbar1->addSeparator();
