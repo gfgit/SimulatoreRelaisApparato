@@ -112,6 +112,9 @@ void LeverInterface::init()
 
     // Default to normal position
     setAngle(angleForPosition(normalPosition()));
+
+    // Set explicitly in case angle does not trigger change
+    setPosition(normalPosition());
 }
 
 int LeverInterface::angle() const
