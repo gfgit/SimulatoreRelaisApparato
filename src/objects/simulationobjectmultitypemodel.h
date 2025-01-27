@@ -49,6 +49,8 @@ public:
 
     AbstractSimulationObject *objectAt(int row) const;
 
+    AbstractSimulationObject *getObjectByName(const QString& name) const;
+
 private slots:
     void onBeginReset();
     void onResetEnd();

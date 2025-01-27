@@ -126,6 +126,16 @@ AbstractSimulationObject *SimulationObjectMultiTypeModel::objectAt(int row) cons
     return m->objectAt(sourceRow);
 }
 
+AbstractSimulationObject *SimulationObjectMultiTypeModel::getObjectByName(const QString &name) const
+{
+    for(AbstractSimulationObjectModel *m : std::as_const(mModels))
+    {
+        if(auto *obj = m->getObjectByName(name))
+            return obj;
+    }
+    return nullptr;
+}
+
 void SimulationObjectMultiTypeModel::onBeginReset()
 {
     mResetCount++;

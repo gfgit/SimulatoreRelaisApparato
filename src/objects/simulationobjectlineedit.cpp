@@ -113,12 +113,31 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
     if(mTypes.size() == 1)
         mTypesCombo->hide(); // No need to show if type cannot be changed
 
+    connect(mLineEdit, &QLineEdit::textEdited,
+            [this]()
+    {
+        mObjectIsDirty = true;
+    });
+
     connect(mLineEdit, &QLineEdit::returnPressed,
             [this]()
     {
         // Allow un-set current object
         if(mLineEdit->text().isEmpty())
+        {
             setObject(nullptr);
+        }
+        else if(mObjectIsDirty)
+        {
+            // Text was edited without chosing an item from completer popup
+            // Try to find it by name
+            if(mMultiModel)
+                setObject(mMultiModel->getObjectByName(mLineEdit->text()));
+            else
+                setObject(mModel->getObjectByName(mLineEdit->text()));
+        }
+
+        updateObjectName();
     });
 
     connect(mEditObjectBut, &QPushButton::clicked,
@@ -137,6 +156,8 @@ bool SimulationObjectLineEdit::isObjectEditAllowed() const
 
 void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
 {
+    mObjectIsDirty = false;
+
     if(mObject == newObject)
         return;
 

@@ -87,6 +87,8 @@ private:
     QPushButton *mEditObjectBut = nullptr;
 
     QStringList mTypes;
+
+    bool mObjectIsDirty = false;
 };
 
 #endif // SIMULATION_OBJECT_LINEEDIT_H
