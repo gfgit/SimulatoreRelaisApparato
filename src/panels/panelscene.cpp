@@ -82,10 +82,23 @@ void PanelScene::setMode(FileMode newMode, FileMode oldMode)
 
     if(editing)
     {
+        setSceneRect(QRectF());
+
         buildSnapMap();
     }
     else
     {
+        if(oldMode == FileMode::Editing || oldMode == FileMode::LoadingFile)
+        {
+            // Cut scene rect to items bounding rect
+            QRectF br = itemsBoundingRect();
+
+            // Add some margin
+            br.adjust(-TileLocation::HalfSize, -TileLocation::HalfSize,
+                      TileLocation::HalfSize, TileLocation::HalfSize);
+            setSceneRect(br);
+        }
+
         clearSnapMap();
 
         bringTop(nullptr); // Reset topmost item

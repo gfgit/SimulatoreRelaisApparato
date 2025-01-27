@@ -178,10 +178,24 @@ ModeManager *CircuitScene::modeMgr() const
 
 void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 {
-    if(oldMode == FileMode::Editing)
+    if(oldMode == FileMode::Editing || oldMode == FileMode::LoadingFile)
     {
         // Recalculate circuit
         calculateConnections();
+
+        // Cut scene rect to items bounding rect
+        QRectF br = itemsBoundingRect();
+
+        // Add some margin
+        br.adjust(-TileLocation::HalfSize, -TileLocation::HalfSize,
+                  TileLocation::HalfSize, TileLocation::HalfSize);
+        setSceneRect(br);
+    }
+
+    if(newMode == FileMode::Editing)
+    {
+        // Let scene rect expand during editing
+        setSceneRect(QRectF());
     }
 
     const bool powerSourceEnabled = newMode == FileMode::Simulation;
