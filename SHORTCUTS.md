@@ -18,6 +18,10 @@ Or you can enter zoom level in view's status bar.
 
 Press `Ctrl+R` on an active view, a file dialog will appear for chosing destination SVG file.
 
+## Edit dialog
+
+To remove an object from a field, delete text and press `Enter`.
+
 ## Editing modes
 
 ### Default

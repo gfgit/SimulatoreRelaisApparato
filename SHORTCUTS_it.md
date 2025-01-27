@@ -18,6 +18,10 @@ Premi `Ctrl+R` su una schermata attiva, una finestra di dialogo apparirà per se
 Puoi ingrandire/rimpicciolire i contenuti usand `Ctrl` e ruotando la rotella del mouse.
 Oppure puoi inserire il livello di zoom nella barra di stato della schermata.
 
+## Finestra Modifica
+
+Per rimuovere un oggetto da un campo, elimina il testo e premi `Enter`.
+
 ## Modalità di modifica
 
 ### Default
