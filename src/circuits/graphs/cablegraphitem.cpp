@@ -79,18 +79,39 @@ CableGraphItem::CableGraphItem(CircuitCable *cable_)
 
 QRectF CableGraphItem::boundingRect() const
 {
+    if(mCablePath.isEmpty())
+        return QRectF();
+
     if (mBoundingRect.isNull())
     {
-        QRectF br = mPath.controlPointRect();
+        const TileLocation firstTile = mCablePath.first();
 
-        // Round to tile size
-        TileLocation topLeftTile = TileLocation::fromPointFloor(br.topLeft());
-        TileLocation bottomRightTile = TileLocation::fromPointFloor(br.bottomRight());
+        int16_t leftX = firstTile.x, rightX = firstTile.x;
+        int16_t topY = firstTile.y, bottomY = firstTile.y;
 
-        br.setTopLeft(topLeftTile.toPoint());
+        for(const TileLocation& tile : mCablePath.tiles())
+        {
+            if(tile.x < leftX)
+                leftX = tile.x;
+            if(tile.x > rightX)
+                rightX = tile.x;
 
-        // Conside whole tile so +1, +1
-        br.setBottomRight(bottomRightTile.adjusted(1, 1).toPoint());
+            if(tile.y < topY)
+                topY = tile.y;
+            if(tile.y > bottomY)
+                bottomY = tile.y;
+        }
+
+        // Tile position is top-left corner
+        // Consider bottom-right corner of bottom-right tile
+        rightX++;
+        bottomY++;
+
+        QRectF br;
+        br.setTop(topY * TileLocation::Size);
+        br.setBottom(bottomY * TileLocation::Size);
+        br.setLeft(leftX * TileLocation::Size);
+        br.setRight(rightX * TileLocation::Size);
 
         CableGraphItem *self = const_cast<CableGraphItem*>(this);
         self->mBoundingRect = br;
