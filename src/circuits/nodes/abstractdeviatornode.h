@@ -69,6 +69,8 @@ public:
 
     bool canChangeCentralConnector() const;
 
+    bool bothCanBeActive() const;
+
 signals:
     void deviatorStateChanged();
 
@@ -76,6 +78,7 @@ protected:
     void setContactState(bool valUp, bool valDown);
     void setAllowSwap(bool newAllowSwap);
     void setCanChangeCentralConnector(bool newCanChangeCentralConnector);
+    void setBothCanBeActive(bool value);
 
 private:
     bool mFlipContact = false;
@@ -83,6 +86,7 @@ private:
     bool mHasCentralConnector = false; // Up connector
     bool mAllowSwap = true;
     bool mCanChangeCentralConnector = true;
+    bool mBothCanBeActive = false;
 
     // UpIdx, DownIdx reflecting actual state
     bool mContactOnArr[2] = {false, false};

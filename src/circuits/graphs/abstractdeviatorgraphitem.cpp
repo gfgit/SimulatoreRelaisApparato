@@ -186,7 +186,27 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     pen.setColor(colors[int(AnyCircuitType::None)]);
     painter->setPen(pen);
 
-    drawCustomArc(painter, contact1Line, contact2Line, center);
+    if(deviatorNode()->hasCentralConnector() && deviatorNode()->bothCanBeActive())
+    {
+        // When both contacts can be active at same time we draw
+        // a special diagonal line inside arc
+
+        // Draw black middle diagonal line below everything
+        QPointF corner;
+        corner.setX(contact1Line.x2());
+        corner.setY(contact1Line.y2());
+        if(qFuzzyCompare(contact1Line.x2(), center.x()))
+            corner.setX(contact2Line.x2());
+        if(qFuzzyCompare(contact1Line.y2(), center.y()))
+            corner.setY(contact2Line.y2());
+
+        // Going to corner would make diagonal longer
+        // than central contact line (sqrt(2) * length)
+        // So we set direction and then adjust length to be same
+        QLineF diagonal(center, corner);
+        diagonal.setLength(qAbs(center.x() - corner.x()));
+        painter->drawLine(diagonal);
+    }
 
     // Draw full switch arc below wires
     const QRectF arcRect(center.x() - arcRadius,
@@ -329,16 +349,4 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
                          topArcStart * 16,
                          (arcLength / 2) * 16);
     }
-}
-
-void AbstractDeviatorGraphItem::drawCustomArc(QPainter *painter,
-                                              const QLineF &contact1Line,
-                                              const QLineF &contact2Line,
-                                              const QPointF &center)
-{
-    Q_UNUSED(painter)
-    Q_UNUSED(contact1Line)
-    Q_UNUSED(contact2Line)
-    Q_UNUSED(center)
-    // Reimplemented in subclasses
 }

@@ -322,3 +322,14 @@ void AbstractDeviatorNode::setCanChangeCentralConnector(bool newCanChangeCentral
     emit shapeChanged();
     modeMgr()->setFileEdited();
 }
+
+bool AbstractDeviatorNode::bothCanBeActive() const
+{
+    return mBothCanBeActive;
+}
+
+void AbstractDeviatorNode::setBothCanBeActive(bool value)
+{
+    mBothCanBeActive = value;
+    emit shapeChanged();
+}

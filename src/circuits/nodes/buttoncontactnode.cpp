@@ -159,6 +159,17 @@ void ButtonContactNode::setContactStateFor(int buttonState, int contact, bool va
         mSecondContactState[buttonState] = val;
     }
 
+    bool bothCanBeActive = false;
+    for(int s = 0; s < 3; s++)
+    {
+        if(mFirstContactState[s] && mSecondContactState[s])
+        {
+            bothCanBeActive = true;
+            break;
+        }
+    }
+    setBothCanBeActive(bothCanBeActive);
+
     emit contactStateSettingsChanged();
     refreshContactState();
     modeMgr()->setFileEdited();

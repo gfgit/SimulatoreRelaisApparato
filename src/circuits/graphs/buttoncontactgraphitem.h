@@ -38,12 +38,6 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     ButtonContactNode *node() const;
-
-protected:
-    void drawCustomArc(QPainter *painter,
-                       const QLineF &contact1Line,
-                       const QLineF &contact2Line,
-                       const QPointF &center) override;
 };
 
 #endif // BUTTON_CONTACT_GRAPHITEM_H

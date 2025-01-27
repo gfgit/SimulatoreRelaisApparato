@@ -79,27 +79,3 @@ ButtonContactNode *ButtonContactGraphItem::node() const
 {
     return static_cast<ButtonContactNode *>(getAbstractNode());
 }
-
-void ButtonContactGraphItem::drawCustomArc(QPainter *painter,
-                                              const QLineF &contact1Line,
-                                              const QLineF &contact2Line,
-                                              const QPointF &center)
-{
-    // Custom arc diagonal line for ACEI Buttons
-
-    // Draw black middle diagonal line below everything
-    QPointF corner;
-    corner.setX(contact1Line.x2());
-    corner.setY(contact1Line.y2());
-    if(qFuzzyCompare(contact1Line.x2(), center.x()))
-        corner.setX(contact2Line.x2());
-    if(qFuzzyCompare(contact1Line.y2(), center.y()))
-        corner.setY(contact2Line.y2());
-
-    // Going to corner would make diagonal longer
-    // than central contact line (sqrt(2) * length)
-    // So we set direction and then adjust length to be same
-    QLineF diagonal(center, corner);
-    diagonal.setLength(qAbs(center.x() - corner.x()));
-    painter->drawLine(diagonal);
-}
