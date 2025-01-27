@@ -64,6 +64,8 @@ public slots:
 signals:
     void objectChanged(AbstractSimulationObject *obj);
 
+    void editRequested();
+
 private slots:
     void setType(int idx);
 

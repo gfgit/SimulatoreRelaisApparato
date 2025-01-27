@@ -195,6 +195,8 @@ void SimulationObjectLineEdit::editCurrentObject()
         return;
 
     mViewMgr->showObjectEdit(mObject);
+
+    emit editRequested();
 }
 
 void SimulationObjectLineEdit::setType(int idx)
