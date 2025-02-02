@@ -317,6 +317,13 @@ void ScreenRelais::setPowerNode(ScreenRelaisPowerNode *node)
     if(mPowerNode == node)
         return;
 
+    if(mPowerNode)
+    {
+        ScreenRelaisPowerNode *oldPowerNode = mPowerNode;
+        mPowerNode = nullptr;
+        oldPowerNode->setScreenRelais(nullptr);
+    }
+
     mPowerNode = node;
 
     if(!mPowerNode)
