@@ -67,15 +67,15 @@ public:
     CircuitWidget *activeCircuitView() const;
     CircuitWidget *addCircuitView(CircuitScene *scene,
                                   bool forceNew = false);
-    void showCircuitSceneEdit(CircuitScene *scene);
+    void showCircuitSceneProperties(CircuitScene *scene);
 
     // Panels
     PanelWidget *activePanelView() const;
     PanelWidget *addPanelView(PanelScene *scene, bool forceNew);
-    void showPanelSceneEdit(PanelScene *scene);
+    void showPanelSceneProperties(PanelScene *scene);
 
     // Objects
-    void showObjectEdit(AbstractSimulationObject *item);
+    void showObjectProperties(AbstractSimulationObject *item);
 
     void closeAllEditDocks();
     void closeAllFileSpecificDocks();

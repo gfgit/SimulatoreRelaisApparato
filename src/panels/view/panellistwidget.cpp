@@ -169,9 +169,6 @@ void PanelListWidget::onSceneDoubleClicked(const QModelIndex &idx)
 
 void PanelListWidget::showViewContextMenu(const QPoint &pos)
 {
-    if(mModel->modeMgr()->mode() != FileMode::Editing)
-        return;
-
     QPointer<QMenu> menu = new QMenu(this);
 
     QModelIndex idx = mView->indexAt(pos);
@@ -179,10 +176,10 @@ void PanelListWidget::showViewContextMenu(const QPoint &pos)
     if(!scene)
         return;
 
-    QAction *actionEdit = menu->addAction(tr("Edit"));
+    QAction *actionProperties = menu->addAction(tr("Properties"));
     QAction *ret = menu->exec(mView->viewport()->mapToGlobal(pos));
-    if(ret == actionEdit)
-        mViewMgr->showPanelSceneEdit(scene);
+    if(ret == actionProperties)
+        mViewMgr->showPanelSceneProperties(scene);
 }
 
 PanelSceneOptionsWidget::PanelSceneOptionsWidget(PanelScene *scene, QWidget *parent)

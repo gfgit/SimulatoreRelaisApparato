@@ -208,7 +208,7 @@ void SimulationObjectLineEdit::editCurrentObject()
     if(!mObject)
         return;
 
-    mViewMgr->showObjectEdit(mObject);
+    mViewMgr->showObjectProperties(mObject);
 
     emit editRequested();
 }
