@@ -293,17 +293,22 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
             painter->setPen(xPen);
             painter->setBrush(Qt::NoBrush);
 
+            // Make X touch circle
+            const double adjFac = relayRect.width() * 0.15;
+            const QRectF adjRelayRect = relayRect.adjusted(adjFac, adjFac,
+                                                           -adjFac, -adjFac);
+
             if(node()->combinatorSecondCoil())
             {
                 targetPt.setX(0);
 
-                painter->drawLine(targetPt, relayRect.topLeft());
-                painter->drawLine(targetPt, relayRect.bottomLeft());
+                painter->drawLine(targetPt, adjRelayRect.topLeft());
+                painter->drawLine(targetPt, adjRelayRect.bottomLeft());
             }
             else
             {
-                painter->drawLine(targetPt, relayRect.topRight());
-                painter->drawLine(targetPt, relayRect.bottomRight());
+                painter->drawLine(targetPt, adjRelayRect.topRight());
+                painter->drawLine(targetPt, adjRelayRect.bottomRight());
             }
 
             const QChar letter = node()->combinatorSecondCoil() ? 'R' : 'N';
