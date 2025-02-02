@@ -70,6 +70,8 @@ class PanelSceneOptionsWidget : public QWidget
 public:
     PanelSceneOptionsWidget(PanelScene *scene, QWidget *parent = nullptr);
 
+    void setEditingAllowed(bool value);
+
 private slots:
     void setSceneName();
     void onNameTextEdited();

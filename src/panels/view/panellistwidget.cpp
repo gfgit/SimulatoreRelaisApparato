@@ -213,6 +213,12 @@ PanelSceneOptionsWidget::PanelSceneOptionsWidget(PanelScene *scene, QWidget *par
             this, &PanelSceneOptionsWidget::setSceneLongName);
 }
 
+void PanelSceneOptionsWidget::setEditingAllowed(bool value)
+{
+    mNameEdit->setReadOnly(!value);
+    mLongNameEdit->setReadOnly(!value);
+}
+
 void PanelSceneOptionsWidget::setSceneName()
 {
     QString newName = mNameEdit->text().trimmed();

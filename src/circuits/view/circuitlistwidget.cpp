@@ -213,6 +213,12 @@ CircuitSceneOptionsWidget::CircuitSceneOptionsWidget(CircuitScene *scene, QWidge
             this, &CircuitSceneOptionsWidget::setSceneLongName);
 }
 
+void CircuitSceneOptionsWidget::setEditingAllowed(bool value)
+{
+    mNameEdit->setReadOnly(!value);
+    mLongNameEdit->setReadOnly(!value);
+}
+
 void CircuitSceneOptionsWidget::setSceneName()
 {
     QString newName = mNameEdit->text().trimmed();

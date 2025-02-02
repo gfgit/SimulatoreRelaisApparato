@@ -187,6 +187,12 @@ void MainWindow::buildMenuBar()
         buildEditToolBar();
     }
 
+    menuView->addAction(tr("Close Properties Dialogs"), this,
+                        [this]()
+    {
+        mViewMgr->closeAllEditDocks();
+    });
+
 
     // Menu Network
     QMenu *menuNetwork = menuBar()->addMenu(tr("Network"));

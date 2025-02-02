@@ -490,6 +490,30 @@ void ViewManager::closeAllEditDocks()
     mObjectEdits.clear();
 }
 
+void ViewManager::setEditDocksEnabled(bool enabled)
+{
+    for(auto it : mCircuitEdits.asKeyValueRange())
+    {
+        CircuitSceneOptionsWidget *w =
+                static_cast<CircuitSceneOptionsWidget *>(it.second->widget());
+        w->setEditingAllowed(enabled);
+    }
+
+    for(auto it : mPanelEdits.asKeyValueRange())
+    {
+        PanelSceneOptionsWidget *w =
+                static_cast<PanelSceneOptionsWidget *>(it.second->widget());
+        w->setEditingAllowed(enabled);
+    }
+
+    for(auto it : mObjectEdits.asKeyValueRange())
+    {
+        SimulationObjectOptionsWidget *w =
+                static_cast<SimulationObjectOptionsWidget *>(it.second->widget());
+        w->setEditingAllowed(enabled);
+    }
+}
+
 void ViewManager::closeAllFileSpecificDocks()
 {
     closeAllEditDocks();
@@ -711,9 +735,8 @@ void ViewManager::panelItemEditRequested(AbstractPanelItem *item)
 
 void ViewManager::onFileModeChanged(FileMode mode, FileMode oldMode)
 {
-    Q_UNUSED(mode);
-    if(oldMode == FileMode::Editing)
-        closeAllEditDocks();
+    Q_UNUSED(oldMode);
+    setEditDocksEnabled(mode == FileMode::Editing);
 }
 
 CircuitWidget *ViewManager::activeCircuitView() const

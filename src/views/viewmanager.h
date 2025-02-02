@@ -127,6 +127,8 @@ private:
     void updateDockName(PanelWidget *w);
     int getUniqueNum(PanelScene *scene, PanelWidget *self) const;
 
+    void setEditDocksEnabled(bool enabled);
+
 private:
     // File specific views
     CircuitWidget *mActiveCircuitView = nullptr;
