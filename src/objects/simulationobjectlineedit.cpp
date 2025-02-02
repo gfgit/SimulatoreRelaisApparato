@@ -41,6 +41,8 @@
 #include <QComboBox>
 #include <QPushButton>
 
+#include <QAbstractItemView>
+
 SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
                                                    const QStringList &types,
                                                    QWidget *parent)
@@ -131,8 +133,11 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
         {
             setObject(nullptr);
         }
-        else if(mObjectIsDirty)
+        else if(mObjectIsDirty && !mCompleter->popup()->isVisible())
         {
+            // NOTE: Do not react if completer popup is visible
+            // Otherwise it will emit activated() and we will set object twice
+
             // Text was edited without chosing an item from completer popup
             // Try to find it by name
             if(mMultiModel)

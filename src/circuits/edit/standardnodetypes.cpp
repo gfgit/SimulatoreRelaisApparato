@@ -250,8 +250,7 @@ QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ViewManager *vi
             else
             {
                 // Reject change
-                QMetaObject::invokeMethod(objectEdit, &SimulationObjectLineEdit::setObject,
-                                          Qt::QueuedConnection, node->remote());
+                objectEdit->setObject(node->remote());
             }
         }
     });
@@ -559,8 +558,7 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                     else
                     {
                         // Reject change
-                        QMetaObject::invokeMethod(relayEdit, &SimulationObjectLineEdit::setObject,
-                                                  Qt::QueuedConnection, node->screenRelais());
+                        relayEdit->setObject(node->screenRelais());
                     }
                 }
             });
