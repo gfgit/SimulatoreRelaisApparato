@@ -18,7 +18,7 @@ Or you can enter zoom level in view's status bar.
 
 Press `Ctrl+R` on an active view, a file dialog will appear for chosing destination SVG file.
 
-## Edit dialog
+## Properties dialog
 
 ### Object fields
 
@@ -28,6 +28,14 @@ To remove an object from a field, delete text and press `Enter`.
 
 Number fields can be edited with mouse wheel if you pass with cursor over them.
 If they are inside a scroll area, you must first click to get focus on them and then scroll to change number.
+
+### Nodes Tab
+
+In object Properties dialog, the "Nodes" tab shows a list of all nodes referencing the object.
+Double clicking on an item will show (or raise if already open) circuit view and center it on selected node.
+
+If `Shift` is held while clicking, a new view is opened regardless if other views exist for same circuit.
+If `Alt` is held while clicking, the zoom level in the view will not be raised if below 100%.
 
 ## Editing modes
 
