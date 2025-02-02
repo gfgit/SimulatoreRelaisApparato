@@ -57,15 +57,10 @@
 #include "../../objects/interfaces/leverinterface.h"
 #include "../../objects/interfaces/sasibaceleverextrainterface.h"
 
-#include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 #include "../../objects/simple_activable/lightbulbobject.h"
 
 #include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/lever/acei/aceileverobject.h"
-
-#include "../../objects/lever/model/levercontactconditionsmodel.h"
-
-#include "../../objects/lever/view/levercontactconditionsview.h"
 
 // TODO: remove BEM
 #include "../../objects/lever/bem/bemleverobject.h"
@@ -615,22 +610,6 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factoryReg->registerFactory(factory);
     }
 
-    /*
-    {
-        // Light Bulb node
-        PanelItemFactory::FactoryItem factory;
-        factory.needsName = PanelItemFactory::NeedsName::Never;
-        factory.nodeType = LightBulbGraphItem::Node::NodeType;
-        factory.prettyName = tr("Light Bulb");
-        factory.create = &addNewNodeToScene<LightBulbGraphItem>;
-        factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
-        {
-            return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
-                                               viewMgr, tr("Light:"));
-        };
 
-        factoryReg->registerFactory(factory);
-    }
-    */
 }
 
