@@ -116,6 +116,12 @@ protected:
     virtual void addObjectInternal(AbstractSimulationObject *item);
     virtual void removeObjectInternal(AbstractSimulationObject *item);
 
+    QVariant nodesCountData(const AbstractSimulationObject *item,
+                            int role,
+                            int nodesCount,
+                            bool highlight,
+                            const QString& tip = QString()) const;
+
 private:
     ModeManager *mModeMgr;
 

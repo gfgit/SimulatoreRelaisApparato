@@ -116,6 +116,16 @@ public:
         return mActivePowerNodesDown > 0;
     }
 
+    inline int getPowerNodesCount() const
+    {
+        return mPowerNodes.size();
+    }
+
+    inline int getContactNodesCount() const
+    {
+        return mContactNodes.size();
+    }
+
 signals:
     void typeChanged(AbstractRelais *self, RelaisType s);
 
