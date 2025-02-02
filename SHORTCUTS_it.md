@@ -20,7 +20,14 @@ Oppure puoi inserire il livello di zoom nella barra di stato della schermata.
 
 ## Finestra Modifica
 
+### Campi oggetto
+
 Per rimuovere un oggetto da un campo, elimina il testo e premi `Enter`.
+
+### Campi numerici
+
+I campi numerici possono essere modificati con la rotella del mouse se ci passi sopra con il cursore.
+Se sono all'interno di un'area di scorrimento, devi prima cliccarli per spostare il focus su di loro e poi scorrere la rotella del mouse per cambiare numero.
 
 ## Modalità di modifica
 

@@ -20,7 +20,14 @@ Press `Ctrl+R` on an active view, a file dialog will appear for chosing destinat
 
 ## Edit dialog
 
+### Object fields
+
 To remove an object from a field, delete text and press `Enter`.
+
+### Number fields
+
+Number fields can be edited with mouse wheel if you pass with cursor over them.
+If they are inside a scroll area, you must first click to get focus on them and then scroll to change number.
 
 ## Editing modes
 
