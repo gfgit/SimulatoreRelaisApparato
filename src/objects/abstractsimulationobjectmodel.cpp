@@ -350,7 +350,7 @@ void AbstractSimulationObjectModel::updateObjectRow(AbstractSimulationObject *it
     Q_ASSERT(row >= 0);
 
     QModelIndex idx = index(row, 0);
-    emit dataChanged(idx, idx);
+    emit dataChanged(idx, idx.siblingAtColumn(columnCount() - 1));
 }
 
 void AbstractSimulationObjectModel::setModelEdited()
