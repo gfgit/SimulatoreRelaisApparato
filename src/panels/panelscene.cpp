@@ -30,8 +30,6 @@
 #include <QGraphicsPathItem>
 #include <QPen>
 
-#include <unordered_set>
-
 #include <QKeyEvent>
 #include <QGraphicsSceneMouseEvent>
 
