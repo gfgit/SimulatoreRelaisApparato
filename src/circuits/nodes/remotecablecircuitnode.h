@@ -126,7 +126,8 @@ public:
     }
 
     RemoteCircuitBridge *remote() const;
-    void setRemote(RemoteCircuitBridge *newRemote, bool autoSwap = true);
+    bool setRemote(RemoteCircuitBridge *newRemote,
+                   bool autoSwap = true, bool force = false);
 
     bool isNodeA() const;
     void setIsNodeA(bool newIsNodeA);

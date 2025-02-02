@@ -226,7 +226,7 @@ bool RemoteCableCircuitNode::loadFromJSON(const QJsonObject &obj)
 
         // Do not auto swap based on remote nodes.
         // We do it only for newly created items during editing
-        setRemote(static_cast<RemoteCircuitBridge *>(remoteObj), false);
+        setRemote(static_cast<RemoteCircuitBridge *>(remoteObj), false, false);
     }
     else
         setRemote(nullptr);
@@ -608,10 +608,22 @@ RemoteCircuitBridge *RemoteCableCircuitNode::remote() const
     return mRemote;
 }
 
-void RemoteCableCircuitNode::setRemote(RemoteCircuitBridge *newRemote, bool autoSwap)
+bool RemoteCableCircuitNode::setRemote(RemoteCircuitBridge *newRemote, bool autoSwap, bool force)
 {
     if(mRemote == newRemote)
-        return;
+        return true;
+
+    if(!force && newRemote)
+    {
+        const bool hasA = newRemote->getNode(true);
+        const bool hasB = newRemote->getNode(false);
+
+        if(hasA && hasB)
+            return false;
+
+        if(newRemote->isRemote() && (hasA || hasB))
+            return false;
+    }
 
     if(mRemote)
     {
@@ -651,4 +663,6 @@ void RemoteCableCircuitNode::setRemote(RemoteCircuitBridge *newRemote, bool auto
 
     emit shapeChanged();
     modeMgr()->setFileEdited();
+
+    return true;
 }

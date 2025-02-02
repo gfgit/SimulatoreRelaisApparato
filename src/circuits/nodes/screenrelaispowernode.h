@@ -46,7 +46,7 @@ public:
     QString nodeType() const override;
 
     ScreenRelais *screenRelais() const;
-    void setScreenRelais(ScreenRelais *newRelais);
+    bool setScreenRelais(ScreenRelais *newRelais, bool force = false);
 
 signals:
     void relayChanged(ScreenRelais *r);
