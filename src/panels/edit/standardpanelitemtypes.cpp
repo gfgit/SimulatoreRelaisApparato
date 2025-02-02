@@ -34,6 +34,7 @@
 // Other items
 #include "../graphs/aceibuttonpanelitem.h"
 #include "../graphs/aceileverpanelitem.h"
+#include "../graphs/aceilightpanelitem.h"
 #include "../graphs/acesasibleverpanelitem.h"
 #include "../graphs/bempanelitem.h"
 
@@ -430,6 +431,61 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             };
 
             QObject::connect(leverItem, &ACEILeverPanelItem::lightsChanged,
+                             w, updateLights);
+
+            updateLights();
+
+            return w;
+        };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // ACEI Light
+        PanelItemFactory::FactoryItem factory;
+        factory.needsName = PanelItemFactory::NeedsName::Never;
+        factory.nodeType = ACEILightPanelItem::ItemType;
+        factory.prettyName = tr("ACEI Light");
+        factory.create = &addNewNodeToScene<ACEILightPanelItem>;
+        factory.edit = [](AbstractPanelItem *item, ViewManager *viewMgr) -> QWidget*
+        {
+            ACEILightPanelItem *lightItem = static_cast<ACEILightPanelItem *>(item);
+
+            QWidget *w = new QWidget;
+            QFormLayout *lay = new QFormLayout(w);
+
+            // Lights
+            SimulationObjectLineEdit *lightEdit = nullptr;
+            ColorSelectionWidget *lightColorEdit = nullptr;
+
+            lightEdit = new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
+            QObject::connect(lightEdit, &SimulationObjectLineEdit::objectChanged,
+                             lightItem, [lightItem](AbstractSimulationObject *obj)
+            {
+                lightItem->setLight(static_cast<LightBulbObject *>(obj));
+            });
+
+            lay->addRow(tr("Light:"), lightEdit);
+
+            // Left Light Color
+            lightColorEdit = new ColorSelectionWidget;
+
+            QObject::connect(lightColorEdit, &ColorSelectionWidget::colorChanged,
+                             lightItem, [lightItem, lightColorEdit]()
+            {
+                lightItem->setLightColor(lightColorEdit->color());
+            });
+
+            lay->addRow(tr("Color:"), lightColorEdit);
+
+            auto updateLights = [lightItem, lightEdit, lightColorEdit]()
+            {
+                lightEdit->setObject(lightItem->getLight());
+                lightColorEdit->setColor(lightItem->getLightColor());
+            };
+
+            QObject::connect(lightItem, &ACEILightPanelItem::lightsChanged,
                              w, updateLights);
 
             updateLights();

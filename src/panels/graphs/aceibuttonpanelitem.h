@@ -35,7 +35,9 @@ class ACEIButtonPanelItem : public SnappablePanelItem
     Q_OBJECT
 public:
     static constexpr double ItemWidth = 100;
-    static constexpr double ItemHeight = 130;    enum LightPosition
+    static constexpr double ItemHeight = 130;
+
+    enum LightPosition
     {
         Left = 0,
         Central,
