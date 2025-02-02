@@ -42,11 +42,10 @@ QVariant RemoteCircuitBridgesModel::data(const QModelIndex &idx, int role) const
     if(idx.column() == NameCol && role == Qt::DecorationRole)
     {
         // If bridge is remote, show red decoration
-        QColor color = Qt::black;
         if(bridge->isRemote())
-            color = Qt::red;
+            return QColor(Qt::red);
 
-        return color;
+        return QVariant(); // Not decorated
     }
     else if(idx.column() == NodesCol)
     {
