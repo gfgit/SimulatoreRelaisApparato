@@ -73,11 +73,6 @@ void PanelScene::setMode(FileMode newMode, FileMode oldMode)
 
     const bool editing = newMode == FileMode::Editing;
 
-    for(LightRectItem *item : mLightRects)
-        item->setZValue(editing ?
-                            int(Layers::EditingLightRects) :
-                            int(Layers::LightRects));
-
     if(editing)
     {
         setSceneRect(QRectF());
@@ -114,6 +109,11 @@ void PanelScene::setMode(FileMode newMode, FileMode oldMode)
 
         bringTop(nullptr); // Reset topmost item
     }
+
+    for(LightRectItem *item : mLightRects)
+        item->setZValue(editing ?
+                            int(Layers::EditingLightRects) :
+                            int(Layers::LightRects));
 
     allowItemSelection(editing);
 
