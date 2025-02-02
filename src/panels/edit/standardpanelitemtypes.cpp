@@ -299,32 +299,52 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Button:"), buttonEdit);
 
-            // Central Light
-            SimulationObjectLineEdit *centralLightEdit =
-                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
-            QObject::connect(centralLightEdit, &SimulationObjectLineEdit::objectChanged,
-                             buttonItem, [buttonItem](AbstractSimulationObject *obj)
+            // Lights
+            SimulationObjectLineEdit *lightEdits[ACEIButtonPanelItem::NLights];
+            ColorSelectionWidget *lightColorEdits[ACEIButtonPanelItem::NLights];
+            QString lightNames[ACEIButtonPanelItem::NLights] = {
+                tr("Left light:"),
+                tr("Central light:"),
+                tr("Right light:")
+            };
+            QString lightColorNames[ACEIButtonPanelItem::NLights] = {
+                tr("Left color:"),
+                tr("Central color:"),
+                tr("Right color:")
+            };
+
+            for(int i = 0; i < ACEIButtonPanelItem::NLights; i++)
             {
-                buttonItem->setCentralLight(static_cast<LightBulbObject *>(obj));
-            });
+                lightEdits[i] = new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
+                QObject::connect(lightEdits[i], &SimulationObjectLineEdit::objectChanged,
+                                 buttonItem, [buttonItem, i](AbstractSimulationObject *obj)
+                {
+                    buttonItem->setLight(ACEIButtonPanelItem::LightPosition(i),
+                                         static_cast<LightBulbObject *>(obj));
+                });
 
-            lay->addRow(tr("Central light:"), centralLightEdit);
+                lay->addRow(lightNames[i], lightEdits[i]);
 
-            // Central Light Color
-            ColorSelectionWidget *centralLightColor = new ColorSelectionWidget;
+                // Left Light Color
+                lightColorEdits[i] = new ColorSelectionWidget;
 
-            QObject::connect(centralLightColor, &ColorSelectionWidget::colorChanged,
-                             buttonItem, [buttonItem, centralLightColor]()
+                QObject::connect(lightColorEdits[i], &ColorSelectionWidget::colorChanged,
+                                 buttonItem, [buttonItem, lightColorEdits, i]()
+                {
+                    buttonItem->setLightColor(ACEIButtonPanelItem::LightPosition(i),
+                                              lightColorEdits[i]->color());
+                });
+
+                lay->addRow(lightColorNames[i], lightColorEdits[i]);
+            }
+
+            auto updateLights = [buttonItem, lightEdits, lightColorEdits]()
             {
-                buttonItem->setCentralLightColor(centralLightColor->color());
-            });
-
-            lay->addRow(tr("Light Color:"), centralLightColor);
-
-            auto updateLights = [buttonItem, centralLightEdit, centralLightColor]()
-            {
-                centralLightEdit->setObject(buttonItem->centralLight());
-                centralLightColor->setColor(buttonItem->centralLightColor());
+                for(int i = 0; i < ACEIButtonPanelItem::NLights; i++)
+                {
+                    lightEdits[i]->setObject(buttonItem->getLight(ACEIButtonPanelItem::LightPosition(i)));
+                    lightColorEdits[i]->setColor(buttonItem->getLightColor(ACEIButtonPanelItem::LightPosition(i)));
+                }
             };
 
             QObject::connect(buttonItem, &ACEIButtonPanelItem::lightsChanged,
@@ -366,57 +386,52 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Lever:"), leverEdit);
 
-            // Left Light
-            SimulationObjectLineEdit *leftLightEdit =
-                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
-            QObject::connect(leftLightEdit, &SimulationObjectLineEdit::objectChanged,
-                             leverItem, [leverItem](AbstractSimulationObject *obj)
+            // Lights
+            SimulationObjectLineEdit *lightEdits[ACEILeverPanelItem::NLights];
+            ColorSelectionWidget *lightColorEdits[ACEILeverPanelItem::NLights];
+            QString lightNames[ACEILeverPanelItem::NLights] = {
+                tr("Left light:"),
+                tr("Central light:"),
+                tr("Right light:")
+            };
+            QString lightColorNames[ACEILeverPanelItem::NLights] = {
+                tr("Left color:"),
+                tr("Central color:"),
+                tr("Right color:")
+            };
+
+            for(int i = 0; i < ACEILeverPanelItem::NLights; i++)
             {
-                leverItem->setLeftLight(static_cast<LightBulbObject *>(obj));
-            });
+                lightEdits[i] = new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
+                QObject::connect(lightEdits[i], &SimulationObjectLineEdit::objectChanged,
+                                 leverItem, [leverItem, i](AbstractSimulationObject *obj)
+                {
+                    leverItem->setLight(ACEILeverPanelItem::LightPosition(i),
+                                        static_cast<LightBulbObject *>(obj));
+                });
 
-            lay->addRow(tr("Left light:"), leftLightEdit);
+                lay->addRow(lightNames[i], lightEdits[i]);
 
-            // Left Light Color
-            ColorSelectionWidget *leftLightColor = new ColorSelectionWidget;
+                // Left Light Color
+                lightColorEdits[i] = new ColorSelectionWidget;
 
-            QObject::connect(leftLightColor, &ColorSelectionWidget::colorChanged,
-                             leverItem, [leverItem, leftLightColor]()
+                QObject::connect(lightColorEdits[i], &ColorSelectionWidget::colorChanged,
+                                 leverItem, [leverItem, lightColorEdits, i]()
+                {
+                    leverItem->setLightColor(ACEILeverPanelItem::LightPosition(i),
+                                             lightColorEdits[i]->color());
+                });
+
+                lay->addRow(lightColorNames[i], lightColorEdits[i]);
+            }
+
+            auto updateLights = [leverItem, lightEdits, lightColorEdits]()
             {
-                leverItem->setLeftLightColor(leftLightColor->color());
-            });
-
-            lay->addRow(tr("Left Color:"), leftLightColor);
-
-            // Right Light
-            SimulationObjectLineEdit *rightLightEdit =
-                    new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
-            QObject::connect(rightLightEdit, &SimulationObjectLineEdit::objectChanged,
-                             leverItem, [leverItem](AbstractSimulationObject *obj)
-            {
-                leverItem->setRightLight(static_cast<LightBulbObject *>(obj));
-            });
-
-            lay->addRow(tr("Right light:"), rightLightEdit);
-
-            // Right Light Color
-            ColorSelectionWidget *rightLightColor = new ColorSelectionWidget;
-
-            QObject::connect(rightLightColor, &ColorSelectionWidget::colorChanged,
-                             leverItem, [leverItem, rightLightColor]()
-            {
-                leverItem->setRightLightColor(rightLightColor->color());
-            });
-
-            lay->addRow(tr("Right Color:"), rightLightColor);
-
-            auto updateLights = [leverItem, leftLightEdit, rightLightEdit,
-                    leftLightColor, rightLightColor]()
-            {
-                leftLightEdit->setObject(leverItem->leftLight());
-                rightLightEdit->setObject(leverItem->rightLight());
-                leftLightColor->setColor(leverItem->leftLightColor());
-                rightLightColor->setColor(leverItem->rightLightColor());
+                for(int i = 0; i < ACEILeverPanelItem::NLights; i++)
+                {
+                    lightEdits[i]->setObject(leverItem->getLight(ACEILeverPanelItem::LightPosition(i)));
+                    lightColorEdits[i]->setColor(leverItem->getLightColor(ACEILeverPanelItem::LightPosition(i)));
+                }
             };
 
             QObject::connect(leverItem, &ACEILeverPanelItem::lightsChanged,
