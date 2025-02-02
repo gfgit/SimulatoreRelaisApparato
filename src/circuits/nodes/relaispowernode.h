@@ -69,6 +69,9 @@ public:
         return qBound(0.0, percent, 1.0);
     }
 
+    bool combinatorSecondCoil() const;
+    void setCombinatorSecondCoil(bool newCombinatorSecondCoil);
+
 signals:
     void relayChanged(AbstractRelais *r);
     void delaysChanged();
@@ -77,7 +80,7 @@ private slots:
     void onRelayTypeChanged();
 
 protected:
-    void timerEvent(QTimerEvent *e);
+    void timerEvent(QTimerEvent *e) override;
 
 private:
     void activateRelay(int contact);
@@ -93,6 +96,7 @@ private:
     int mDelayUpSeconds = 0;
     int mDelayDownSeconds = 0;
     bool mHasSecondConnector = false;
+    bool mCombinatorSecondCoil = false;
 
     // State
     int mTimerIds[2] = {0, 0};

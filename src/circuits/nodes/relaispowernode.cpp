@@ -67,6 +67,21 @@ QVector<CableItem> RelaisPowerNode::getActiveConnections(CableItem source, bool 
         if((source.cable.pole != CircuitPole::Second) != invertDir)
             return {};
     }
+    else if(relais()->relaisType() == AbstractRelais::RelaisType::Combinator)
+    {
+        // Bifilar circuit, only allow first pole in/out
+        if(source.cable.pole != CircuitPole::First)
+            return {};
+
+        // Close the circuit between 2 connectors
+        const int otherContact = source.nodeContact == 1 ? 0 : 1;
+        CableItem comb;
+        comb.cable.cable = mContacts.at(otherContact).cable;
+        comb.cable.side = mContacts.at(otherContact).cableSide;
+        comb.nodeContact = otherContact;
+        comb.cable.pole = CircuitPole::First;
+        return {comb};
+    }
 
     // Close the circuit
     CableItem dest;
@@ -89,12 +104,21 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
     const bool isActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
 
+    const bool combinator = (relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+
     if(isActiveFirst && !wasActiveFirst)
     {
-        activateRelay(0);
+        if(combinator)
+        {
+            activateRelay(mCombinatorSecondCoil ? 0 : 1);
+        }
+        else
+        {
+            activateRelay(0);
+        }
     }
 
-    if(mHasSecondConnector && isActiveSecond && !wasActiveSecond)
+    if(!combinator && mHasSecondConnector && isActiveSecond && !wasActiveSecond)
     {
         activateRelay(1);
     }
@@ -112,12 +136,21 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
     const bool isActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
 
+    const bool combinator = (relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+
     if(!isActiveFirst && wasActiveFirst)
     {
-        deactivateRelay(0);
+        if(combinator)
+        {
+            deactivateRelay(mCombinatorSecondCoil ? 0 : 1);
+        }
+        else
+        {
+            deactivateRelay(0);
+        }
     }
 
-    if(mHasSecondConnector && !isActiveSecond && wasActiveSecond)
+    if(!combinator && mHasSecondConnector && !isActiveSecond && wasActiveSecond)
     {
         deactivateRelay(1);
     }
@@ -143,6 +176,8 @@ bool RelaisPowerNode::loadFromJSON(const QJsonObject &obj)
 
     setHasSecondConnector(obj.value("has_second_connector").toBool());
 
+    setCombinatorSecondCoil(obj.value("combinator_second_coil").toBool());
+
     return true;
 }
 
@@ -156,6 +191,7 @@ void RelaisPowerNode::saveToJSON(QJsonObject &obj) const
     obj["delay_down_sec"] = mDelayDownSeconds;
 
     obj["has_second_connector"] = hasSecondConnector();
+    obj["combinator_second_coil"] = combinatorSecondCoil();
 }
 
 QString RelaisPowerNode::nodeType() const
@@ -380,6 +416,22 @@ void RelaisPowerNode::stopTimeoutPercentTimer()
     emit circuitsChanged();
 }
 
+bool RelaisPowerNode::combinatorSecondCoil() const
+{
+    return mCombinatorSecondCoil;
+}
+
+void RelaisPowerNode::setCombinatorSecondCoil(bool newCombinatorSecondCoil)
+{
+    if(mCombinatorSecondCoil == newCombinatorSecondCoil)
+        return;
+
+    mCombinatorSecondCoil = newCombinatorSecondCoil;
+
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
+}
+
 bool RelaisPowerNode::hasSecondConnector() const
 {
     return mHasSecondConnector;
@@ -401,9 +453,6 @@ void RelaisPowerNode::setHasSecondConnector(bool newHasSecondConnector)
 
     mHasSecondConnector = newHasSecondConnector;
 
-    emit shapeChanged();
-    modeMgr()->setFileEdited();
-
     if(!mHasSecondConnector)
     {
         // Circuits must be disabled before editing contacts
@@ -413,6 +462,9 @@ void RelaisPowerNode::setHasSecondConnector(bool newHasSecondConnector)
         // Detach cable from second connector
         detachCable(1);
     }
+
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 void RelaisPowerNode::onRelayTypeChanged()

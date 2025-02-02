@@ -111,6 +111,9 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
     if(!node()->relais())
         return;
 
+    if(node()->relais()->relaisType() == AbstractRelais::RelaisType::Combinator)
+        return; // Combinators do not need arrow
+
     if(node()->relais()->state() == AbstractRelais::State::GoingUp
             || node()->relais()->state() == AbstractRelais::State::GoingDown)
         return; // Do not draw arrow for transitory states

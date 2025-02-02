@@ -56,6 +56,9 @@ public:
     bool hideRelayNormalState() const;
     void setHideRelayNormalState(bool newHideRelayNormalState);
 
+    bool activeWhileMiddle() const;
+    void setActiveWhileMiddle(bool newActiveWhileMiddle);
+
 signals:
     void relayChanged(AbstractRelais *r);
 
@@ -66,6 +69,7 @@ private:
     AbstractRelais *mRelais = nullptr;
     State mState = State::Middle;
     bool mHideRelayNormalState = false;
+    bool mActiveWhileMiddle = false;
 };
 
 #endif // RELAISCONTACTNODE_H

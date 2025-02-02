@@ -45,6 +45,8 @@ QString AbstractRelais::getRelaisTypeName(RelaisType t)
         return tr("Stabilized");
     case RelaisType::Combinator:
         return tr("Combinator");
+    case RelaisType::Timer:
+        return tr("Timer");
     case RelaisType::NTypes:
         break;
     }
@@ -325,18 +327,22 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
         // Relay can go up only if down coil is not active
         if(mActivePowerNodesDown == 0)
         {
+            double UpThreshold = 0.5;
+            if(relaisType() == RelaisType::Stabilized)
+                UpThreshold = 0.7; // Stabilized magnet is not so powerful
+
             if((hadActiveDown || !hadActiveUp) && (mActivePowerNodesUp > 0 || mPosition > 0.5))
             {
                 // If tried to go down but not yet reached middle position,
                 // go back up.
-                if(mActivePowerNodesUp > 0 || mPosition > 0.5)
-                    startMove(true);
-            }
-            else if(hadActiveUp && mPosition < 0.5)
-            {
-                // We tried to go up and then power was lost.
                 // Keep going up for permanent magnet/mechanical inertia
                 // only if after middle position.
+                if(mActivePowerNodesUp > 0 || mPosition > UpThreshold)
+                    startMove(true);
+            }
+            else if(hadActiveUp && mPosition < UpThreshold)
+            {
+                // We tried to go up and then power was lost.
                 startMove(false);
             }
         }
@@ -381,17 +387,18 @@ void AbstractRelais::startMove(bool up)
     if(mTimerId)
         killTimer(mTimerId);
 
+    mInternalState = up ? State::GoingUp : State::GoingDown;
+
     int totalTime = 0;
-    if(up)
+    if(up || relaisType() == RelaisType::Combinator)
     {
-        mInternalState = State::GoingUp;
+        // Combinators have same time in either directions
         totalTime = mCustomUpMS;
         if(!totalTime)
             totalTime = DefaultUpMS;
     }
     else
     {
-        mInternalState = State::GoingDown;
         totalTime = mCustomDownMS;
         if(!totalTime)
             totalTime = DefaultDownMS;

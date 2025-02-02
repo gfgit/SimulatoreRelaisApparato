@@ -52,6 +52,7 @@ public:
         PolarizedInverted,
         Stabilized,
         Combinator,
+        Timer,
         NTypes
     };
 
@@ -77,14 +78,14 @@ public:
 
     inline bool canHaveTwoConnectors() const
     {
-        if(relaisType() == RelaisType::Combinator)
-            return false; // We use 2 different tiles for it
         return true;
     }
 
     inline bool mustHaveTwoConnectors() const
     {
         if(relaisType() == RelaisType::Stabilized)
+            return true;
+        if(relaisType() == RelaisType::Combinator)
             return true;
         return false;
     }

@@ -441,14 +441,27 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                     hasSecondContact->setChecked(node->hasSecondConnector());
             });
 
+            QCheckBox *combinatorSecondCoil = new QCheckBox(tr("Is second coil"));
+            lay->addRow(combinatorSecondCoil);
+
+            QObject::connect(combinatorSecondCoil, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setCombinatorSecondCoil(val);
+            });
+
             auto updDelayLambda =
                     [delayUpSeconds, delayDownSeconds,
-                    hasSecondContact,
+                    hasSecondContact, combinatorSecondCoil,
                     node]()
             {
                 delayUpSeconds->setValue(node->delayUpSeconds());
                 delayDownSeconds->setValue(node->delayDownSeconds());
                 hasSecondContact->setChecked(node->hasSecondConnector());
+                combinatorSecondCoil->setChecked(node->combinatorSecondCoil());
+
+                combinatorSecondCoil->setVisible(node->relais() &&
+                                                 node->relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
             };
 
             QObject::connect(node, &RelaisPowerNode::delaysChanged,
@@ -504,10 +517,25 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                 node->setHideRelayNormalState(val);
             });
 
+            QCheckBox *activeWhileMiddle = new QCheckBox(tr("Keep contact while in Middle state"));
+            lay->addWidget(activeWhileMiddle);
+
+            QObject::connect(activeWhileMiddle, &QCheckBox::toggled,
+                             node, [node, activeWhileMiddle](bool val)
+            {
+                node->setActiveWhileMiddle(val);
+                if(val != node->activeWhileMiddle())
+                    activeWhileMiddle->setChecked(!val);
+            });
+
             auto updLambda =
-                    [hideRelayNormal, node]()
+                    [hideRelayNormal, node, activeWhileMiddle]()
             {
                 hideRelayNormal->setChecked(node->hideRelayNormalState());
+                activeWhileMiddle->setChecked(node->activeWhileMiddle());
+                activeWhileMiddle->setEnabled(!node->hasCentralConnector());
+                activeWhileMiddle->setVisible(node->relais() &&
+                                              node->relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
             };
 
             QObject::connect(node, &RelaisContactNode::shapeChanged,

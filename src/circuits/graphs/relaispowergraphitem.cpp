@@ -93,10 +93,31 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         break;
     }
 
+    const bool isCombinatorRelay = mRelay && mRelay->relaisType() == AbstractRelais::RelaisType::Combinator;
+
     if(node()->hasSecondConnector())
     {
-        drawMorsetti(painter, 0, twoConnectorsRotate() + TileRotate::Deg90);
-        drawMorsetti(painter, 1, twoConnectorsRotate() + TileRotate::Deg270);
+        if(isCombinatorRelay)
+        {
+            TileRotate firstConnector = TileRotate::Deg90;
+            commonLine = centerToWest;
+            if(node()->combinatorSecondCoil())
+            {
+                firstConnector = TileRotate::Deg270;
+                commonLine = centerToEast;
+            }
+
+            const TileRotate secondConnector = twoConnectorsRotate() + TileRotate::Deg180;
+            secondLine = secondConnector == TileRotate::Deg180 ? centerToNorth : centerToSouth;
+
+            drawMorsetti(painter, 0, firstConnector);
+            drawMorsetti(painter, 1, secondConnector);
+        }
+        else
+        {
+            drawMorsetti(painter, 0, twoConnectorsRotate() + TileRotate::Deg90);
+            drawMorsetti(painter, 1, twoConnectorsRotate() + TileRotate::Deg270);
+        }
     }
     else
     {
@@ -133,18 +154,35 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     if(node()->relais() && node()->modeMgr()->mode() == FileMode::Simulation)
     {
         // Draw relay color only during simulation
-        switch (node()->relais()->state())
+        if(isCombinatorRelay)
         {
-        case AbstractRelais::State::Up:
-            color = colors[int(AnyCircuitType::Closed)]; // Red
-            break;
-        case AbstractRelais::State::GoingUp:
-        case AbstractRelais::State::GoingDown:
-            color = colors[int(AnyCircuitType::Open)]; // Light blue
-            break;
-        case AbstractRelais::State::Down:
-        default:
-            break;
+            AbstractRelais::State targetState = AbstractRelais::State::Down;
+            AbstractRelais::State oppositeState = AbstractRelais::State::Up;
+            if(node()->combinatorSecondCoil())
+                std::swap(targetState, oppositeState);
+
+            if(mRelay->state() == targetState)
+                color = colors[int(AnyCircuitType::Closed)]; // Red
+            else if(mRelay->state() == oppositeState)
+                color = colors[int(AnyCircuitType::None)]; // Black
+            else
+                color = colors[int(AnyCircuitType::Open)]; // Light blue
+        }
+        else
+        {
+            switch (node()->relais()->state())
+            {
+            case AbstractRelais::State::Up:
+                color = colors[int(AnyCircuitType::Closed)]; // Red
+                break;
+            case AbstractRelais::State::GoingUp:
+            case AbstractRelais::State::GoingDown:
+                color = colors[int(AnyCircuitType::Open)]; // Light blue
+                break;
+            case AbstractRelais::State::Down:
+            default:
+                break;
+            }
         }
     }
 
@@ -242,11 +280,55 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
                                      triangle[0].x(), triangle[2].y()));
             break;
         }
+        case AbstractRelais::RelaisType::Combinator:
+        {
+            // Draw half X near to relay circle
+            QPoint targetPt(TileLocation::Size, TileLocation::HalfSize);
+
+            QPen xPen;
+            xPen.setCapStyle(Qt::FlatCap);
+            xPen.setColor(Qt::black);
+            xPen.setWidthF(3.0);
+
+            painter->setPen(xPen);
+            painter->setBrush(Qt::NoBrush);
+
+            if(node()->combinatorSecondCoil())
+            {
+                targetPt.setX(0);
+
+                painter->drawLine(targetPt, relayRect.topLeft());
+                painter->drawLine(targetPt, relayRect.bottomLeft());
+            }
+            else
+            {
+                painter->drawLine(targetPt, relayRect.topRight());
+                painter->drawLine(targetPt, relayRect.bottomRight());
+            }
+
+            const QChar letter = node()->combinatorSecondCoil() ? 'R' : 'N';
+
+            QFont f;
+            f.setPointSize(relayRect.height() * 0.5);
+            painter->setFont(f);
+            painter->drawText(relayRect, letter, QTextOption(Qt::AlignCenter));
+
+            break;
+        }
+        case AbstractRelais::RelaisType::Timer:
+        {
+            // Draw arcs on relay circle
+            painter->setBrush(Qt::NoBrush);
+            painter->setPen(pen);
+
+            painter->drawArc(relayRect.translated(-relayRadius, 0), -90 * 16, 180 * 16);
+            painter->drawArc(relayRect.translated(relayRadius, 0), -90 * 16, -180 * 16);
+            break;
+        }
         default:
             break;
         }
     }
-
 
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
@@ -254,26 +336,29 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     // Draw circle
     painter->drawEllipse(relayRect);
 
-    // Draw lines top/bottom
-    painter->drawLine(relayRect.topLeft(), relayRect.topRight());
-    painter->drawLine(relayRect.bottomLeft(), relayRect.bottomRight());
-
-    // Draw delayed up/down lines with wider pen
-    pen.setWidthF(5.0);
-    painter->setPen(pen);
-
-    // Separate a bit delay line and relay circle
-    const double delayLineMargin = pen.widthF() * 0.3;
-
-    if(node()->delayUpSeconds() > 0)
+    if(!isCombinatorRelay)
     {
-        painter->drawLine(QLineF(relayRect.left(), relayRect.top() - delayLineMargin,
-                                 relayRect.right(), relayRect.top() - delayLineMargin));
-    }
-    if(node()->delayDownSeconds() > 0)
-    {
-        painter->drawLine(QLineF(relayRect.left(), relayRect.bottom() + delayLineMargin,
-                                 relayRect.right(), relayRect.bottom() + delayLineMargin));
+        // Draw lines top/bottom
+        painter->drawLine(relayRect.topLeft(), relayRect.topRight());
+        painter->drawLine(relayRect.bottomLeft(), relayRect.bottomRight());
+
+        // Draw delayed up/down lines with wider pen
+        pen.setWidthF(5.0);
+        painter->setPen(pen);
+
+        // Separate a bit delay line and relay circle
+        const double delayLineMargin = pen.widthF() * 0.3;
+
+        if(node()->delayUpSeconds() > 0)
+        {
+            painter->drawLine(QLineF(relayRect.left(), relayRect.top() - delayLineMargin,
+                                     relayRect.right(), relayRect.top() - delayLineMargin));
+        }
+        if(node()->delayDownSeconds() > 0)
+        {
+            painter->drawLine(QLineF(relayRect.left(), relayRect.bottom() + delayLineMargin,
+                                     relayRect.right(), relayRect.bottom() + delayLineMargin));
+        }
     }
 
     // Draw name and state arrow
@@ -296,19 +381,39 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
-    drawName(painter,
-             node()->relais() ? node()->relais()->name() : tr("REL!"),
-             textRotate);
+
+    const bool hideName = isCombinatorRelay && node()->combinatorSecondCoil();
+
+    if(!hideName)
+    {
+        drawName(painter,
+                 mRelay ? mRelay->name() : tr("REL!"),
+                 textRotate);
+    }
 }
 
 void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
     if(node()->hasSecondConnector())
     {
-        // Always put connectors horizontal
-        // We ignore other rotations otherwise we cannot draw name :(
-        connectors.emplace_back(location(), twoConnectorsRotate() + TileRotate::Deg90, 0);
-        connectors.emplace_back(location(), twoConnectorsRotate() + TileRotate::Deg270, 1);
+        if(mRelay && mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
+        {
+            TileRotate firstConnector = TileRotate::Deg90;
+            if(node()->combinatorSecondCoil())
+                firstConnector = TileRotate::Deg270;
+
+            const TileRotate secondConnector = twoConnectorsRotate() + TileRotate::Deg180;
+
+            connectors.emplace_back(location(), firstConnector, 0);
+            connectors.emplace_back(location(), secondConnector, 1);
+        }
+        else
+        {
+            // Always put connectors horizontal
+            // We ignore other rotations otherwise we cannot draw name :(
+            connectors.emplace_back(location(), twoConnectorsRotate() + TileRotate::Deg90, 0);
+            connectors.emplace_back(location(), twoConnectorsRotate() + TileRotate::Deg270, 1);
+        }
     }
     else
     {
@@ -351,6 +456,9 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
 {
     if(!node()->relais())
         return;
+
+    if(mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
+        return; // Combinator relais don't need arrow
 
     if(node()->relais()->state() == AbstractRelais::State::GoingUp
             || node()->relais()->state() == AbstractRelais::State::GoingDown)

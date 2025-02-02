@@ -59,6 +59,7 @@ bool RelaisContactNode::loadFromJSON(const QJsonObject &obj)
         setRelais(nullptr);
 
     setHideRelayNormalState(obj.value("hide_relay_normal").toBool());
+    setActiveWhileMiddle(obj.value("active_during_middle").toBool());
 
     return true;
 }
@@ -69,6 +70,7 @@ void RelaisContactNode::saveToJSON(QJsonObject &obj) const
 
     obj["relais"] = mRelais ? mRelais->name() : QString();
     obj["hide_relay_normal"] = hideRelayNormalState();
+    obj["active_during_middle"] = activeWhileMiddle();
 }
 
 QString RelaisContactNode::nodeType() const
@@ -97,6 +99,8 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais, bool autoSwapState)
     }
 
     mRelais = newRelais;
+
+    setActiveWhileMiddle(activeWhileMiddle());
 
     if(mRelais)
     {
@@ -130,8 +134,10 @@ void RelaisContactNode::setState(State newState)
         return;
     mState = newState;
 
-    setContactState(mState == State::Up,
-                    mState == State::Down);
+    const bool canMiddle = (mState == State::Middle && activeWhileMiddle());
+
+    setContactState(mState == State::Up || (canMiddle && swapContactState()),
+                    mState == State::Down || (canMiddle && !swapContactState()));
 }
 
 void RelaisContactNode::onRelaisStateChanged()
@@ -153,6 +159,33 @@ void RelaisContactNode::onRelaisStateChanged()
     }
 
     setState(s);
+}
+
+bool RelaisContactNode::activeWhileMiddle() const
+{
+    if(!mActiveWhileMiddle)
+        return false;
+
+    // Can be special contact?
+    if(!mRelais || hasCentralConnector())
+        return false;
+
+    if(mRelais->relaisType() != AbstractRelais::RelaisType::Combinator)
+        return false;
+
+    return true;
+}
+
+void RelaisContactNode::setActiveWhileMiddle(bool newActiveWhileMiddle)
+{
+    if(mActiveWhileMiddle == newActiveWhileMiddle)
+        return;
+
+    mActiveWhileMiddle = newActiveWhileMiddle;
+    onRelaisStateChanged();
+
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 bool RelaisContactNode::hideRelayNormalState() const
