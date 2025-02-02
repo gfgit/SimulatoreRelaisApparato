@@ -266,6 +266,18 @@ void CircuitListModel::saveToJSON(QJsonObject &obj) const
     obj["scenes"] = arr;
 }
 
+AbstractNodeGraphItem *CircuitListModel::getGraphForNode(AbstractCircuitNode *node) const
+{
+    for(CircuitScene *scene : std::as_const(mCircuitScenes))
+    {
+        AbstractNodeGraphItem *item = scene->getGraphForNode(node);
+        if(item)
+            return item;
+    }
+
+    return nullptr;
+}
+
 void CircuitListModel::onSceneNameChanged(const QString &, CircuitScene *scene)
 {
     int row = mCircuitScenes.indexOf(scene);

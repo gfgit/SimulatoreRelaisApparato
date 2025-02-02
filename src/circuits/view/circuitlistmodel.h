@@ -28,6 +28,7 @@
 #include "../../enums/filemodes.h"
 
 class CircuitScene;
+class AbstractCircuitNode;
 class AbstractNodeGraphItem;
 class CableGraphItem;
 
@@ -93,6 +94,8 @@ public:
 
     bool loadFromJSON(const QJsonObject &obj);
     void saveToJSON(QJsonObject &obj) const;
+
+    AbstractNodeGraphItem *getGraphForNode(AbstractCircuitNode *node) const;
 
 signals:
     void nodeEditRequested(AbstractNodeGraphItem *item);

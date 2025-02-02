@@ -28,9 +28,11 @@
 #include "../circuits/edit/nodeeditfactory.h"
 
 #include "../circuits/view/circuitwidget.h"
+#include "../circuits/view/circuitsview.h"
 #include "../circuits/view/circuitlistwidget.h"
 #include "../circuits/view/circuitlistmodel.h"
 #include "../circuits/circuitscene.h"
+#include "../circuits/graphs/abstractnodegraphitem.h"
 
 #include "../panels/edit/panelitemfactory.h"
 
@@ -317,6 +319,26 @@ AbstractSimulationObject *ViewManager::createNewObjectDlg(const QString &objType
         return nullptr;
 
     return SimulationObjectListWidget::addObjectHelper(model, parent);
+}
+
+void ViewManager::ensureCircuitItemIsVisible(AbstractNodeGraphItem *item, bool forceNew, bool adjustZoom)
+{
+    if(!item)
+        return;
+
+    CircuitScene *s = item->circuitScene();
+    if(!s)
+        return;
+
+    CircuitWidget *w = addCircuitView(s, forceNew);
+    CircuitsView *view = w->circuitsView();
+
+    // Ensure zoom is not too low
+    if(adjustZoom && view->zoomFactor() < 1)
+        view->setZoom(1);
+
+    // Scroll to show item
+    view->centerOn(item);
 }
 
 void ViewManager::setCurrentViewType(ViewType newCurrentViewType)

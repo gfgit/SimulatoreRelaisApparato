@@ -25,24 +25,36 @@
 #include "abstractsimulationobjectmodel.h"
 #include "abstractsimulationobject.h"
 
+#include "simulationobjectnodesmodel.h"
+
+#include "../views/viewmanager.h"
+
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QScrollArea>
-#include <QLineEdit>
+#include <QTabWidget>
 
+#include <QLineEdit>
 #include <QSpinBox>
 #include <QComboBox>
+#include <QTableView>
 
+#include <QGuiApplication>
 #include <QEvent>
 
-SimulationObjectOptionsWidget::SimulationObjectOptionsWidget(AbstractSimulationObject *object, QWidget *parent)
+SimulationObjectOptionsWidget::SimulationObjectOptionsWidget(AbstractSimulationObject *object, ViewManager *viewMgr, QWidget *parent)
     : QWidget{parent}
+    , mViewMgr(viewMgr)
     , mObject(object)
 {
     QVBoxLayout *mainLay = new QVBoxLayout(this);
+    tabWidget = new QTabWidget;
+    mainLay->addWidget(tabWidget);
+
+    // Properties Tab
     scrollArea = new QScrollArea;
     scrollArea->setWidgetResizable(true);
-    mainLay->addWidget(scrollArea);
+    tabWidget->addTab(scrollArea, tr("Properties"));
 
     QWidget *viewport = new QWidget;
     scrollArea->setWidget(viewport);
@@ -86,6 +98,18 @@ SimulationObjectOptionsWidget::SimulationObjectOptionsWidget(AbstractSimulationO
             return;
         mDescriptionEdit->setText(mObject->description());
     });
+
+    // Nodes Tab
+
+    mNodesModel = new SimulationObjectNodesModel(mViewMgr, this);
+    mNodesModel->setObject(mObject);
+
+    mNodesView = new QTableView;
+    mNodesView->setModel(mNodesModel);
+    connect(mNodesView, &QTableView::clicked,
+            this, &SimulationObjectOptionsWidget::onNodeClicked);
+
+    tabWidget->addTab(mNodesView, tr("Nodes"));
 
     // Update name
     onNameChanged();
@@ -147,6 +171,12 @@ bool SimulationObjectOptionsWidget::eventFilter(QObject *watched, QEvent *ev)
     return QWidget::eventFilter(watched, ev);
 }
 
+void SimulationObjectOptionsWidget::setEditingAllowed(bool value)
+{
+    // TODO: set read only on single fields instead of disabling full widget
+    scrollArea->widget()->setEnabled(value);
+}
+
 void SimulationObjectOptionsWidget::setName()
 {
     QString newName = mNameEdit->text().trimmed();
@@ -180,6 +210,23 @@ void SimulationObjectOptionsWidget::onNameChanged()
     setWindowTitle(tr("Edit %1 (%2)").arg(mObject->name(), mObject->getType()));
 
     emit uniqueIdChanged(uniqueId());
+}
+
+void SimulationObjectOptionsWidget::onNodeClicked(const QModelIndex &idx)
+{
+    // Open new view if Shift is pressed, use existing otherwise
+    const bool forceNew = QGuiApplication::keyboardModifiers()
+            .testFlag(Qt::ShiftModifier);
+
+    // Adjust zoom if Alt modifier is NOT pressed
+    const bool adjustZoom = !QGuiApplication::keyboardModifiers()
+            .testFlag(Qt::AltModifier);
+
+    auto item = mNodesModel->itemAt(idx.row());
+    if(!item)
+        return;
+
+    mViewMgr->ensureCircuitItemIsVisible(item, forceNew, adjustZoom);
 }
 
 void SimulationObjectOptionsWidget::setNameValid(bool valid)

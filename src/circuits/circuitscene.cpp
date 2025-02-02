@@ -1612,6 +1612,25 @@ Connector::Direction CircuitScene::getTileAndDirection(const QPointF &p, TileLoc
     return direction;
 }
 
+AbstractNodeGraphItem *CircuitScene::getGraphForNode(AbstractCircuitNode *node) const
+{
+    const auto vec = node->findChildren<AbstractNodeGraphItem *>(Qt::FindDirectChildrenOnly);
+    for(AbstractNodeGraphItem *item : vec)
+    {
+        if(item->getAbstractNode() == node)
+            return item; // NOTE: might not be in this scene!
+    }
+
+    // Slow way, check all items
+    for(auto it = mItemMap.begin(), end = mItemMap.end(); it != end; it++)
+    {
+        if(it->second->getAbstractNode() == node)
+            return it->second;
+    }
+
+    return nullptr;
+}
+
 bool CircuitScene::insertFragment(const TileLocation &tileHint,
                                   const QJsonObject &fragmentRoot,
                                   NodeEditFactory *factory,

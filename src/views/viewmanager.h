@@ -88,6 +88,9 @@ public:
     AbstractSimulationObject *createNewObjectDlg(const QString &objType,
                                                  QWidget *parent);
 
+    void ensureCircuitItemIsVisible(AbstractNodeGraphItem *item,
+                                    bool forceNew, bool adjustZoom);
+
 signals:
     void currentViewTypeChanged(ViewType newVal);
     void activeViewChanged();

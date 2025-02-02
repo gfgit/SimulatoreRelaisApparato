@@ -122,6 +122,8 @@ public:
     static Connector::Direction getTileAndDirection(const QPointF& pos,
                                                     TileLocation &outLocation, bool &isEdge);
 
+    AbstractNodeGraphItem *getGraphForNode(AbstractCircuitNode *node) const;
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);
