@@ -188,7 +188,7 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
             CircuitWidget *w = it.first;
             if(w->scene() == scene)
             {
-                w->raise();
+                it.second->raise();
                 return w;
             }
         }
@@ -358,7 +358,7 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
             PanelWidget *w = it.first;
             if(w->scene() == scene)
             {
-                w->raise();
+                it.second->raise();
                 return w;
             }
         }
