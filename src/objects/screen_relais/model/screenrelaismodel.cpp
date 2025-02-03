@@ -1,5 +1,5 @@
 /**
- * src/objects/relais/model/ScreenRelaisModel.cpp
+ * src/objects/screen_relais/model/screenrelaismodel.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

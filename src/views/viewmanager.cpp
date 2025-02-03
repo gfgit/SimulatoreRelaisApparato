@@ -52,6 +52,8 @@
 
 #include <QInputDialog>
 
+static ViewManager *s_viewMgr = nullptr;
+
 ViewManager::ViewManager(MainWindow *parent)
     : QObject{parent}
 {
@@ -69,11 +71,20 @@ ViewManager::ViewManager(MainWindow *parent)
     PanelListModel *panelList = modeMgr->panelList();
     connect(panelList, &PanelListModel::itemEditRequested,
             this, &ViewManager::panelItemEditRequested);
+
+    s_viewMgr = this;
 }
 
 ViewManager::~ViewManager()
 {
     closeAll();
+
+    s_viewMgr = nullptr;
+}
+
+ViewManager *ViewManager::self()
+{
+    return s_viewMgr;
 }
 
 MainWindow *ViewManager::mainWin() const

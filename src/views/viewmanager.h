@@ -63,6 +63,8 @@ public:
     explicit ViewManager(MainWindow *parent);
     ~ViewManager();
 
+    static ViewManager *self();
+
     // Circuits
     CircuitWidget *activeCircuitView() const;
     CircuitWidget *addCircuitView(CircuitScene *scene,
