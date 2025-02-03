@@ -107,7 +107,7 @@ void ViewManager::setActivePanel(PanelWidget *w)
 
 static std::pair<QString, QString> getCircuitUniqueName(CircuitWidget *w)
 {
-    QString name = QLatin1String("null");
+    QString name = QStringLiteral("%1_null").arg(w->uniqueNum());
     QString title = ViewManager::tr("Empty");
 
     auto scene = w->scene();
@@ -122,7 +122,7 @@ static std::pair<QString, QString> getCircuitUniqueName(CircuitWidget *w)
 
 static std::pair<QString, QString> getPanelUniqueName(PanelWidget *w)
 {
-    QString name = QLatin1String("null");
+    QString name = QStringLiteral("%1_null").arg(w->uniqueNum());
     QString title = ViewManager::tr("Empty");
 
     auto scene = w->scene();
@@ -183,6 +183,19 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
 {
     if(!forceNew)
     {
+        if(mActiveCircuitView && mActiveCircuitView->scene() == scene)
+        {
+            // Give precedence to last active view
+            for(auto it : mCircuitViews.asKeyValueRange())
+            {
+                if(it.first == mActiveCircuitView)
+                {
+                    it.second->raise();
+                    return mActiveCircuitView;
+                }
+            }
+        }
+
         for(auto it : mCircuitViews.asKeyValueRange())
         {
             CircuitWidget *w = it.first;
@@ -353,6 +366,19 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
 {
     if(!forceNew)
     {
+        if(mActivePanelView && mActivePanelView->scene() == scene)
+        {
+            // Give precedence to last active view
+            for(auto it : mPanelViews.asKeyValueRange())
+            {
+                if(it.first == mActivePanelView)
+                {
+                    it.second->raise();
+                    return mActivePanelView;
+                }
+            }
+        }
+
         for(auto it : mPanelViews.asKeyValueRange())
         {
             PanelWidget *w = it.first;
