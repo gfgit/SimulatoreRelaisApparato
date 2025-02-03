@@ -3,6 +3,9 @@
 set(SIMULATORE_RELAIS_SOURCES
     ${SIMULATORE_RELAIS_SOURCES}
 
+    views/layoutloader.cpp
+    views/layoutloader.h
+
     views/modemanager.cpp
     views/modemanager.h
 

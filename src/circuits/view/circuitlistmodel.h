@@ -92,6 +92,8 @@ public:
         return mCircuitScenes.value(row, nullptr);
     }
 
+    CircuitScene *sceneByName(const QString& name) const;
+
     bool loadFromJSON(const QJsonObject &obj);
     void saveToJSON(QJsonObject &obj) const;
 

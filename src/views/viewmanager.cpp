@@ -47,8 +47,8 @@
 #include "../objects/simulationobjectoptionswidget.h"
 #include "../objects/simulationobjectlistwidget.h"
 
-#include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
-#include <kddockwidgets-qt6/kddockwidgets/core/DockWidget.h>
+#include <kddockwidgets/DockWidget.h>
+#include <kddockwidgets/core/DockWidget.h>
 
 #include <QInputDialog>
 
@@ -118,30 +118,30 @@ void ViewManager::setActivePanel(PanelWidget *w)
 
 static std::pair<QString, QString> getCircuitUniqueName(CircuitWidget *w)
 {
-    QString name = QStringLiteral("%1_null").arg(w->uniqueNum());
+    QString name = QStringLiteral("circuit_%1_null").arg(w->uniqueNum());
     QString title = ViewManager::tr("Empty");
 
     auto scene = w->scene();
     if(scene)
         title = scene->circuitSheetName();
 
-    name = QLatin1String("%1_(%2)").arg(title).arg(w->uniqueNum());
-    title = QLatin1String("%1 (%2)").arg(title).arg(w->uniqueNum());
+    name = QLatin1String("circuit_%1_(%2)").arg(title).arg(w->uniqueNum());
+    title = ViewManager::tr("Circuit %1 (%2)").arg(title).arg(w->uniqueNum());
 
     return {name, title};
 }
 
 static std::pair<QString, QString> getPanelUniqueName(PanelWidget *w)
 {
-    QString name = QStringLiteral("%1_null").arg(w->uniqueNum());
+    QString name = QStringLiteral("panel_%1_null").arg(w->uniqueNum());
     QString title = ViewManager::tr("Empty");
 
     auto scene = w->scene();
     if(scene)
         title = scene->panelName();
 
-    name = QLatin1String("%1_(%2)").arg(title).arg(w->uniqueNum());
-    title = QLatin1String("%1 (%2)").arg(title).arg(w->uniqueNum());
+    name = QLatin1String("panel_%1_(%2)").arg(title).arg(w->uniqueNum());
+    title = ViewManager::tr("Panel %1 (%2)").arg(title).arg(w->uniqueNum());
 
     return {name, title};
 }
@@ -153,8 +153,8 @@ void ViewManager::updateDockName(CircuitWidget *w)
         return;
 
     auto namePair = getCircuitUniqueName(w);
-    dock->dockWidget()->setUniqueName(QLatin1String("circuit_") + namePair.first);
-    dock->setTitle(tr("Circuit %1").arg(namePair.second));
+    dock->dockWidget()->setUniqueName(namePair.first);
+    dock->setTitle(namePair.second);
 }
 
 int ViewManager::getUniqueNum(CircuitScene *scene, CircuitWidget *self) const
@@ -226,8 +226,10 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
 
     DockWidget *dock = new DockWidget(namePair.first,
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
+
+    dock->setOptions(KDDockWidgets::DockWidgetOption_None);
     dock->setWidget(w);
-    dock->setTitle(tr("Circuit %1").arg(namePair.second));
+    dock->setTitle(namePair.second);
 
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
 
@@ -263,7 +265,7 @@ void ViewManager::showCircuitSceneProperties(CircuitScene *scene)
     {
         QString name = tr("Properties Circuit %1").arg(scene->circuitSheetName());
         dock->setTitle(name);
-        dock->dockWidget()->setUniqueName(name);
+        dock->dockWidget()->setUniqueName(QLatin1String("prop_circuit_%1").arg(scene->circuitSheetName()));
     };
 
     connect(scene, &CircuitScene::nameChanged,
@@ -291,8 +293,8 @@ void ViewManager::updateDockName(PanelWidget *w)
         return;
 
     auto namePair = getPanelUniqueName(w);
-    dock->dockWidget()->setUniqueName(QLatin1String("panel_") + namePair.first);
-    dock->setTitle(tr("Panel %1").arg(namePair.second));
+    dock->dockWidget()->setUniqueName(namePair.first);
+    dock->setTitle(namePair.second);
 }
 
 int ViewManager::getUniqueNum(PanelScene *scene, PanelWidget *self) const
@@ -410,7 +412,7 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
     DockWidget *dock = new DockWidget(namePair.first,
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
-    dock->setTitle(tr("Panel %1").arg(namePair.second));
+    dock->setTitle(namePair.second);
 
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
 
@@ -446,7 +448,7 @@ void ViewManager::showPanelSceneProperties(PanelScene *scene)
     {
         QString name = tr("Properties Panel %1").arg(scene->panelName());
         dock->setTitle(name);
-        dock->dockWidget()->setUniqueName(name);
+        dock->dockWidget()->setUniqueName(QLatin1String("prop_panel_%1").arg(scene->panelName()));
     };
 
     connect(scene, &PanelScene::nameChanged,
@@ -596,6 +598,7 @@ void ViewManager::showCircuitListView()
                                           KDDockWidgets::DockWidgetOption_DeleteOnClose);
     mCircuitListViewDock->setWidget(circuitListView);
     mCircuitListViewDock->setTitle(tr("Circuit Sheets"));
+    mCircuitListViewDock->setOptions(KDDockWidgets::DockWidgetOption_None);
 
     mainWin()->addDockWidget(mCircuitListViewDock, KDDockWidgets::Location_OnLeft);
 }
@@ -641,6 +644,7 @@ void ViewManager::showObjectListView(const QString &objType)
 
     dock = new DockWidget(QLatin1String("list_%1").arg(model->getObjectType()),
                           KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    dock->setOptions(KDDockWidgets::DockWidgetOption_None);
     dock->setWidget(w);
 
     SimulationObjectFactory *factory = mainWin()->modeMgr()->objectFactory();

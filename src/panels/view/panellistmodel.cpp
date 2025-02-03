@@ -218,6 +218,17 @@ void PanelListModel::clear()
     endResetModel();
 }
 
+PanelScene *PanelListModel::sceneByName(const QString &name) const
+{
+    for(PanelScene *s : mPanelScenes)
+    {
+        if(s->panelName() == name)
+            return s;
+    }
+
+    return nullptr;
+}
+
 bool PanelListModel::loadFromJSON(const QJsonObject &obj)
 {
     beginResetModel();

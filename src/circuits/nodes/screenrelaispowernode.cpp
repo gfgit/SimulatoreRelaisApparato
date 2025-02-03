@@ -115,9 +115,11 @@ bool ScreenRelaisPowerNode::setScreenRelais(ScreenRelais *newRelais, bool force)
 
     if(mScreenRelais)
     {
-        mScreenRelais->setPowerNode(nullptr);
+        ScreenRelais *oldScreenRelais = mScreenRelais;
 
-        disconnect(mScreenRelais, &ScreenRelais::typeChanged,
+        oldScreenRelais->setPowerNode(nullptr);
+
+        disconnect(oldScreenRelais, &ScreenRelais::typeChanged,
                    this, &ScreenRelaisPowerNode::onScreenTypeChanged);
     }
 

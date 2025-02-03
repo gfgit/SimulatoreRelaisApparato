@@ -23,7 +23,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <kddockwidgets-qt6/kddockwidgets/MainWindow.h>
+#include <kddockwidgets/MainWindow.h>
+
 
 #include "enums/filemodes.h"
 
@@ -67,6 +68,9 @@ private slots:
     void onOpenRecent();
     bool onSave();
     bool onSaveAs();
+
+    void loadLayout();
+    void saveLayout();
 
     void updateWindowModified();
 

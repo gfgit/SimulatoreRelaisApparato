@@ -47,12 +47,17 @@
 #include "panels/edit/panelitemfactory.h"
 #include "objects/simulationobjectfactory.h"
 
+#include <kddockwidgets/LayoutSaver.h>
+#include "views/layoutloader.h"
+
 static constexpr const char *allFiles =
         QT_TRANSLATE_NOOP("MainWindow", "All Files (*.*)");
 static constexpr const char *jsonFiles =
         QT_TRANSLATE_NOOP("MainWindow", "JSON Files (*.json)");
 static constexpr const char *simraFormat =
         QT_TRANSLATE_NOOP("MainWindow", "Simulatore Relais Circuits (*.simrelaisc)");
+static constexpr const char *simraLayoutFormat =
+        QT_TRANSLATE_NOOP("MainWindow", "Simulatore Relais Circuits Layout (*.simrelayout)");
 
 MainWindow::MainWindow(const QString& uniqueName_, const QString& settingsFile_, QWidget *parent)
     : KDDockWidgets::QtWidgets::MainWindow(uniqueName_, {}, parent)
@@ -114,6 +119,11 @@ void MainWindow::buildMenuBar()
 
     actionSave_As = menuFile->addAction(tr("Sa&ve As"));
     actionSave_As->setShortcut(tr("Ctrl+Shift+S"));
+
+    menuFile->addSeparator();
+
+    menuFile->addAction(tr("Load Layout"), this, &MainWindow::loadLayout);
+    menuFile->addAction(tr("Save Layout"), this, &MainWindow::saveLayout);
 
     connect(actionNew, &QAction::triggered,
             this, &MainWindow::onNew);
@@ -615,6 +625,47 @@ bool MainWindow::onSaveAs()
     setWindowFilePath(fileName);
     mModeMgr->setFilePath(fileName);
     return true;
+}
+
+void MainWindow::loadLayout()
+{
+    QStringList filters = {simraLayoutFormat, allFiles};
+    for(auto &s : filters)
+        s = tr(s.toLatin1());
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Open Layout"),
+                                                    QString(),
+                                                    filters.join(QLatin1String(";;")));
+    if(fileName.isEmpty())
+        return;
+
+    QFile f(fileName);
+    if(!f.open(QFile::ReadOnly))
+        return;
+
+    QByteArray ba = f.readAll();
+    LayoutLoader::loadLayout(ba);
+}
+
+void MainWindow::saveLayout()
+{
+    QStringList filters = {simraLayoutFormat, allFiles};
+    for(auto &s : filters)
+        s = tr(s.toLatin1());
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    tr("Save Layout"),
+                                                    QString(),
+                                                    filters.join(QLatin1String(";;")));
+    if(fileName.isEmpty())
+        return;
+
+    QFile f(fileName);
+    if(!f.open(QFile::WriteOnly))
+        return;
+
+    KDDockWidgets::LayoutSaver sa;
+    f.write(sa.serializeLayout());
+    f.close();
 }
 
 void MainWindow::updateWindowModified()

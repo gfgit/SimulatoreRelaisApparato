@@ -119,13 +119,13 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
     if(mTypes.size() == 1)
         mTypesCombo->hide(); // No need to show if type cannot be changed
 
-    connect(mLineEdit, &QLineEdit::textEdited,
+    connect(mLineEdit, &QLineEdit::textEdited, this,
             [this]()
     {
         mObjectIsDirty = true;
     });
 
-    connect(mLineEdit, &QLineEdit::returnPressed,
+    connect(mLineEdit, &QLineEdit::returnPressed, this,
             [this]()
     {
         // Allow un-set current object

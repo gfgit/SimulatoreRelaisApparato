@@ -218,6 +218,17 @@ void CircuitListModel::clear()
     endResetModel();
 }
 
+CircuitScene *CircuitListModel::sceneByName(const QString &name) const
+{
+    for(CircuitScene *s : mCircuitScenes)
+    {
+        if(s->circuitSheetName() == name)
+            return s;
+    }
+
+    return nullptr;
+}
+
 bool CircuitListModel::loadFromJSON(const QJsonObject &obj)
 {
     beginResetModel();

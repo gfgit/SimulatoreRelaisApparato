@@ -90,6 +90,8 @@ public:
         return mPanelScenes.value(row, nullptr);
     }
 
+    PanelScene *sceneByName(const QString &name) const;
+
     bool loadFromJSON(const QJsonObject &obj);
     void saveToJSON(QJsonObject &obj) const;
 

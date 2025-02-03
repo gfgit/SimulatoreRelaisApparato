@@ -132,6 +132,8 @@ private:
     void setEditDocksEnabled(bool enabled);
 
 private:
+    friend class LayoutLoader;
+
     // File specific views
     CircuitWidget *mActiveCircuitView = nullptr;
     QHash<CircuitWidget *, DockWidget *> mCircuitViews;
