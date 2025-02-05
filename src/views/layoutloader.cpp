@@ -41,7 +41,10 @@ void LayoutLoader::loadLayout(const QByteArray &data)
 {
     setDeleteOnClose(false);
 
-    KDDockWidgets::LayoutSaver sa;
+    // NOTE: we skip restoring MainWindow geometry because:
+    // 1 - it's glitchy. Window must then be manually un-maximized/re-maximized
+    // 2 - User could have changed screen setup since last layout save
+    KDDockWidgets::LayoutSaver sa(KDDockWidgets::RestoreOption_RelativeToMainWindow);
     sa.restoreLayout(data);
 
     setDeleteOnClose(true);
