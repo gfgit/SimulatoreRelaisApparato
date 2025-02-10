@@ -65,9 +65,6 @@ private:
     void drawRelayArrow(QPainter *painter,
                         TileRotate r);
 
-protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
-
 private:
     static constexpr double relayRadius = 16.0;
 

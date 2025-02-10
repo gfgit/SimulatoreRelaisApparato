@@ -39,6 +39,8 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("simple_node");
     QString nodeType() const override;
 
+    bool tryFlipNode(bool forward) override;
+
     inline int disabledContact() const
     {
         return mDisabledContact;

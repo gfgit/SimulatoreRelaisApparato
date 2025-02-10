@@ -122,6 +122,8 @@ public:
     virtual bool isSourceEnabled() const;
     virtual void setSourceEnabled(bool newEnabled);
 
+    virtual bool tryFlipNode(bool forward);
+
     inline const QVector<NodeContact> &getContacts() const
     {
         return mContacts;

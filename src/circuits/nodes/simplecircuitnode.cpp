@@ -115,3 +115,11 @@ QString SimpleCircuitNode::nodeType() const
 {
     return NodeType;
 }
+
+bool SimpleCircuitNode::tryFlipNode(bool forward)
+{
+    // Cycle through disable contact index
+    const int newIdx = (disabledContact() + (forward ? +1 : -1)) % 4;
+    setDisabledContact(newIdx);
+    return true;
+}

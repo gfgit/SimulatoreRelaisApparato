@@ -24,11 +24,6 @@
 
 #include "../nodes/abstractdeviatornode.h"
 
-#include "../circuitscene.h"
-#include "../../views/modemanager.h"
-
-#include <QGraphicsSceneMouseEvent>
-
 #include <QPainter>
 
 AbstractDeviatorGraphItem::AbstractDeviatorGraphItem(AbstractDeviatorNode *node_)
@@ -354,29 +349,4 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
                          topArcStart * 16,
                          (arcLength / 2) * 16);
     }
-}
-
-void AbstractDeviatorGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
-{
-    // Sometimes we receive clicks even if out of node tile
-    // In those cases do not start moving item or rotate it!
-    CircuitScene *s = circuitScene();
-    if(s && s->mode() == FileMode::Editing && boundingRect().contains(ev->pos()))
-    {
-        const EditingSubMode subMode = s->modeMgr()->editingSubMode();
-
-        if(subMode == EditingSubMode::Default)
-        {
-            if(ev->button() == Qt::RightButton && ev->modifiers() == Qt::ControlModifier)
-            {
-                // Ctrl + right click
-                // Cycle through flip property
-                deviatorNode()->setFlipContact(!deviatorNode()->flipContact());
-                ev->accept();
-                return;
-            }
-        }
-    }
-
-    AbstractNodeGraphItem::mousePressEvent(ev);
 }

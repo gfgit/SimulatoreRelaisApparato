@@ -97,16 +97,28 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
                 ev->accept();
                 return;
             }
-            else if(ev->button() == Qt::RightButton && ev->modifiers() == Qt::NoModifier)
+            else if(ev->button() == Qt::RightButton)
             {
-                // Rotate counter/clockwise 90 (Shift)
-                TileRotate delta = TileRotate::Deg90;
-                if(ev->modifiers() & Qt::ShiftModifier)
-                    delta = TileRotate::Deg270; // Opposite direction
+                if(ev->modifiers() == Qt::ControlModifier)
+                {
+                    // Ctrl + right click, try flip node
+                    if(getAbstractNode()->tryFlipNode(true))
+                    {
+                        ev->accept();
+                        return;
+                    }
+                }
+                else if(ev->modifiers() == Qt::ShiftModifier || ev->modifiers() == Qt::NoModifier)
+                {
+                    // Rotate counter/clockwise 90 (Shift)
+                    TileRotate delta = TileRotate::Deg90;
+                    if(ev->modifiers() & Qt::ShiftModifier)
+                        delta = TileRotate::Deg270; // Opposite direction
 
-                setRotate(rotate() + delta);
-                ev->accept();
-                return;
+                    setRotate(rotate() + delta);
+                    ev->accept();
+                    return;
+                }
             }
         }
     }

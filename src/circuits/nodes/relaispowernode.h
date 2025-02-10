@@ -45,6 +45,8 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("relais_power");
     QString nodeType() const override;
 
+    bool tryFlipNode(bool forward) override;
+
     AbstractRelais *relais() const;
     void setRelais(AbstractRelais *newRelais);
 

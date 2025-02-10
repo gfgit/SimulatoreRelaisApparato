@@ -24,11 +24,6 @@
 
 #include "../nodes/simplecircuitnode.h"
 
-#include "../circuitscene.h"
-#include "../../views/modemanager.h"
-
-#include <QGraphicsSceneMouseEvent>
-
 #include <QPainter>
 
 SimpleNodeGraphItem::SimpleNodeGraphItem(SimpleCircuitNode *node_)
@@ -197,29 +192,4 @@ void SimpleNodeGraphItem::getConnectors(std::vector<Connector> &connectors) cons
 SimpleCircuitNode *SimpleNodeGraphItem::node() const
 {
     return static_cast<SimpleCircuitNode *>(getAbstractNode());
-}
-
-void SimpleNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
-{
-    // Sometimes we receive clicks even if out of node tile
-    // In those cases do not start moving item or rotate it!
-    CircuitScene *s = circuitScene();
-    if(s && s->mode() == FileMode::Editing && boundingRect().contains(ev->pos()))
-    {
-        const EditingSubMode subMode = s->modeMgr()->editingSubMode();
-
-        if(subMode == EditingSubMode::Default)
-        {
-            if(ev->button() == Qt::RightButton && ev->modifiers() == Qt::ControlModifier)
-            {
-                // Ctrl + right click
-                // Cycle through disable contact index
-                node()->setDisabledContact((node()->disabledContact() + 1) % 4);
-                ev->accept();
-                return;
-            }
-        }
-    }
-
-    AbstractNodeGraphItem::mousePressEvent(ev);
 }

@@ -199,6 +199,16 @@ QString RelaisPowerNode::nodeType() const
     return NodeType;
 }
 
+bool RelaisPowerNode::tryFlipNode(bool forward)
+{
+    if(!mRelais || mRelais->relaisType() != AbstractRelais::RelaisType::Combinator)
+        return false;
+
+    // If we are Combinator relay, flip coil
+    setCombinatorSecondCoil(!combinatorSecondCoil());
+    return true;
+}
+
 AbstractRelais *RelaisPowerNode::relais() const
 {
     return mRelais;

@@ -44,6 +44,8 @@ public:
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
+    bool tryFlipNode(bool forward) override;
+
     // Settings
     bool swapContactState() const;
     void setSwapContactState(bool newSwapContactState);

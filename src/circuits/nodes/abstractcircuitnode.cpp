@@ -223,6 +223,11 @@ void AbstractCircuitNode::setSourceEnabled(bool newEnabled)
     Q_UNUSED(newEnabled)
 }
 
+bool AbstractCircuitNode::tryFlipNode(bool forward)
+{
+    return false;
+}
+
 void AbstractCircuitNode::detachCable(int contactIdx)
 {
     NodeContact& contact = mContacts[contactIdx];
