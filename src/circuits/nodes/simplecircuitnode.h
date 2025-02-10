@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    int mDisabledContact = 0; // All enabled
+    int mDisabledContact = 1; // Default: disable first contact
 };
 
 #endif // SIMPLECIRCUITNODE_H
