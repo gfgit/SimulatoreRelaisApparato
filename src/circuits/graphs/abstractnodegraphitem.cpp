@@ -94,8 +94,10 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             if(ev->button() == Qt::LeftButton)
             {
                 s->startMovingItem(this);
+                ev->accept();
+                return;
             }
-            else if(ev->button() == Qt::RightButton)
+            else if(ev->button() == Qt::RightButton && ev->modifiers() == Qt::NoModifier)
             {
                 // Rotate counter/clockwise 90 (Shift)
                 TileRotate delta = TileRotate::Deg90;
@@ -103,6 +105,8 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
                     delta = TileRotate::Deg270; // Opposite direction
 
                 setRotate(rotate() + delta);
+                ev->accept();
+                return;
             }
         }
     }

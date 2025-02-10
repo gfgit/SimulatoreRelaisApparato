@@ -43,7 +43,8 @@ If `Alt` is held while clicking, the zoom level in the view will not be raised i
 
 You can:
 - Add/delete nodes in circuits.
-- Rotate nodes (`Right click` or `Shift + Right click`).
+- Rotate nodes (`Right click` clockwise or `Shift + Right click` counterclockwise).
+- Flip nodes (`Ctrl + Right click` for deviator contact nodes, simple nodes and combinator relay power nodes).
 - Add/Remove cables.
 
 You can move only one node at a time by dragging it. You cannot move cables.

@@ -43,7 +43,8 @@ Se `Alt` è premuto mentre si clicca, il livello di zoom della finestra non verr
 
 Puoi:
 - Aggiungere/rimuovere nodi nei circuiti.
-- Ruotare nodi (`Click Destro` o `Shift + Click Destro`).
+- Ruotare nodi (`Click Destro` orario o `Shift + Click Destro` antiorario).
+- Specchiare nodi (`Ctrl + Click Destro` per contatti a deviatore, nodo semplice, alimentazione relè combinatori).
 - Aggiungere/Rimuovere cavi.
 
 Puoi spostare un solo nodo alla volta trascinandolo. Non puoi spostare i cavi.

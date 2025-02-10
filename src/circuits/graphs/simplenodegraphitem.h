@@ -40,6 +40,9 @@ public:
     void getConnectors(std::vector<Connector>& connectors) const final;
 
     SimpleCircuitNode *node() const;
+
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
 };
 
 #endif // SIMPLENODEGRAPHITEM_H

@@ -44,6 +44,8 @@ public:
 protected:
     // Contacts must be already swapped
     void drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn);
+
+    void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
 };
 
 #endif // ABSTRACTDEVIATORGRAPHITEM_H

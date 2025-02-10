@@ -25,7 +25,10 @@
 #include "../nodes/relaispowernode.h"
 #include "../../objects/relais/model/abstractrelais.h"
 
+#include "../circuitscene.h"
 #include "../../views/modemanager.h"
+
+#include <QGraphicsSceneMouseEvent>
 
 #include <QPainter>
 
@@ -579,6 +582,34 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
     painter->setPen(Qt::NoPen);
     painter->setBrush(color);
     painter->drawPolygon(triangle, 3);
+}
+
+void RelaisPowerGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
+{
+    // Sometimes we receive clicks even if out of node tile
+    // In those cases do not start moving item or rotate it!
+    CircuitScene *s = circuitScene();
+    if(s && s->mode() == FileMode::Editing && boundingRect().contains(ev->pos()))
+    {
+        const EditingSubMode subMode = s->modeMgr()->editingSubMode();
+
+        if(subMode == EditingSubMode::Default)
+        {
+            if(ev->button() == Qt::RightButton && ev->modifiers() == Qt::ControlModifier)
+            {
+                // Ctrl + right click
+                // If we are a combinator relay, flip it
+                if(mRelay && mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
+                {
+                    node()->setCombinatorSecondCoil(!node()->combinatorSecondCoil());
+                    ev->accept();
+                    return;
+                }
+            }
+        }
+    }
+
+    AbstractNodeGraphItem::mousePressEvent(ev);
 }
 
 RelaisPowerNode *RelaisPowerGraphItem::node() const
