@@ -226,8 +226,6 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
 
     DockWidget *dock = new DockWidget(namePair.first,
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
-
-    dock->setOptions(KDDockWidgets::DockWidgetOption_None);
     dock->setWidget(w);
     dock->setTitle(namePair.second);
 
@@ -598,7 +596,6 @@ void ViewManager::showCircuitListView()
                                           KDDockWidgets::DockWidgetOption_DeleteOnClose);
     mCircuitListViewDock->setWidget(circuitListView);
     mCircuitListViewDock->setTitle(tr("Circuit Sheets"));
-    mCircuitListViewDock->setOptions(KDDockWidgets::DockWidgetOption_None);
 
     mainWin()->addDockWidget(mCircuitListViewDock, KDDockWidgets::Location_OnLeft);
 }
@@ -644,7 +641,6 @@ void ViewManager::showObjectListView(const QString &objType)
 
     dock = new DockWidget(QLatin1String("list_%1").arg(model->getObjectType()),
                           KDDockWidgets::DockWidgetOption_DeleteOnClose);
-    dock->setOptions(KDDockWidgets::DockWidgetOption_None);
     dock->setWidget(w);
 
     SimulationObjectFactory *factory = mainWin()->modeMgr()->objectFactory();

@@ -71,6 +71,7 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
     if(name == QLatin1String("circuit_list"))
     {
         viewMgr->showCircuitListView();
+        setFlag(viewMgr->mCircuitListViewDock.data(), false);
         return viewMgr->mCircuitListViewDock.data();
     }
 
@@ -85,6 +86,7 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
             return nullptr;
 
         viewMgr->showCircuitSceneProperties(scene);
+        setFlag(viewMgr->mCircuitEdits.value(scene), false);
         return viewMgr->mCircuitEdits.value(scene);
     }
 
@@ -117,6 +119,7 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
         w->setUniqueNum(uniqueNum);
         viewMgr->updateDockName(w);
 
+        setFlag(viewMgr->mCircuitViews.value(w), false);
         return viewMgr->mCircuitViews.value(w);
     }
 
@@ -124,6 +127,7 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
     if(name == QLatin1String("panel_list"))
     {
         viewMgr->showPanelListView();
+        setFlag(viewMgr->mPanelListViewDock.data(), false);
         return viewMgr->mPanelListViewDock.data();
     }
 
@@ -138,6 +142,7 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
             return nullptr;
 
         viewMgr->showPanelSceneProperties(scene);
+        setFlag(viewMgr->mPanelEdits.value(scene), false);
         return viewMgr->mPanelEdits.value(scene);
     }
 
@@ -170,6 +175,7 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
         w->setUniqueNum(uniqueNum);
         viewMgr->updateDockName(w);
 
+        setFlag(viewMgr->mPanelViews.value(w), false);
         return viewMgr->mPanelViews.value(w);
     }
 
@@ -183,6 +189,7 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
 
         viewMgr->showObjectListView(objType);
 
+        setFlag(viewMgr->mObjectListDocks.value(objType), false);
         return viewMgr->mObjectListDocks.value(objType);
     }
 
@@ -210,6 +217,7 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
 
         viewMgr->showObjectProperties(obj);
 
+        setFlag(viewMgr->mObjectEdits.value(obj), false);
         return viewMgr->mObjectEdits.value(obj);
     }
 
