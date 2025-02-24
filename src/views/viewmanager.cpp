@@ -779,6 +779,12 @@ void ViewManager::onFileModeChanged(FileMode mode, FileMode oldMode)
 {
     Q_UNUSED(oldMode);
     setEditDocksEnabled(mode == FileMode::Editing);
+
+    for(auto it : mCircuitViews.asKeyValueRange())
+    {
+        CircuitWidget *w = it.first;
+        w->circuitsView()->setMode(mode, oldMode);
+    }
 }
 
 CircuitWidget *ViewManager::activeCircuitView() const

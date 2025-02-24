@@ -245,6 +245,9 @@ void ModeManager::setMode(FileMode newMode)
     mMode = newMode;
     emit modeChanged(mMode, oldMode);
 
+    // Let widgets receive mode change first, then update all other scenes
+    mCircuitList->setMode(mMode, oldMode);
+
     // Update file edited because it depends on mode
     emit fileEdited(fileNeedsSaving());
 }

@@ -33,8 +33,6 @@ CircuitListModel::CircuitListModel(ModeManager *mgr, QObject *parent)
     : QAbstractTableModel(parent)
     , mModeMgr(mgr)
 {
-    connect(mModeMgr, &ModeManager::modeChanged,
-            this, &CircuitListModel::setMode);
     connect(mModeMgr, &ModeManager::editingSubModeChanged,
             this, &CircuitListModel::setEditingSubMode);
 }

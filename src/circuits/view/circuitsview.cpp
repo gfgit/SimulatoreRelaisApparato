@@ -83,6 +83,20 @@ void CircuitsView::addNodeAtLocation(NodeEditFactory *editFactory, const QString
     ensureVisible(item);
 }
 
+void CircuitsView::setMode(FileMode newMode, FileMode oldMode)
+{
+    if(!circuitScene())
+        return;
+
+    // Changing mode can change scene rect. Try to keep current viewport position
+    const QPoint vpCenter(viewport()->width() / 2, viewport()->height() / 2);
+    const QPointF sceneVpCenter = mapToScene(vpCenter);
+
+    circuitScene()->setMode(newMode, oldMode);
+
+    centerOn(sceneVpCenter);
+}
+
 void CircuitsView::keyPressEvent(QKeyEvent *ev)
 {
     CircuitScene *s = circuitScene();

@@ -62,7 +62,7 @@ public:
     explicit CircuitScene(CircuitListModel *parent);
     ~CircuitScene();
 
-    FileMode mode() const;
+    inline FileMode mode() const { return mMode; }
     void setMode(FileMode newMode, FileMode oldMode);
 
     void addNode(AbstractNodeGraphItem *item);
@@ -265,6 +265,8 @@ private:
     std::unordered_map<AbstractNodeGraphItem *, TileLocation> mSelectedItemPositions;
     std::unordered_map<CableGraphItem *, std::pair<TileLocation, TileLocation>> mSelectedCablePositions;
     TileLocation mSelectedCableMoveStart = TileLocation::invalid;
+
+    FileMode mMode = FileMode::Editing;
 };
 
 #endif // CIRCUITSCENE_H

@@ -106,8 +106,6 @@ signals:
 private slots:
     void onSceneNameChanged(const QString& name, CircuitScene *scene);
 
-    void setMode(FileMode newMode, FileMode oldMode);
-
     void setEditingSubMode(EditingSubMode oldMode, EditingSubMode newMode);
 
 private:
@@ -115,6 +113,9 @@ private:
     void onSceneEdited();
 
     void clearInternal();
+
+    friend class ModeManager;
+    void setMode(FileMode newMode, FileMode oldMode);
 
 private:
     QVector<CircuitScene *> mCircuitScenes;

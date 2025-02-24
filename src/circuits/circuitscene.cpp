@@ -166,11 +166,6 @@ CircuitScene::~CircuitScene()
     removeAllItems();
 }
 
-FileMode CircuitScene::mode() const
-{
-    return circuitsModel()->modeMgr()->mode();
-}
-
 ModeManager *CircuitScene::modeMgr() const
 {
     return circuitsModel()->modeMgr();
@@ -178,6 +173,11 @@ ModeManager *CircuitScene::modeMgr() const
 
 void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 {
+    if(mMode == newMode)
+        return;
+
+    mMode = newMode;
+
     if(oldMode == FileMode::Editing || oldMode == FileMode::LoadingFile)
     {
         // Recalculate circuit
