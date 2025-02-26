@@ -84,8 +84,6 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     relayRect.moveCenter(center);
 
     TileRotate r = rotate();
-    if(node()->hasSecondConnector())
-        r = twoConnectorsRotate() + TileRotate::Deg90;
 
     switch (toConnectorDirection(r))
     {
@@ -382,20 +380,9 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     }
 
     // Draw name and state arrow
-    TileRotate textRotate = TileRotate::Deg90;
     TileRotate arrowRotate = TileRotate::Deg90;
-    if(node()->hasSecondConnector())
-    {
-        textRotate = twoConnectorsRotate() + TileRotate::Deg90;
-        arrowRotate = textRotate + TileRotate::Deg90;
-    }
-    else
-    {
-        if(r == TileRotate::Deg0)
-            textRotate = TileRotate::Deg270;
-        if(r == TileRotate::Deg90)
-            arrowRotate = TileRotate::Deg270;
-    }
+    if(r == TileRotate::Deg90)
+        arrowRotate = TileRotate::Deg270;
 
     drawRelayArrow(painter, arrowRotate);
 
@@ -432,10 +419,8 @@ void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) con
         }
         else
         {
-            // Always put connectors horizontal
-            // We ignore other rotations otherwise we cannot draw name :(
-            connectors.emplace_back(location(), twoConnectorsRotate() + TileRotate::Deg90, 0);
-            connectors.emplace_back(location(), twoConnectorsRotate() + TileRotate::Deg270, 1);
+            connectors.emplace_back(location(), rotate() + TileRotate::Deg90, 0);
+            connectors.emplace_back(location(), rotate() + TileRotate::Deg270, 1);
         }
     }
     else
@@ -459,6 +444,38 @@ QString RelaisPowerGraphItem::tooltipString() const
     return tr("Relay <b>%1</b> (Power)<br>"
               "State: <b>%2</b>")
             .arg(mRelay->name(), mRelay->getStateName());
+}
+
+QRectF RelaisPowerGraphItem::textDisplayRect() const
+{
+    // When East or West give some more margin to not collide
+    // with relay arrow
+    // We use assume TileLocation::Size / 4 is enough
+
+    constexpr double arrowMargin = TileLocation::Size / 4.0;
+
+    QRectF textRect;
+    switch (textRotate())
+    {
+    case Connector::Direction::East:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::Size);
+        textRect.setLeft(TileLocation::Size + arrowMargin + TextDisplayMargin);
+        textRect.setRight(TileLocation::Size + arrowMargin + 2 * TextDisplayMargin + mTextWidth);
+        break;
+    case Connector::Direction::West:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::Size);
+        textRect.setLeft(-2 * TextDisplayMargin - mTextWidth - arrowMargin);
+        textRect.setRight(-TextDisplayMargin - arrowMargin);
+        break;
+    default:
+        // Default
+        textRect = AbstractNodeGraphItem::textDisplayRect();
+        break;
+    }
+
+    return textRect;
 }
 
 void RelaisPowerGraphItem::updateRelay()

@@ -47,6 +47,8 @@ public:
 
     QString tooltipString() const override;
 
+    QRectF textDisplayRect() const override;
+
     RelaisPowerNode *node() const;
 
     inline TileRotate twoConnectorsRotate() const
