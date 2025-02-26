@@ -25,10 +25,7 @@
 #include "../nodes/relaispowernode.h"
 #include "../../objects/relais/model/abstractrelais.h"
 
-#include "../circuitscene.h"
 #include "../../views/modemanager.h"
-
-#include <QGraphicsSceneMouseEvent>
 
 #include <QPainter>
 
