@@ -68,7 +68,7 @@ const QString AbstractDeviatorGraphItem::getContactTooltip() const
     }
     else
     {
-        return tr("Contact: %1")
+        return tr("Contact: <b>%1</b>")
                 .arg(contact1On ? onStr : offStr);
     }
 }

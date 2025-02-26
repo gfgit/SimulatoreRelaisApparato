@@ -265,8 +265,8 @@
     </message>
     <message>
         <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="71"/>
-        <source>Contact: %1</source>
-        <translation>Contatto: %1</translation>
+        <source>Contact: &lt;b&gt;%1&lt;/b&gt;</source>
+        <translation>Contatto: &lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
 </context>
 <context>
@@ -1469,12 +1469,12 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="175"/>
         <source>No Screen Relay set!</source>
-        <translation type="unfinished">Nessuno Relè Schermo impostato!</translation>
+        <translation>Nessuno Relè Schermo impostato!</translation>
     </message>
     <message>
         <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="177"/>
-        <source>Screen Relay &lt;b&gt;%1&lt;/b&gt; (power)&lt;br&gt;</source>
-        <translation type="unfinished"></translation>
+        <source>Screen Relay &lt;b&gt;%1&lt;/b&gt; (Power)&lt;br&gt;</source>
+        <translation>Relè Schermo &lt;b&gt;%1&lt;/b&gt; (Alimentazione)&lt;br&gt;</translation>
     </message>
 </context>
 <context>

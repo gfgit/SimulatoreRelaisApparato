@@ -174,7 +174,7 @@ QString ScreenRelaisPowerGraphItem::tooltipString() const
     if(!node()->screenRelais())
         return tr("No Screen Relay set!");
 
-    return tr("Screen Relay <b>%1</b> (power)<br>")
+    return tr("Screen Relay <b>%1</b> (Power)<br>")
             .arg(node()->screenRelais()->name());
 }
 
