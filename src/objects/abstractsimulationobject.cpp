@@ -113,16 +113,8 @@ bool AbstractSimulationObject::setName(const QString &newName)
         return true;
 
     bool isValid = model()->isNameAvailable(trimmedName);
-
-    if(isValid)
-    {
-        // Do change name
-        mName = trimmedName;
-
-        emit settingsChanged(this);
-    }
-
-    emit nameChanged(mName);
+    if(!isValid)
+        return false;
 
     int nodesCount = getReferencingNodes(nullptr);
     QVector<AbstractCircuitNode *> nodesVec;
@@ -132,12 +124,24 @@ bool AbstractSimulationObject::setName(const QString &newName)
 
     for(AbstractCircuitNode *node : nodesVec)
     {
+        // Prepare node geometry change
+        emit node->shapeChanged(true);
+    }
+
+    // Do change name
+    mName = trimmedName;
+
+    for(AbstractCircuitNode *node : nodesVec)
+    {
         // Trigger drawing update
         // TODO: find better way
         // NOTE: we want to avoid having to connecto to nameChanged()
         // in each node since there are many
-        emit node->shapeChanged();
+        emit node->shapeChanged(false);
     }
+
+    emit settingsChanged(this);
+    emit nameChanged(mName);
 
     return isValid;
 }

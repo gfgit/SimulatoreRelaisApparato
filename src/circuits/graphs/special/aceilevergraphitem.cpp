@@ -82,7 +82,7 @@ void ACEILeverGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     borderPen.setColor(Qt::darkGray);
     painter->setPen(borderPen);
     painter->setBrush(Qt::NoBrush);
-    painter->drawRect(boundingRect());
+    painter->drawRect(baseTileRect());
 
     // Draw lights
     QRectF circle;

@@ -599,32 +599,13 @@ void BEMPanelItem::onRelayDestroyed()
         setOccupancyRelay(nullptr);
     if(sender() == mKConditionsRelay)
         setKConditionsRelay(nullptr);
+    if(sender() == mLiberationRelay)
+        setLiberationRelay(nullptr);
 }
 
 void BEMPanelItem::setLiberationRelay(AbstractRelais *newLiberationRelay)
 {
-    if(mLiberationRelay == newLiberationRelay)
-        return;
-
-    if(mLiberationRelay)
-    {
-        disconnect(mLiberationRelay, &AbstractRelais::stateChanged,
-                   this, &BEMPanelItem::triggerUpdate);
-        disconnect(mLiberationRelay, &AbstractRelais::settingsChanged,
-                   this, &BEMPanelItem::triggerUpdate);
-    }
-
-    mLiberationRelay = newLiberationRelay;
-
-    if(mLiberationRelay)
-    {
-        connect(mLiberationRelay, &AbstractRelais::stateChanged,
-                this, &BEMPanelItem::triggerUpdate);
-        connect(mLiberationRelay, &AbstractRelais::settingsChanged,
-                this, &BEMPanelItem::triggerUpdate);
-    }
-
-    update();
+    setRelayHelper(newLiberationRelay, mLiberationRelay);
 }
 
 void BEMPanelItem::setRelayHelper(AbstractRelais *newRelay, AbstractRelais *&mRelay)
@@ -638,6 +619,8 @@ void BEMPanelItem::setRelayHelper(AbstractRelais *newRelay, AbstractRelais *&mRe
                    this, &BEMPanelItem::triggerUpdate);
         disconnect(mRelay, &AbstractRelais::settingsChanged,
                    this, &BEMPanelItem::triggerUpdate);
+        disconnect(mRelay, &AbstractRelais::destroyed,
+                   this, &BEMPanelItem::onRelayDestroyed);
     }
 
     mRelay = newRelay;
@@ -648,6 +631,8 @@ void BEMPanelItem::setRelayHelper(AbstractRelais *newRelay, AbstractRelais *&mRe
                 this, &BEMPanelItem::triggerUpdate);
         connect(mRelay, &AbstractRelais::settingsChanged,
                 this, &BEMPanelItem::triggerUpdate);
+        connect(mRelay, &AbstractRelais::destroyed,
+                this, &BEMPanelItem::onRelayDestroyed);
     }
 
     PanelScene *s = panelScene();

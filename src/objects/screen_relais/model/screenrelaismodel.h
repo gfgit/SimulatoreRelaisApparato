@@ -1,5 +1,5 @@
 /**
- * src/objects/relais/model/relaismodel.h
+ * src/objects/screen_relais/model/screenrelaismodel.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,12 +20,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef RELAIS_MODEL_H
-#define RELAIS_MODEL_H
+#ifndef SCREEN_RELAIS_MODEL_H
+#define SCREEN_RELAIS_MODEL_H
 
 #include "../../abstractsimulationobjectmodel.h"
 
-class RelaisModel : public AbstractSimulationObjectModel
+class ScreenRelaisModel : public AbstractSimulationObjectModel
 {
     Q_OBJECT
 
@@ -38,7 +38,7 @@ public:
         NColsExtra
     };
 
-    RelaisModel(ModeManager *mgr, QObject *parent = nullptr);
+    ScreenRelaisModel(ModeManager *mgr, QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -50,4 +50,4 @@ public:
     QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
 };
 
-#endif // RELAIS_MODEL_H
+#endif // SCREEN_RELAIS_MODEL_H

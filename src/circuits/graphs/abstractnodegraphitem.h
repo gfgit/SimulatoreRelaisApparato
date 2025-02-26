@@ -36,6 +36,10 @@ class AbstractNodeGraphItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
+    static constexpr double TextDisplayFontSize = 28;
+    static constexpr double TextDisplayHeight = TextDisplayFontSize * 1.5;
+    static constexpr double TextDisplayMargin = 10;
+
     AbstractNodeGraphItem(AbstractCircuitNode *node_);
 
     QRectF boundingRect() const override;
@@ -43,6 +47,12 @@ public:
     virtual void getConnectors(std::vector<Connector>& /*connectors*/) const {}
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
+
+    virtual QString displayString() const;
+
+    virtual QString tooltipString() const;
+
+    virtual QRectF textDisplayRect() const;
 
     inline AbstractCircuitNode *getAbstractNode() const
     {
@@ -59,8 +69,18 @@ public:
         setPos(l.toPoint());
     }
 
+    static inline QRectF baseTileRect()
+    {
+        return QRectF(0, 0, TileLocation::Size, TileLocation::Size);
+    }
+
     TileRotate rotate() const;
     void setRotate(TileRotate newRotate);
+
+    inline Connector::Direction textRotate() const { return mTextDirection; };
+    void setTextRotate(Connector::Direction newTextRotate);
+
+    void postInit();
 
     CircuitScene *circuitScene() const;
 
@@ -70,7 +90,7 @@ public:
 protected slots:
     void triggerUpdate();
     virtual void updateName();
-    void onShapeChanged();
+    void onShapeChanged(bool boundingRectChange);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
@@ -85,11 +105,21 @@ protected:
                   TileRotate r,
                   QRectF *br = nullptr);
 
+    void drawName(QPainter *painter);
+    void drawUnpairedConnectors(QPainter *painter);
+
     void invalidateConnections(bool tryReconnectImmediately = true);
+
+    void recalculateTextWidth();
+    void recalculateTextPosition();
 
 private:
     AbstractCircuitNode *mAbstractNode;
     TileRotate mRotate = TileRotate::Deg0;
+    Connector::Direction mTextDirection = Connector::Direction::East;
+
+protected:
+    int mTextWidth = 0;
 };
 
 #endif // ABSTRACTNODEGRAPHITEM_H

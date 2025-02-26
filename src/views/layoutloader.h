@@ -1,9 +1,9 @@
 /**
- * src/circuits/graphs/simpleactivationgraphitem.h
+ * src/views/layoutloader.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,29 +20,33 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef SIMPLEACTIVATIONGRAPHITEM_H
-#define SIMPLEACTIVATIONGRAPHITEM_H
+#ifndef LAYOUT_LOADER_H
+#define LAYOUT_LOADER_H
 
-#include "abstractnodegraphitem.h"
+namespace KDDockWidgets {
+namespace Core {
+class DockWidget;
+}
+namespace QtWidgets {
+class DockWidget;
+}
+}
 
-class SimpleActivationNode;
+class QString;
+class QByteArray;
 
-class SimpleActivationGraphItem : public AbstractNodeGraphItem
+class LayoutLoader
 {
-    Q_OBJECT
 public:
-    explicit SimpleActivationGraphItem(SimpleActivationNode *node_);
+    static void registerLoader();
 
-    void getConnectors(std::vector<Connector>& connectors) const final;
 
-    QString displayString() const override;
+    static void loadLayout(const QByteArray& data);
 
-    QString tooltipString() const override;
-
-    SimpleActivationNode *activationNode() const;
-
-protected:
-    static constexpr double circleRadius = 50 - 10/2; // Half rect - half pen width
+private:
+    static KDDockWidgets::QtWidgets::DockWidget *createDockWidget(const QString &name);
+    static KDDockWidgets::Core::DockWidget *dockWidgetFactoryFunc(const QString &name);
+    static void setDeleteOnClose(bool value);
 };
 
-#endif // SIMPLEACTIVATIONGRAPHITEM_H
+#endif // LAYOUT_LOADER_H

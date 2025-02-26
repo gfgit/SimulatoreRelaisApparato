@@ -94,7 +94,7 @@ void ScreenRelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     // Now draw wire
     painter->setBrush(Qt::NoBrush);
     QPen pen;
-    pen.setWidthF(5.0);
+    pen.setWidthF(10.0);
     pen.setCapStyle(Qt::FlatCap);
 
     const QColor colors[3] =
@@ -129,13 +129,13 @@ void ScreenRelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     };
 
     painter->setBrush(GlassColorArr[mScreenRelay ? int(mScreenRelay->getColorAt(0)) : 0]);
-    painter->drawEllipse(QPointF(-13, -glassOffset + 4), glassCircleRadius, glassCircleRadius);
+    painter->drawEllipse(QPointF(-20, -glassOffset + 8), glassCircleRadius, glassCircleRadius);
 
     painter->setBrush(GlassColorArr[mScreenRelay ? int(mScreenRelay->getColorAt(1)) : 0]);
     painter->drawEllipse(QPointF(0, -glassOffset), glassCircleRadius, glassCircleRadius);
 
     painter->setBrush(GlassColorArr[mScreenRelay ? int(mScreenRelay->getColorAt(2)) : 0]);
-    painter->drawEllipse(QPointF(+13, -glassOffset + 4), glassCircleRadius, glassCircleRadius);
+    painter->drawEllipse(QPointF(+20, -glassOffset + 8), glassCircleRadius, glassCircleRadius);
 
     painter->restore();
 
@@ -146,18 +146,36 @@ void ScreenRelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGrap
 
 
     // Draw name
-    TileRotate textRotate = TileRotate::Deg90;
-
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
-    drawName(painter,
-             node()->screenRelais() ? node()->screenRelais()->name() : tr("SCREEN!"),
-             textRotate);
+
+    // TileRotate textRotate = TileRotate::Deg90;
+    // drawName(painter,
+    //          node()->screenRelais() ? node()->screenRelais()->name() : tr("SCREEN!"),
+    //          textRotate);
+
+    drawName(painter);
 }
 
 void ScreenRelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
     connectors.emplace_back(location(), rotate(), 0);
+}
+
+QString ScreenRelaisPowerGraphItem::displayString() const
+{
+    if(node()->screenRelais())
+        return node()->screenRelais()->name();
+    return QLatin1String("SCR!");
+}
+
+QString ScreenRelaisPowerGraphItem::tooltipString() const
+{
+    if(!node()->screenRelais())
+        return tr("No Screen Relay set!");
+
+    return tr("Screen Relay <b>%1</b> (Power)<br>")
+            .arg(node()->screenRelais()->name());
 }
 
 void ScreenRelaisPowerGraphItem::updateRelay()

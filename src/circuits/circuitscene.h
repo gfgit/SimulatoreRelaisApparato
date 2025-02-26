@@ -62,7 +62,7 @@ public:
     explicit CircuitScene(CircuitListModel *parent);
     ~CircuitScene();
 
-    FileMode mode() const;
+    inline FileMode mode() const { return mMode; }
     void setMode(FileMode newMode, FileMode oldMode);
 
     void addNode(AbstractNodeGraphItem *item);
@@ -122,6 +122,8 @@ public:
     static Connector::Direction getTileAndDirection(const QPointF& pos,
                                                     TileLocation &outLocation, bool &isEdge);
 
+    AbstractNodeGraphItem *getGraphForNode(AbstractCircuitNode *node) const;
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);
@@ -129,6 +131,8 @@ signals:
     void sceneEdited(bool val);
 
 protected:
+    void helpEvent(QGraphicsSceneHelpEvent *e) override;
+
     void keyReleaseEvent(QKeyEvent *e) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
 
@@ -263,6 +267,8 @@ private:
     std::unordered_map<AbstractNodeGraphItem *, TileLocation> mSelectedItemPositions;
     std::unordered_map<CableGraphItem *, std::pair<TileLocation, TileLocation>> mSelectedCablePositions;
     TileLocation mSelectedCableMoveStart = TileLocation::invalid;
+
+    FileMode mMode = FileMode::Editing;
 };
 
 #endif // CIRCUITSCENE_H

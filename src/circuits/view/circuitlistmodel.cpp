@@ -33,8 +33,6 @@ CircuitListModel::CircuitListModel(ModeManager *mgr, QObject *parent)
     : QAbstractTableModel(parent)
     , mModeMgr(mgr)
 {
-    connect(mModeMgr, &ModeManager::modeChanged,
-            this, &CircuitListModel::setMode);
     connect(mModeMgr, &ModeManager::editingSubModeChanged,
             this, &CircuitListModel::setEditingSubMode);
 }
@@ -218,6 +216,17 @@ void CircuitListModel::clear()
     endResetModel();
 }
 
+CircuitScene *CircuitListModel::sceneByName(const QString &name) const
+{
+    for(CircuitScene *s : mCircuitScenes)
+    {
+        if(s->circuitSheetName() == name)
+            return s;
+    }
+
+    return nullptr;
+}
+
 bool CircuitListModel::loadFromJSON(const QJsonObject &obj)
 {
     beginResetModel();
@@ -264,6 +273,18 @@ void CircuitListModel::saveToJSON(QJsonObject &obj) const
     }
 
     obj["scenes"] = arr;
+}
+
+AbstractNodeGraphItem *CircuitListModel::getGraphForNode(AbstractCircuitNode *node) const
+{
+    for(CircuitScene *scene : std::as_const(mCircuitScenes))
+    {
+        AbstractNodeGraphItem *item = scene->getGraphForNode(node);
+        if(item)
+            return item;
+    }
+
+    return nullptr;
 }
 
 void CircuitListModel::onSceneNameChanged(const QString &, CircuitScene *scene)

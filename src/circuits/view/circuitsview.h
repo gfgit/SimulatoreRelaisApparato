@@ -25,6 +25,8 @@
 
 #include "../../utils/zoomgraphview.h"
 
+#include "../../enums/filemodes.h"
+
 class CircuitScene;
 struct TileLocation;
 class NodeEditFactory;
@@ -40,6 +42,8 @@ public:
     void addNodeAtLocation(NodeEditFactory *editFactory,
                            const QString &nodeType,
                            const TileLocation& tileHint);
+
+    void setMode(FileMode newMode, FileMode oldMode);
 
 protected:
     void keyPressEvent(QKeyEvent *ev) override;

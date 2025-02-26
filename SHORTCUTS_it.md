@@ -18,9 +18,24 @@ Premi `Ctrl+R` su una schermata attiva, una finestra di dialogo apparirà per se
 Puoi ingrandire/rimpicciolire i contenuti usand `Ctrl` e ruotando la rotella del mouse.
 Oppure puoi inserire il livello di zoom nella barra di stato della schermata.
 
-## Finestra Modifica
+## Finestra Proprietà
+
+### Campi oggetto
 
 Per rimuovere un oggetto da un campo, elimina il testo e premi `Enter`.
+
+### Campi numerici
+
+I campi numerici possono essere modificati con la rotella del mouse se ci passi sopra con il cursore.
+Se sono all'interno di un'area di scorrimento, devi prima cliccarli per spostare il focus su di loro e poi scorrere la rotella del mouse per cambiare numero.
+
+### Nodes Tab
+
+Nella finestra di Proprietà dell'oggetto, la scheda "Nodi" mostra una lista di tutti i nodi correlati all'oggetto.
+Facendo doppio click su un elemento, verrà aperta (o portata in primo piano se già aperta) una finestra del circuito centrata sul nodo selezionato.
+
+Se `Shift` è premuto mentre si clicca, una nuova finestra verrà aperta a prescindere se esistono già finestre per lo stesso circuito.
+Se `Alt` è premuto mentre si clicca, il livello di zoom della finestra non verrà aumentato se minore di 100%.
 
 ## Modalità di modifica
 
@@ -28,7 +43,9 @@ Per rimuovere un oggetto da un campo, elimina il testo e premi `Enter`.
 
 Puoi:
 - Aggiungere/rimuovere nodi nei circuiti.
-- Ruotare nodi (`Click Destro` o `Shift + Click Destro`).
+- Ruotare nodi (`Click Destro` orario o `Shift + Click Destro` antiorario).
+- Specchiare nodi (`Ctrl + Click Destro` per contatti a deviatore, nodo semplice, alimentazione relè combinatori).
+- Ruotare la posizione dell'etichetta del nodo (`Alt + Click Destro`).
 - Aggiungere/Rimuovere cavi.
 
 Puoi spostare un solo nodo alla volta trascinandolo. Non puoi spostare i cavi.

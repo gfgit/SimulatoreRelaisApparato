@@ -37,8 +37,11 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    ScreenRelaisContactNode *node() const;
+    QString displayString() const override;
 
+    QString tooltipString() const override;
+
+    ScreenRelaisContactNode *node() const;
 };
 
 #endif // SCREEN_RELAIS_CONTACT_GRAPHITEM_H

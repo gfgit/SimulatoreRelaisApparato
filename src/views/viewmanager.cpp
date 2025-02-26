@@ -28,9 +28,11 @@
 #include "../circuits/edit/nodeeditfactory.h"
 
 #include "../circuits/view/circuitwidget.h"
+#include "../circuits/view/circuitsview.h"
 #include "../circuits/view/circuitlistwidget.h"
 #include "../circuits/view/circuitlistmodel.h"
 #include "../circuits/circuitscene.h"
+#include "../circuits/graphs/abstractnodegraphitem.h"
 
 #include "../panels/edit/panelitemfactory.h"
 
@@ -45,10 +47,12 @@
 #include "../objects/simulationobjectoptionswidget.h"
 #include "../objects/simulationobjectlistwidget.h"
 
-#include <kddockwidgets-qt6/kddockwidgets/DockWidget.h>
-#include <kddockwidgets-qt6/kddockwidgets/core/DockWidget.h>
+#include <kddockwidgets/DockWidget.h>
+#include <kddockwidgets/core/DockWidget.h>
 
 #include <QInputDialog>
+
+static ViewManager *s_viewMgr = nullptr;
 
 ViewManager::ViewManager(MainWindow *parent)
     : QObject{parent}
@@ -67,11 +71,20 @@ ViewManager::ViewManager(MainWindow *parent)
     PanelListModel *panelList = modeMgr->panelList();
     connect(panelList, &PanelListModel::itemEditRequested,
             this, &ViewManager::panelItemEditRequested);
+
+    s_viewMgr = this;
 }
 
 ViewManager::~ViewManager()
 {
     closeAll();
+
+    s_viewMgr = nullptr;
+}
+
+ViewManager *ViewManager::self()
+{
+    return s_viewMgr;
 }
 
 MainWindow *ViewManager::mainWin() const
@@ -105,30 +118,30 @@ void ViewManager::setActivePanel(PanelWidget *w)
 
 static std::pair<QString, QString> getCircuitUniqueName(CircuitWidget *w)
 {
-    QString name = QLatin1String("null");
+    QString name = QStringLiteral("circuit_%1_null").arg(w->uniqueNum());
     QString title = ViewManager::tr("Empty");
 
     auto scene = w->scene();
     if(scene)
         title = scene->circuitSheetName();
 
-    name = QLatin1String("%1_(%2)").arg(title).arg(w->uniqueNum());
-    title = QLatin1String("%1 (%2)").arg(title).arg(w->uniqueNum());
+    name = QLatin1String("circuit_%1_(%2)").arg(title).arg(w->uniqueNum());
+    title = ViewManager::tr("Circuit %1 (%2)").arg(title).arg(w->uniqueNum());
 
     return {name, title};
 }
 
 static std::pair<QString, QString> getPanelUniqueName(PanelWidget *w)
 {
-    QString name = QLatin1String("null");
+    QString name = QStringLiteral("panel_%1_null").arg(w->uniqueNum());
     QString title = ViewManager::tr("Empty");
 
     auto scene = w->scene();
     if(scene)
         title = scene->panelName();
 
-    name = QLatin1String("%1_(%2)").arg(title).arg(w->uniqueNum());
-    title = QLatin1String("%1 (%2)").arg(title).arg(w->uniqueNum());
+    name = QLatin1String("panel_%1_(%2)").arg(title).arg(w->uniqueNum());
+    title = ViewManager::tr("Panel %1 (%2)").arg(title).arg(w->uniqueNum());
 
     return {name, title};
 }
@@ -140,8 +153,8 @@ void ViewManager::updateDockName(CircuitWidget *w)
         return;
 
     auto namePair = getCircuitUniqueName(w);
-    dock->dockWidget()->setUniqueName(QLatin1String("circuit_") + namePair.first);
-    dock->setTitle(tr("Circuit %1").arg(namePair.second));
+    dock->dockWidget()->setUniqueName(namePair.first);
+    dock->setTitle(namePair.second);
 }
 
 int ViewManager::getUniqueNum(CircuitScene *scene, CircuitWidget *self) const
@@ -181,12 +194,25 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
 {
     if(!forceNew)
     {
+        if(mActiveCircuitView && mActiveCircuitView->scene() == scene)
+        {
+            // Give precedence to last active view
+            for(auto it : mCircuitViews.asKeyValueRange())
+            {
+                if(it.first == mActiveCircuitView)
+                {
+                    it.second->raise();
+                    return mActiveCircuitView;
+                }
+            }
+        }
+
         for(auto it : mCircuitViews.asKeyValueRange())
         {
             CircuitWidget *w = it.first;
             if(w->scene() == scene)
             {
-                w->raise();
+                it.second->raise();
                 return w;
             }
         }
@@ -201,7 +227,7 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
     DockWidget *dock = new DockWidget(namePair.first,
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
-    dock->setTitle(tr("Circuit %1").arg(namePair.second));
+    dock->setTitle(namePair.second);
 
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
 
@@ -213,7 +239,7 @@ CircuitWidget *ViewManager::addCircuitView(CircuitScene *scene, bool forceNew)
     return w;
 }
 
-void ViewManager::showCircuitSceneEdit(CircuitScene *scene)
+void ViewManager::showCircuitSceneProperties(CircuitScene *scene)
 {
     // Raise existing edit window if present
     for(auto it : mCircuitEdits.asKeyValueRange())
@@ -227,15 +253,17 @@ void ViewManager::showCircuitSceneEdit(CircuitScene *scene)
 
     // Create new edit window
     CircuitSceneOptionsWidget *w = new CircuitSceneOptionsWidget(scene);
+    w->setEditingAllowed(modeMgr()->mode() == FileMode::Editing);
+
     DockWidget *dock = new DockWidget(scene->circuitSheetName(),
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
 
     auto updateDock = [dock, scene]()
     {
-        QString name = tr("Edit Circuit %1").arg(scene->circuitSheetName());
+        QString name = tr("Properties Circuit %1").arg(scene->circuitSheetName());
         dock->setTitle(name);
-        dock->dockWidget()->setUniqueName(name);
+        dock->dockWidget()->setUniqueName(QLatin1String("prop_circuit_%1").arg(scene->circuitSheetName()));
     };
 
     connect(scene, &CircuitScene::nameChanged,
@@ -263,8 +291,8 @@ void ViewManager::updateDockName(PanelWidget *w)
         return;
 
     auto namePair = getPanelUniqueName(w);
-    dock->dockWidget()->setUniqueName(QLatin1String("panel_") + namePair.first);
-    dock->setTitle(tr("Panel %1").arg(namePair.second));
+    dock->dockWidget()->setUniqueName(namePair.first);
+    dock->setTitle(namePair.second);
 }
 
 int ViewManager::getUniqueNum(PanelScene *scene, PanelWidget *self) const
@@ -319,6 +347,26 @@ AbstractSimulationObject *ViewManager::createNewObjectDlg(const QString &objType
     return SimulationObjectListWidget::addObjectHelper(model, parent);
 }
 
+void ViewManager::ensureCircuitItemIsVisible(AbstractNodeGraphItem *item, bool forceNew, bool adjustZoom)
+{
+    if(!item)
+        return;
+
+    CircuitScene *s = item->circuitScene();
+    if(!s)
+        return;
+
+    CircuitWidget *w = addCircuitView(s, forceNew);
+    CircuitsView *view = w->circuitsView();
+
+    // Ensure zoom is not too low
+    if(adjustZoom && view->zoomFactor() < 1)
+        view->setZoom(1);
+
+    // Scroll to show item
+    view->centerOn(item);
+}
+
 void ViewManager::setCurrentViewType(ViewType newCurrentViewType)
 {
     mCurrentViewType = newCurrentViewType;
@@ -329,12 +377,25 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
 {
     if(!forceNew)
     {
+        if(mActivePanelView && mActivePanelView->scene() == scene)
+        {
+            // Give precedence to last active view
+            for(auto it : mPanelViews.asKeyValueRange())
+            {
+                if(it.first == mActivePanelView)
+                {
+                    it.second->raise();
+                    return mActivePanelView;
+                }
+            }
+        }
+
         for(auto it : mPanelViews.asKeyValueRange())
         {
             PanelWidget *w = it.first;
             if(w->scene() == scene)
             {
-                w->raise();
+                it.second->raise();
                 return w;
             }
         }
@@ -349,7 +410,7 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
     DockWidget *dock = new DockWidget(namePair.first,
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
-    dock->setTitle(tr("Panel %1").arg(namePair.second));
+    dock->setTitle(namePair.second);
 
     mainWin()->addDockWidget(dock, KDDockWidgets::Location_OnRight);
 
@@ -361,7 +422,7 @@ PanelWidget *ViewManager::addPanelView(PanelScene *scene, bool forceNew)
     return w;
 }
 
-void ViewManager::showPanelSceneEdit(PanelScene *scene)
+void ViewManager::showPanelSceneProperties(PanelScene *scene)
 {
     // Raise existing edit window if present
     for(auto it : mPanelEdits.asKeyValueRange())
@@ -375,15 +436,17 @@ void ViewManager::showPanelSceneEdit(PanelScene *scene)
 
     // Create new edit window
     PanelSceneOptionsWidget *w = new PanelSceneOptionsWidget(scene);
+    w->setEditingAllowed(modeMgr()->mode() == FileMode::Editing);
+
     DockWidget *dock = new DockWidget(scene->panelName(),
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
     dock->setWidget(w);
 
     auto updateDock = [dock, scene]()
     {
-        QString name = tr("Edit Panel %1").arg(scene->panelName());
+        QString name = tr("Properties Panel %1").arg(scene->panelName());
         dock->setTitle(name);
-        dock->dockWidget()->setUniqueName(name);
+        dock->dockWidget()->setUniqueName(QLatin1String("prop_panel_%1").arg(scene->panelName()));
     };
 
     connect(scene, &PanelScene::nameChanged,
@@ -404,7 +467,7 @@ void ViewManager::showPanelSceneEdit(PanelScene *scene)
     mPanelEdits.insert(scene, dock);
 }
 
-void ViewManager::showObjectEdit(AbstractSimulationObject *item)
+void ViewManager::showObjectProperties(AbstractSimulationObject *item)
 {
     // Raise existing edit window if present
     for(auto it : mObjectEdits.asKeyValueRange())
@@ -420,6 +483,7 @@ void ViewManager::showObjectEdit(AbstractSimulationObject *item)
 
     // Create new edit window
     SimulationObjectOptionsWidget *w = factory->createEditWidget(nullptr, item, this);
+    w->setEditingAllowed(modeMgr()->mode() == FileMode::Editing);
 
     DockWidget *dock = new DockWidget(item->name(),
                                       KDDockWidgets::DockWidgetOption_DeleteOnClose);
@@ -427,7 +491,7 @@ void ViewManager::showObjectEdit(AbstractSimulationObject *item)
 
     auto updateDock = [dock, item, w, factory]()
     {
-        QString name = tr("Edit %1 %2")
+        QString name = tr("Properties %1 %2")
                 .arg(factory->prettyName(item->getType()),
                      item->name());
         dock->setTitle(name);
@@ -466,6 +530,30 @@ void ViewManager::closeAllEditDocks()
     auto objectEditsCopy = mObjectEdits;
     qDeleteAll(objectEditsCopy);
     mObjectEdits.clear();
+}
+
+void ViewManager::setEditDocksEnabled(bool enabled)
+{
+    for(auto it : mCircuitEdits.asKeyValueRange())
+    {
+        CircuitSceneOptionsWidget *w =
+                static_cast<CircuitSceneOptionsWidget *>(it.second->widget());
+        w->setEditingAllowed(enabled);
+    }
+
+    for(auto it : mPanelEdits.asKeyValueRange())
+    {
+        PanelSceneOptionsWidget *w =
+                static_cast<PanelSceneOptionsWidget *>(it.second->widget());
+        w->setEditingAllowed(enabled);
+    }
+
+    for(auto it : mObjectEdits.asKeyValueRange())
+    {
+        SimulationObjectOptionsWidget *w =
+                static_cast<SimulationObjectOptionsWidget *>(it.second->widget());
+        w->setEditingAllowed(enabled);
+    }
 }
 
 void ViewManager::closeAllFileSpecificDocks()
@@ -689,9 +777,14 @@ void ViewManager::panelItemEditRequested(AbstractPanelItem *item)
 
 void ViewManager::onFileModeChanged(FileMode mode, FileMode oldMode)
 {
-    Q_UNUSED(mode);
-    if(oldMode == FileMode::Editing)
-        closeAllEditDocks();
+    Q_UNUSED(oldMode);
+    setEditDocksEnabled(mode == FileMode::Editing);
+
+    for(auto it : mCircuitViews.asKeyValueRange())
+    {
+        CircuitWidget *w = it.first;
+        w->circuitsView()->setMode(mode, oldMode);
+    }
 }
 
 CircuitWidget *ViewManager::activeCircuitView() const

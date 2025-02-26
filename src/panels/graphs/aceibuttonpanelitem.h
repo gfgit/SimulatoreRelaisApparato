@@ -37,6 +37,28 @@ public:
     static constexpr double ItemWidth = 100;
     static constexpr double ItemHeight = 130;
 
+    enum LightPosition
+    {
+        Left = 0,
+        Central,
+        Right,
+        NLights
+    };
+
+    static constexpr QLatin1String lightFmt = QLatin1String("light_%1");
+    static constexpr QLatin1String lightColorFmt = QLatin1String("light_%1_color");
+    static constexpr QLatin1String lightKeyNames[NLights] = {
+        QLatin1String("left"),
+        QLatin1String("central"),
+        QLatin1String("right")
+    };
+
+    static constexpr Qt::GlobalColor lightDefaultColors[NLights] = {
+        Qt::yellow,
+        Qt::yellow,
+        Qt::blue
+    };
+
     explicit ACEIButtonPanelItem();
     ~ACEIButtonPanelItem();
 
@@ -52,11 +74,20 @@ public:
     AbstractSimulationObject *button() const;
     void setButton(AbstractSimulationObject *newButton);
 
-    LightBulbObject *centralLight() const;
-    void setCentralLight(LightBulbObject *newCentralLight);
+    // Lights
+    inline LightBulbObject *getLight(LightPosition pos) const
+    {
+        return mLights[pos];
+    }
 
-    QColor centralLightColor() const;
-    void setCentralLightColor(const QColor &newCentralLightColor);
+    void setLight(LightPosition pos, LightBulbObject *newLight);
+
+    inline QColor getLightColor(LightPosition pos) const
+    {
+        return mLightColors[pos];
+    }
+
+    void setLightColor(LightPosition pos, const QColor &newLightColor);
 
 signals:
     void buttonChanged(AbstractSimulationObject *newButton);
@@ -78,15 +109,18 @@ private:
     static constexpr double baseCircleRadius = 34;
     static constexpr double buttonCircleRadius = 20;
 
-    static constexpr double lightCircleRadius = 14;
-    static constexpr double lightOffset = 20;
+    static constexpr double lightCircleRadius = 13;
+    static constexpr double lightOffsetX = 20;
+    static constexpr double lightOffsetY = 24;
+    static constexpr double lightOffsetCentralY = 17;
 
 private:
     AbstractSimulationObject *mButton = nullptr;
     ButtonInterface *mButtonIface = nullptr;
-    LightBulbObject *mCentralLight = nullptr;
 
-    QColor mCentralLightColor = Qt::yellow;
+    // Lights
+    LightBulbObject *mLights[NLights] = {nullptr, nullptr, nullptr};
+    QColor mLightColors[NLights] = {Qt::yellow, Qt::yellow, Qt::blue};
 };
 
 #endif // ACEI_BUTTON_PANELITEM_H

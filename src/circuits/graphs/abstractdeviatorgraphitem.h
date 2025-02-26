@@ -31,8 +31,8 @@ class AbstractDeviatorGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    static constexpr double morsettiOffset = 22.0;
-    static constexpr double arcRadius = 15.0;
+    static constexpr double morsettiOffset = 0;// 10; //22.0;
+    static constexpr double arcRadius = 30; //15.0;
 
 public:
     explicit AbstractDeviatorGraphItem(AbstractDeviatorNode *node_);
@@ -40,6 +40,8 @@ public:
     void getConnectors(std::vector<Connector>& connectors) const final;
 
     AbstractDeviatorNode *deviatorNode() const;
+
+    const QString getContactTooltip() const;
 
 protected:
     // Contacts must be already swapped

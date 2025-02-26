@@ -26,17 +26,23 @@
 #include <QWidget>
 
 class QLineEdit;
+class QTabWidget;
+class QScrollArea;
+class QTableView;
 
 class AbstractSimulationObjectModel;
 class AbstractSimulationObject;
 
-class QScrollArea;
+class SimulationObjectNodesModel;
+
+class ViewManager;
 
 class SimulationObjectOptionsWidget : public QWidget
 {
     Q_OBJECT
 public:
     explicit SimulationObjectOptionsWidget(AbstractSimulationObject *object,
+                                           ViewManager *viewMgr,
                                            QWidget *parent = nullptr);
 
     void addCustomWidget(QWidget *w);
@@ -47,6 +53,8 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *ev) override;
 
+    void setEditingAllowed(bool value);
+
 signals:
     void uniqueIdChanged(const QString& uniqueId);
 
@@ -55,10 +63,13 @@ private slots:
     void onNameTextEdited();
     void onNameChanged();
 
+    void onNodeClicked(const QModelIndex& idx);
+
 private:
     void setNameValid(bool valid);
 
 private:
+    ViewManager *mViewMgr = nullptr;
     AbstractSimulationObject *mObject = nullptr;
 
     QLineEdit *mNameEdit = nullptr;
@@ -66,7 +77,11 @@ private:
 
     QPalette normalEditPalette;
 
+    QTabWidget *tabWidget = nullptr;
     QScrollArea *scrollArea = nullptr;
+
+    QTableView *mNodesView = nullptr;
+    SimulationObjectNodesModel *mNodesModel = nullptr;
 };
 
 #endif // SIMULATIONOBJECTOPTIONSWIDGET_H

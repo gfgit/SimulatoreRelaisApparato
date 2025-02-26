@@ -1,9 +1,9 @@
 /**
- * src/objects/relais/model/relaismodel.h
+ * src/objects/circuit_bridge/remotecircuitbridgesmodel.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,25 +20,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef RELAIS_MODEL_H
-#define RELAIS_MODEL_H
+#ifndef REMOTE_CIRCUIT_BRIDGES_MODEL_H
+#define REMOTE_CIRCUIT_BRIDGES_MODEL_H
 
-#include "../../abstractsimulationobjectmodel.h"
+#include "../abstractsimulationobjectmodel.h"
 
-class RelaisModel : public AbstractSimulationObjectModel
+class RemoteCircuitBridgesModel : public AbstractSimulationObjectModel
 {
     Q_OBJECT
 
 public:
     enum ExtraColumns
     {
-        PowerNodes = Columns::NodesCol,
-        ContactNodes = Columns::NCols,
-        TotalNodes,
+        RemoteSession = Columns::NCols,
+        RemoteNode,
         NColsExtra
     };
 
-    RelaisModel(ModeManager *mgr, QObject *parent = nullptr);
+    RemoteCircuitBridgesModel(ModeManager *mgr, QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -46,8 +45,8 @@ public:
     // Basic functionality:
     int columnCount(const QModelIndex &p = QModelIndex()) const override;
 
-    // Custom relay specific data:
+    // Custom remote circuit bridge specific data:
     QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
 };
 
-#endif // RELAIS_MODEL_H
+#endif // REMOTE_CIRCUIT_BRIDGES_MODEL_H

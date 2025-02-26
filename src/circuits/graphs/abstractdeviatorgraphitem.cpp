@@ -50,6 +50,29 @@ AbstractDeviatorNode *AbstractDeviatorGraphItem::deviatorNode() const
     return static_cast<AbstractDeviatorNode *>(getAbstractNode());
 }
 
+const QString AbstractDeviatorGraphItem::getContactTooltip() const
+{
+    bool contact1On = deviatorNode()->isContactOn(AbstractDeviatorNode::DownIdx);
+    bool contact2On = deviatorNode()->isContactOn(AbstractDeviatorNode::UpIdx);
+
+    const QString onStr = tr("On");
+    const QString offStr = tr("Off");
+
+    if(deviatorNode()->hasCentralConnector())
+    {
+        return tr("Contacts:<br>"
+                  "Straight: <b>%1</b><br>"
+                  "Central:  <b>%2</b>")
+                .arg(contact1On ? onStr : offStr,
+                     contact2On ? onStr : offStr);
+    }
+    else
+    {
+        return tr("Contact: <b>%1</b>")
+                .arg(contact1On ? onStr : offStr);
+    }
+}
+
 void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn)
 {
     constexpr QPointF center(TileLocation::HalfSize,
@@ -150,14 +173,14 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     endAngle += endIncrement;
     const int arcLength = endAngle - startAngle;
 
-    TileRotate centralConnectorRotate = TileRotate::Deg90;
-    if(deviatorNode()->flipContact())
-        centralConnectorRotate = TileRotate::Deg270;
+    // TileRotate centralConnectorRotate = TileRotate::Deg90;
+    // if(deviatorNode()->flipContact())
+    //     centralConnectorRotate = TileRotate::Deg270;
 
-    drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
-    drawMorsetti(painter, 2, rotate() + TileRotate::Deg180);
-    if(deviatorNode()->hasCentralConnector())
-        drawMorsetti(painter, 1, rotate() + centralConnectorRotate);
+    // drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
+    // drawMorsetti(painter, 2, rotate() + TileRotate::Deg180);
+    // if(deviatorNode()->hasCentralConnector())
+    //     drawMorsetti(painter, 1, rotate() + centralConnectorRotate);
 
     // Draw switch arc and wires on top
     const QColor colors[3] =
@@ -176,7 +199,7 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
 
     painter->setBrush(Qt::NoBrush);
     QPen pen;
-    pen.setWidthF(5.0);
+    pen.setWidthF(10.0);
 
     // Fill edges with miter join
     pen.setCapStyle(Qt::FlatCap);

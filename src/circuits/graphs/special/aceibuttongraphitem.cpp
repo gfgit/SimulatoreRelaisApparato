@@ -67,7 +67,7 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     borderPen.setColor(Qt::darkGray);
     painter->setPen(borderPen);
     painter->setBrush(Qt::NoBrush);
-    painter->drawRect(boundingRect());
+    painter->drawRect(baseTileRect());
 
     // Draw lights
     QRectF circle;
@@ -154,7 +154,7 @@ void ACEIButtonGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
-            && mButtonIface && boundingRect().contains(ev->pos()))
+            && mButtonIface && baseTileRect().contains(ev->pos()))
     {
         ButtonInterface::State state = mButtonIface->state();
 

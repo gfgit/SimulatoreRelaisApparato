@@ -29,6 +29,7 @@
 #include "relais/view/abstractrelayoptionswidget.h"
 
 #include "screen_relais/model/screenrelais.h"
+#include "screen_relais/model/screenrelaismodel.h"
 #include "screen_relais/view/screenrelaisoptionswidget.h"
 
 #include "lever/acei/aceileverobject.h"
@@ -48,6 +49,7 @@
 #include "button/genericbuttonobject.h"
 
 #include "circuit_bridge/remotecircuitbridge.h"
+#include "circuit_bridge/remotecircuitbridgesmodel.h"
 
 // TODO: extract names in separate header
 #include "interfaces/leverinterface.h"
@@ -482,7 +484,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     {
         // Screen Relais
         SimulationObjectFactory::FactoryItem item;
-        item.customModelFunc = nullptr;
+        item.customModelFunc = &createModel<ScreenRelaisModel>;
         item.create = &createObject<ScreenRelais>;
         item.edit = &createEditWidget<ScreenRelais, ScreenRelaisOptionsWidget>;
         item.objectType = ScreenRelais::Type;
@@ -609,7 +611,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     {
         // Remote Circuit Bridge
         SimulationObjectFactory::FactoryItem item;
-        item.customModelFunc = nullptr;
+        item.customModelFunc = &createModel<RemoteCircuitBridgesModel>;
         item.create = &createObject<RemoteCircuitBridge>;
         item.edit = &defaultCircuitBridgeEdit;
         item.objectType = RemoteCircuitBridge::Type;

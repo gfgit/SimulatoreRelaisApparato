@@ -66,7 +66,7 @@ SimulationObjectOptionsWidget *SimulationObjectFactory::createEditWidget(QWidget
         return nullptr;
 
     SimulationObjectOptionsWidget *optionsWidget =
-            new SimulationObjectOptionsWidget(item, parent);
+            new SimulationObjectOptionsWidget(item, viewMgr, parent);
 
     if(factory->edit)
     {

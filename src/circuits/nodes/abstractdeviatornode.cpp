@@ -133,6 +133,12 @@ void AbstractDeviatorNode::saveToJSON(QJsonObject &obj) const
     obj["central_connector"] = hasCentralConnector();
 }
 
+bool AbstractDeviatorNode::tryFlipNode(bool forward)
+{
+    setFlipContact(!flipContact());
+    return true;
+}
+
 bool AbstractDeviatorNode::swapContactState() const
 {
     return mSwapContactState;

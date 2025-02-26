@@ -87,6 +87,34 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
     }
 }
 
+QString LeverContactGraphItem::displayString() const
+{
+    if(node()->lever())
+        return node()->lever()->name();
+    return QLatin1String("LEV!");
+}
+
+QString LeverContactGraphItem::tooltipString() const
+{
+    if(!node()->lever())
+        return tr("No Lever set!");
+
+    QString leverState;
+    auto leverIface = node()->leverIface();
+    if(leverIface)
+    {
+        const QString leverPos = leverIface->positionDesc().name(leverIface->position());
+        leverState = tr("Position: <b>%1</b><br>").arg(leverPos);
+    }
+
+    return tr("Contact of lever <b>%1</b><br>"
+              "%2"
+              "%3")
+            .arg(node()->lever()->name(),
+                 leverState,
+                 getContactTooltip());
+}
+
 LeverContactNode *LeverContactGraphItem::node() const
 {
     return static_cast<LeverContactNode *>(getAbstractNode());

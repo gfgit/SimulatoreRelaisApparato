@@ -54,8 +54,11 @@ ACEILeverPanelItem::ACEILeverPanelItem()
 
 ACEILeverPanelItem::~ACEILeverPanelItem()
 {
-    setLeftLight(nullptr);
-    setRightLight(nullptr);
+    for(int i = 0; i < LightPosition::NLights; i++)
+    {
+        setLight(LightPosition(i), nullptr);
+    }
+
     setLever(nullptr);
 }
 
@@ -105,25 +108,36 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     circle.setSize(QSizeF(lightCircleRadius * 2,
                           lightCircleRadius * 2));
 
-    if(mLeftLight)
+    if(LightBulbObject *leftLight = getLight(LightPosition::Left))
     {
-        if(mLeftLight->state() == LightBulbObject::State::On)
-            painter->setBrush(mLeftLightColor);
+        if(leftLight->state() == LightBulbObject::State::On)
+            painter->setBrush(getLightColor(LightPosition::Left));
         else
             painter->setBrush(Qt::NoBrush);
 
-        circle.moveCenter(QPointF(lightOffset, lightOffset));
+        circle.moveCenter(QPointF(lightOffsetX, lightOffsetY));
         painter->drawEllipse(circle);
     }
 
-    if(mRightLight)
+    if(LightBulbObject *centralLight = getLight(LightPosition::Central))
     {
-        if(mRightLight->state() == LightBulbObject::State::On)
-            painter->setBrush(mRightLightColor);
+        if(centralLight->state() == LightBulbObject::State::On)
+            painter->setBrush(getLightColor(LightPosition::Central));
         else
             painter->setBrush(Qt::NoBrush);
 
-        circle.moveCenter(QPointF(br.width() - lightOffset, lightOffset));
+        circle.moveCenter(QPointF(center.x(), lightOffsetCentralY));
+        painter->drawEllipse(circle);
+    }
+
+    if(LightBulbObject *rightLight = getLight(LightPosition::Right))
+    {
+        if(rightLight->state() == LightBulbObject::State::On)
+            painter->setBrush(getLightColor(LightPosition::Right));
+        else
+            painter->setBrush(Qt::NoBrush);
+
+        circle.moveCenter(QPointF(br.width() - lightOffsetX, lightOffsetY));
         painter->drawEllipse(circle);
     }
 
@@ -301,9 +315,9 @@ void ACEILeverPanelItem::updateLeverTooltip()
         // Position index increases going from left to right
         // so we say between left position (-1) and right position (+1)
         posStr = tr("Between<br>"
-                 "<b>%1</b><br>"
-                 "and<br>"
-                 "<b>%2</b>")
+                    "<b>%1</b><br>"
+                    "and<br>"
+                    "<b>%2</b>")
                 .arg(desc.name(prevPos), desc.name(nextPos));
     }
     else
@@ -319,71 +333,28 @@ void ACEILeverPanelItem::updateLeverTooltip()
     setToolTip(tipText);
 }
 
-QColor ACEILeverPanelItem::rightLightColor() const
+void ACEILeverPanelItem::setLight(LightPosition pos, LightBulbObject *newLight)
 {
-    return mRightLightColor;
-}
+    LightBulbObject *&target = mLights[pos];
 
-void ACEILeverPanelItem::setRightLightColor(const QColor &newRightLightColor)
-{
-    if(mRightLightColor == newRightLightColor)
+    if(target == newLight)
         return;
 
-    mRightLightColor = newRightLightColor;
-
-    PanelScene *s = panelScene();
-    if(s)
-        s->modeMgr()->setFileEdited();
-
-    update();
-    emit lightsChanged();
-}
-
-QColor ACEILeverPanelItem::leftLightColor() const
-{
-    return mLeftLightColor;
-}
-
-void ACEILeverPanelItem::setLeftLightColor(const QColor &newLeftLightColor)
-{
-    if(mLeftLightColor == newLeftLightColor)
-        return;
-
-    mLeftLightColor = newLeftLightColor;
-
-    PanelScene *s = panelScene();
-    if(s)
-        s->modeMgr()->setFileEdited();
-
-    update();
-    emit lightsChanged();
-}
-
-LightBulbObject *ACEILeverPanelItem::leftLight() const
-{
-    return mLeftLight;
-}
-
-void ACEILeverPanelItem::setLeftLight(LightBulbObject *newLeftLight)
-{
-    if(mLeftLight == newLeftLight)
-        return;
-
-    if(mLeftLight)
+    if(target)
     {
-        disconnect(mLeftLight, &LightBulbObject::stateChanged,
+        disconnect(target, &LightBulbObject::stateChanged,
                    this, &ACEILeverPanelItem::triggerUpdate);
-        disconnect(mLeftLight, &LightBulbObject::destroyed,
+        disconnect(target, &LightBulbObject::destroyed,
                    this, &ACEILeverPanelItem::onLightDestroyed);
     }
 
-    mLeftLight = newLeftLight;
+    target = newLight;
 
-    if(mLeftLight)
+    if(target)
     {
-        connect(mLeftLight, &LightBulbObject::stateChanged,
+        connect(target, &LightBulbObject::stateChanged,
                 this, &ACEILeverPanelItem::triggerUpdate);
-        connect(mLeftLight, &LightBulbObject::destroyed,
+        connect(target, &LightBulbObject::destroyed,
                 this, &ACEILeverPanelItem::onLightDestroyed);
     }
 
@@ -395,33 +366,14 @@ void ACEILeverPanelItem::setLeftLight(LightBulbObject *newLeftLight)
     emit lightsChanged();
 }
 
-LightBulbObject *ACEILeverPanelItem::rightLight() const
+void ACEILeverPanelItem::setLightColor(LightPosition pos, const QColor &newLightColor)
 {
-    return mRightLight;
-}
+    QColor &target = mLightColors[pos];
 
-void ACEILeverPanelItem::setRightLight(LightBulbObject *newRightLight)
-{
-    if(mRightLight == newRightLight)
+    if(target == newLightColor)
         return;
 
-    if(mRightLight)
-    {
-        disconnect(mRightLight, &LightBulbObject::stateChanged,
-                   this, &ACEILeverPanelItem::triggerUpdate);
-        disconnect(mRightLight, &LightBulbObject::destroyed,
-                   this, &ACEILeverPanelItem::onLightDestroyed);
-    }
-
-    mRightLight = newRightLight;
-
-    if(mRightLight)
-    {
-        connect(mRightLight, &LightBulbObject::stateChanged,
-                this, &ACEILeverPanelItem::triggerUpdate);
-        connect(mRightLight, &LightBulbObject::destroyed,
-                this, &ACEILeverPanelItem::onLightDestroyed);
-    }
+    target = newLightColor;
 
     PanelScene *s = panelScene();
     if(s)
@@ -494,27 +446,25 @@ bool ACEILeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
     else
         setLever(nullptr);
 
+
+    // Lights
     auto lightModel = mgr->modelForType(LightBulbObject::Type);
-    if(lightModel)
+
+    for(int i = 0; i < LightPosition::NLights; i++)
     {
-        const QString leftLightName = obj.value("light_left").toString();
-        setLeftLight(static_cast<LightBulbObject *>(lightModel->getObjectByName(leftLightName)));
+        const QString lightObjName = obj.value(lightFmt.arg(lightKeyNames[i])).toString();
+        LightBulbObject *light = nullptr;
+        if(lightModel)
+            light = static_cast<LightBulbObject *>(lightModel->getObjectByName(lightObjName));
 
-        const QString rightLightName = obj.value("light_right").toString();
-        setRightLight(static_cast<LightBulbObject *>(lightModel->getObjectByName(rightLightName)));
+        setLight(LightPosition(i), light);
+
+        QColor c = QColor::fromString(obj.value(lightColorFmt.arg(lightKeyNames[i])).toString());
+        if(!c.isValid())
+            c = lightDefaultColors[i];
+
+        setLightColor(LightPosition(i), c);
     }
-    else
-    {
-        setLeftLight(nullptr);
-        setRightLight(nullptr);
-    }
-
-    // Color
-    QColor c = QColor::fromString(obj.value("light_left_color").toString());
-    setLeftLightColor(c.isValid() ? c : Qt::yellow);
-
-    c = QColor::fromString(obj.value("light_right_color").toString());
-    setRightLightColor(c.isValid() ? c : Qt::blue);
 
     return true;
 }
@@ -526,12 +476,13 @@ void ACEILeverPanelItem::saveToJSON(QJsonObject &obj) const
     obj["lever"] = mLever ? mLever->name() : QString();
     obj["lever_type"] = mLever ? mLever->getType() : QString();
 
-    obj["light_left"] = mLeftLight ? mLeftLight->name() : QString();
-    obj["light_right"] = mRightLight ? mRightLight->name() : QString();
-
-    // Color
-    obj["light_left_color"] = mLeftLightColor.name(QColor::HexRgb);
-    obj["light_right_color"] = mRightLightColor.name(QColor::HexRgb);
+    // Lights
+    for(int i = 0; i < LightPosition::NLights; i++)
+    {
+        LightBulbObject *light = getLight(LightPosition(i));
+        obj[lightFmt.arg(lightKeyNames[i])] = light ? light->name() : QString();
+        obj[lightColorFmt.arg(lightKeyNames[i])] = getLightColor(LightPosition(i)).name(QColor::HexRgb);
+    }
 }
 
 void ACEILeverPanelItem::onLeverDestroyed()
@@ -541,10 +492,11 @@ void ACEILeverPanelItem::onLeverDestroyed()
 
 void ACEILeverPanelItem::onLightDestroyed()
 {
-    if(sender() == mLeftLight)
-        setLeftLight(nullptr);
-    else if(sender() == mRightLight)
-        setRightLight(nullptr);
+    for(int i = 0; i < NLights; i++)
+    {
+        if(getLight(LightPosition(i)) == sender())
+            setLight(LightPosition(i), nullptr);
+    }
 }
 
 void ACEILeverPanelItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)

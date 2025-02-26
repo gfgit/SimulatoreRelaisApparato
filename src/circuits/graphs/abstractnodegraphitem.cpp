@@ -55,7 +55,14 @@ AbstractNodeGraphItem::AbstractNodeGraphItem(AbstractCircuitNode *node_)
 
 QRectF AbstractNodeGraphItem::boundingRect() const
 {
-    return QRectF(0, 0, TileLocation::Size, TileLocation::Size);
+    const double extraMargin = TileLocation::HalfSize;
+    QRectF base(-extraMargin, -extraMargin,
+                TileLocation::Size + 2 * extraMargin, TileLocation::Size + 2 * extraMargin);
+
+    if(mTextWidth == 0)
+        return base;
+
+    return base.united(textDisplayRect());
 }
 
 void AbstractNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -65,8 +72,54 @@ void AbstractNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
     {
         // We are in item selection mode
         if(isSelected())
-            painter->fillRect(boundingRect(), qRgb(180, 255, 255));
+            painter->fillRect(baseTileRect(), qRgb(180, 255, 255));
     }
+}
+
+QString AbstractNodeGraphItem::displayString() const
+{
+    return QString();
+}
+
+QString AbstractNodeGraphItem::tooltipString() const
+{
+    return displayString();
+}
+
+QRectF AbstractNodeGraphItem::textDisplayRect() const
+{
+    QRectF textRect;
+    switch (mTextDirection)
+    {
+    case Connector::Direction::North:
+        textRect.setTop(- 2 * TextDisplayMargin - TextDisplayHeight);
+        textRect.setBottom(-TextDisplayMargin);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        break;
+    case Connector::Direction::South:
+        textRect.setTop(TileLocation::Size + TextDisplayMargin);
+        textRect.setBottom(TileLocation::Size + 2 * TextDisplayMargin + TextDisplayHeight);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        break;
+    case Connector::Direction::East:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::Size);
+        textRect.setLeft(TileLocation::Size + TextDisplayMargin);
+        textRect.setRight(TileLocation::Size + 2 * TextDisplayMargin + mTextWidth);
+        break;
+    case Connector::Direction::West:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::Size);
+        textRect.setLeft(-2 * TextDisplayMargin - mTextWidth);
+        textRect.setRight(-TextDisplayMargin);
+        break;
+    default:
+        break;
+    }
+
+    return textRect;
 }
 
 void AbstractNodeGraphItem::triggerUpdate()
@@ -85,7 +138,7 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
     // Sometimes we receive clicks even if out of node tile
     // In those cases do not start moving item or rotate it!
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == FileMode::Editing && boundingRect().contains(ev->pos()))
+    if(s && s->mode() == FileMode::Editing && baseTileRect().contains(ev->pos()))
     {
         const EditingSubMode subMode = s->modeMgr()->editingSubMode();
 
@@ -94,15 +147,73 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             if(ev->button() == Qt::LeftButton)
             {
                 s->startMovingItem(this);
+                ev->accept();
+                return;
             }
             else if(ev->button() == Qt::RightButton)
             {
-                // Rotate counter/clockwise 90 (Shift)
-                TileRotate delta = TileRotate::Deg90;
-                if(ev->modifiers() & Qt::ShiftModifier)
-                    delta = TileRotate::Deg270; // Opposite direction
+                if(ev->modifiers() == Qt::ControlModifier)
+                {
+                    // Ctrl + right click, try flip node
+                    if(getAbstractNode()->tryFlipNode(true))
+                    {
+                        ev->accept();
+                        return;
+                    }
+                }
+                else if(ev->modifiers() == Qt::AltModifier)
+                {
+                    // Rotate text clockwise 90 degrees
 
-                setRotate(rotate() + delta);
+                    Connector::Direction currTextPos = mTextDirection;
+
+                    for(int i = 0; i < 3; i++)
+                    {
+                        Connector::Direction newTextDirection = Connector::Direction::North;
+                        switch (currTextPos)
+                        {
+                        case Connector::Direction::North:
+                            newTextDirection = Connector::Direction::East;
+                            break;
+                        case Connector::Direction::East:
+                            newTextDirection = Connector::Direction::South;
+                            break;
+                        case Connector::Direction::South:
+                            newTextDirection = Connector::Direction::West;
+                            break;
+                        case Connector::Direction::West:
+                            newTextDirection = Connector::Direction::North;
+                            break;
+                        default:
+                            break;
+                        }
+
+                        setTextRotate(newTextDirection);
+
+                        // Check if text position conflicts with connectors
+                        recalculateTextPosition();
+
+                        if(mTextDirection == newTextDirection)
+                            break;
+
+                        // New position was rejected, try with next one
+                        currTextPos = newTextDirection;
+                    }
+
+                    ev->accept();
+                    return;
+                }
+                else if(ev->modifiers() == Qt::ShiftModifier || ev->modifiers() == Qt::NoModifier)
+                {
+                    // Rotate counter/clockwise 90 (Shift)
+                    TileRotate delta = TileRotate::Deg90;
+                    if(ev->modifiers() & Qt::ShiftModifier)
+                        delta = TileRotate::Deg270; // Opposite direction
+
+                    setRotate(rotate() + delta);
+                    ev->accept();
+                    return;
+                }
             }
         }
     }
@@ -156,7 +267,7 @@ void AbstractNodeGraphItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 void AbstractNodeGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
 {
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == FileMode::Editing)
+    if(s && s->mode() == FileMode::Editing && baseTileRect().contains(ev->pos()))
     {
         if(ev->button() == Qt::LeftButton)
         {
@@ -218,7 +329,7 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, Til
     QLineF morsettoLine;
 
     QRectF morsettoEllipse;
-    morsettoEllipse.setSize(QSizeF(13.0, 13.0));
+    morsettoEllipse.setSize(QSizeF(20.0, 20.0));
 
     QRectF textRect1;
     textRect1.setSize(QSizeF(40.0, 22.0));
@@ -311,7 +422,7 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, Til
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
     pen.setStyle(Qt::SolidLine);
-    pen.setWidthF(5.0);
+    pen.setWidthF(10.0);
     pen.setColor(color);
 
     painter->setPen(pen);
@@ -329,9 +440,9 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, Til
     const auto& contact = getAbstractNode()->getContacts().at(nodeContact);
 
     painter->setPen(Qt::black);
-    painter->drawText(textRect1, contact.name1, text1Align);
+    //painter->drawText(textRect1, contact.name1, text1Align);
 
-    painter->drawText(textRect2, contact.name2, text2Align);
+    //painter->drawText(textRect2, contact.name2, text2Align);
 }
 
 void AbstractNodeGraphItem::drawName(QPainter *painter,
@@ -405,6 +516,67 @@ void AbstractNodeGraphItem::drawName(QPainter *painter,
     }
 }
 
+void AbstractNodeGraphItem::drawName(QPainter *painter)
+{
+    const QString str = displayString();
+    if(str.isEmpty())
+        return;
+
+    const QRectF textRect = textDisplayRect();
+
+    QFont f;
+    f.setPointSizeF(TextDisplayFontSize);
+    f.setBold(true);
+    painter->setFont(f);
+
+    int flags = Qt::AlignCenter;
+    painter->drawText(textRect, flags, str);
+}
+
+void AbstractNodeGraphItem::drawUnpairedConnectors(QPainter *painter)
+{
+    std::vector<Connector> conns;
+    getConnectors(conns);
+
+    if(conns.empty())
+        return;
+
+    const double ConnectorLength = 15;
+
+    const QLineF connectorLines[4 + 1] =
+    {
+        {}, // Empty, North is 1
+        QLineF(TileLocation::HalfSize, 0, TileLocation::HalfSize, -ConnectorLength),
+        QLineF(TileLocation::Size, TileLocation::HalfSize, TileLocation::Size + ConnectorLength, TileLocation::HalfSize),
+        QLineF(TileLocation::HalfSize, TileLocation::Size, TileLocation::HalfSize, TileLocation::Size + ConnectorLength),
+        QLineF(0, TileLocation::HalfSize, -ConnectorLength, TileLocation::HalfSize)
+    };
+
+    AbstractCircuitNode *node = getAbstractNode();
+
+    QPen pen;
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setStyle(Qt::SolidLine);
+    pen.setWidthF(10.0);
+
+    for(const Connector& c : conns)
+    {
+        AbstractCircuitNode::NodeContact contact = node->mContacts.at(c.nodeContact);
+        if(contact.cable)
+            continue; // Already paired, skip
+
+        QColor color = Qt::black;
+        if(node->hasCircuit(c.nodeContact, CircuitType::Closed))
+            color = Qt::red;
+        else if(node->hasCircuit(c.nodeContact, CircuitType::Open))
+            color.setRgb(120, 210, 255); // Light blue
+
+        pen.setColor(color);
+        painter->setPen(pen);
+        painter->drawLine(connectorLines[int(c.direction)]);
+    }
+}
+
 void AbstractNodeGraphItem::invalidateConnections(bool tryReconnectImmediately)
 {
     // Disable all contacts. Will be re-evaluated when move ends
@@ -413,6 +585,67 @@ void AbstractNodeGraphItem::invalidateConnections(bool tryReconnectImmediately)
     CircuitScene *s = circuitScene();
     if(s)
         s->refreshItemConnections(this, tryReconnectImmediately);
+}
+
+void AbstractNodeGraphItem::recalculateTextWidth()
+{
+    const QString str = displayString();
+    if(str.isEmpty())
+    {
+        mTextWidth = 0;
+        return;
+    }
+
+    QFont f;
+    f.setPointSizeF(TextDisplayFontSize);
+    f.setBold(true);
+
+    QFontMetrics fm(f);
+    mTextWidth = fm.horizontalAdvance(str);
+}
+
+void AbstractNodeGraphItem::recalculateTextPosition()
+{
+    // Recalculate text label position
+    std::vector<Connector> conns;
+    getConnectors(conns);
+
+    if(!conns.empty())
+    {
+        const Connector::Direction PreferredDir[4] =
+        {
+            Connector::Direction::South,
+            Connector::Direction::North,
+            Connector::Direction::East,
+            Connector::Direction::West
+        };
+
+        // Try to keep current position
+        Connector::Direction possibleTextDir = mTextDirection;
+
+        for(int i = 0; i < 5; i++)
+        {
+            bool conflict = false;
+
+            for(const Connector& c : conns)
+            {
+                if(c.direction == possibleTextDir)
+                {
+                    conflict = true;
+                    break;
+                }
+            }
+
+            if(!conflict)
+            {
+                setTextRotate(possibleTextDir);
+                break;
+            }
+
+            // Try next
+            possibleTextDir = PreferredDir[i % 4];
+        }
+    }
 }
 
 TileRotate AbstractNodeGraphItem::rotate() const
@@ -429,11 +662,35 @@ void AbstractNodeGraphItem::setRotate(TileRotate newRotate)
     // Detach all contacts, try reconnect immediately
     invalidateConnections();
 
+    recalculateTextPosition();
+
     CircuitScene *s = circuitScene();
     if(s)
         s->setHasUnsavedChanges(true);
 
     update();
+}
+
+void AbstractNodeGraphItem::setTextRotate(Connector::Direction newTextRotate)
+{
+    if(mTextDirection == newTextRotate)
+        return;
+
+    prepareGeometryChange();
+    mTextDirection = newTextRotate;
+    recalculateTextWidth();
+
+    CircuitScene *s = circuitScene();
+    if(s)
+        s->setHasUnsavedChanges(true);
+
+    update();
+}
+
+void AbstractNodeGraphItem::postInit()
+{
+    recalculateTextWidth();
+    recalculateTextPosition();
 }
 
 CircuitScene *AbstractNodeGraphItem::circuitScene() const
@@ -453,6 +710,8 @@ bool AbstractNodeGraphItem::loadFromJSON(const QJsonObject &obj)
 
     setRotate(TileRotate(obj.value("rotation").toInt()));
 
+    setTextRotate(Connector::Direction(obj.value("text_rotation").toInt(1)));
+
     return true;
 }
 
@@ -464,11 +723,22 @@ void AbstractNodeGraphItem::saveToJSON(QJsonObject &obj) const
 
     obj["rotation"] = int(mRotate);
 
+    obj["text_rotation"] = int(mTextDirection);
+
     getAbstractNode()->saveToJSON(obj);
 }
 
-void AbstractNodeGraphItem::onShapeChanged()
+void AbstractNodeGraphItem::onShapeChanged(bool boundingRectChange)
 {
+    if(boundingRectChange)
+    {
+        prepareGeometryChange();
+        return;
+    }
+
+    recalculateTextWidth();
+    recalculateTextPosition();
+
     // Detach all contacts, will be revaluated immediately
     invalidateConnections();
     update();

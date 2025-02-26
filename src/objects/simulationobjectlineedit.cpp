@@ -41,6 +41,8 @@
 #include <QComboBox>
 #include <QPushButton>
 
+#include <QAbstractItemView>
+
 SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
                                                    const QStringList &types,
                                                    QWidget *parent)
@@ -117,13 +119,13 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
     if(mTypes.size() == 1)
         mTypesCombo->hide(); // No need to show if type cannot be changed
 
-    connect(mLineEdit, &QLineEdit::textEdited,
+    connect(mLineEdit, &QLineEdit::textEdited, this,
             [this]()
     {
         mObjectIsDirty = true;
     });
 
-    connect(mLineEdit, &QLineEdit::returnPressed,
+    connect(mLineEdit, &QLineEdit::returnPressed, this,
             [this]()
     {
         // Allow un-set current object
@@ -131,8 +133,11 @@ SimulationObjectLineEdit::SimulationObjectLineEdit(ViewManager *viewMgr,
         {
             setObject(nullptr);
         }
-        else if(mObjectIsDirty)
+        else if(mObjectIsDirty && !mCompleter->popup()->isVisible())
         {
+            // NOTE: Do not react if completer popup is visible
+            // Otherwise it will emit activated() and we will set object twice
+
             // Text was edited without chosing an item from completer popup
             // Try to find it by name
             if(mMultiModel)
@@ -203,7 +208,7 @@ void SimulationObjectLineEdit::editCurrentObject()
     if(!mObject)
         return;
 
-    mViewMgr->showObjectEdit(mObject);
+    mViewMgr->showObjectProperties(mObject);
 
     emit editRequested();
 }

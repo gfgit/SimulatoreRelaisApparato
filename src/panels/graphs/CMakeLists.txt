@@ -9,6 +9,9 @@ set(SIMULATORE_RELAIS_SOURCES
     panels/graphs/aceileverpanelitem.cpp
     panels/graphs/aceileverpanelitem.h
 
+    panels/graphs/aceilightpanelitem.cpp
+    panels/graphs/aceilightpanelitem.h
+
     panels/graphs/acesasibleverpanelitem.cpp
     panels/graphs/acesasibleverpanelitem.h
 

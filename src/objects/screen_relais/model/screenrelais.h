@@ -102,6 +102,16 @@ public:
 
     void setColorAt(int idx, GlassColor newColor);
 
+    inline int getContactNodesCount() const
+    {
+        return mContactNodes.size();
+    }
+
+    inline bool hasPowerNode() const
+    {
+        return mPowerNode;
+    }
+
 signals:
     void typeChanged(ScreenRelais *self, ScreenType s);
 

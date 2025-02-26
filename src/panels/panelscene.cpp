@@ -30,8 +30,6 @@
 #include <QGraphicsPathItem>
 #include <QPen>
 
-#include <unordered_set>
-
 #include <QKeyEvent>
 #include <QGraphicsSceneMouseEvent>
 
@@ -75,14 +73,22 @@ void PanelScene::setMode(FileMode newMode, FileMode oldMode)
 
     const bool editing = newMode == FileMode::Editing;
 
-    for(LightRectItem *item : mLightRects)
-        item->setZValue(editing ?
-                            int(Layers::EditingLightRects) :
-                            int(Layers::LightRects));
-
     if(editing)
     {
         setSceneRect(QRectF());
+
+        if(sceneRect().size().isNull())
+        {
+            // FIXME: this should not happen
+            // TODO: it happens only first time scene is edited
+            // Does not happen on CircuitScene so there must be a bug in our code
+            qWarning() << "PanelScene: BUG NULL SIZED SCENE RECT in editing mode";
+
+            // Force scene rect to grow up to items bounding rect
+            auto item = addRect(itemsBoundingRect());
+            removeItem(item);
+            delete item;
+        }
 
         buildSnapMap();
     }
@@ -103,6 +109,11 @@ void PanelScene::setMode(FileMode newMode, FileMode oldMode)
 
         bringTop(nullptr); // Reset topmost item
     }
+
+    for(LightRectItem *item : mLightRects)
+        item->setZValue(editing ?
+                            int(Layers::EditingLightRects) :
+                            int(Layers::LightRects));
 
     allowItemSelection(editing);
 

@@ -40,6 +40,10 @@ public:
 
     void getConnectors(std::vector<Connector>& connectors) const final;
 
+    QString displayString() const override;
+
+    QString tooltipString() const override;
+
     ScreenRelaisPowerNode *node() const;
 
 private slots:
@@ -49,10 +53,10 @@ protected slots:
     void updateName() override;
 
 private:
-    static constexpr double centralCircleRadius = 14.0;
-    static constexpr double screenRadius = 30.0;
-    static constexpr double glassOffset = 22.0;
-    static constexpr double glassCircleRadius = 6.0;
+    static constexpr double centralCircleRadius = 22.0;
+    static constexpr double screenRadius = 50.0;
+    static constexpr double glassOffset = 37.0;
+    static constexpr double glassCircleRadius = 10.0;
 
     ScreenRelais *mScreenRelay = nullptr;
 };

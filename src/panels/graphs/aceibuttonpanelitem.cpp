@@ -47,6 +47,11 @@ ACEIButtonPanelItem::ACEIButtonPanelItem()
 
 ACEIButtonPanelItem::~ACEIButtonPanelItem()
 {
+    for(int i = 0; i < NLights; i++)
+    {
+        setLight(LightPosition(i), nullptr);
+    }
+
     setButton(nullptr);
 }
 
@@ -90,14 +95,36 @@ void ACEIButtonPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     circle.setSize(QSizeF(lightCircleRadius * 2,
                           lightCircleRadius * 2));
 
-    if(mCentralLight)
+    if(LightBulbObject *leftLight = getLight(LightPosition::Left))
     {
-        if(mCentralLight->state() == LightBulbObject::State::On)
-            painter->setBrush(mCentralLightColor);
+        if(leftLight->state() == LightBulbObject::State::On)
+            painter->setBrush(getLightColor(LightPosition::Left));
         else
             painter->setBrush(Qt::NoBrush);
 
-        circle.moveCenter(QPointF(buttonCenter.x(), lightOffset));
+        circle.moveCenter(QPointF(lightOffsetX, lightOffsetY));
+        painter->drawEllipse(circle);
+    }
+
+    if(LightBulbObject *centralLight = getLight(LightPosition::Central))
+    {
+        if(centralLight->state() == LightBulbObject::State::On)
+            painter->setBrush(getLightColor(LightPosition::Central));
+        else
+            painter->setBrush(Qt::NoBrush);
+
+        circle.moveCenter(QPointF(center.x(), lightOffsetCentralY));
+        painter->drawEllipse(circle);
+    }
+
+    if(LightBulbObject *rightLight = getLight(LightPosition::Right))
+    {
+        if(rightLight->state() == LightBulbObject::State::On)
+            painter->setBrush(getLightColor(LightPosition::Right));
+        else
+            painter->setBrush(Qt::NoBrush);
+
+        circle.moveCenter(QPointF(br.width() - lightOffsetX, lightOffsetY));
         painter->drawEllipse(circle);
     }
 
@@ -228,62 +255,6 @@ void ACEIButtonPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     SnappablePanelItem::mouseReleaseEvent(ev);
 }
 
-QColor ACEIButtonPanelItem::centralLightColor() const
-{
-    return mCentralLightColor;
-}
-
-void ACEIButtonPanelItem::setCentralLightColor(const QColor &newCentralLightColor)
-{
-    if(mCentralLightColor == newCentralLightColor)
-        return;
-
-    mCentralLightColor = newCentralLightColor;
-
-    PanelScene *s = panelScene();
-    if(s)
-        s->modeMgr()->setFileEdited();
-
-    update();
-    emit lightsChanged();
-}
-
-LightBulbObject *ACEIButtonPanelItem::centralLight() const
-{
-    return mCentralLight;
-}
-
-void ACEIButtonPanelItem::setCentralLight(LightBulbObject *newCentralLight)
-{
-    if(mCentralLight == newCentralLight)
-        return;
-
-    if(mCentralLight)
-    {
-        disconnect(mCentralLight, &LightBulbObject::stateChanged,
-                   this, &ACEIButtonPanelItem::triggerUpdate);
-        disconnect(mCentralLight, &LightBulbObject::destroyed,
-                   this, &ACEIButtonPanelItem::onLightDestroyed);
-    }
-
-    mCentralLight = newCentralLight;
-
-    if(mCentralLight)
-    {
-        connect(mCentralLight, &LightBulbObject::stateChanged,
-                this, &ACEIButtonPanelItem::triggerUpdate);
-        connect(mCentralLight, &LightBulbObject::destroyed,
-                this, &ACEIButtonPanelItem::onLightDestroyed);
-    }
-
-    PanelScene *s = panelScene();
-    if(s)
-        s->modeMgr()->setFileEdited();
-
-    update();
-    emit lightsChanged();
-}
-
 AbstractSimulationObject *ACEIButtonPanelItem::button() const
 {
     return mButton;
@@ -331,6 +302,56 @@ void ACEIButtonPanelItem::setButton(AbstractSimulationObject *newButton)
     emit buttonChanged(mButton);
 }
 
+void ACEIButtonPanelItem::setLight(LightPosition pos, LightBulbObject *newLight)
+{
+    LightBulbObject *&target = mLights[pos];
+
+    if(target == newLight)
+        return;
+
+    if(target)
+    {
+        disconnect(target, &LightBulbObject::stateChanged,
+                   this, &ACEIButtonPanelItem::triggerUpdate);
+        disconnect(target, &LightBulbObject::destroyed,
+                   this, &ACEIButtonPanelItem::onLightDestroyed);
+    }
+
+    target = newLight;
+
+    if(target)
+    {
+        connect(target, &LightBulbObject::stateChanged,
+                this, &ACEIButtonPanelItem::triggerUpdate);
+        connect(target, &LightBulbObject::destroyed,
+                this, &ACEIButtonPanelItem::onLightDestroyed);
+    }
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit lightsChanged();
+}
+
+void ACEIButtonPanelItem::setLightColor(LightPosition pos, const QColor &newLightColor)
+{
+    QColor &target = mLightColors[pos];
+
+    if(target == newLightColor)
+        return;
+
+    target = newLightColor;
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit lightsChanged();
+}
+
 bool ACEIButtonPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
 {
     if(!SnappablePanelItem::loadFromJSON(obj, mgr))
@@ -345,20 +366,24 @@ bool ACEIButtonPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
     else
         setButton(nullptr);
 
+    // Lights
     auto lightModel = mgr->modelForType(LightBulbObject::Type);
-    if(lightModel)
-    {
-        const QString centralLightName = obj.value("light_central").toString();
-        setCentralLight(static_cast<LightBulbObject *>(lightModel->getObjectByName(centralLightName)));
-    }
-    else
-    {
-        setCentralLight(nullptr);
-    }
 
-    // Color
-    QColor c = QColor::fromString(obj.value("light_central_color").toString());
-    setCentralLightColor(c.isValid() ? c : Qt::yellow);
+    for(int i = 0; i < LightPosition::NLights; i++)
+    {
+        const QString lightObjName = obj.value(lightFmt.arg(lightKeyNames[i])).toString();
+        LightBulbObject *light = nullptr;
+        if(lightModel)
+            light = static_cast<LightBulbObject *>(lightModel->getObjectByName(lightObjName));
+
+        setLight(LightPosition(i), light);
+
+        QColor c = QColor::fromString(obj.value(lightColorFmt.arg(lightKeyNames[i])).toString());
+        if(!c.isValid())
+            c = lightDefaultColors[i];
+
+        setLightColor(LightPosition(i), c);
+    }
 
     return true;
 }
@@ -370,8 +395,13 @@ void ACEIButtonPanelItem::saveToJSON(QJsonObject &obj) const
     obj["button"] = mButton ? mButton->name() : QString();
     obj["button_type"] = mButton ? mButton->getType() : QString();
 
-    obj["light_central"] = mCentralLight ? mCentralLight->name() : QString();
-    obj["light_central_color"] = mCentralLightColor.name(QColor::HexRgb);
+    // Lights
+    for(int i = 0; i < LightPosition::NLights; i++)
+    {
+        LightBulbObject *light = getLight(LightPosition(i));
+        obj[lightFmt.arg(lightKeyNames[i])] = light ? light->name() : QString();
+        obj[lightColorFmt.arg(lightKeyNames[i])] = getLightColor(LightPosition(i)).name(QColor::HexRgb);
+    }
 }
 
 void ACEIButtonPanelItem::onButtonDestroyed()
@@ -381,7 +411,11 @@ void ACEIButtonPanelItem::onButtonDestroyed()
 
 void ACEIButtonPanelItem::onLightDestroyed()
 {
-    setCentralLight(nullptr);
+    for(int i = 0; i < NLights; i++)
+    {
+        if(getLight(LightPosition(i)) == sender())
+            setLight(LightPosition(i), nullptr);
+    }
 }
 
 void ACEIButtonPanelItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)

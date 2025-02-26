@@ -70,6 +70,8 @@ class CircuitSceneOptionsWidget : public QWidget
 public:
     CircuitSceneOptionsWidget(CircuitScene *scene, QWidget *parent = nullptr);
 
+    void setEditingAllowed(bool value);
+
 private slots:
     void setSceneName();
     void onNameTextEdited();

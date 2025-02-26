@@ -37,9 +37,17 @@ public:
 
     RelaisPowerGraphItem(RelaisPowerNode *node_);
 
+    QRectF boundingRect() const override;
+
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     void getConnectors(std::vector<Connector>& connectors) const final;
+
+    QString displayString() const override;
+
+    QString tooltipString() const override;
+
+    QRectF textDisplayRect() const override;
 
     RelaisPowerNode *node() const;
 
@@ -57,6 +65,7 @@ public:
 
 private slots:
     void updateRelay();
+    void onRelayTypeChanged();
 
 protected slots:
     void updateName() override;
@@ -66,7 +75,7 @@ private:
                         TileRotate r);
 
 private:
-    static constexpr double relayRadius = 16.0;
+    static constexpr double relayRadius = 50 - 10/2; // Half rect - half pen width
 
     AbstractRelais *mRelay = nullptr;
 };

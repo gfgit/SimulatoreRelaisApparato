@@ -28,6 +28,8 @@
 #include <QPainterPath>
 #include <QPainter>
 
+#include <QGraphicsSceneMouseEvent>
+
 PowerSourceGraphItem::PowerSourceGraphItem(PowerSourceNode *node_)
     : AbstractNodeGraphItem(node_)
 {
@@ -81,7 +83,9 @@ void PowerSourceGraphItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
     AbstractNodeGraphItem::mouseDoubleClickEvent(ev);
 
     CircuitScene *s = circuitScene();
-    if(s && s->mode() == FileMode::Simulation)
+    if(s && s->mode() == FileMode::Simulation &&
+            baseTileRect().contains(ev->pos()) &&
+            ev->button() == Qt::LeftButton)
     {
         // Toggle on double click
         bool val = node()->isSourceEnabled();

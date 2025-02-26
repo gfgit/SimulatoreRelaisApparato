@@ -52,6 +52,7 @@ public:
         PolarizedInverted,
         Stabilized,
         Combinator,
+        Timer,
         NTypes
     };
 
@@ -77,8 +78,6 @@ public:
 
     inline bool canHaveTwoConnectors() const
     {
-        if(relaisType() == RelaisType::Combinator)
-            return false; // We use 2 different tiles for it
         return true;
     }
 
@@ -86,11 +85,15 @@ public:
     {
         if(relaisType() == RelaisType::Stabilized)
             return true;
+        if(relaisType() == RelaisType::Combinator)
+            return true;
         return false;
     }
 
     State state() const;
     void setState(State newState);
+
+    QString getStateName() const;
 
     quint32 durationUp() const;
     void setDurationUp(quint32 durationUpMS);
@@ -114,6 +117,16 @@ public:
     inline int hasActivePowerDown() const
     {
         return mActivePowerNodesDown > 0;
+    }
+
+    inline int getPowerNodesCount() const
+    {
+        return mPowerNodes.size();
+    }
+
+    inline int getContactNodesCount() const
+    {
+        return mContactNodes.size();
     }
 
 signals:

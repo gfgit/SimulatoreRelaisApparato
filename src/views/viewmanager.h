@@ -63,19 +63,21 @@ public:
     explicit ViewManager(MainWindow *parent);
     ~ViewManager();
 
+    static ViewManager *self();
+
     // Circuits
     CircuitWidget *activeCircuitView() const;
     CircuitWidget *addCircuitView(CircuitScene *scene,
                                   bool forceNew = false);
-    void showCircuitSceneEdit(CircuitScene *scene);
+    void showCircuitSceneProperties(CircuitScene *scene);
 
     // Panels
     PanelWidget *activePanelView() const;
     PanelWidget *addPanelView(PanelScene *scene, bool forceNew);
-    void showPanelSceneEdit(PanelScene *scene);
+    void showPanelSceneProperties(PanelScene *scene);
 
     // Objects
-    void showObjectEdit(AbstractSimulationObject *item);
+    void showObjectProperties(AbstractSimulationObject *item);
 
     void closeAllEditDocks();
     void closeAllFileSpecificDocks();
@@ -87,6 +89,9 @@ public:
 
     AbstractSimulationObject *createNewObjectDlg(const QString &objType,
                                                  QWidget *parent);
+
+    void ensureCircuitItemIsVisible(AbstractNodeGraphItem *item,
+                                    bool forceNew, bool adjustZoom);
 
 signals:
     void currentViewTypeChanged(ViewType newVal);
@@ -124,7 +129,11 @@ private:
     void updateDockName(PanelWidget *w);
     int getUniqueNum(PanelScene *scene, PanelWidget *self) const;
 
+    void setEditDocksEnabled(bool enabled);
+
 private:
+    friend class LayoutLoader;
+
     // File specific views
     CircuitWidget *mActiveCircuitView = nullptr;
     QHash<CircuitWidget *, DockWidget *> mCircuitViews;

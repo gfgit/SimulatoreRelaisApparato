@@ -1,9 +1,9 @@
 /**
- * src/objects/relais/model/relaismodel.h
+ * src/objects/simulationobjectnodesmodel.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,34 +20,57 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef RELAIS_MODEL_H
-#define RELAIS_MODEL_H
+#ifndef SIMULATION_OBJECT_NODES_MODEL_H
+#define SIMULATION_OBJECT_NODES_MODEL_H
 
-#include "../../abstractsimulationobjectmodel.h"
+#include <QAbstractTableModel>
+#include <QVector>
 
-class RelaisModel : public AbstractSimulationObjectModel
+class AbstractSimulationObject;
+class AbstractNodeGraphItem;
+
+class ViewManager;
+
+class SimulationObjectNodesModel : public QAbstractTableModel
 {
     Q_OBJECT
-
 public:
-    enum ExtraColumns
+    enum Columns
     {
-        PowerNodes = Columns::NodesCol,
-        ContactNodes = Columns::NCols,
-        TotalNodes,
-        NColsExtra
+        NodeTypeCol = 0,
+        SceneNameCol,
+        NCols
     };
 
-    RelaisModel(ModeManager *mgr, QObject *parent = nullptr);
+    explicit SimulationObjectNodesModel(ViewManager *viewMgr,
+                                        QObject *parent = nullptr);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     // Basic functionality:
+    int rowCount(const QModelIndex &p = QModelIndex()) const override;
     int columnCount(const QModelIndex &p = QModelIndex()) const override;
 
-    // Custom relay specific data:
     QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
+
+    AbstractSimulationObject *getObject() const;
+    void setObject(AbstractSimulationObject *newObject);
+
+    inline AbstractNodeGraphItem *itemAt(int row) const
+    {
+        return mItems.value(row, nullptr);
+    }
+
+private slots:
+    void refreshNodeList();
+    void onObjectDestroyed();
+
+private:
+    ViewManager *mViewMgr = nullptr;
+
+    AbstractSimulationObject *mObject = nullptr;
+    QVector<AbstractNodeGraphItem *> mItems;
 };
 
-#endif // RELAIS_MODEL_H
+#endif // SIMULATION_OBJECT_NODES_MODEL_H

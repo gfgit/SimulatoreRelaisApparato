@@ -41,8 +41,7 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
     constexpr double morsettiOffset = 22.0;
-    constexpr double bulbSize = 32.0;
-    constexpr double centerOffset = bulbSize / 2.0;
+    constexpr double centerOffset = circleRadius;
 
     constexpr QLineF centerToNorth(center.x(), center.y() - centerOffset,
                                    center.x(), morsettiOffset);
@@ -57,8 +56,9 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
                                   morsettiOffset, center.y());
 
     QLineF commonLine;
+
     QRectF bulbRect;
-    bulbRect.setSize(QSizeF(bulbSize, bulbSize));
+    bulbRect.setSize(QSizeF(circleRadius * 2.0, circleRadius * 2.0));
     bulbRect.moveCenter(center);
 
     switch (toConnectorDirection(rotate()))
@@ -82,12 +82,12 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
         break;
     }
 
-    drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
+    //drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
 
     // Now draw wires
     painter->setBrush(Qt::NoBrush);
     QPen pen;
-    pen.setWidthF(5.0);
+    pen.setWidthF(10.0);
     pen.setCapStyle(Qt::FlatCap);
 
     const QColor colors[3] =
@@ -100,7 +100,7 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     // Draw common contact (0)
     pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
     painter->setPen(pen);
-    painter->drawLine(commonLine);
+    // painter->drawLine(commonLine);
 
     // Draw bulb circle
 
@@ -108,7 +108,7 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     // Draw in black instead of Light blue.
     if(!node()->hasCircuits())
         pen.setColor(colors[int(AnyCircuitType::None)]);
-    pen.setWidthF(3.0);
+    pen.setWidthF(10.0);
     painter->setPen(pen);
 
     if(node()->object() &&
@@ -124,13 +124,15 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->drawLine(bulbRect.topLeft(), bulbRect.bottomRight());
     painter->drawLine(bulbRect.topRight(), bulbRect.bottomLeft());
 
-    TileRotate textRotate = TileRotate::Deg90;
-    if(rotate() == TileRotate::Deg0)
-        textRotate = TileRotate::Deg270;
+    // TileRotate textRotate = TileRotate::Deg90;
+    // if(rotate() == TileRotate::Deg0)
+    //     textRotate = TileRotate::Deg270;
 
-    drawName(painter,
-             node()->object() ? node()->object()->name() : tr("OBJ?"),
-             textRotate);
+    // drawName(painter,
+    //          node()->object() ? node()->object()->name() : tr("OBJ?"),
+    //          textRotate);
+
+    drawName(painter);
 }
 
 LightBulbNode *LightBulbGraphItem::node() const

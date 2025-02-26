@@ -24,8 +24,8 @@
 
 #include <QApplication>
 
-#include <kddockwidgets-qt6/kddockwidgets/Config.h>
-#include <kddockwidgets-qt6/kddockwidgets/MainWindow.h>
+#include <kddockwidgets/Config.h>
+#include <kddockwidgets/MainWindow.h>
 
 #include "info.h"
 
@@ -37,6 +37,8 @@
 #include <QTranslator>
 
 #include <QSettings>
+
+#include "views/layoutloader.h"
 
 QString locateAppDataPath()
 {
@@ -130,6 +132,8 @@ int main(int argc, char *argv[])
 
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
 
+    LayoutLoader::registerLoader();
+
     auto& config = KDDockWidgets::Config::self();
 
     auto flags = config.flags();
@@ -148,6 +152,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    w.show();
+    w.showMaximized();
     return app.exec();
 }

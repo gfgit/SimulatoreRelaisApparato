@@ -172,9 +172,6 @@ void SimulationObjectListWidget::removeCurrentObject()
 
 void SimulationObjectListWidget::showViewContextMenu(const QPoint &pos)
 {
-    if(mModel->modeMgr()->mode() != FileMode::Editing)
-        return;
-
     QPointer<QMenu> menu = new QMenu(this);
 
     QModelIndex idx = mView->indexAt(pos);
@@ -184,8 +181,8 @@ void SimulationObjectListWidget::showViewContextMenu(const QPoint &pos)
     if(!item)
         return;
 
-    QAction *actionEdit = menu->addAction(tr("Edit"));
+    QAction *actionProperties = menu->addAction(tr("Properties"));
     QAction *ret = menu->exec(mView->viewport()->mapToGlobal(pos));
-    if(ret == actionEdit)
-        mViewMgr->showObjectEdit(item);
+    if(ret == actionProperties)
+        mViewMgr->showObjectProperties(item);
 }

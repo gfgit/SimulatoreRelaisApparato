@@ -47,6 +47,8 @@
 #include <QClipboard>
 #include <QMimeData>
 
+#include <QToolTip>
+
 #include "edit/nodeeditfactory.h"
 
 template <typename Func>
@@ -166,11 +168,6 @@ CircuitScene::~CircuitScene()
     removeAllItems();
 }
 
-FileMode CircuitScene::mode() const
-{
-    return circuitsModel()->modeMgr()->mode();
-}
-
 ModeManager *CircuitScene::modeMgr() const
 {
     return circuitsModel()->modeMgr();
@@ -178,6 +175,11 @@ ModeManager *CircuitScene::modeMgr() const
 
 void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 {
+    if(mMode == newMode)
+        return;
+
+    mMode = newMode;
+
     if(oldMode == FileMode::Editing || oldMode == FileMode::LoadingFile)
     {
         // Recalculate circuit
@@ -210,6 +212,8 @@ void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 
 void CircuitScene::addNode(AbstractNodeGraphItem *item)
 {
+    item->postInit();
+
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     if(!isLocationFree(item->location()))
@@ -950,7 +954,8 @@ void CircuitScene::editCableUpdatePen()
         return;
 
     QPen pen;
-    pen.setWidthF(6.0);
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setWidthF(13.0);
 
     if(mEditNewCablePath->isComplete())
         pen.setColor(Qt::red);
@@ -1612,6 +1617,44 @@ Connector::Direction CircuitScene::getTileAndDirection(const QPointF &p, TileLoc
     return direction;
 }
 
+AbstractNodeGraphItem *CircuitScene::getGraphForNode(AbstractCircuitNode *node) const
+{
+    const auto vec = node->findChildren<AbstractNodeGraphItem *>(Qt::FindDirectChildrenOnly);
+    for(AbstractNodeGraphItem *item : vec)
+    {
+        if(item->getAbstractNode() == node)
+            return item; // NOTE: might not be in this scene!
+    }
+
+    // Slow way, check all items
+    for(auto it = mItemMap.begin(), end = mItemMap.end(); it != end; it++)
+    {
+        if(it->second->getAbstractNode() == node)
+            return it->second;
+    }
+
+    return nullptr;
+}
+
+void CircuitScene::helpEvent(QGraphicsSceneHelpEvent *e)
+{
+    const TileLocation tile = TileLocation::fromPointFloor(e->scenePos());
+    AbstractNodeGraphItem *item = getItemAt(tile);
+    if(item)
+    {
+        QString tip = item->tooltipString();
+        QPoint pt;
+        if(!tip.isEmpty())
+            pt = e->screenPos();
+
+        QToolTip::showText(pt, tip, e->widget());
+        e->setAccepted(!tip.isEmpty());
+        return;
+    }
+
+    QGraphicsScene::helpEvent(e);
+}
+
 bool CircuitScene::insertFragment(const TileLocation &tileHint,
                                   const QJsonObject &fragmentRoot,
                                   NodeEditFactory *factory,
@@ -2198,7 +2241,8 @@ void CircuitScene::startEditCable(CableGraphItem *item)
 
     // Overlay to highlight cable
     QPen pen;
-    pen.setWidthF(6.0);
+    pen.setWidthF(13.0);
+    pen.setCapStyle(Qt::FlatCap);
     pen.setColor(Qt::blue);
     mEditOverlay = addPath(mEditingCable->path(), pen);
     mEditOverlay->setZValue(1.0);

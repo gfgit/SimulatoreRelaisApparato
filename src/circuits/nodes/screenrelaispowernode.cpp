@@ -105,16 +105,21 @@ ScreenRelais *ScreenRelaisPowerNode::screenRelais() const
     return mScreenRelais;
 }
 
-void ScreenRelaisPowerNode::setScreenRelais(ScreenRelais *newRelais)
+bool ScreenRelaisPowerNode::setScreenRelais(ScreenRelais *newRelais, bool force)
 {
     if(mScreenRelais == newRelais)
-        return;
+        return true;
+
+    if(!force && newRelais && newRelais->hasPowerNode())
+        return false; // New screen relay is already powered
 
     if(mScreenRelais)
     {
-        mScreenRelais->setPowerNode(nullptr);
+        ScreenRelais *oldScreenRelais = mScreenRelais;
 
-        disconnect(mScreenRelais, &ScreenRelais::typeChanged,
+        oldScreenRelais->setPowerNode(nullptr);
+
+        disconnect(oldScreenRelais, &ScreenRelais::typeChanged,
                    this, &ScreenRelaisPowerNode::onScreenTypeChanged);
     }
 
@@ -135,6 +140,8 @@ void ScreenRelaisPowerNode::setScreenRelais(ScreenRelais *newRelais)
 
     emit relayChanged(mScreenRelais);
     modeMgr()->setFileEdited();
+
+    return true;
 }
 
 void ScreenRelaisPowerNode::onScreenTypeChanged()

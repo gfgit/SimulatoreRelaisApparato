@@ -1,5 +1,5 @@
 /**
- * src/objects/relais/model/relaismodel.cpp
+ * src/objects/screen_relais/model/screenrelaismodel.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,9 +20,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "relaismodel.h"
+#include "screenrelaismodel.h"
 
-#include "abstractrelais.h"
+#include "screenrelais.h"
 
 #include "../../../views/modemanager.h"
 
@@ -33,12 +33,12 @@
 
 #include <QFont>
 
-RelaisModel::RelaisModel(ModeManager *mgr, QObject *parent)
-    : AbstractSimulationObjectModel(mgr, AbstractRelais::Type, parent)
+ScreenRelaisModel::ScreenRelaisModel(ModeManager *mgr, QObject *parent)
+    : AbstractSimulationObjectModel(mgr, ScreenRelais::Type, parent)
 {
 }
 
-QVariant RelaisModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant ScreenRelaisModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
@@ -58,43 +58,23 @@ QVariant RelaisModel::headerData(int section, Qt::Orientation orientation, int r
     return AbstractSimulationObjectModel::headerData(section, orientation, role);
 }
 
-int RelaisModel::columnCount(const QModelIndex &p) const
+int ScreenRelaisModel::columnCount(const QModelIndex &p) const
 {
     return p.isValid() ? 0 : NColsExtra;
 }
 
-QVariant RelaisModel::data(const QModelIndex &idx, int role) const
+QVariant ScreenRelaisModel::data(const QModelIndex &idx, int role) const
 {
-    const AbstractRelais *relay = static_cast<AbstractRelais *>(objectAt(idx.row()));
+    const ScreenRelais *relay = static_cast<ScreenRelais *>(objectAt(idx.row()));
     if(!relay)
         return QVariant();
 
-    if(idx.column() == NameCol && role == Qt::DecorationRole)
+    if(idx.column() == PowerNodes)
     {
-        // Show a little colored square based on relay state
-        QColor color = Qt::black;
-        switch (relay->state())
-        {
-        case AbstractRelais::State::Up:
-            color = Qt::red;
-            break;
-        case AbstractRelais::State::GoingUp:
-        case AbstractRelais::State::GoingDown:
-            color.setRgb(120, 210, 255); // Light blue
-            break;
-        case AbstractRelais::State::Down:
-        default:
-            break;
-        }
-
-        return color;
-    }
-    else if(idx.column() == PowerNodes)
-    {
-        const int count = relay->getPowerNodesCount();
+        const int count = relay->hasPowerNode() ? 1 : 0;
         return nodesCountData(relay, role,
-                              count, (count == 0 || count > 2),
-                              tr("Relay <b>%1</b> is powered by <b>%2</b> nodes.")
+                              count, count == 0,
+                              tr("Screen Relay <b>%1</b> is powered by <b>%2</b> node.")
                               .arg(relay->name()).arg(count));
     }
     else if(idx.column() == ContactNodes)
@@ -102,7 +82,7 @@ QVariant RelaisModel::data(const QModelIndex &idx, int role) const
         const int count = relay->getContactNodesCount();
         return nodesCountData(relay, role,
                               count, count == 0,
-                              tr("Relay <b>%1</b> contacts are used in <b>%2</b> nodes.")
+                              tr("Screen Relay <b>%1</b> contacts are used in <b>%2</b> nodes.")
                               .arg(relay->name()).arg(count));
     }
 

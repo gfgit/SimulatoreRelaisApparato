@@ -37,6 +37,28 @@ public:
     static constexpr double ItemWidth = 100;
     static constexpr double ItemHeight = 130;
 
+    enum LightPosition
+    {
+        Left = 0,
+        Central,
+        Right,
+        NLights
+    };
+
+    static constexpr QLatin1String lightFmt = QLatin1String("light_%1");
+    static constexpr QLatin1String lightColorFmt = QLatin1String("light_%1_color");
+    static constexpr QLatin1String lightKeyNames[NLights] = {
+        QLatin1String("left"),
+        QLatin1String("central"),
+        QLatin1String("right")
+    };
+
+    static constexpr Qt::GlobalColor lightDefaultColors[NLights] = {
+        Qt::yellow,
+        Qt::yellow,
+        Qt::blue
+    };
+
     explicit ACEILeverPanelItem();
     ~ACEILeverPanelItem();
 
@@ -52,17 +74,20 @@ public:
     AbstractSimulationObject *lever() const;
     void setLever(AbstractSimulationObject *newLever);
 
-    LightBulbObject *leftLight() const;
-    void setLeftLight(LightBulbObject *newLeftLight);
+    // Lights
+    inline LightBulbObject *getLight(LightPosition pos) const
+    {
+        return mLights[pos];
+    }
 
-    LightBulbObject *rightLight() const;
-    void setRightLight(LightBulbObject *newRightLight);
+    void setLight(LightPosition pos, LightBulbObject *newLight);
 
-    QColor leftLightColor() const;
-    void setLeftLightColor(const QColor &newLeftLightColor);
+    inline QColor getLightColor(LightPosition pos) const
+    {
+        return mLightColors[pos];
+    }
 
-    QColor rightLightColor() const;
-    void setRightLightColor(const QColor &newRightLightColor);
+    void setLightColor(LightPosition pos, const QColor &newLightColor);
 
 signals:
     void leverChanged(AbstractSimulationObject *newLever);
@@ -90,18 +115,18 @@ private:
     static constexpr double leverTipLength = 34;
     static constexpr double leverBottomLength = 26;
 
-    static constexpr double lightCircleRadius = 14;
-    static constexpr double lightOffset = 20;
+    static constexpr double lightCircleRadius = 13;
+    static constexpr double lightOffsetX = 20;
+    static constexpr double lightOffsetY = 24;
+    static constexpr double lightOffsetCentralY = 17;
 
 private:
     AbstractSimulationObject *mLever = nullptr;
     LeverInterface *mLeverIface = nullptr;
 
-    LightBulbObject *mLeftLight = nullptr;
-    LightBulbObject *mRightLight = nullptr;
-
-    QColor mLeftLightColor = Qt::yellow;
-    QColor mRightLightColor = Qt::blue;
+    // Lights
+    LightBulbObject *mLights[NLights] = {nullptr, nullptr, nullptr};
+    QColor mLightColors[NLights] = {Qt::yellow, Qt::yellow, Qt::blue};
 
     QPointF mLastMousePos;
 };

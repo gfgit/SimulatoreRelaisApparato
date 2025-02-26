@@ -104,12 +104,35 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     }
 }
 
+QString RelaisContactGraphItem::displayString() const
+{
+    if(node()->relais())
+        return node()->relais()->name();
+    return QLatin1String("REL!");
+}
+
+QString RelaisContactGraphItem::tooltipString() const
+{
+    if(!node()->relais())
+        return tr("No Relay set!");
+
+    return tr("Contact of relay <b>%1</b><br>"
+              "State: <b>%2</b><br>"
+              "%3")
+            .arg(node()->relais()->name(),
+                 node()->relais()->getStateName(),
+                 getContactTooltip());
+}
+
 void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
                                             TileRotate r,
                                             const QRectF& textBr)
 {
     if(!node()->relais())
         return;
+
+    if(node()->relais()->relaisType() == AbstractRelais::RelaisType::Combinator)
+        return; // Combinators do not need arrow
 
     if(node()->relais()->state() == AbstractRelais::State::GoingUp
             || node()->relais()->state() == AbstractRelais::State::GoingDown)

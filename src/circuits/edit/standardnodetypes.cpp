@@ -84,6 +84,8 @@
 #include <QSpinBox>
 #include <QLabel>
 
+#include <QMessageBox>
+
 #include "../../views/modemanager.h"
 #include "../../views/viewmanager.h"
 
@@ -218,9 +220,39 @@ QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ViewManager *vi
     // Remote Connection Object
     SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(viewMgr, {RemoteCircuitBridge::Type});
     QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
-                     node, [node](AbstractSimulationObject *obj)
+                     node, [node, objectEdit](AbstractSimulationObject *obj)
     {
-        node->setRemote(static_cast<RemoteCircuitBridge *>(obj));
+        RemoteCircuitBridge *bridge = static_cast<RemoteCircuitBridge *>(obj);
+        bool success = node->setRemote(bridge, true, false);
+
+        if(!success)
+        {
+            QString text;
+            if(bridge->isRemote())
+            {
+                text = StandardNodeTypes::tr("Selected Circuit Bridge <b>%1</b> is connected to a remote session and has already one node on this session.<br>"
+                                             "Connecting this node too will remove remote session connection.<br>"
+                                             "Do you want to proceed?").arg(bridge->name());
+            }
+            else
+            {
+                text = StandardNodeTypes::tr("Selected Circuit Bridge <b>%1</b> has already 2 nodes on this session.<br>"
+                                             "Connecting this node too will remove one of existing connected nodes.<br>"
+                                             "Do you want to proceed?").arg(bridge->name());
+            }
+
+            auto res =  QMessageBox::question(objectEdit, StandardNodeTypes::tr("Steal Circuit Bridge?"), text);
+            if(res == QMessageBox::Yes)
+            {
+                // Force setting screen relay
+                node->setRemote(bridge, true, true);
+            }
+            else
+            {
+                // Reject change
+                objectEdit->setObject(node->remote());
+            }
+        }
     });
 
     lay->addRow(StandardNodeTypes::tr("Bridge:"), objectEdit);
@@ -409,14 +441,27 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                     hasSecondContact->setChecked(node->hasSecondConnector());
             });
 
+            QCheckBox *combinatorSecondCoil = new QCheckBox(tr("Is second coil"));
+            lay->addRow(combinatorSecondCoil);
+
+            QObject::connect(combinatorSecondCoil, &QCheckBox::toggled,
+                             node, [node](bool val)
+            {
+                node->setCombinatorSecondCoil(val);
+            });
+
             auto updDelayLambda =
                     [delayUpSeconds, delayDownSeconds,
-                    hasSecondContact,
+                    hasSecondContact, combinatorSecondCoil,
                     node]()
             {
                 delayUpSeconds->setValue(node->delayUpSeconds());
                 delayDownSeconds->setValue(node->delayDownSeconds());
                 hasSecondContact->setChecked(node->hasSecondConnector());
+                combinatorSecondCoil->setChecked(node->combinatorSecondCoil());
+
+                combinatorSecondCoil->setVisible(node->relais() &&
+                                                 node->relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
             };
 
             QObject::connect(node, &RelaisPowerNode::delaysChanged,
@@ -472,10 +517,25 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                 node->setHideRelayNormalState(val);
             });
 
+            QCheckBox *activeWhileMiddle = new QCheckBox(tr("Keep contact while in Middle state"));
+            lay->addWidget(activeWhileMiddle);
+
+            QObject::connect(activeWhileMiddle, &QCheckBox::toggled,
+                             node, [node, activeWhileMiddle](bool val)
+            {
+                node->setActiveWhileMiddle(val);
+                if(val != node->activeWhileMiddle())
+                    activeWhileMiddle->setChecked(!val);
+            });
+
             auto updLambda =
-                    [hideRelayNormal, node]()
+                    [hideRelayNormal, node, activeWhileMiddle]()
             {
                 hideRelayNormal->setChecked(node->hideRelayNormalState());
+                activeWhileMiddle->setChecked(node->activeWhileMiddle());
+                activeWhileMiddle->setEnabled(!node->hasCentralConnector());
+                activeWhileMiddle->setVisible(node->relais() &&
+                                              node->relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
             };
 
             QObject::connect(node, &RelaisContactNode::shapeChanged,
@@ -508,9 +568,27 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QObject::connect(node, &ScreenRelaisPowerNode::relayChanged,
                              relayEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(relayEdit, &SimulationObjectLineEdit::objectChanged,
-                             node, [node](AbstractSimulationObject *obj)
+                             node, [node, relayEdit](AbstractSimulationObject *obj)
             {
-                node->setScreenRelais(static_cast<ScreenRelais *>(obj));
+                bool success = node->setScreenRelais(static_cast<ScreenRelais *>(obj));
+                if(!success)
+                {
+                    auto res =  QMessageBox::question(relayEdit, tr("Steal Screen Relay?"),
+                                                      tr("Selected Screen Relay <b>%1</b>"
+                                                         " is already powered by another node.<br>"
+                                                         "Setting this screen relay on this node will remove it from previous powering node.<br>"
+                                                         "Do you want to proceed?").arg(obj->name()));
+                    if(res == QMessageBox::Yes)
+                    {
+                        // Force setting screen relay
+                        node->setScreenRelais(static_cast<ScreenRelais *>(obj), true);
+                    }
+                    else
+                    {
+                        // Reject change
+                        relayEdit->setObject(node->screenRelais());
+                    }
+                }
             });
 
             relayEdit->setObject(node->screenRelais());
