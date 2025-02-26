@@ -26,6 +26,9 @@
 
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 
+#include "../../views/modemanager.h"
+#include "../../objects/simulationobjectfactory.h"
+
 SimpleActivationGraphItem::SimpleActivationGraphItem(SimpleActivationNode *node_)
     : AbstractNodeGraphItem(node_)
 {
@@ -42,6 +45,22 @@ QString SimpleActivationGraphItem::displayString() const
     if(activationNode()->object())
         return activationNode()->object()->name();
     return QLatin1String("OBJ!");
+}
+
+QString SimpleActivationGraphItem::tooltipString() const
+{
+    if(!activationNode()->object())
+        return tr("No object set!");
+
+    const QString objType = activationNode()->object()->getType();
+    const QString prettyType = activationNode()->modeMgr()->objectFactory()->prettyName(objType);
+
+    const auto state_ = activationNode()->object()->state();
+
+    return tr("%1 <b>%2</b><br>"
+              "State: <b>%3</b>")
+            .arg(prettyType, activationNode()->object()->name(),
+                 state_ == AbstractSimpleActivableObject::State::On ? tr("On") : tr("Off"));
 }
 
 SimpleActivationNode *SimpleActivationGraphItem::activationNode() const

@@ -58,7 +58,7 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     QLineF commonLine;
     QRectF bulbRect;
-    bulbRect.setSize(QSizeF(bulbSize, bulbSize));
+    bulbRect.setSize(QSizeF(circleRadius * 2.0, circleRadius * 2.0));
     bulbRect.moveCenter(center);
 
     switch (toConnectorDirection(rotate()))
@@ -82,7 +82,7 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
         break;
     }
 
-    drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
+    //drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
 
     // Now draw wires
     painter->setBrush(Qt::NoBrush);
@@ -100,11 +100,11 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     // Draw common contact (0)
     pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
     painter->setPen(pen);
-    painter->drawLine(commonLine);
+    //painter->drawLine(commonLine);
 
     // Draw bulb circle
 
-    pen.setWidthF(3.0);
+    pen.setWidthF(10.0);
     painter->setPen(pen);
 
     if(node()->object() &&
@@ -115,13 +115,15 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     painter->drawEllipse(bulbRect);
 
-    TileRotate textRotate = TileRotate::Deg90;
-    if(rotate() == TileRotate::Deg0)
-        textRotate = TileRotate::Deg270;
+    // TileRotate textRotate = TileRotate::Deg90;
+    // if(rotate() == TileRotate::Deg0)
+    //     textRotate = TileRotate::Deg270;
 
-    drawName(painter,
-             node()->object() ? node()->object()->name() : tr("OBJ?"),
-             textRotate);
+    // drawName(painter,
+    //          node()->object() ? node()->object()->name() : tr("OBJ?"),
+    //          textRotate);
+
+    drawName(painter);
 }
 
 ElectroMagnetNode *ElectroMagnetGraphItem::node() const

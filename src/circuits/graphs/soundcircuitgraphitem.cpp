@@ -58,7 +58,7 @@ void SoundCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
 
     QLineF commonLine;
     QRectF bulbRect;
-    bulbRect.setSize(QSizeF(soundBulbSize, soundBulbSize));
+    bulbRect.setSize(QSizeF(circleRadius * 2.0, circleRadius * 2.0));
     bulbRect.moveCenter(center);
 
     int angleStart = 0;
@@ -127,24 +127,26 @@ void SoundCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
         painter->setBrush(Qt::NoBrush);
 
         pen.setColor(soundColor);
-        pen.setWidth(3);
+        pen.setWidth(10);
         painter->setPen(pen);
     }
 
     // Draw sound symbol (half circle)
     painter->drawPie(bulbRect, angleStart, 180 * 16);
 
-    TileRotate textRotate = TileRotate::Deg90;
-    if(rotate() == TileRotate::Deg0)
-        textRotate = TileRotate::Deg270;
+    // TileRotate textRotate = TileRotate::Deg90;
+    // if(rotate() == TileRotate::Deg0)
+    //     textRotate = TileRotate::Deg270;
 
     // Set text color
     painter->setPen(soundColor);
     painter->setBrush(Qt::NoBrush);
 
-    drawName(painter,
-             node()->object() ? node()->object()->name() : tr("OBJ?"),
-             textRotate);
+    // drawName(painter,
+    //          node()->object() ? node()->object()->name() : tr("OBJ?"),
+    //          textRotate);
+
+    drawName(painter);
 }
 
 SoundCircuitNode *SoundCircuitGraphItem::node() const

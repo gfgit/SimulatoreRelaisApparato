@@ -37,6 +37,8 @@ public:
 
     QString displayString() const override;
 
+    QString tooltipString() const override;
+
     SimpleActivationNode *activationNode() const;
 
 protected:

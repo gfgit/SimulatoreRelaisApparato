@@ -41,7 +41,7 @@ void PolarityInversionGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
 
-    constexpr double crossSize = 30.0;
+    constexpr double crossSize = 48.0;
     constexpr double centerOffset = crossSize / 2.0;
 
     constexpr QLineF centerToNorth(center.x(), center.y() - centerOffset,

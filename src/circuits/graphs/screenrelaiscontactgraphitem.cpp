@@ -105,6 +105,24 @@ void ScreenRelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGr
     painter->drawText(contactNameRect, Qt::AlignCenter, contactName);
 }
 
+QString ScreenRelaisContactGraphItem::displayString() const
+{
+    if(node()->screenRelais())
+        return node()->screenRelais()->name();
+    return QLatin1String("SCR!");
+}
+
+QString ScreenRelaisContactGraphItem::tooltipString() const
+{
+    if(!node()->screenRelais())
+        return tr("No Screen Relay set!");
+
+    return tr("Contact of Screen Relay <b>%1</b><br>"
+              "%2")
+            .arg(node()->screenRelais()->name(),
+                 getContactTooltip());
+}
+
 ScreenRelaisContactNode *ScreenRelaisContactGraphItem::node() const
 {
     return static_cast<ScreenRelaisContactNode *>(getAbstractNode());
