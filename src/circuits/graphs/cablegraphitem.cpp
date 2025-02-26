@@ -68,7 +68,7 @@ CableGraphItem::CableGraphItem(CircuitCable *cable_)
 
     pen.setCapStyle(Qt::FlatCap);
     pen.setColor(Qt::black);
-    pen.setWidthF(5.0);
+    pen.setWidthF(10.0);
 
     connect(mCable, &CircuitCable::modeChanged, this, &CableGraphItem::updatePen);
     connect(mCable, &CircuitCable::powerChanged, this, &CableGraphItem::updatePen);

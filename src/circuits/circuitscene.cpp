@@ -950,7 +950,8 @@ void CircuitScene::editCableUpdatePen()
         return;
 
     QPen pen;
-    pen.setWidthF(6.0);
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setWidthF(13.0);
 
     if(mEditNewCablePath->isComplete())
         pen.setColor(Qt::red);
@@ -2217,7 +2218,8 @@ void CircuitScene::startEditCable(CableGraphItem *item)
 
     // Overlay to highlight cable
     QPen pen;
-    pen.setWidthF(6.0);
+    pen.setWidthF(13.0);
+    pen.setCapStyle(Qt::FlatCap);
     pen.setColor(Qt::blue);
     mEditOverlay = addPath(mEditingCable->path(), pen);
     mEditOverlay->setZValue(1.0);
