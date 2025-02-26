@@ -35,6 +35,25 @@ RelaisPowerGraphItem::RelaisPowerGraphItem(RelaisPowerNode *node_)
     connect(node(), &RelaisPowerNode::relayChanged,
             this, &RelaisPowerGraphItem::updateRelay);
     updateRelay();
+
+    recalculateTextWidth();
+}
+
+QRectF RelaisPowerGraphItem::boundingRect() const
+{
+    const QRectF br = AbstractNodeGraphItem::boundingRect();
+
+    if(!mRelay || mRelay->relaisType() != AbstractRelais::RelaisType::Combinator)
+        return br; // Default bounding rect
+
+    // Special case for combinator relais
+    QRectF xRect(TileLocation::Size, 0,
+                 TileLocation::Size, TileLocation::Size);
+
+    if(node()->combinatorSecondCoil())
+        xRect.moveLeft(-TileLocation::Size);
+
+    return br.united(xRect);
 }
 
 void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -110,18 +129,18 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
             const TileRotate secondConnector = twoConnectorsRotate() + TileRotate::Deg180;
             secondLine = secondConnector == TileRotate::Deg180 ? centerToNorth : centerToSouth;
 
-            drawMorsetti(painter, 0, firstConnector);
-            drawMorsetti(painter, 1, secondConnector);
+            //drawMorsetti(painter, 0, firstConnector);
+            //drawMorsetti(painter, 1, secondConnector);
         }
         else
         {
-            drawMorsetti(painter, 0, twoConnectorsRotate() + TileRotate::Deg90);
-            drawMorsetti(painter, 1, twoConnectorsRotate() + TileRotate::Deg270);
+            //drawMorsetti(painter, 0, twoConnectorsRotate() + TileRotate::Deg90);
+            //drawMorsetti(painter, 1, twoConnectorsRotate() + TileRotate::Deg270);
         }
     }
     else
     {
-        drawMorsetti(painter, 0, r + TileRotate::Deg0);
+        //drawMorsetti(painter, 0, r + TileRotate::Deg0);
     }
 
     // Now draw wires
@@ -138,17 +157,17 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     };
 
     // Draw common contact (0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
-    painter->setPen(pen);
-    painter->drawLine(commonLine);
+    // pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    // painter->setPen(pen);
+    // painter->drawLine(commonLine);
 
-    if(node()->hasSecondConnector())
-    {
-        // Draw second contact (1)
-        pen.setColor(colors[int(node()->hasAnyCircuit(1))]);
-        painter->setPen(pen);
-        painter->drawLine(secondLine);
-    }
+    // if(node()->hasSecondConnector())
+    // {
+    //     // Draw second contact (1)
+    //     pen.setColor(colors[int(node()->hasAnyCircuit(1))]);
+    //     painter->setPen(pen);
+    //     painter->drawLine(secondLine);
+    // }
 
     QColor color = colors[int(AnyCircuitType::None)]; // Black
     if(node()->relais() && node()->modeMgr()->mode() == FileMode::Simulation)
@@ -186,7 +205,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         }
     }
 
-    pen.setWidthF(3.0);
+    pen.setWidthF(10.0);
     pen.setColor(color);
 
     if(node()->modeMgr()->mode() == FileMode::Simulation
@@ -282,34 +301,27 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         }
         case AbstractRelais::RelaisType::Combinator:
         {
-            // Draw half X near to relay circle
-            QPoint targetPt(TileLocation::Size, TileLocation::HalfSize);
+            // Draw full X near to relay circle
+            QPointF startPt(70.25, 9.8137150261);
+            QPointF targetPt(2 * TileLocation::Size, 75.195162993);
 
-            QPen xPen;
-            xPen.setCapStyle(Qt::FlatCap);
+            QPen xPen = pen;
             xPen.setColor(Qt::black);
-            xPen.setWidthF(3.0);
 
             painter->setPen(xPen);
             painter->setBrush(Qt::NoBrush);
 
-            // Make X touch circle
-            const double adjFac = relayRect.width() * 0.15;
-            const QRectF adjRelayRect = relayRect.adjusted(adjFac, adjFac,
-                                                           -adjFac, -adjFac);
-
             if(node()->combinatorSecondCoil())
             {
-                targetPt.setX(0);
+                startPt.setX(TileLocation::Size - startPt.x());
+                targetPt.setX(-TileLocation::Size);
+            }
 
-                painter->drawLine(targetPt, adjRelayRect.topLeft());
-                painter->drawLine(targetPt, adjRelayRect.bottomLeft());
-            }
-            else
-            {
-                painter->drawLine(targetPt, adjRelayRect.topRight());
-                painter->drawLine(targetPt, adjRelayRect.bottomRight());
-            }
+            painter->drawLine(startPt, targetPt);
+
+            startPt.ry()  = TileLocation::Size - startPt.y();
+            targetPt.ry() = TileLocation::Size - targetPt.y();
+            painter->drawLine(startPt, targetPt);
 
             const QChar letter = node()->combinatorSecondCoil() ? 'R' : 'N';
 
@@ -344,11 +356,14 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     if(!isCombinatorRelay)
     {
         // Draw lines top/bottom
-        painter->drawLine(relayRect.topLeft(), relayRect.topRight());
-        painter->drawLine(relayRect.bottomLeft(), relayRect.bottomRight());
+        const QRectF lineRect = relayRect.adjusted(-pen.widthF() / 2, 0,
+                                                   +pen.widthF() / 2, 0);
+
+        painter->drawLine(lineRect.topLeft(), lineRect.topRight());
+        painter->drawLine(lineRect.bottomLeft(), lineRect.bottomRight());
 
         // Draw delayed up/down lines with wider pen
-        pen.setWidthF(5.0);
+        pen.setWidthF(10.0);
         painter->setPen(pen);
 
         // Separate a bit delay line and relay circle
@@ -356,13 +371,13 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
         if(node()->delayUpSeconds() > 0)
         {
-            painter->drawLine(QLineF(relayRect.left(), relayRect.top() - delayLineMargin,
-                                     relayRect.right(), relayRect.top() - delayLineMargin));
+            painter->drawLine(QLineF(lineRect.left(), lineRect.top() - delayLineMargin,
+                                     lineRect.right(), lineRect.top() - delayLineMargin));
         }
         if(node()->delayDownSeconds() > 0)
         {
-            painter->drawLine(QLineF(relayRect.left(), relayRect.bottom() + delayLineMargin,
-                                     relayRect.right(), relayRect.bottom() + delayLineMargin));
+            painter->drawLine(QLineF(lineRect.left(), lineRect.bottom() + delayLineMargin,
+                                     lineRect.right(), lineRect.bottom() + delayLineMargin));
         }
     }
 
@@ -391,10 +406,13 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     if(!hideName)
     {
-        drawName(painter,
-                 mRelay ? mRelay->name() : tr("REL!"),
-                 textRotate);
+        // drawName(painter,
+        //          mRelay ? mRelay->name() : tr("REL!"),
+        //          textRotate);
     }
+
+    drawName(painter);
+    drawUnpairedConnectors(painter);
 }
 
 void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) const
@@ -452,16 +470,29 @@ void RelaisPowerGraphItem::updateRelay()
     {
         disconnect(mRelay, &AbstractRelais::stateChanged,
                    this, &RelaisPowerGraphItem::triggerUpdate);
+        disconnect(mRelay, &AbstractRelais::typeChanged,
+                   this, &RelaisPowerGraphItem::onRelayTypeChanged);
     }
 
+    prepareGeometryChange();
     mRelay = node()->relais();
+    recalculateTextWidth();
 
     if(mRelay)
     {
         connect(mRelay, &AbstractRelais::stateChanged,
                 this, &RelaisPowerGraphItem::triggerUpdate);
+        connect(mRelay, &AbstractRelais::typeChanged,
+                   this, &RelaisPowerGraphItem::onRelayTypeChanged);
     }
 
+    onRelayTypeChanged();
+}
+
+void RelaisPowerGraphItem::onRelayTypeChanged()
+{
+    prepareGeometryChange();
+    recalculateTextPosition();
     update();
 }
 
@@ -506,17 +537,17 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
         break;
 
     case Connector::Direction::East:
-        arrowRect.setLeft(TileLocation::HalfSize + relayRadius + 5.0);
-        arrowRect.setRight(TileLocation::Size - 5.0);
-        arrowRect.setTop(TileLocation::HalfSize - relayRadius);
-        arrowRect.setBottom(TileLocation::HalfSize + relayRadius);
+        arrowRect.setLeft(TileLocation::Size + 5);
+        arrowRect.setRight(arrowRect.left() + TileLocation::HalfSize / 2);
+        arrowRect.setTop(10);
+        arrowRect.setBottom(TileLocation::Size - 10);
         break;
 
     case Connector::Direction::West:
-        arrowRect.setLeft(5.0);
-        arrowRect.setRight(TileLocation::HalfSize - relayRadius - 5.0);
-        arrowRect.setTop(TileLocation::HalfSize - relayRadius);
-        arrowRect.setBottom(TileLocation::HalfSize + relayRadius);
+        arrowRect.setLeft(- TileLocation::HalfSize / 2);
+        arrowRect.setRight(-5);
+        arrowRect.setTop(10);
+        arrowRect.setBottom(TileLocation::Size - 10);
         break;
     default:
         break;
@@ -586,7 +617,7 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
 
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
-    pen.setWidthF(3.0);
+    pen.setWidthF(5.0);
     pen.setColor(color);
 
     painter->setPen(pen);

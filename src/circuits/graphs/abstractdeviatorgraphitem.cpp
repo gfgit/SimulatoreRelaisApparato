@@ -175,14 +175,14 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     endAngle += endIncrement;
     const int arcLength = endAngle - startAngle;
 
-    TileRotate centralConnectorRotate = TileRotate::Deg90;
-    if(deviatorNode()->flipContact())
-        centralConnectorRotate = TileRotate::Deg270;
+    // TileRotate centralConnectorRotate = TileRotate::Deg90;
+    // if(deviatorNode()->flipContact())
+    //     centralConnectorRotate = TileRotate::Deg270;
 
-    drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
-    drawMorsetti(painter, 2, rotate() + TileRotate::Deg180);
-    if(deviatorNode()->hasCentralConnector())
-        drawMorsetti(painter, 1, rotate() + centralConnectorRotate);
+    // drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
+    // drawMorsetti(painter, 2, rotate() + TileRotate::Deg180);
+    // if(deviatorNode()->hasCentralConnector())
+    //     drawMorsetti(painter, 1, rotate() + centralConnectorRotate);
 
     // Draw switch arc and wires on top
     const QColor colors[3] =
