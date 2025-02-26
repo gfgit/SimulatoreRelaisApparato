@@ -27,8 +27,6 @@
 #include "../../objects/interfaces/buttoninterface.h"
 #include "../../objects/button/genericbuttonobject.h"
 
-#include "../circuitscene.h"
-
 #include <QPainter>
 
 ButtonContactGraphItem::ButtonContactGraphItem(ButtonContactNode *node_)
@@ -73,6 +71,49 @@ void ButtonContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     drawName(painter,
              node()->button() ? node()->button()->name() : tr("NULL"),
              nameRotate);
+}
+
+QString ButtonContactGraphItem::displayString() const
+{
+    if(node()->button())
+        return node()->button()->name();
+    return QLatin1String("BUT!");
+}
+
+QString ButtonContactGraphItem::tooltipString() const
+{
+    if(!node()->button())
+        return tr("No Button set!");
+
+    QString buttonState;
+    auto buttonIface = node()->buttonIface();
+    if(buttonIface)
+    {
+        QString butPosName;
+        switch (buttonIface->state())
+        {
+        case ButtonInterface::State::Extracted:
+            butPosName = tr("Extracted");
+            break;
+        case ButtonInterface::State::Normal:
+            butPosName = tr("Normal");
+            break;
+        case ButtonInterface::State::Pressed:
+            butPosName = tr("Pressed");
+            break;
+        default:
+            break;
+        }
+
+        buttonState = tr("State: <b>%1</b><br>").arg(butPosName);
+    }
+
+    return tr("Contact of button <b>%1</b><br>"
+              "%2"
+              "%3")
+            .arg(node()->button()->name(),
+                 buttonState,
+                 getContactTooltip());
 }
 
 ButtonContactNode *ButtonContactGraphItem::node() const

@@ -104,6 +104,13 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     }
 }
 
+QString RelaisContactGraphItem::displayString() const
+{
+    if(node()->relais())
+        return node()->relais()->name();
+    return QLatin1String("REL!");
+}
+
 QString RelaisContactGraphItem::tooltipString() const
 {
     if(!node()->relais())

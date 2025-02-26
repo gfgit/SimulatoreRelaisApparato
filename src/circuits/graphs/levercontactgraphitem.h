@@ -37,6 +37,10 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
+    QString displayString() const override;
+
+    QString tooltipString() const override;
+
     LeverContactNode *node() const;
 
 protected:
