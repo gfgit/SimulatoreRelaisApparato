@@ -38,6 +38,8 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
+    QString tooltipString() const override;
+
     RelaisContactNode *node() const;
 
 private:

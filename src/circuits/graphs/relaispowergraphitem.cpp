@@ -426,6 +426,23 @@ void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) con
     }
 }
 
+QString RelaisPowerGraphItem::displayString() const
+{
+    if(mRelay)
+        return mRelay->name();
+    return QLatin1String("REL!");
+}
+
+QString RelaisPowerGraphItem::tooltipString() const
+{
+    if(!mRelay)
+        return tr("No Relay set!");
+
+    return tr("Relay <b>%1</b> (Power)<br>"
+              "State: <b>%2</b>")
+            .arg(mRelay->name(), mRelay->getStateName());
+}
+
 void RelaisPowerGraphItem::updateRelay()
 {
     if(mRelay == node()->relais())

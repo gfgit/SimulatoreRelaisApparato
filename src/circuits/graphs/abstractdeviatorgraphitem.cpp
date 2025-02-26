@@ -50,6 +50,31 @@ AbstractDeviatorNode *AbstractDeviatorGraphItem::deviatorNode() const
     return static_cast<AbstractDeviatorNode *>(getAbstractNode());
 }
 
+const QString AbstractDeviatorGraphItem::getContactTooltip() const
+{
+    bool contact1On = deviatorNode()->isContactOn(AbstractDeviatorNode::DownIdx);
+    bool contact2On = deviatorNode()->isContactOn(AbstractDeviatorNode::UpIdx);
+
+    const QString onStr = tr("On");
+    const QString offStr = tr("Off");
+
+    QString tip = tr("Contacts:<br>"
+                     "Straight: <b>%1</b>").arg(contact1On ? onStr : offStr);
+    if(deviatorNode()->hasCentralConnector())
+    {
+        return tr("Contacts:<br>"
+                  "Straight: <b>%1</b><br>"
+                  "Central:  <b>%2</b>")
+                .arg(contact1On ? onStr : offStr,
+                     contact2On ? onStr : offStr);
+    }
+    else
+    {
+        return tr("Contact: %1")
+                .arg(contact1On ? onStr : offStr);
+    }
+}
+
 void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn)
 {
     constexpr QPointF center(TileLocation::HalfSize,

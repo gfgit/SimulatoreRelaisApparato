@@ -35,7 +35,12 @@ public:
 
     void getConnectors(std::vector<Connector>& connectors) const final;
 
+    QString displayString() const override;
+
     SimpleActivationNode *activationNode() const;
+
+protected:
+    static constexpr double circleRadius = 50 - 10/2; // Half rect - half pen width
 };
 
 #endif // SIMPLEACTIVATIONGRAPHITEM_H

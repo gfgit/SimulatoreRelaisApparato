@@ -41,6 +41,8 @@ public:
 
     AbstractDeviatorNode *deviatorNode() const;
 
+    const QString getContactTooltip() const;
+
 protected:
     // Contacts must be already swapped
     void drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn);

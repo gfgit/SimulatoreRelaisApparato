@@ -24,6 +24,8 @@
 
 #include "../nodes/simpleactivationnode.h"
 
+#include "../../objects/simple_activable/abstractsimpleactivableobject.h"
+
 SimpleActivationGraphItem::SimpleActivationGraphItem(SimpleActivationNode *node_)
     : AbstractNodeGraphItem(node_)
 {
@@ -33,6 +35,13 @@ SimpleActivationGraphItem::SimpleActivationGraphItem(SimpleActivationNode *node_
 void SimpleActivationGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
     connectors.emplace_back(location(), rotate(), 0);
+}
+
+QString SimpleActivationGraphItem::displayString() const
+{
+    if(activationNode()->object())
+        return activationNode()->object()->name();
+    return QLatin1String("OBJ!");
 }
 
 SimpleActivationNode *SimpleActivationGraphItem::activationNode() const
