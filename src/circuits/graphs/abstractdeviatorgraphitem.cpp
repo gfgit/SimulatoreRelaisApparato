@@ -58,8 +58,6 @@ const QString AbstractDeviatorGraphItem::getContactTooltip() const
     const QString onStr = tr("On");
     const QString offStr = tr("Off");
 
-    QString tip = tr("Contacts:<br>"
-                     "Straight: <b>%1</b>").arg(contact1On ? onStr : offStr);
     if(deviatorNode()->hasCentralConnector())
     {
         return tr("Contacts:<br>"
