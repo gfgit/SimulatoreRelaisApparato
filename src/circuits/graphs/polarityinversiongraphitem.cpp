@@ -93,7 +93,7 @@ void PolarityInversionGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     // Now draw wires
     painter->setBrush(Qt::NoBrush);
     QPen pen;
-    pen.setWidthF(5.0);
+    pen.setWidthF(10.0);
     pen.setCapStyle(Qt::FlatCap);
 
     // Fill edges with miter join

@@ -176,7 +176,7 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
 
     painter->setBrush(Qt::NoBrush);
     QPen pen;
-    pen.setWidthF(5.0);
+    pen.setWidthF(10.0);
 
     // Fill edges with miter join
     pen.setCapStyle(Qt::FlatCap);

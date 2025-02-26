@@ -87,7 +87,7 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     // Now draw wires
     painter->setBrush(Qt::NoBrush);
     QPen pen;
-    pen.setWidthF(5.0);
+    pen.setWidthF(10.0);
     pen.setCapStyle(Qt::FlatCap);
 
     const QColor colors[3] =
