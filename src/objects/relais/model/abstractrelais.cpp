@@ -473,3 +473,42 @@ void AbstractRelais::setState(State newState)
     mState = newState;
     emit stateChanged(this);
 }
+
+QString AbstractRelais::getStateName() const
+{
+    if(relaisType() == RelaisType::Combinator)
+    {
+        // Combinator Relay has different state names
+        switch (state())
+        {
+        case State::Up:
+            return tr("Reverse");
+        case State::Down:
+            return tr("Normal");
+        case State::GoingUp:
+            return tr("Going reverse");
+        case State::GoingDown:
+            return tr("Going normal");
+        default:
+            break;
+        }
+    }
+    else
+    {
+        switch (state())
+        {
+        case State::Up:
+            return tr("Up");
+        case State::Down:
+            return tr("Down");
+        case State::GoingUp:
+            return tr("Going up");
+        case State::GoingDown:
+            return tr("Going down");
+        default:
+            break;
+        }
+    }
+
+    return QString();
+}

@@ -93,6 +93,8 @@ public:
     State state() const;
     void setState(State newState);
 
+    QString getStateName() const;
+
     quint32 durationUp() const;
     void setDurationUp(quint32 durationUpMS);
 
