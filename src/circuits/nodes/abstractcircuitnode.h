@@ -228,7 +228,7 @@ protected:
 
 signals:
     void circuitsChanged();
-    void shapeChanged();
+    void shapeChanged(bool boundingRectChange = false);
 
 protected:
     QVector<NodeContact> mContacts;
