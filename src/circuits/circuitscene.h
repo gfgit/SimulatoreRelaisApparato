@@ -131,6 +131,8 @@ signals:
     void sceneEdited(bool val);
 
 protected:
+    void helpEvent(QGraphicsSceneHelpEvent *e) override;
+
     void keyReleaseEvent(QKeyEvent *e) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
 

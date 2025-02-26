@@ -47,6 +47,8 @@
 #include <QClipboard>
 #include <QMimeData>
 
+#include <QToolTip>
+
 #include "edit/nodeeditfactory.h"
 
 template <typename Func>
@@ -210,6 +212,8 @@ void CircuitScene::setMode(FileMode newMode, FileMode oldMode)
 
 void CircuitScene::addNode(AbstractNodeGraphItem *item)
 {
+    item->postInit();
+
     modeMgr()->setEditingSubMode(EditingSubMode::Default);
 
     if(!isLocationFree(item->location()))
@@ -1630,6 +1634,25 @@ AbstractNodeGraphItem *CircuitScene::getGraphForNode(AbstractCircuitNode *node) 
     }
 
     return nullptr;
+}
+
+void CircuitScene::helpEvent(QGraphicsSceneHelpEvent *e)
+{
+    const TileLocation tile = TileLocation::fromPointFloor(e->scenePos());
+    AbstractNodeGraphItem *item = getItemAt(tile);
+    if(item)
+    {
+        QString tip = item->tooltipString();
+        QPoint pt;
+        if(!tip.isEmpty())
+            pt = e->screenPos();
+
+        QToolTip::showText(pt, tip, e->widget());
+        e->setAccepted(!tip.isEmpty());
+        return;
+    }
+
+    QGraphicsScene::helpEvent(e);
 }
 
 bool CircuitScene::insertFragment(const TileLocation &tileHint,
