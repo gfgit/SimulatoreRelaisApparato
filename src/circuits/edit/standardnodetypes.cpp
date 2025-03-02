@@ -118,6 +118,11 @@ AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
     typename Graph::Node *node = new typename Graph::Node(mgr, s);
 
     Graph *graph = new Graph(node);
+    if(node->isElectricLoadNode())
+    {
+        // Put connector up by default for loads
+        graph->setRotate(TileRotate::Deg180);
+    }
     return graph;
 }
 

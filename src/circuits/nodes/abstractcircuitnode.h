@@ -124,6 +124,8 @@ public:
 
     virtual bool tryFlipNode(bool forward);
 
+    inline bool isElectricLoadNode() const { return isElectricLoad; }
+
     inline const QVector<NodeContact> &getContacts() const
     {
         return mContacts;
