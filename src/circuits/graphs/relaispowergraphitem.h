@@ -49,6 +49,9 @@ public:
 
     QRectF textDisplayRect() const override;
 
+    bool loadFromJSON(const QJsonObject& obj) override;
+    void saveToJSON(QJsonObject& obj) const override;
+
     RelaisPowerNode *node() const;
 
     inline TileRotate twoConnectorsRotate() const
@@ -63,6 +66,14 @@ public:
         return r;
     }
 
+    void setArrowDirection(Connector::Direction newArrowDirection);
+
+    bool preferEastArrow() const;
+    void setPreferEastArrow(bool newPreferEastArrow);
+
+protected:
+    void recalculateTextPosition() override;
+
 private slots:
     void updateRelay();
     void onRelayTypeChanged();
@@ -71,13 +82,16 @@ protected slots:
     void updateName() override;
 
 private:
-    void drawRelayArrow(QPainter *painter,
-                        TileRotate r);
+    QRectF arrowDisplayRect() const;
+
+    void drawRelayArrow(QPainter *painter);
 
 private:
     static constexpr double relayRadius = 50 - 10/2; // Half rect - half pen width
 
     AbstractRelais *mRelay = nullptr;
+    Connector::Direction mArrowDirection = Connector::Direction::West;
+    bool mPreferEastArrow = false;
 };
 
 #endif // RELAISPOWERGRAPHITEM_H

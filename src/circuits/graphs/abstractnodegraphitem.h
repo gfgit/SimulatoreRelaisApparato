@@ -111,12 +111,12 @@ protected:
     void invalidateConnections(bool tryReconnectImmediately = true);
 
     void recalculateTextWidth();
-    void recalculateTextPosition();
+    virtual void recalculateTextPosition();
 
 private:
     AbstractCircuitNode *mAbstractNode;
     TileRotate mRotate = TileRotate::Deg0;
-    Connector::Direction mTextDirection = Connector::Direction::East;
+    Connector::Direction mTextDirection = Connector::Direction::South;
 
 protected:
     int mTextWidth = 0;
