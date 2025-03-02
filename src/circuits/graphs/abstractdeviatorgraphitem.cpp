@@ -79,16 +79,29 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
                              TileLocation::HalfSize);
 
     constexpr QLineF centerToNorth(center.x(), center.y() - arcRadius,
-                                   center.x(), morsettiOffset);
+                                   center.x(), 0);
 
     constexpr QLineF centerToSouth(center.x(), center.y() + arcRadius,
-                                   center.x(), TileLocation::Size - morsettiOffset);
+                                   center.x(), TileLocation::Size);
 
     constexpr QLineF centerToEast(center.x() + arcRadius, center.y(),
-                                  TileLocation::Size - morsettiOffset, center.y());
+                                  TileLocation::Size, center.y());
 
     constexpr QLineF centerToWest(center.x() - arcRadius, center.y(),
-                                  morsettiOffset, center.y());
+                                  0, center.y());
+
+    // Same but ends slightly before tile rect border
+    constexpr QLineF centerToNorth2(center.x(), center.y() - arcRadius,
+                                    center.x(), morsettiOffset);
+
+    constexpr QLineF centerToSouth2(center.x(), center.y() + arcRadius,
+                                    center.x(), TileLocation::Size - morsettiOffset);
+
+    constexpr QLineF centerToEast2(center.x() + arcRadius, center.y(),
+                                   TileLocation::Size - morsettiOffset, center.y());
+
+    constexpr QLineF centerToWest2(center.x() - arcRadius, center.y(),
+                                   morsettiOffset, center.y());
 
     QLineF commonLine;
     QLineF contact1Line;
@@ -97,14 +110,16 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     int startAngle = 0;
     int endAngle = 0;
 
+    const bool hasCentral = deviatorNode()->hasCentralConnector();
+
     switch (toConnectorDirection(rotate()))
     {
     case Connector::Direction::North:
         commonLine = centerToNorth;
         if(deviatorNode()->flipContact())
-            contact1Line = centerToWest;
+            contact1Line = hasCentral ? centerToWest : centerToWest2;
         else
-            contact1Line = centerToEast;
+            contact1Line = hasCentral ? centerToEast : centerToEast2;
         contact2Line = centerToSouth;
 
         startAngle = 0;
@@ -114,9 +129,9 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     case Connector::Direction::South:
         commonLine = centerToSouth;
         if(deviatorNode()->flipContact())
-            contact1Line = centerToEast;
+            contact1Line = hasCentral ? centerToEast : centerToEast2;
         else
-            contact1Line = centerToWest;
+            contact1Line = hasCentral ? centerToWest : centerToWest2;
         contact2Line = centerToNorth;
 
         startAngle = -180;
@@ -126,9 +141,9 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     case Connector::Direction::East:
         commonLine = centerToEast;
         if(deviatorNode()->flipContact())
-            contact1Line = centerToNorth;
+            contact1Line = hasCentral ? centerToNorth : centerToNorth2;
         else
-            contact1Line = centerToSouth;
+            contact1Line = hasCentral ? centerToSouth : centerToSouth2;
         contact2Line = centerToWest;
 
         startAngle = -90;
@@ -138,9 +153,9 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     case Connector::Direction::West:
         commonLine = centerToWest;
         if(deviatorNode()->flipContact())
-            contact1Line = centerToSouth;
+            contact1Line = hasCentral ? centerToSouth : centerToSouth2;
         else
-            contact1Line = centerToNorth;
+            contact1Line = hasCentral ? centerToNorth : centerToNorth2;
         contact2Line = centerToEast;
 
         startAngle = 90;

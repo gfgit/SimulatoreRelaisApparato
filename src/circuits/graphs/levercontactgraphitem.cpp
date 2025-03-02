@@ -132,13 +132,13 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
         // We go south, right/left (flipped)
         if(node()->flipContact())
         {
-            conditionsRect.setLeft(15.0);
-            conditionsRect.setRight(TileLocation::HalfSize - 3.5);
+            conditionsRect.setLeft(5.0);
+            conditionsRect.setRight(TileLocation::HalfSize - 22);
         }
         else
         {
-            conditionsRect.setLeft(TileLocation::HalfSize + 3.5);
-            conditionsRect.setRight(TileLocation::Size - 15.0);
+            conditionsRect.setLeft(TileLocation::HalfSize + 22);
+            conditionsRect.setRight(TileLocation::Size - 5.0);
         }
         conditionsRect.setTop(TileLocation::HalfSize + 10.0);
         conditionsRect.setBottom(TileLocation::Size - 15.0);
@@ -148,13 +148,13 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
         // We go north left/right (flipped)
         if(node()->flipContact())
         {
-            conditionsRect.setLeft(TileLocation::HalfSize + 3.5);
-            conditionsRect.setRight(TileLocation::Size - 15.0);
+            conditionsRect.setLeft(TileLocation::HalfSize + 22);
+            conditionsRect.setRight(TileLocation::Size - 5.0);
         }
         else
         {
-            conditionsRect.setLeft(15.0);
-            conditionsRect.setRight(TileLocation::HalfSize - 3.5);
+            conditionsRect.setLeft(5.0);
+            conditionsRect.setRight(TileLocation::HalfSize - 22);
         }
         conditionsRect.setBottom(TileLocation::HalfSize - 10.0);
         conditionsRect.setTop(15.0);

@@ -22,12 +22,16 @@
 
 #include "relaispowergraphitem.h"
 
+#include "../circuitscene.h"
+
 #include "../nodes/relaispowernode.h"
 #include "../../objects/relais/model/abstractrelais.h"
 
 #include "../../views/modemanager.h"
 
 #include <QPainter>
+
+#include <QJsonObject>
 
 RelaisPowerGraphItem::RelaisPowerGraphItem(RelaisPowerNode *node_)
     : AbstractNodeGraphItem(node_)
@@ -41,19 +45,27 @@ RelaisPowerGraphItem::RelaisPowerGraphItem(RelaisPowerNode *node_)
 
 QRectF RelaisPowerGraphItem::boundingRect() const
 {
-    const QRectF br = AbstractNodeGraphItem::boundingRect();
+    const double extraMargin = TileLocation::HalfSize;
+    QRectF base(-extraMargin, -extraMargin,
+                TileLocation::Size + 2 * extraMargin, TileLocation::Size + 2 * extraMargin);
+
+    // Add space for arrow on the left
+    base = base.united(textDisplayRect().adjusted(-20, 0, 0, 0));
 
     if(!mRelay || mRelay->relaisType() != AbstractRelais::RelaisType::Combinator)
-        return br; // Default bounding rect
+        return base; // Default bounding rect
 
     // Special case for combinator relais
-    QRectF xRect(TileLocation::Size, 0,
+    // Add a whole tile to the left and to the right for drawing the X shape
+    // Only one will be used based on first/second relay coil
+    // But we add both otherwise there is a paint glitch when changing coil side,
+    // until first scene refresh.
+    QRectF xRect(-TileLocation::Size, 0,
+                 TileLocation::Size, TileLocation::Size);
+    QRectF xRect2(TileLocation::Size, 0,
                  TileLocation::Size, TileLocation::Size);
 
-    if(node()->combinatorSecondCoil())
-        xRect.moveLeft(-TileLocation::Size);
-
-    return br.united(xRect);
+    return base.united(xRect).united(xRect2);
 }
 
 void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -111,35 +123,6 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     }
 
     const bool isCombinatorRelay = mRelay && mRelay->relaisType() == AbstractRelais::RelaisType::Combinator;
-
-    if(node()->hasSecondConnector())
-    {
-        if(isCombinatorRelay)
-        {
-            TileRotate firstConnector = TileRotate::Deg90;
-            commonLine = centerToWest;
-            if(node()->combinatorSecondCoil())
-            {
-                firstConnector = TileRotate::Deg270;
-                commonLine = centerToEast;
-            }
-
-            const TileRotate secondConnector = twoConnectorsRotate() + TileRotate::Deg180;
-            secondLine = secondConnector == TileRotate::Deg180 ? centerToNorth : centerToSouth;
-
-            //drawMorsetti(painter, 0, firstConnector);
-            //drawMorsetti(painter, 1, secondConnector);
-        }
-        else
-        {
-            //drawMorsetti(painter, 0, twoConnectorsRotate() + TileRotate::Deg90);
-            //drawMorsetti(painter, 1, twoConnectorsRotate() + TileRotate::Deg270);
-        }
-    }
-    else
-    {
-        //drawMorsetti(painter, 0, r + TileRotate::Deg0);
-    }
 
     // Now draw wires
     painter->setBrush(Qt::NoBrush);
@@ -354,8 +337,8 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     if(!isCombinatorRelay)
     {
         // Draw lines top/bottom
-        const QRectF lineRect = relayRect.adjusted(-pen.widthF() / 2, 0,
-                                                   +pen.widthF() / 2, 0);
+        const QRectF lineRect = relayRect.adjusted(-pen.widthF() / 2.0, 0,
+                                                   +pen.widthF() / 2.0, 0);
 
         painter->drawLine(lineRect.topLeft(), lineRect.topRight());
         painter->drawLine(lineRect.bottomLeft(), lineRect.bottomRight());
@@ -365,7 +348,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         painter->setPen(pen);
 
         // Separate a bit delay line and relay circle
-        const double delayLineMargin = pen.widthF() * 0.3;
+        const double delayLineMargin = pen.widthF() * 0.6;
 
         if(node()->delayUpSeconds() > 0)
         {
@@ -380,52 +363,32 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     }
 
     // Draw name and state arrow
-    TileRotate arrowRotate = TileRotate::Deg90;
-    if(r == TileRotate::Deg90)
-        arrowRotate = TileRotate::Deg270;
-
-    drawRelayArrow(painter, arrowRotate);
+    drawRelayArrow(painter);
 
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
 
-    const bool hideName = isCombinatorRelay && node()->combinatorSecondCoil();
-
-    if(!hideName)
-    {
-        // drawName(painter,
-        //          mRelay ? mRelay->name() : tr("REL!"),
-        //          textRotate);
-    }
-
     drawName(painter);
-    drawUnpairedConnectors(painter);
 }
 
 void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
-    if(node()->hasSecondConnector())
+    if(mRelay && mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
     {
-        if(mRelay && mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
-        {
-            TileRotate firstConnector = TileRotate::Deg90;
-            if(node()->combinatorSecondCoil())
-                firstConnector = TileRotate::Deg270;
+        TileRotate firstConnector = TileRotate::Deg90;
+        if(node()->combinatorSecondCoil())
+            firstConnector = TileRotate::Deg270;
 
-            const TileRotate secondConnector = twoConnectorsRotate() + TileRotate::Deg180;
+        const TileRotate secondConnector = twoConnectorsRotate() + TileRotate::Deg180;
 
-            connectors.emplace_back(location(), firstConnector, 0);
-            connectors.emplace_back(location(), secondConnector, 1);
-        }
-        else
-        {
-            connectors.emplace_back(location(), rotate() + TileRotate::Deg90, 0);
-            connectors.emplace_back(location(), rotate() + TileRotate::Deg270, 1);
-        }
+        connectors.emplace_back(location(), firstConnector, 0);
+        connectors.emplace_back(location(), secondConnector, 1);
     }
     else
     {
         connectors.emplace_back(location(), rotate(), 0);
+        if(node()->hasSecondConnector())
+            connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 1);
     }
 }
 
@@ -478,10 +441,126 @@ QRectF RelaisPowerGraphItem::textDisplayRect() const
     return textRect;
 }
 
+bool RelaisPowerGraphItem::loadFromJSON(const QJsonObject &obj)
+{
+    if(!AbstractNodeGraphItem::loadFromJSON(obj))
+        return false;
+
+    setPreferEastArrow(obj.value("prefer_east_arrow").toBool(false));
+    return true;
+}
+
+void RelaisPowerGraphItem::saveToJSON(QJsonObject &obj) const
+{
+    AbstractNodeGraphItem::saveToJSON(obj);
+
+    obj["prefer_east_arrow"] = preferEastArrow();
+}
+
+void RelaisPowerGraphItem::recalculateTextPosition()
+{
+    // Recalculate text label position
+    std::vector<Connector> conns;
+    getConnectors(conns);
+
+    Connector::Direction arrowDirection = Connector::Direction::West;
+    if(mPreferEastArrow)
+        arrowDirection = Connector::Direction::East;
+
+    if(!conns.empty())
+    {
+        const Connector::Direction PreferredDir[4] =
+        {
+            Connector::Direction::South,
+            Connector::Direction::North,
+            Connector::Direction::East,
+            Connector::Direction::West
+        };
+
+        // Try to keep current position
+        Connector::Direction possibleTextDir = textRotate();
+
+        for(int i = 0; i < 5; i++)
+        {
+            bool conflict = false;
+
+            for(const Connector& c : conns)
+            {
+                if(c.direction == possibleTextDir)
+                {
+                    conflict = true;
+                    break;
+                }
+            }
+
+            if(!conflict && mRelay && mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
+            {
+                // Do not draw text on Combinator X shape
+                if((possibleTextDir == Connector::Direction::East && !node()->combinatorSecondCoil()) ||
+                        (possibleTextDir == Connector::Direction::West && node()->combinatorSecondCoil()))
+                    conflict = true;
+            }
+
+            if(!conflict)
+            {
+                setTextRotate(possibleTextDir);
+                break;
+            }
+
+            // Try next
+            possibleTextDir = PreferredDir[i % 4];
+        }
+
+        // Also recalculate Arrow Position
+        bool eastWestFound = false;
+        for(const Connector& c : conns)
+        {
+            if(c.direction == Connector::Direction::East)
+            {
+                if(arrowDirection == c.direction)
+                {
+                    if(eastWestFound)
+                    {
+                        // We cannot put Arrow neither East nor West
+                        // So follow text direction
+                        arrowDirection = textRotate();
+                        break;
+                    }
+
+                    arrowDirection = Connector::Direction::West;
+                }
+
+                eastWestFound = true;
+            }
+            else if(c.direction == Connector::Direction::West)
+            {
+                if(arrowDirection == c.direction)
+                {
+                    if(eastWestFound)
+                    {
+                        // We cannot put Arrow neither East nor West
+                        // So follow text direction
+                        arrowDirection = textRotate();
+                        break;
+                    }
+
+                    arrowDirection = Connector::Direction::East;
+                }
+
+                eastWestFound = true;
+            }
+        }
+    }
+
+    setArrowDirection(arrowDirection);
+}
+
 void RelaisPowerGraphItem::updateRelay()
 {
     if(mRelay == node()->relais())
         return;
+
+    const bool hadRelay = mRelay != nullptr;
 
     if(mRelay)
     {
@@ -501,6 +580,15 @@ void RelaisPowerGraphItem::updateRelay()
                 this, &RelaisPowerGraphItem::triggerUpdate);
         connect(mRelay, &AbstractRelais::typeChanged,
                    this, &RelaisPowerGraphItem::onRelayTypeChanged);
+
+        if(!hadRelay)
+        {
+            // For new relais, set default arrow position based on type
+            if(mRelay->relaisType() == AbstractRelais::RelaisType::Polarized)
+                setPreferEastArrow(true);
+            else
+                setPreferEastArrow(false);
+        }
     }
 
     onRelayTypeChanged();
@@ -521,38 +609,21 @@ void RelaisPowerGraphItem::updateName()
     update();
 }
 
-void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
-                                          TileRotate r)
+QRectF RelaisPowerGraphItem::arrowDisplayRect() const
 {
-    if(!node()->relais())
-        return;
-
-    if(mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
-        return; // Combinator relais don't need arrow
-
-    if(node()->relais()->state() == AbstractRelais::State::GoingUp
-            || node()->relais()->state() == AbstractRelais::State::GoingDown)
-        return; // Do not draw arrow for transitory states
-
-    // Draw arrow up/down for normally up/down relays
     QRectF arrowRect;
 
-    switch (toConnectorDirection(r))
+    switch (mArrowDirection)
     {
     case Connector::Direction::North:
-        arrowRect.setLeft(10.0);
-        arrowRect.setRight(TileLocation::HalfSize);
-        arrowRect.setTop(15.0);
-        arrowRect.setBottom(TileLocation::HalfSize - relayRadius + 5.0);
-        break;
-
     case Connector::Direction::South:
-        arrowRect.setLeft(10.0);
-        arrowRect.setRight(TileLocation::HalfSize);
-        arrowRect.setTop(TileLocation::HalfSize + relayRadius - 5.0);
-        arrowRect.setBottom(TileLocation::Size - 15.0);
+    {
+        QRectF textRect = textDisplayRect();
+        arrowRect = textRect;
+        arrowRect.setLeft(textRect.left() - 20);
+        arrowRect.setRight(textRect.left() - 5);
         break;
-
+    }
     case Connector::Direction::East:
         arrowRect.setLeft(TileLocation::Size + 5);
         arrowRect.setRight(arrowRect.left() + TileLocation::HalfSize / 2);
@@ -569,6 +640,24 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
     default:
         break;
     }
+
+    return arrowRect;
+}
+
+void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter)
+{
+    if(!node()->relais())
+        return;
+
+    if(mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
+        return; // Combinator relais don't need arrow
+
+    if(node()->relais()->state() == AbstractRelais::State::GoingUp
+            || node()->relais()->state() == AbstractRelais::State::GoingDown)
+        return; // Do not draw arrow for transitory states
+
+    // Draw arrow up/down for normally up/down relays
+    QRectF arrowRect = arrowDisplayRect();
 
     QLineF line;
     QPointF triangle[3];
@@ -644,6 +733,34 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter,
     painter->setPen(Qt::NoPen);
     painter->setBrush(color);
     painter->drawPolygon(triangle, 3);
+}
+
+bool RelaisPowerGraphItem::preferEastArrow() const
+{
+    return mPreferEastArrow;
+}
+
+void RelaisPowerGraphItem::setPreferEastArrow(bool newPreferEastArrow)
+{
+    if(mPreferEastArrow == newPreferEastArrow)
+        return;
+
+    mPreferEastArrow = newPreferEastArrow;
+    recalculateTextPosition();
+
+    CircuitScene *s = circuitScene();
+    if(s)
+        s->setHasUnsavedChanges(true);
+}
+
+void RelaisPowerGraphItem::setArrowDirection(Connector::Direction newArrowDirection)
+{
+    if(mArrowDirection == newArrowDirection)
+        return;
+
+    prepareGeometryChange();
+    mArrowDirection = newArrowDirection;
+    update();
 }
 
 RelaisPowerNode *RelaisPowerGraphItem::node() const

@@ -118,6 +118,11 @@ AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
     typename Graph::Node *node = new typename Graph::Node(mgr, s);
 
     Graph *graph = new Graph(node);
+    if(node->isElectricLoadNode())
+    {
+        // Put connector up by default for loads
+        graph->setRotate(TileRotate::Deg180);
+    }
     return graph;
 }
 
@@ -228,7 +233,7 @@ QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ViewManager *vi
         if(!success)
         {
             QString text;
-            if(bridge->isRemote())
+            if(bridge->isRemote() || bridge->getUseSerial())
             {
                 text = StandardNodeTypes::tr("Selected Circuit Bridge <b>%1</b> is connected to a remote session and has already one node on this session.<br>"
                                              "Connecting this node too will remove remote session connection.<br>"
@@ -441,6 +446,15 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                     hasSecondContact->setChecked(node->hasSecondConnector());
             });
 
+            QCheckBox *preferEastArrow = new QCheckBox(tr("Prefer East Arrow"));
+            lay->addRow(preferEastArrow);
+
+            QObject::connect(preferEastArrow, &QCheckBox::toggled,
+                             item, [item](bool val)
+            {
+                static_cast<RelaisPowerGraphItem *>(item)->setPreferEastArrow(val);
+            });
+
             QCheckBox *combinatorSecondCoil = new QCheckBox(tr("Is second coil"));
             lay->addRow(combinatorSecondCoil);
 
@@ -452,16 +466,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 
             auto updDelayLambda =
                     [delayUpSeconds, delayDownSeconds,
-                    hasSecondContact, combinatorSecondCoil,
-                    node]()
+                    hasSecondContact, combinatorSecondCoil, preferEastArrow,
+                    node, item]()
             {
                 delayUpSeconds->setValue(node->delayUpSeconds());
                 delayDownSeconds->setValue(node->delayDownSeconds());
                 hasSecondContact->setChecked(node->hasSecondConnector());
                 combinatorSecondCoil->setChecked(node->combinatorSecondCoil());
+                preferEastArrow->setChecked(static_cast<RelaisPowerGraphItem *>(item)->preferEastArrow());
 
                 combinatorSecondCoil->setVisible(node->relais() &&
                                                  node->relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+                preferEastArrow->setVisible(!combinatorSecondCoil->isVisible());
             };
 
             QObject::connect(node, &RelaisPowerNode::delaysChanged,
