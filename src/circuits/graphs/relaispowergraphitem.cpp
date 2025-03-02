@@ -399,7 +399,6 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     }
 
     drawName(painter);
-    drawUnpairedConnectors(painter);
 }
 
 void RelaisPowerGraphItem::getConnectors(std::vector<Connector> &connectors) const

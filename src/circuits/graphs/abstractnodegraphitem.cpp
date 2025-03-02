@@ -74,6 +74,8 @@ void AbstractNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
         if(isSelected())
             painter->fillRect(baseTileRect(), qRgb(180, 255, 255));
     }
+
+    drawUnpairedConnectors(painter);
 }
 
 QString AbstractNodeGraphItem::displayString() const
