@@ -124,35 +124,6 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     const bool isCombinatorRelay = mRelay && mRelay->relaisType() == AbstractRelais::RelaisType::Combinator;
 
-    if(node()->hasSecondConnector())
-    {
-        if(isCombinatorRelay)
-        {
-            TileRotate firstConnector = TileRotate::Deg90;
-            commonLine = centerToWest;
-            if(node()->combinatorSecondCoil())
-            {
-                firstConnector = TileRotate::Deg270;
-                commonLine = centerToEast;
-            }
-
-            const TileRotate secondConnector = twoConnectorsRotate() + TileRotate::Deg180;
-            secondLine = secondConnector == TileRotate::Deg180 ? centerToNorth : centerToSouth;
-
-            //drawMorsetti(painter, 0, firstConnector);
-            //drawMorsetti(painter, 1, secondConnector);
-        }
-        else
-        {
-            //drawMorsetti(painter, 0, twoConnectorsRotate() + TileRotate::Deg90);
-            //drawMorsetti(painter, 1, twoConnectorsRotate() + TileRotate::Deg270);
-        }
-    }
-    else
-    {
-        //drawMorsetti(painter, 0, r + TileRotate::Deg0);
-    }
-
     // Now draw wires
     painter->setBrush(Qt::NoBrush);
     QPen pen;
@@ -366,8 +337,8 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     if(!isCombinatorRelay)
     {
         // Draw lines top/bottom
-        const QRectF lineRect = relayRect.adjusted(-pen.widthF() / 2, 0,
-                                                   +pen.widthF() / 2, 0);
+        const QRectF lineRect = relayRect.adjusted(-pen.widthF() / 2.0, 0,
+                                                   +pen.widthF() / 2.0, 0);
 
         painter->drawLine(lineRect.topLeft(), lineRect.topRight());
         painter->drawLine(lineRect.bottomLeft(), lineRect.bottomRight());
@@ -377,7 +348,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         painter->setPen(pen);
 
         // Separate a bit delay line and relay circle
-        const double delayLineMargin = pen.widthF() * 0.3;
+        const double delayLineMargin = pen.widthF() * 0.6;
 
         if(node()->delayUpSeconds() > 0)
         {
@@ -396,15 +367,6 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
-
-    const bool hideName = isCombinatorRelay && node()->combinatorSecondCoil();
-
-    if(!hideName)
-    {
-        // drawName(painter,
-        //          mRelay ? mRelay->name() : tr("REL!"),
-        //          textRotate);
-    }
 
     drawName(painter);
 }
