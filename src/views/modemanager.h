@@ -41,6 +41,7 @@ class AbstractSimulationObjectModel;
 class QJsonObject;
 
 class RemoteManager;
+class SerialManager;
 
 class ModeManager : public QObject
 {
@@ -99,6 +100,11 @@ public:
         return mRemoteMgr;
     }
 
+    inline SerialManager *getSerialManager() const
+    {
+        return mSerialMgr;
+    }
+
 signals:
     void modeChanged(FileMode newMode, FileMode oldMode);
     void fileEdited(bool val);
@@ -120,6 +126,7 @@ private:
     SimulationObjectFactory *mObjectFactory;
 
     RemoteManager *mRemoteMgr = nullptr;
+    SerialManager *mSerialMgr = nullptr;
 
     bool mFileWasEdited = false;
 

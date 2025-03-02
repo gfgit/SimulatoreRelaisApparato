@@ -422,9 +422,19 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
         bridge->setPeerNodeName(peerNodeEdit->text());
     });
 
+    QCheckBox *serialCB = new QCheckBox(StandardObjectTypes::tr("Use serial device"));
+    lay->addRow(serialCB);
+
+    QObject::connect(serialCB, &QCheckBox::toggled,
+                     bridge, [bridge](bool val)
+    {
+        bridge->setUseSerial(val);
+    });
+
     auto updateSettings = [bridge, normalPalette, redTextPalette,
             nodeDescrA, nodeDescrB,
-            remoteCB, sessionEdit, peerNodeEdit]()
+            remoteCB, sessionEdit, peerNodeEdit,
+            serialCB]()
     {
         const QString descrA = bridge->getNodeDescription(true);
         if(nodeDescrA->text() != descrA)
@@ -449,6 +459,9 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
 
         sessionEdit->setEnabled(remoteCB->isChecked());
         peerNodeEdit->setEnabled(remoteCB->isChecked());
+
+        serialCB->setChecked(bridge->getUseSerial());
+        serialCB->setEnabled(!hasNodeA || !hasNodeB);
 
         QString str = bridge->remoteSessionName();
         if(str != sessionEdit->text())
