@@ -294,12 +294,12 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
                                             qint8(currMode), qint8(currSendPole),
                                             qint8(replyToMode));
     }
-    else if(mSerialNameId && mSerialOutputId)
+    else if(mSerialNameId)
     {
         // Send to serial device
         SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
 
-        if(RemoteCableCircuitNode::isSendMode(currMode))
+        if(RemoteCableCircuitNode::isSendMode(currMode) && mSerialOutputId)
         {
             if(currMode == RemoteCableCircuitNode::Mode::SendCurrentOpen)
             {
@@ -323,7 +323,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
                 serialMgr->onOutputChanged(mSerialNameId, mSerialOutputId, mode);
             }
         }
-        else if(currMode == RemoteCableCircuitNode::Mode::None)
+        else if(currMode == RemoteCableCircuitNode::Mode::None && mSerialOutputId)
         {
             int mode = 0;
             serialMgr->onOutputChanged(mSerialNameId, mSerialOutputId, mode);
@@ -335,7 +335,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
                                       RemoteCableCircuitNode::Mode::None,
                                       currSendPole);
         }
-        else if(currMode == RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed)
+        else if(currMode == RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed && mSerialInputId)
         {
             // Fake close remote circuit
             QMetaObject::invokeMethod(node,
@@ -451,10 +451,11 @@ void RemoteCircuitBridge::onRemoteStarted()
     }
     else if(mSerialNameId && mSerialOutputId)
     {
-        // Send to serial device
-        SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
-
-        int mode = currSendPole == CircuitPole::First ? 1 : 2;
-        serialMgr->onOutputChanged(mSerialNameId, mSerialOutputId, mode);
+        if(currMode == RemoteCableCircuitNode::Mode::SendCurrentOpen)
+        {
+            // Fake close circuit, this will then send to serial device
+            mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
+                                      currSendPole);
+        }
     }
 }
