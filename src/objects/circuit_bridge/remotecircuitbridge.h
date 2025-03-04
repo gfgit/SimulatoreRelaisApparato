@@ -65,6 +65,7 @@ public:
 
     void onRemoteSessionRenamed(const QString& toName);
 
+    QString getDeviceName() const;
     void setDeviceName(const QString &name);
 
     void onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode);
@@ -77,6 +78,12 @@ public:
     bool getUseSerial() const;
     void setUseSerial(bool newUseSerial);
 
+
+    int serialInputId() const;
+    void setSerialInputId(int newSerialInputId);
+
+    int serialOutputId() const;
+    void setSerialOutputId(int newSerialOutputId);
 
 private:
     friend class RemoteCableCircuitNode;

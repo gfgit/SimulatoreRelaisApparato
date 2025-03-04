@@ -52,6 +52,11 @@ public:
     void addRemoteBridge(RemoteCircuitBridge *bridge, const QString &devName);
     void removeRemoteBridge(RemoteCircuitBridge *bridge, const QString &devName);
 
+    bool changeRemoteBridgeInput(RemoteCircuitBridge *bridge, const QString &devName,
+                                  int oldValue, int newValue);
+    bool changeRemoteBridgeOutput(RemoteCircuitBridge *bridge, const QString &devName,
+                                  int oldValue, int newValue);
+
 protected:
     void timerEvent(QTimerEvent *e) override;
 

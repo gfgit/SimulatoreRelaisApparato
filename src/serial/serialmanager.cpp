@@ -586,6 +586,54 @@ void SerialManager::removeRemoteBridge(RemoteCircuitBridge *bridge, const QStrin
     }
 }
 
+bool SerialManager::changeRemoteBridgeInput(RemoteCircuitBridge *bridge, const QString &devName,
+                                            int oldValue, int newValue)
+{
+    if(oldValue == newValue)
+        return true;
+
+    const quint64 deviceId = qHash(devName);
+
+    auto dev = mDevices.find(deviceId);
+    Q_ASSERT(dev != mDevices.end());
+
+    if(newValue && dev->inputs.contains(newValue))
+        return false;
+
+    if(oldValue)
+    {
+        auto it = dev->inputs.constFind(oldValue);
+        Q_ASSERT(it != dev->inputs.cend() && it.value() == bridge);
+        dev->inputs.erase(it);
+    }
+
+    return true;
+}
+
+bool SerialManager::changeRemoteBridgeOutput(RemoteCircuitBridge *bridge, const QString &devName,
+                                             int oldValue, int newValue)
+{
+    if(oldValue == newValue)
+        return true;
+
+    const quint64 deviceId = qHash(devName);
+
+    auto dev = mDevices.find(deviceId);
+    Q_ASSERT(dev != mDevices.end());
+
+    if(newValue && dev->outputs.contains(newValue))
+        return false;
+
+    if(oldValue)
+    {
+        auto it = dev->outputs.constFind(oldValue);
+        Q_ASSERT(it != dev->outputs.cend() && it.value() == bridge);
+        dev->outputs.erase(it);
+    }
+
+    return true;
+}
+
 void SerialManager::SerialDevice::reset()
 {
     for(RemoteCircuitBridge *bridge : std::as_const(inputs))

@@ -205,6 +205,11 @@ void RemoteCircuitBridge::onRemoteSessionRenamed(const QString &toName)
     mPeerSession = toName;
 }
 
+QString RemoteCircuitBridge::getDeviceName() const
+{
+    return mSerialName;
+}
+
 void RemoteCircuitBridge::setDeviceName(const QString &name)
 {
     QString str = name.simplified();
@@ -364,6 +369,52 @@ void RemoteCircuitBridge::onSerialInputMode(int mode)
         mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::None,
                                   CircuitPole::First);
     }
+}
+
+int RemoteCircuitBridge::serialInputId() const
+{
+    return mSerialInputId;
+}
+
+void RemoteCircuitBridge::setSerialInputId(int newSerialInputId)
+{
+    if(mSerialInputId == newSerialInputId)
+        return;
+
+    if(mUseSerial)
+    {
+        SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
+        bool ret = serialMgr->changeRemoteBridgeOutput(this, mSerialName,
+                                                       mSerialInputId, newSerialInputId);
+        if(!ret)
+            return;
+    }
+
+    mSerialInputId = newSerialInputId;
+    emit settingsChanged(this);
+}
+
+int RemoteCircuitBridge::serialOutputId() const
+{
+    return mSerialOutputId;
+}
+
+void RemoteCircuitBridge::setSerialOutputId(int newSerialOutputId)
+{
+    if(mSerialOutputId == newSerialOutputId)
+        return;
+
+    if(mUseSerial)
+    {
+        SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
+        bool ret = serialMgr->changeRemoteBridgeOutput(this, mSerialName,
+                                                       mSerialOutputId, newSerialOutputId);
+        if(!ret)
+            return;
+    }
+
+    mSerialOutputId = newSerialOutputId;
+    emit settingsChanged(this);
 }
 
 bool RemoteCircuitBridge::getUseSerial() const
