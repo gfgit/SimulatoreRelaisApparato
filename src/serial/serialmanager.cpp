@@ -29,8 +29,138 @@
 
 #include <QTimerEvent>
 
-SerialManager::SerialManager(QObject *parent)
-    : QObject{parent}
+constexpr quint8 StartByte  = 0x02;
+constexpr quint8 EndByte    = 0x03;
+constexpr quint8 EscapeByte = 0x10;
+
+QByteArray readMessage(QIODevice *dev, bool &reachedEnd)
+{
+    reachedEnd = false;
+
+    quint8 buffer[256];
+    qint64 sz = dev->peek(reinterpret_cast<char *>(buffer),
+                          sizeof(buffer));
+
+    int startPos = -1;
+    for(int i = 0; i < sz; i++)
+    {
+        if(buffer[i] == StartByte)
+        {
+            startPos = i;
+            break;
+        }
+    }
+
+    if(startPos < 0)
+    {
+        dev->skip(sz);
+        return {};
+    }
+
+    // Skip garbage before message start
+    dev->skip(startPos);
+
+    QByteArray message;
+    message.reserve(sz - startPos - 1);
+
+    bool escape = false;
+    for(int i = startPos + 1; i < sz; i++)
+    {
+        quint8 c = buffer[i];
+        if(c == EscapeByte)
+        {
+            escape = true;
+            continue;
+        }
+        else if(c == EndByte && !escape)
+        {
+            // Message is complete
+            dev->skip(i - startPos + 1);
+            return message;
+        }
+        else if(c == StartByte || c == EndByte)
+        {
+            // Invalid message
+            dev->skip(i - startPos);
+
+            // Try again
+            return {};
+        }
+
+        if(escape)
+        {
+            c = c ^ EscapeByte;
+            escape = false;
+        }
+
+        message.append(c);
+    }
+
+    // We reached buffer end, wait more data
+    reachedEnd = true;
+    return {};
+}
+
+void writeMessage(QIODevice *dev, const quint8 *data, int size)
+{
+    quint8 buf[128] = {};
+    buf[0] = StartByte;
+
+    size_t bufPos = 1;
+
+    for(int dataPos = 0; dataPos < size; dataPos++)
+    {
+        if(bufPos >= sizeof(buf) - 2)
+        {
+            dev->write(reinterpret_cast<const char *>(buf), bufPos);
+            bufPos = 0;
+        }
+
+        quint8 c = data[dataPos];
+        if(c == StartByte ||
+                c == EndByte ||
+                c == EscapeByte)
+        {
+            buf[bufPos++] = EscapeByte;
+            c = c ^ EscapeByte;
+        }
+
+        buf[bufPos++] = c;
+    }
+
+    buf[bufPos++] = EndByte;
+    dev->write(reinterpret_cast<const char *>(buf), bufPos);
+}
+
+void writeMessageFlush(QSerialPort *dev, const quint8 *data, int size)
+{
+    writeMessage(dev, data, size);
+    dev->flush();
+}
+
+enum SerialCommands
+{
+    NameRequest  = 0x04,
+    NameResponse = 0x05,
+    OutputChange = 0x06,
+    InputChange  = 0x07,
+    PauseExecution  = 0x08,
+    ResumeExecution = 0x09,
+    // 0x10 is escape character
+    Ping = 0x11,
+    PingResponse = 0x12
+};
+
+static constexpr const quint8 handShakeReq[] =
+{
+    SerialCommands::NameRequest,
+    's', 'i', 'm', 'r'
+};
+
+
+SerialManager::SerialManager(ModeManager *mgr)
+    : QObject{mgr}
+    , mModeMgr(mgr)
 {
 
 }
@@ -45,7 +175,7 @@ void SerialManager::rescanPorts()
     bool needsRescan = false;
     for(const SerialDevice& dev : mDevices)
     {
-        if(!dev.serialPort)
+        if(!dev.isConnected())
         {
             needsRescan = true;
             break;
@@ -53,16 +183,22 @@ void SerialManager::rescanPorts()
     }
 
     if(!needsRescan)
+    {
+        qDebug() << "All serial devices connected!";
+        mRescanTimer.stop();
         return;
+    }
+
+    qDebug() << "Serial port scanning...";
 
     const QList<QSerialPortInfo> allPorts = QSerialPortInfo::availablePorts();
 
     for(const QSerialPortInfo& info : allPorts)
     {
         bool alreadyActive = false;
-        for(const auto &p : mPendingNamePorts)
+        for(const PendingPort &p : mPendingNamePorts)
         {
-            if(p.second->portName() == info.portName())
+            if(p.serialPort->portName() == info.portName())
             {
                 alreadyActive = true;
                 break;
@@ -92,9 +228,13 @@ void SerialManager::rescanPorts()
         serialPort->setFlowControl(QSerialPort::NoFlowControl);
         if(!serialPort->open(QIODevice::ReadWrite))
         {
-            qDebug() << serialPort->portName() << "ERROR:" << serialPort->error() << serialPort->errorString();
+            //qDebug() << serialPort->portName() << "ERROR:" << serialPort->error() << serialPort->errorString();
             delete serialPort;
             continue;
+        }
+        else
+        {
+            qDebug() << "Connected to:" << serialPort->portName();
         }
 
         connect(serialPort, &QSerialPort::readyRead,
@@ -103,20 +243,20 @@ void SerialManager::rescanPorts()
                 this, &SerialManager::onSerialDisconnected,
                 Qt::QueuedConnection);
 
-        mPendingNamePorts.append({QTime::currentTime(), serialPort});
+        PendingPort p;
+        p.serialPort = serialPort;
+        p.firstConnect = QTime::currentTime();
+        mPendingNamePorts.append(p);
 
-        if(!mPendingClearTimer.isActive())
-            mPendingClearTimer.start(5000, this);
+        if(!mPendingTimer.isActive())
+            mPendingTimer.start(500, this);
 
         // Init handshake
-        serialPort->write(QByteArrayLiteral("\n"
-                                            "simrelais?"
-                                            "\n"));
-        serialPort->flush();
-
-        if(!serialPort->waitForReadyRead(100))
-            qDebug() << "ERR SERIAL";
+        writeMessageFlush(serialPort, handShakeReq, sizeof(handShakeReq));
     }
+
+    // Schedule next rescan until all devices found
+    scheduleRescan();
 }
 
 void SerialManager::disconnectAllDevices()
@@ -124,67 +264,120 @@ void SerialManager::disconnectAllDevices()
     for(SerialDevice& dev : mDevices)
     {
         dev.reset();
-
-        if(dev.serialPort)
-        {
-            dev.serialPort->setObjectName(QString());
-            dev.serialPort->close();
-            delete dev.serialPort;
-            dev.serialPort = nullptr;
-        }
+        dev.closeSerial();
     }
+
+    for(PendingPort &p : mPendingNamePorts)
+    {
+        p.serialPort->close();
+        delete p.serialPort;
+        p.serialPort = nullptr;
+    }
+
+    mPendingNamePorts.clear();
+    mPendingTimer.stop();
+
+    mPingTimer.stop();
+
+    mRescanTimer.stop();
 }
 
 void SerialManager::onOutputChanged(qint64 deviceId, int outputId, int mode)
 {
-    auto it = mDevices.find(deviceId);
-    if(it == mDevices.end())
+    auto dev = mDevices.find(deviceId);
+    if(dev == mDevices.end())
         return;
 
-    if(!it.value().serialPort)
+    if(!dev->isConnected())
         return;
 
-    QByteArray msg;
-    msg.reserve(10);
-    msg.append('o');
-    msg.append(QByteArray::number(outputId));
-    msg.append(';');
-    msg.append(QByteArray::number(mode));
-    msg.append('\n');
+    quint8 msg[] =
+    {
+        SerialCommands::OutputChange,
+        quint8(outputId),
+        quint8(mode)
+    };
 
-    it.value().serialPort->write(msg);
-    it.value().serialPort->flush();
+    writeMessageFlush(dev->serialPort, msg, sizeof(msg));
 }
 
 void SerialManager::timerEvent(QTimerEvent *e)
 {
-    if(e->timerId() == mPendingClearTimer.timerId())
+    if(e->timerId() == mPendingTimer.timerId())
     {
         const QTime now = QTime::currentTime();
-        for(auto it = mPendingNamePorts.begin(); it != mPendingNamePorts.end(); )
+        for(auto pend = mPendingNamePorts.begin(); pend != mPendingNamePorts.end(); )
         {
-            if(it->first.msecsTo(now) > 900)
+            if(pend->firstConnect.msecsTo(now) > 5000 || pend->retryCount >= 5)
             {
-                it->second->close();
-                delete it->second;
+                qDebug() << "Serial pending device timeout:" << pend->serialPort->portName();
 
-                it = mPendingNamePorts.erase(it);
+                pend->serialPort->close();
+                delete pend->serialPort;
+
+                pend = mPendingNamePorts.erase(pend);
                 continue;
             }
 
-            it++;
+            // Retry handshake
+            writeMessageFlush(pend->serialPort, handShakeReq, sizeof(handShakeReq));
+            pend->retryCount++;
+
+            pend++;
         }
 
         if(mPendingNamePorts.isEmpty())
-            mPendingClearTimer.stop();
+            mPendingTimer.stop();
+
+        return;
     }
+    else if(e->timerId() == mPingTimer.timerId())
+    {
+        bool hasOpenPorts = false;
+
+        const QTime now = QTime::currentTime();
+        for(SerialDevice &dev : mDevices)
+        {
+            if(!dev.isConnected())
+                continue;
+
+            if(dev.lastPingReply.msecsTo(now) > 1000)
+            {
+                qDebug() << "Serial device timeout:" << dev.serialPort->portName() << dev.serialPort->objectName();
+
+                dev.reset();
+                dev.closeSerial();
+
+                scheduleRescan();
+                continue;
+            }
+
+            // Send ping
+            hasOpenPorts = true;
+
+            const quint8 msg = SerialCommands::Ping;
+            writeMessageFlush(dev.serialPort, &msg, 1);
+        }
+
+        if(!hasOpenPorts)
+            mPingTimer.stop();
+
+        return;
+    }
+    else if(e->timerId() == mRescanTimer.timerId())
+    {
+        rescanPorts();
+        return;
+    }
+
+    QObject::timerEvent(e);
 }
 
 void SerialManager::onSerialRead()
 {
     QSerialPort *serialPort = qobject_cast<QSerialPort *>(sender());
 
-    qDebug() << "SERIAL READ:" << serialPort->objectName() << serialPort->bytesAvailable();
+    //qDebug() << "SERIAL READ:" << serialPort->portName() << serialPort->objectName() << serialPort->bytesAvailable();
 
     if(serialPort->objectName().isEmpty())
     {
@@ -192,148 +385,204 @@ void SerialManager::onSerialRead()
             return;
     }
 
-    while(serialPort->canReadLine())
+    const qint64 deviceId = qHash(serialPort->objectName());
+
+    while(serialPort->bytesAvailable() != 0)
     {
-        QByteArray reply = serialPort->readLine(100);
-        if(reply.isEmpty())
-            continue;
+        bool reachedEnd = false;
+        QByteArray msg = readMessage(serialPort, reachedEnd);
+        if(reachedEnd)
+            break;
 
-        if(reply.at(0) == 'i')
-        {
-            QByteArrayView view(reply);
-            const int sep = view.indexOf(';');
-
-            bool ok = false;
-            const int inputId = view.sliced(1, sep - 1).toInt(&ok);
-
-            if(ok)
-            {
-                ok = false;
-                const int inputMode = view.sliced(sep + 1).toInt(&ok);
-
-                onInputChanged(serialPort->objectName(),
-                               inputId, inputMode);
-            }
-        }
+        if(!msg.isEmpty())
+            processMessage(deviceId, msg);
     }
 }
 
 void SerialManager::onSerialDisconnected()
 {
     QSerialPort *serialPort = qobject_cast<QSerialPort *>(sender());
+    qDebug() << "Serial disconnected:" << serialPort->portName() << serialPort->objectName() << serialPort->error() << serialPort->errorString();
+
+    if(serialPort->error() == QSerialPort::TimeoutError)
+    {
+        // Try again
+        writeMessageFlush(serialPort, handShakeReq, sizeof(handShakeReq));
+
+        return;
+    }
 
     if(serialPort->objectName().isEmpty())
     {
-        for(auto it2 = mPendingNamePorts.begin(); it2 != mPendingNamePorts.end(); it2++)
+        for(auto pend = mPendingNamePorts.begin(); pend != mPendingNamePorts.end(); pend++)
         {
-            if(it2->second == serialPort)
+            if(pend->serialPort == serialPort)
             {
-                mPendingNamePorts.erase(it2);
+                mPendingNamePorts.erase(pend);
                 break;
             }
         }
 
         if(mPendingNamePorts.isEmpty())
-            mPendingClearTimer.stop();
+            mPendingTimer.stop();
 
         return;
     }
 
-    auto it = mDevices.find(qHash(serialPort->objectName()));
-    Q_ASSERT(it != mDevices.end());
+    auto dev = mDevices.find(qHash(serialPort->objectName()));
+    Q_ASSERT(dev != mDevices.end());
 
-    it.value().reset();
+    dev->reset();
+    dev->closeSerial();
 
-    it.value().serialPort = nullptr;
-    serialPort->setObjectName(QString());
-    delete serialPort;
+    scheduleRescan();
+
+    bool hasOpenPorts = false;
+    for(const SerialDevice& otherDev : mDevices)
+    {
+        if(otherDev.isConnected())
+        {
+            hasOpenPorts = true;
+            break;
+        }
+    }
+
+    if(!hasOpenPorts)
+        mPingTimer.stop();
 }
 
 bool SerialManager::checkSerialValid(QSerialPort *serialPort)
 {
-    for(auto it2 = mPendingNamePorts.begin(); it2 != mPendingNamePorts.end(); it2++)
+    bool reachedEnd = false;
+    QByteArray reply = readMessage(serialPort, reachedEnd);
+
+    if(reply.isEmpty() || reply.at(0) != SerialCommands::NameResponse)
+        return false;
+
+    const QString name = QString::fromUtf8(QByteArrayView(reply).sliced(1).trimmed());
+    if(name.isEmpty())
+        return false;
+
+    for(auto pend = mPendingNamePorts.begin(); pend != mPendingNamePorts.end(); pend++)
     {
-        if(it2->second == serialPort)
+        if(pend->serialPort == serialPort)
         {
-            mPendingNamePorts.erase(it2);
+            mPendingNamePorts.erase(pend);
             break;
         }
     }
 
     if(mPendingNamePorts.isEmpty())
-        mPendingClearTimer.stop();
+        mPendingTimer.stop();
 
-    if(serialPort->canReadLine())
+    auto dev = mDevices.find(qHash(name));
+    if(dev != mDevices.end() && !dev->isConnected())
     {
-        QByteArray reply = serialPort->readLine(100);
-        if(reply.startsWith("simrelais!"))
-        {
-            const QString name = QString::fromUtf8(reply.mid(10)).trimmed();
-            if(!name.isEmpty())
-            {
-                auto it = mDevices.find(qHash(name));
-                if(it != mDevices.end() && !it.value().serialPort)
-                {
-                    serialPort->setObjectName(name);
-                    it.value().serialPort = serialPort;
+        qDebug() << "Serial device paired:" << serialPort->portName() << name;
 
-                    it.value().start();
-                    return true;
-                }
-            }
-        }
+        serialPort->setObjectName(name);
+        dev->start(serialPort);
+
+        if(!mPingTimer.isActive())
+            mPingTimer.start(500, this);
+
+        return true;
     }
 
+    // Device is valid but we are not interested in it
+    qDebug() << "Serial device discarded:" << serialPort->portName() << name;
     serialPort->close();
     delete serialPort;
 
     return false;
 }
 
-void SerialManager::onInputChanged(const QString &name, int inputId, int mode)
+void SerialManager::processMessage(qint64 deviceId, const QByteArray &msg)
 {
-    auto it = mDevices.find(qHash(name));
-    if(it == mDevices.end())
+    auto dev = mDevices.find(deviceId);
+    if(dev == mDevices.end())
         return;
 
-    SerialDevice& dev = it.value();
-    RemoteCircuitBridge *bridge = dev.inputs.value(inputId, nullptr);
-    if(!bridge)
-        return;
+    const quint8 *data = reinterpret_cast<const quint8 *>(msg.constData());
 
-    bridge->onSerialInputMode(mode);
+    switch (data[0])
+    {
+    case SerialCommands::NameResponse:
+    {
+        // Ignore
+        break;
+    }
+    case SerialCommands::PingResponse:
+    {
+        dev->lastPingReply = QTime::currentTime();
+        break;
+    }
+    case SerialCommands::Ping:
+    {
+        // Send Ping response
+        const quint8 c = SerialCommands::PingResponse;
+        writeMessageFlush(dev->serialPort, &c, 1);
+        break;
+    }
+    case SerialCommands::InputChange:
+    {
+        if(msg.size() < 3)
+            return;
+
+        const quint8 inputId = data[1];
+        const quint8 mode = data[2];
+
+        RemoteCircuitBridge *bridge = dev->inputs.value(inputId, nullptr);
+        if(!bridge)
+            return;
+
+        bridge->onSerialInputMode(mode);
+        break;
+    }
+    default:
+    {
+        qWarning() << "SERIAL: recv ivalid command:" << data[0] << "dev:" << dev->serialPort->objectName();
+
+        // TODO: reset device?
+        break;
+    }
+    }
+}
+
+void SerialManager::scheduleRescan()
+{
+    if(!mRescanTimer.isActive())
+        mRescanTimer.start(2000, this);
 }
 
 void SerialManager::addRemoteBridge(RemoteCircuitBridge *bridge, const QString &devName)
 {
     const quint64 deviceId = qHash(devName);
 
-    auto it = mDevices.find(deviceId);
-    if(it == mDevices.end())
-        it = mDevices.insert(deviceId, {});
+    auto dev = mDevices.find(deviceId);
+    if(dev == mDevices.end())
+        dev = mDevices.insert(deviceId, {});
 
-    SerialDevice& dev = it.value();
     if(bridge->mSerialInputId)
-        dev.inputs.insert(bridge->mSerialInputId, bridge);
+        dev->inputs.insert(bridge->mSerialInputId, bridge);
 
     if(bridge->mSerialOutputId)
-        dev.outputs.insert(bridge->mSerialOutputId, bridge);
+        dev->outputs.insert(bridge->mSerialOutputId, bridge);
 }
 
 void SerialManager::removeRemoteBridge(RemoteCircuitBridge *bridge, const QString &devName)
 {
     const quint64 deviceId = qHash(devName);
 
-    auto it = mDevices.find(deviceId);
-    Q_ASSERT(it != mDevices.end());
+    auto dev = mDevices.find(deviceId);
+    Q_ASSERT(dev != mDevices.end());
 
-    SerialDevice& dev = it.value();
-    dev.inputs.remove(bridge->mSerialInputId);
-    dev.outputs.remove(bridge->mSerialOutputId);
+    dev->inputs.remove(bridge->mSerialInputId);
+    dev->outputs.remove(bridge->mSerialOutputId);
 
-    if(dev.inputs.isEmpty() && dev.outputs.isEmpty())
+    if(dev->inputs.isEmpty() && dev->outputs.isEmpty())
     {
-        mDevices.erase(it);
+        mDevices.erase(dev);
     }
 }
 
@@ -352,8 +601,25 @@ void SerialManager::SerialDevice::reset()
     }
 }
 
-void SerialManager::SerialDevice::start()
+void SerialManager::SerialDevice::closeSerial()
 {
+    if(!serialPort)
+        return;
+
+    serialPort->setObjectName(QString());
+    serialPort->close();
+    delete serialPort;
+    serialPort = nullptr;
+}
+
+void SerialManager::SerialDevice::start(QSerialPort *serial)
+{
+    Q_ASSERT(serialPort == nullptr);
+    serialPort = serial;
+
+    // Reset time
+    lastPingReply = QTime::currentTime();
+
     const quint64 deviceId = qHash(serialPort->objectName());
 
     for(RemoteCircuitBridge *bridge : std::as_const(inputs))

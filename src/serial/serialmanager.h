@@ -34,11 +34,13 @@ class QSerialPort;
 
 class RemoteCircuitBridge;
 
+class ModeManager;
+
 class SerialManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit SerialManager(QObject *parent = nullptr);
+    explicit SerialManager(ModeManager *mgr);
     ~SerialManager();
 
     void rescanPorts();
@@ -57,27 +59,47 @@ private slots:
     void onSerialRead();
     void onSerialDisconnected();
 
+private:
     bool checkSerialValid(QSerialPort *serialPort);
 
-private:
-    void onInputChanged(const QString& name, int inputId, int mode);
+    void processMessage(qint64 deviceId, const QByteArray& msg);
+
+    void scheduleRescan();
 
 private:
+    ModeManager *mModeMgr = nullptr;
+
     struct SerialDevice
     {
-        QSerialPort *serialPort = nullptr;
-
         void reset();
-        void start();
+
+        void closeSerial();
+
+        void start(QSerialPort *serial);
+
+        inline bool isConnected() const { return serialPort != nullptr; }
+
+        QSerialPort *serialPort = nullptr;
 
         QHash<int, RemoteCircuitBridge *> inputs;
         QHash<int, RemoteCircuitBridge *> outputs;
+        QTime lastPingReply;
     };
 
     QHash<qint64, SerialDevice> mDevices;
-    QVector<std::pair<QTime, QSerialPort *>> mPendingNamePorts;
 
-    QBasicTimer mPendingClearTimer;
+    struct PendingPort
+    {
+        QSerialPort *serialPort = nullptr;
+        QTime firstConnect;
+        int retryCount = 0;
+    };
+
+    QVector<PendingPort> mPendingNamePorts;
+
+    QBasicTimer mPendingTimer;
+    QBasicTimer mPingTimer;
+    QBasicTimer mRescanTimer;
 };
 
 #endif // SERIALMANAGER_H
