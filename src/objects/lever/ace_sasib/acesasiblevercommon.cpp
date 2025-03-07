@@ -58,6 +58,8 @@ ACESasibLeverCommonObject::ACESasibLeverCommonObject(AbstractSimulationObjectMod
 
 ACESasibLeverCommonObject::~ACESasibLeverCommonObject()
 {
+    setMagnet(nullptr);
+
     delete mechanicalIface;
     mechanicalIface = nullptr;
 
@@ -66,8 +68,6 @@ ACESasibLeverCommonObject::~ACESasibLeverCommonObject()
 
     delete sasibInterface;
     sasibInterface = nullptr;
-
-    setMagnet(nullptr);
 }
 
 bool ACESasibLeverCommonObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)

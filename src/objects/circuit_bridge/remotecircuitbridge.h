@@ -60,9 +60,13 @@ public:
 
     void setRemoteSessionName(const QString& name);
 
+    // TODO: use also getUseSerial() for similar use cases
     inline bool isRemote() const { return mIsRemote; }
 
     void onRemoteSessionRenamed(const QString& toName);
+
+    QString getDeviceName() const;
+    void setDeviceName(const QString &name);
 
     void onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode);
     void onRemoteDisconnected();
@@ -71,11 +75,24 @@ public:
     QString peerNodeName() const;
     void setPeerNodeName(const QString &newPeerNodeName);
 
+    bool getUseSerial() const;
+    void setUseSerial(bool newUseSerial);
+
+
+    int serialInputId() const;
+    void setSerialInputId(int newSerialInputId);
+
+    int serialOutputId() const;
+    void setSerialOutputId(int newSerialOutputId);
+
 private:
     friend class RemoteCableCircuitNode;
     void setNode(RemoteCableCircuitNode *newNode, bool isA);
 
     void onLocalNodeModeChanged(RemoteCableCircuitNode *node);
+
+    friend class SerialManager;
+    void onSerialInputMode(int mode);
 
 private:
     RemoteCableCircuitNode *mNodeA = nullptr;
@@ -91,6 +108,13 @@ private:
     friend class RemoteManager;
     size_t mPeerSessionId = 0;
     size_t mPeerNodeId = 0;
+
+    bool mUseSerial = false;
+
+    QString mSerialName;
+    qint64 mSerialNameId = 0;
+    int mSerialInputId = 0;
+    int mSerialOutputId = 0;
 };
 
 #endif // REMOTE_CIRCUIT_BRIDGE_H

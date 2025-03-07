@@ -37,6 +37,7 @@
 #include "../enums/loadphase.h"
 
 #include "../network/remotemanager.h"
+#include "../serial/serialmanager.h"
 
 #include <QJsonObject>
 #include <QJsonArray>
@@ -189,12 +190,15 @@ ModeManager::ModeManager(QObject *parent)
     }
 
     mRemoteMgr = new RemoteManager(this);
+    mSerialMgr = new SerialManager(this);
 }
 
 ModeManager::~ModeManager()
 {
     // Disable network communication
     mRemoteMgr->setOnline(false);
+
+    mSerialMgr->disconnectAllDevices();
 
     // Delete circuits and factory
     // before objects
@@ -218,6 +222,9 @@ ModeManager::~ModeManager()
     delete mRemoteMgr;
     mRemoteMgr = nullptr;
 
+    delete mSerialMgr;
+    mSerialMgr = nullptr;
+
     // Delete object factory as last
     delete mObjectFactory;
     mObjectFactory = nullptr;
@@ -240,6 +247,12 @@ void ModeManager::setMode(FileMode newMode)
     {
         // Stop network connections if not in Simulation mode
         mRemoteMgr->setOnline(false);
+
+        mSerialMgr->disconnectAllDevices();
+    }
+    else if(oldMode != FileMode::Simulation)
+    {
+        mSerialMgr->rescanPorts();
     }
 
     mMode = newMode;

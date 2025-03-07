@@ -65,6 +65,13 @@ QRectF AbstractNodeGraphItem::boundingRect() const
     return base.united(textDisplayRect());
 }
 
+QPainterPath AbstractNodeGraphItem::shape() const
+{
+    QPainterPath p;
+    p.addRect(baseTileRect());
+    return p;
+}
+
 void AbstractNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     CircuitScene *s = circuitScene();

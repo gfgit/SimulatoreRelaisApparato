@@ -70,6 +70,8 @@
 #include <QCheckBox>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
+
 #include <QFileDialog>
 
 #include <QComboBox>
@@ -422,9 +424,51 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
         bridge->setPeerNodeName(peerNodeEdit->text());
     });
 
+    QCheckBox *serialCB = new QCheckBox(StandardObjectTypes::tr("Use serial device"));
+    lay->addRow(serialCB);
+
+    QObject::connect(serialCB, &QCheckBox::toggled,
+                     bridge, [bridge](bool val)
+    {
+        bridge->setUseSerial(val);
+    });
+
+    QLineEdit *serialDeviceEdit = new QLineEdit;
+    lay->addRow(StandardObjectTypes::tr("Device Name:"), serialDeviceEdit);
+    QObject::connect(serialDeviceEdit, &QLineEdit::textEdited,
+                     bridge, [bridge, serialDeviceEdit]()
+    {
+        bridge->setDeviceName(serialDeviceEdit->text());
+    });
+
+    QSpinBox *inputIdSpin = new QSpinBox;
+    inputIdSpin->setRange(0, 255);
+    inputIdSpin->setSpecialValueText(StandardObjectTypes::tr("None"));
+    lay->addRow(StandardObjectTypes::tr("Input ID:"), inputIdSpin);
+    QObject::connect(inputIdSpin, &QSpinBox::editingFinished,
+                     bridge, [bridge, inputIdSpin]()
+    {
+        bridge->setSerialInputId(inputIdSpin->value());
+        if(inputIdSpin->value() != bridge->serialInputId())
+            inputIdSpin->setValue(bridge->serialInputId()); // Rejected
+    });
+
+    QSpinBox *outputIdSpin = new QSpinBox;
+    outputIdSpin->setRange(0, 255);
+    outputIdSpin->setSpecialValueText(StandardObjectTypes::tr("None"));
+    lay->addRow(StandardObjectTypes::tr("Output ID:"), outputIdSpin);
+    QObject::connect(outputIdSpin, &QSpinBox::editingFinished,
+                     bridge, [bridge, outputIdSpin]()
+    {
+        bridge->setSerialOutputId(outputIdSpin->value());
+        if(outputIdSpin->value() != bridge->serialOutputId())
+            outputIdSpin->setValue(bridge->serialOutputId()); // Rejected
+    });
+
     auto updateSettings = [bridge, normalPalette, redTextPalette,
             nodeDescrA, nodeDescrB,
-            remoteCB, sessionEdit, peerNodeEdit]()
+            remoteCB, sessionEdit, peerNodeEdit,
+            serialCB, serialDeviceEdit, inputIdSpin, outputIdSpin]()
     {
         const QString descrA = bridge->getNodeDescription(true);
         if(nodeDescrA->text() != descrA)
@@ -449,6 +493,13 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
 
         sessionEdit->setEnabled(remoteCB->isChecked());
         peerNodeEdit->setEnabled(remoteCB->isChecked());
+
+        serialCB->setChecked(bridge->getUseSerial());
+        serialCB->setEnabled(!hasNodeA || !hasNodeB);
+
+        serialDeviceEdit->setText(bridge->getDeviceName());
+        inputIdSpin->setValue(bridge->serialInputId());
+        outputIdSpin->setValue(bridge->serialOutputId());
 
         QString str = bridge->remoteSessionName();
         if(str != sessionEdit->text())

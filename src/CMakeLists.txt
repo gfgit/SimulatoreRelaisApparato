@@ -18,6 +18,7 @@ add_subdirectory(enums)
 add_subdirectory(network)
 add_subdirectory(objects)
 add_subdirectory(panels)
+add_subdirectory(serial)
 add_subdirectory(translations)
 add_subdirectory(utils)
 add_subdirectory(views)
@@ -107,6 +108,8 @@ target_link_libraries(
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
+    Qt6::Network
+    Qt6::SerialPort
     Qt6::Svg
     Qt6::Multimedia
     KDAB::kddockwidgets

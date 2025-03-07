@@ -28,6 +28,7 @@
 
 #include "../../views/modemanager.h"
 #include "../../network/remotemanager.h"
+#include "../../serial/serialmanager.h"
 
 #include <QTimer>
 
@@ -53,6 +54,8 @@ RemoteCircuitBridge::~RemoteCircuitBridge()
         mNodeB = nullptr;
     }
 
+    setUseSerial(false);
+
     setRemote(false);
 }
 
@@ -66,14 +69,24 @@ bool RemoteCircuitBridge::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     if(!AbstractSimulationObject::loadFromJSON(obj, phase))
         return false;
 
+    if(phase != LoadPhase::Creation)
+        return true;
+
     mNodeDescriptionA = obj.value("node_descr_A").toString();
     mNodeDescriptionB = obj.value("node_descr_B").toString();
 
     mPeerNodeName = obj.value("remote_node").toString().trimmed();
-    setRemoteSessionName(obj.value("remote_session").toString().simplified());
+    setRemoteSessionName(obj.value("remote_session").toString());
 
     bool canRemote = !mPeerSession.isEmpty() && !mPeerNodeName.isEmpty();
     setRemote(canRemote);
+
+    mSerialInputId = obj.value("device_input_id").toInt();
+    mSerialOutputId = obj.value("device_output_id").toInt();
+    setDeviceName(obj.value("device_name").toString());
+
+    bool canSerial = !mSerialName.isEmpty() && (mSerialInputId || mSerialOutputId);
+    setUseSerial(canSerial);
 
     return true;
 }
@@ -89,6 +102,13 @@ void RemoteCircuitBridge::saveToJSON(QJsonObject &obj) const
     {
         obj["remote_session"] = mPeerSession;
         obj["remote_node"] = mPeerNodeName;
+    }
+
+    if(mUseSerial)
+    {
+        obj["device_name"] = mSerialName;
+        obj["device_input_id"] = mSerialInputId;
+        obj["device_output_id"] = mSerialOutputId;
     }
 }
 
@@ -185,6 +205,30 @@ void RemoteCircuitBridge::onRemoteSessionRenamed(const QString &toName)
     mPeerSession = toName;
 }
 
+QString RemoteCircuitBridge::getDeviceName() const
+{
+    return mSerialName;
+}
+
+void RemoteCircuitBridge::setDeviceName(const QString &name)
+{
+    QString str = name.simplified();
+    if(mSerialName == str)
+        return;
+
+    SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
+
+    if(mUseSerial)
+        serialMgr->removeRemoteBridge(this, mSerialName);
+
+    mSerialName = str;
+
+    if(mUseSerial)
+        serialMgr->addRemoteBridge(this, mSerialName);
+
+    emit settingsChanged(this);
+}
+
 void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
 {
     if(newNode && (mNodeA == newNode || mNodeB == newNode))
@@ -255,6 +299,143 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
                                             qint8(currMode), qint8(currSendPole),
                                             qint8(replyToMode));
     }
+    else if(mSerialNameId)
+    {
+        // Send to serial device
+        SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
+
+        if(RemoteCableCircuitNode::isSendMode(currMode) && mSerialOutputId)
+        {
+            if(currMode == RemoteCableCircuitNode::Mode::SendCurrentOpen)
+            {
+                // Fake close circuit
+                QMetaObject::invokeMethod(node,
+                                          &RemoteCableCircuitNode::onPeerModeChanged,
+                                          Qt::QueuedConnection,
+                                          RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
+                                          currSendPole);
+            }
+            else if(currMode == RemoteCableCircuitNode::Mode::SendCurrentClosed)
+            {
+                // Fake close circuit
+                QMetaObject::invokeMethod(node,
+                                          &RemoteCableCircuitNode::onPeerModeChanged,
+                                          Qt::QueuedConnection,
+                                          RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
+                                          currSendPole);
+
+                int mode = currSendPole == CircuitPole::First ? 1 : 2;
+                serialMgr->onOutputChanged(mSerialNameId, mSerialOutputId, mode);
+            }
+        }
+        else if(currMode == RemoteCableCircuitNode::Mode::None && mSerialOutputId)
+        {
+            int mode = 0;
+            serialMgr->onOutputChanged(mSerialNameId, mSerialOutputId, mode);
+
+            // Fake reset circuit
+            QMetaObject::invokeMethod(node,
+                                      &RemoteCableCircuitNode::onPeerModeChanged,
+                                      Qt::QueuedConnection,
+                                      RemoteCableCircuitNode::Mode::None,
+                                      currSendPole);
+        }
+        else if(currMode == RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed && mSerialInputId)
+        {
+            // Fake close remote circuit
+            QMetaObject::invokeMethod(node,
+                                      &RemoteCableCircuitNode::onPeerModeChanged,
+                                      Qt::QueuedConnection,
+                                      RemoteCableCircuitNode::Mode::SendCurrentClosed,
+                                      node->mRecvPole);
+        }
+    }
+}
+
+void RemoteCircuitBridge::onSerialInputMode(int mode)
+{
+    if(mode == 1 || mode == 2)
+    {
+        // Enable input
+        if(mNodeA->mode() == RemoteCableCircuitNode::Mode::None)
+        {
+            mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::SendCurrentOpen,
+                                      mode == 1 ? CircuitPole::First : CircuitPole::Second);
+        }
+    }
+    else
+    {
+        // Disable input
+        mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::None,
+                                  CircuitPole::First);
+    }
+}
+
+int RemoteCircuitBridge::serialInputId() const
+{
+    return mSerialInputId;
+}
+
+void RemoteCircuitBridge::setSerialInputId(int newSerialInputId)
+{
+    if(mSerialInputId == newSerialInputId)
+        return;
+
+    if(mUseSerial)
+    {
+        SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
+        bool ret = serialMgr->changeRemoteBridgeOutput(this, mSerialName,
+                                                       mSerialInputId, newSerialInputId);
+        if(!ret)
+            return;
+    }
+
+    mSerialInputId = newSerialInputId;
+    emit settingsChanged(this);
+}
+
+int RemoteCircuitBridge::serialOutputId() const
+{
+    return mSerialOutputId;
+}
+
+void RemoteCircuitBridge::setSerialOutputId(int newSerialOutputId)
+{
+    if(mSerialOutputId == newSerialOutputId)
+        return;
+
+    if(mUseSerial)
+    {
+        SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
+        bool ret = serialMgr->changeRemoteBridgeOutput(this, mSerialName,
+                                                       mSerialOutputId, newSerialOutputId);
+        if(!ret)
+            return;
+    }
+
+    mSerialOutputId = newSerialOutputId;
+    emit settingsChanged(this);
+}
+
+bool RemoteCircuitBridge::getUseSerial() const
+{
+    return mUseSerial;
+}
+
+void RemoteCircuitBridge::setUseSerial(bool newUseSerial)
+{
+    if(mUseSerial == newUseSerial)
+        return;
+
+    mUseSerial = newUseSerial;
+
+    SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
+    if(mUseSerial)
+        serialMgr->addRemoteBridge(this, mSerialName);
+    else
+        serialMgr->removeRemoteBridge(this, mSerialName);
+
+    emit settingsChanged(this);
 }
 
 QString RemoteCircuitBridge::peerNodeName() const
@@ -301,19 +482,31 @@ void RemoteCircuitBridge::onRemoteDisconnected()
 
 void RemoteCircuitBridge::onRemoteStarted()
 {
-    if(mPeerSessionId && mPeerNodeId && mNodeA)
+    if(!mNodeA)
+        return;
+
+    const RemoteCableCircuitNode::Mode currMode = mNodeA->mode();
+    const CircuitPole currSendPole = mNodeA->getSendPole();
+    const RemoteCableCircuitNode::Mode replyToMode = RemoteCableCircuitNode::Mode::None;
+
+    if(!RemoteCableCircuitNode::isSendMode(currMode))
+        return;
+
+    if(mPeerSessionId && mPeerNodeId)
     {
-        const RemoteCableCircuitNode::Mode currMode = mNodeA->mode();
-        const CircuitPole currSendPole = mNodeA->getSendPole();
-        const RemoteCableCircuitNode::Mode replyToMode = RemoteCableCircuitNode::Mode::None;
-
-        if(!RemoteCableCircuitNode::isSendMode(currMode))
-            return;
-
         // Send to remote session
         RemoteManager *remoteMgr = model()->modeMgr()->getRemoteManager();
         remoteMgr->onLocalBridgeModeChanged(mPeerSessionId, mPeerNodeId,
                                             qint8(currMode), qint8(currSendPole),
                                             qint8(replyToMode));
+    }
+    else if(mSerialNameId && mSerialOutputId)
+    {
+        if(currMode == RemoteCableCircuitNode::Mode::SendCurrentOpen)
+        {
+            // Fake close circuit, this will then send to serial device
+            mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
+                                      currSendPole);
+        }
     }
 }
