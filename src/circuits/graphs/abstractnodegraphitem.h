@@ -43,6 +43,7 @@ public:
     AbstractNodeGraphItem(AbstractCircuitNode *node_);
 
     QRectF boundingRect() const override;
+    QPainterPath shape() const override;
 
     virtual void getConnectors(std::vector<Connector>& /*connectors*/) const {}
 
