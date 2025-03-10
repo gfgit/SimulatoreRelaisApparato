@@ -24,6 +24,8 @@
 
 #include "../objects/circuit_bridge/remotecircuitbridge.h"
 
+#include "../views/modemanager.h"
+
 #include <QSerialPort>
 #include <QSerialPortInfo>
 
