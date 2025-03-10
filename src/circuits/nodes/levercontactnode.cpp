@@ -73,6 +73,15 @@ void LeverContactNode::saveToJSON(QJsonObject &obj) const
     obj["conditions"] = GenericLeverUtils::toJSON(mConditionSet);
 }
 
+void LeverContactNode::getObjectProperties(QVector<ObjectProperty> &result) const
+{
+    ObjectProperty leverProp;
+    leverProp.name = "lever";
+    leverProp.prettyName = tr("Lever");
+    leverProp.interface = LeverInterface::IfaceType;
+    result.append(leverProp);
+}
+
 QString LeverContactNode::nodeType() const
 {
     return NodeType;

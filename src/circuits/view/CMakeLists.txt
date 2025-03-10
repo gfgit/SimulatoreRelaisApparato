@@ -15,5 +15,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/view/circuitwidget.cpp
     circuits/view/circuitwidget.h
 
+    circuits/view/circuitnodeobjectreplacedlg.cpp
+    circuits/view/circuitnodeobjectreplacedlg.h
+
     PARENT_SCOPE
 )

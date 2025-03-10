@@ -97,6 +97,8 @@ signals:
     void currentViewTypeChanged(ViewType newVal);
     void activeViewChanged();
 
+    void allowNodeBatchEditChanged(bool allow, bool sameType);
+
 public slots:
     void startEditNewCableOnActiveView();
     void addNodeToActiveView(const QString& nodeType);
@@ -104,10 +106,13 @@ public slots:
     void showPanelListView();
     void showObjectListView(const QString &objType);
 
+    bool batchCircuitNodeEdit(bool objectReplace);
+
 private slots:
     void onCircuitViewDestroyed(QObject *obj);
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);
+    void nodeSelectionChanged();
 
     void panelItemEditRequested(AbstractPanelItem *item);
     void onPanelViewDestroyed(QObject *obj);

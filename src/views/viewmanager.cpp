@@ -67,6 +67,8 @@ ViewManager::ViewManager(MainWindow *parent)
             this, &ViewManager::nodeEditRequested);
     connect(circuitList, &CircuitListModel::cableEditRequested,
             this, &ViewManager::cableEditRequested);
+    connect(circuitList, &CircuitListModel::nodeSelectionChanged,
+            this, &ViewManager::nodeSelectionChanged);
 
     PanelListModel *panelList = modeMgr->panelList();
     connect(panelList, &PanelListModel::itemEditRequested,
@@ -100,6 +102,8 @@ void ViewManager::setActiveCircuit(CircuitWidget *w)
         return;
 
     mActiveCircuitView = w;
+
+    nodeSelectionChanged();
 
     emit activeViewChanged();
 }
@@ -659,6 +663,28 @@ void ViewManager::showObjectListView(const QString &objType)
                              KDDockWidgets::Location_OnLeft);
 }
 
+bool ViewManager::batchCircuitNodeEdit(bool objectReplace)
+{
+    if(!mActiveCircuitView)
+        return false;
+
+    CircuitScene *scene = mActiveCircuitView->scene();
+    bool hasMultipleNodesSelected = scene->hasMultipleNodesSelected();
+    bool sameType = false;
+    if(!objectReplace && hasMultipleNodesSelected)
+        sameType = scene->areSelectedNodesSameType();
+
+    if(!objectReplace && !sameType)
+        return false;
+
+    if(objectReplace)
+        mActiveCircuitView->batchObjectReplace();
+    else
+        mActiveCircuitView->batchNodeEdit();
+
+    return true;
+}
+
 void ViewManager::startEditNewCableOnActiveView()
 {
     if(!mActiveCircuitView)
@@ -742,6 +768,23 @@ void ViewManager::cableEditRequested(CableGraphItem *item)
     // Allow delete or modify path
     auto editFactory = mainWin()->modeMgr()->circuitFactory();
     editFactory->editCable(mActiveCircuitView, item);
+}
+
+void ViewManager::nodeSelectionChanged()
+{
+    if(!mActiveCircuitView)
+    {
+        emit allowNodeBatchEditChanged(false, false);
+        return;
+    }
+
+    CircuitScene *scene = mActiveCircuitView->scene();
+    bool hasMultipleNodesSelected = scene->hasMultipleNodesSelected();
+    bool sameType = false;
+    if(hasMultipleNodesSelected)
+        sameType = scene->areSelectedNodesSameType();
+
+    emit allowNodeBatchEditChanged(hasMultipleNodesSelected, sameType);
 }
 
 void ViewManager::onPanelViewDestroyed(QObject *obj)

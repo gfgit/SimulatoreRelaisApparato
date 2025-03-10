@@ -300,7 +300,35 @@ void MainWindow::buildEditToolBar()
     newCircuitItemMenu->setToolTipsVisible(true);
     newCircuitItem->setMenu(newCircuitItemMenu);
     circuitEditToolbar1->addAction(newCircuitItem);
+
+    QAction *batchCircuitNodeEdit = circuitEditToolbar1->addAction(tr("Batch Edit"));
+    QAction *batchCircuitNodeObjectReplace = circuitEditToolbar1->addAction(tr("Object Replace"));
+    batchCircuitNodeEdit->setVisible(false);
+    batchCircuitNodeObjectReplace->setVisible(false);
+
+    connect(mViewMgr, &ViewManager::allowNodeBatchEditChanged,
+            batchCircuitNodeEdit,
+            [batchCircuitNodeEdit, batchCircuitNodeObjectReplace](bool allow, bool sameType)
+    {
+        batchCircuitNodeEdit->setVisible(allow && sameType);
+        batchCircuitNodeObjectReplace->setVisible(allow);
+    });
+
+    connect(batchCircuitNodeEdit, &QAction::triggered,
+            mViewMgr, [mgr = mViewMgr]()
+    {
+        mgr->batchCircuitNodeEdit(false);
+    });
+    connect(batchCircuitNodeObjectReplace, &QAction::triggered,
+            mViewMgr, [mgr = mViewMgr]()
+    {
+        mgr->batchCircuitNodeEdit(true);
+    });
+
+    circuitEditToolbar1->addAction(batchCircuitNodeEdit);
+    circuitEditToolbar1->addAction(batchCircuitNodeObjectReplace);
     circuitEditToolbar1->addSeparator();
+
 
     QVector<QAction *> addCircuitItemActions;
 

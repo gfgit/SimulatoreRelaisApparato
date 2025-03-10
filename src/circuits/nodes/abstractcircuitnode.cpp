@@ -202,6 +202,11 @@ void AbstractCircuitNode::saveToJSON(QJsonObject &obj) const
     obj["name"] = objectName();
 }
 
+void AbstractCircuitNode::getObjectProperties(QVector<ObjectProperty> &result) const
+{
+    Q_UNUSED(result);
+}
+
 bool AbstractCircuitNode::isSourceNode(bool onlyCurrentState) const
 {
     Q_UNUSED(onlyCurrentState)

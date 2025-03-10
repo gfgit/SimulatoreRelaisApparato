@@ -108,6 +108,15 @@ void SimpleActivationNode::saveToJSON(QJsonObject &obj) const
     obj["object"] = mObject ? mObject->name() : QString();
 }
 
+void SimpleActivationNode::getObjectProperties(QVector<ObjectProperty> &result) const
+{
+    ObjectProperty objProp;
+    objProp.name = "object";
+    objProp.prettyName = tr("Object");
+    objProp.types = {allowedObjectType()};
+    result.append(objProp);
+}
+
 AbstractSimpleActivableObject *SimpleActivationNode::object() const
 {
     return mObject;

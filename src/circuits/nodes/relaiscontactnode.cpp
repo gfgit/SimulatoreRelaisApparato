@@ -73,6 +73,15 @@ void RelaisContactNode::saveToJSON(QJsonObject &obj) const
     obj["active_during_middle"] = activeWhileMiddle();
 }
 
+void RelaisContactNode::getObjectProperties(QVector<ObjectProperty> &result) const
+{
+    ObjectProperty relProp;
+    relProp.name = "relais";
+    relProp.prettyName = tr("Relay");
+    relProp.types = {AbstractRelais::Type};
+    result.append(relProp);
+}
+
 QString RelaisContactNode::nodeType() const
 {
     return NodeType;

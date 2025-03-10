@@ -116,6 +116,16 @@ public:
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
 
+    struct ObjectProperty
+    {
+        QString name;
+        QString prettyName;
+        QStringList types;
+        QString interface;
+        bool exclusive = false;
+    };
+    virtual void getObjectProperties(QVector<ObjectProperty> &result) const;
+
     // Source methods
     virtual bool isSourceNode(bool onlyCurrentState) const;
     virtual bool sourceDoNotCloseCircuits() const;

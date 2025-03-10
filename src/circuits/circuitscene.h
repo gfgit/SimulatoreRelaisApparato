@@ -124,6 +124,15 @@ public:
 
     AbstractNodeGraphItem *getGraphForNode(AbstractCircuitNode *node) const;
 
+    inline bool hasMultipleNodesSelected() const
+    {
+        return mSelectedItemPositions.size() > 1;
+    }
+
+    bool areSelectedNodesSameType() const;
+
+    QVector<AbstractNodeGraphItem *> getSelectedNodes();
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);

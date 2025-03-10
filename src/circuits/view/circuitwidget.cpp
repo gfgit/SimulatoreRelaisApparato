@@ -25,6 +25,8 @@
 
 #include "../circuitscene.h"
 
+#include "circuitnodeobjectreplacedlg.h"
+
 #include "../../views/viewmanager.h"
 
 #include "../../utils/doubleclickslider.h"
@@ -227,6 +229,26 @@ int CircuitWidget::uniqueNum() const
 void CircuitWidget::setUniqueNum(int newUniqueNum)
 {
     mUniqueNum = newUniqueNum;
+}
+
+void CircuitWidget::batchNodeEdit()
+{
+    if(!mScene || !mScene->hasMultipleNodesSelected() || !mScene->areSelectedNodesSameType())
+        return;
+
+    QVector<AbstractNodeGraphItem *> items = mScene->getSelectedNodes();
+
+    CircuitNodeObjectReplaceDlg::batchNodeEdit(items, mViewMgr, this);
+}
+
+void CircuitWidget::batchObjectReplace()
+{
+    QPointer<CircuitNodeObjectReplaceDlg> dlg = new CircuitNodeObjectReplaceDlg(mViewMgr,
+                                                                                mScene->getSelectedNodes(),
+                                                                                this);
+    dlg->exec();
+    if(dlg)
+        delete dlg;
 }
 
 CircuitsView *CircuitWidget::circuitsView() const

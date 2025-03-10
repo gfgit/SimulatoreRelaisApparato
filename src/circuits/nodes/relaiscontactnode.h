@@ -44,6 +44,8 @@ public:
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
+    void getObjectProperties(QVector<ObjectProperty> &result) const override;
+
     static constexpr QLatin1String NodeType = QLatin1String("relais_contact");
     QString nodeType() const override;
 

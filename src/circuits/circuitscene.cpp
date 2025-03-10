@@ -1155,6 +1155,8 @@ void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
                    "Item location is not registered");
 
         mSelectedItemPositions.insert({item, tile});
+
+        emit circuitsModel()->nodeSelectionChanged();
     }
     else
     {
@@ -1165,6 +1167,8 @@ void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
             const TileLocation lastValidLocation = it->second;
             item->setLocation(lastValidLocation);
             mSelectedItemPositions.erase(it);
+
+            emit circuitsModel()->nodeSelectionChanged();
         }
     }
 }
@@ -1634,6 +1638,43 @@ AbstractNodeGraphItem *CircuitScene::getGraphForNode(AbstractCircuitNode *node) 
     }
 
     return nullptr;
+}
+
+bool CircuitScene::areSelectedNodesSameType() const
+{
+    if(mSelectedItemPositions.empty())
+        return false;
+
+    auto it = mSelectedItemPositions.cbegin();
+    const QString nodeType = it->first->getAbstractNode()->nodeType();
+    it++;
+
+    for(auto e = mSelectedItemPositions.cend(); it != e; it++)
+    {
+        const QString nodeType2 = it->first->getAbstractNode()->nodeType();
+        if(nodeType != nodeType2)
+            return false;
+    }
+
+    return true;
+}
+
+QVector<AbstractNodeGraphItem *> CircuitScene::getSelectedNodes()
+{
+    QVector<AbstractNodeGraphItem *> result;
+
+    if(mSelectedItemPositions.empty())
+        return result;
+
+    result.reserve(mSelectedItemPositions.size());
+
+    for(auto it = mSelectedItemPositions.cbegin(), e = mSelectedItemPositions.cend();
+        it != e; it++)
+    {
+        result.append(it->first);
+    }
+
+    return result;
 }
 
 void CircuitScene::helpEvent(QGraphicsSceneHelpEvent *e)
@@ -2552,7 +2593,15 @@ void CircuitScene::refreshItemConnections(AbstractNodeGraphItem *item, bool tryR
 
 void CircuitScene::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    const QRectF sr = sceneRect();
+    QRectF sr = sceneRect();
+    if(sr.isEmpty() || sr.isNull())
+    {
+        sr = itemsBoundingRect();
+
+        // Add some margin
+        sr.adjust(-TileLocation::HalfSize, -TileLocation::HalfSize,
+                  TileLocation::HalfSize, TileLocation::HalfSize);
+    }
 
     // Actual scene background
     QRectF bgRect = rect.intersected(sr);
