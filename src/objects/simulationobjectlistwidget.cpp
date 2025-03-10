@@ -26,6 +26,7 @@
 #include "abstractsimulationobject.h"
 
 #include "simulationobjectfactory.h"
+#include "simulationobjectoptionswidget.h"
 
 #include "../views/viewmanager.h"
 #include "../views/modemanager.h"
@@ -38,9 +39,16 @@
 #include <QMessageBox>
 
 #include <QSortFilterProxyModel>
+#include <QItemSelectionModel>
 
 #include <QMenu>
 #include <QAction>
+
+#include <QJsonObject>
+
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QPointer>
 
 SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, AbstractSimulationObjectModel *model, QWidget *parent)
     : QWidget{parent}
@@ -56,9 +64,15 @@ SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, Abstrac
 
     addBut = new QPushButton(tr("Add %1").arg(prettyName));
     remBut = new QPushButton(tr("Remove %1").arg(prettyName));
+    batchEditBut = new QPushButton(tr("Batch Edit"));
 
     butLay->addWidget(addBut);
     butLay->addWidget(remBut);
+    butLay->addWidget(batchEditBut);
+    batchEditBut->setVisible(false);
+    batchEditBut->setToolTip(tr("Edit multiple objects togheter.\n"
+                                "Edit one object, changed settings will be applied to"
+                                "all selected objects."));
 
     mView = new QTableView;
     lay->addWidget(mView);
@@ -78,9 +92,14 @@ SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, Abstrac
             this, &SimulationObjectListWidget::addObject);
     connect(remBut, &QPushButton::clicked,
             this, &SimulationObjectListWidget::removeCurrentObject);
+    connect(batchEditBut, &QPushButton::clicked,
+            this, &SimulationObjectListWidget::onBatchEdit);
 
     connect(mView, &QTableView::customContextMenuRequested,
             this, &SimulationObjectListWidget::showViewContextMenu);
+
+    connect(mView->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &SimulationObjectListWidget::onSelectionChanged);
 
     onFileModeChanged(mModel->modeMgr()->mode());
 }
@@ -130,6 +149,22 @@ AbstractSimulationObject *SimulationObjectListWidget::addObjectHelper(AbstractSi
     return item;
 }
 
+bool hasMultipleRows(const QItemSelection& sel)
+{
+    int selectedRowsCount = 0;
+    for(const QItemSelectionRange& r : sel)
+    {
+        if(r.isEmpty() || !r.isValid())
+            continue;
+
+        selectedRowsCount += r.height();
+        if(selectedRowsCount > 1)
+            return true;
+    }
+
+    return false;
+}
+
 void SimulationObjectListWidget::onFileModeChanged(FileMode mode)
 {
     const bool canEdit = mode == FileMode::Editing;
@@ -137,6 +172,9 @@ void SimulationObjectListWidget::onFileModeChanged(FileMode mode)
     addBut->setVisible(canEdit);
     remBut->setEnabled(canEdit);
     remBut->setVisible(canEdit);
+    batchEditBut->setEnabled(canEdit);
+    batchEditBut->setVisible(canEdit &&
+                             hasMultipleRows(mView->selectionModel()->selection()));
 }
 
 void SimulationObjectListWidget::addObject()
@@ -185,4 +223,145 @@ void SimulationObjectListWidget::showViewContextMenu(const QPoint &pos)
     QAction *ret = menu->exec(mView->viewport()->mapToGlobal(pos));
     if(ret == actionProperties)
         mViewMgr->showObjectProperties(item);
+}
+
+void SimulationObjectListWidget::onSelectionChanged()
+{
+    // Visible if can edit and multiple rows are selected
+    batchEditBut->setVisible(batchEditBut->isEnabled() &&
+                             hasMultipleRows(mView->selectionModel()->selection()));
+}
+
+void SimulationObjectListWidget::onBatchEdit()
+{
+    QVector<AbstractSimulationObject *> selectedObjs;
+
+    const QItemSelection sel = mView->selectionModel()->selection();
+    const QModelIndex curIdx = mView->selectionModel()->currentIndex();
+
+    AbstractSimulationObject *curObj = nullptr;
+
+    for(const QItemSelectionRange& r : sel)
+    {
+        if(r.isEmpty() || !r.isValid())
+            continue;
+
+        for(int i = r.top(); i <= r.bottom(); i++)
+        {
+            AbstractSimulationObject *obj = mModel->objectAt(i);
+            selectedObjs.append(obj);
+
+            if(i == curIdx.row())
+                curObj = obj;
+        }
+    }
+
+    if(selectedObjs.isEmpty())
+        return;
+
+    if(!curObj)
+        curObj = selectedObjs.first();
+
+    QJsonObject origSettings;
+    curObj->saveToJSON(origSettings);
+
+    SimulationObjectFactory *factory = mModel->modeMgr()->objectFactory();
+
+    QPointer<QDialog> dlg = new QDialog(this);
+
+    QVBoxLayout *lay = new QVBoxLayout(dlg);
+
+    // Create edit widget
+    SimulationObjectOptionsWidget *w = factory->createEditWidget(nullptr, curObj, mViewMgr);
+    lay->addWidget(w);
+
+    QDialogButtonBox *dlgBut = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                                                    Qt::Horizontal);
+    lay->addWidget(dlgBut);
+
+    connect(dlgBut, &QDialogButtonBox::accepted,
+            dlg, &QDialog::accept);
+    connect(dlgBut, &QDialogButtonBox::rejected,
+            dlg, &QDialog::reject);
+
+    const int ret = dlg->exec();
+    if(dlg)
+        delete dlg;
+
+    if(ret != QDialog::Accepted)
+    {
+        // Restore original settings
+        curObj->loadFromJSON(origSettings, LoadPhase::Creation);
+        curObj->loadFromJSON(origSettings, LoadPhase::AllCreated);
+        return;
+    }
+
+    QJsonObject newSettings;
+    curObj->saveToJSON(newSettings);
+
+    QString namePrefix;
+    QString nameSuffix;
+
+    QStringList modifiedKeys;
+    const QString NameKey = QLatin1String("name");
+
+    for(const QString& key : newSettings.keys())
+    {
+        if(key == NameKey)
+        {
+            const QString oldName = origSettings[NameKey].toString();
+            const QString newName = newSettings[NameKey].toString();
+
+            int idx = newName.indexOf(oldName);
+            if(idx >= 0)
+            {
+                if(idx > 0)
+                    namePrefix = newName.mid(0, idx);
+
+                if((idx + oldName.length()) < newName.size())
+                    nameSuffix = newName.mid(idx + oldName.length());
+
+                modifiedKeys.append(NameKey);
+            }
+        }
+        else
+        {
+            const QJsonValueRef oldVal = origSettings[key];
+            const QJsonValueRef newVal = newSettings[key];
+
+            if(oldVal.isObject() || newVal.isObject())
+                continue; // Skip sub objects
+
+            if(oldVal.toVariant() != newVal.toVariant())
+                modifiedKeys.append(key);
+        }
+    }
+
+    for(AbstractSimulationObject *obj : std::as_const(selectedObjs))
+    {
+        if(obj == curObj)
+            continue;
+
+        QJsonObject settings;
+        obj->saveToJSON(settings);
+
+        for(const QString& key : std::as_const(modifiedKeys))
+        {
+            // Set new value
+            if(key == NameKey)
+            {
+                QString newName = namePrefix;
+                newName.append(settings[NameKey].toString());
+                newName.append(nameSuffix);
+                settings[NameKey] = newName;
+            }
+            else
+            {
+                settings[key] = newSettings[key];
+            }
+        }
+
+        obj->loadFromJSON(settings, LoadPhase::Creation);
+        obj->loadFromJSON(settings, LoadPhase::AllCreated);
+    }
 }

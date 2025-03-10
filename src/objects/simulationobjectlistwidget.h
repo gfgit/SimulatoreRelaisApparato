@@ -56,11 +56,16 @@ private slots:
     void removeCurrentObject();
     void showViewContextMenu(const QPoint &pos);
 
+    void onSelectionChanged();
+
+    void onBatchEdit();
+
 private:
     QTableView *mView;
 
     QPushButton *addBut;
     QPushButton *remBut;
+    QPushButton *batchEditBut;
 
     ViewManager *mViewMgr;
     AbstractSimulationObjectModel *mModel;
