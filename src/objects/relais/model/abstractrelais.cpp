@@ -96,15 +96,6 @@ bool AbstractRelais::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     setNormallyUp(obj.value("normally_up").toBool());
     setRelaisType(RelaisType(obj.value("relay_type").toInt(int(RelaisType::Normal))));
 
-    if(isStateIndependent(relaisType()))
-    {
-        // For stabilized relais we start in normal condition
-        if(normallyUp())
-            setPosition(1.0);
-        else
-            setPosition(0.0);
-    }
-
     return true;
 }
 
@@ -432,6 +423,20 @@ void AbstractRelais::setRelaisType(RelaisType newType)
         return;
 
     mType = newType;
+
+    if(stateIndependent())
+    {
+        // For stabilized relais we start in normal condition
+        if(mNormallyUp)
+            setPosition(1.0);
+        else
+            setPosition(0.0);
+    }
+    else
+    {
+        setPosition(0.0); // Start from Down
+    }
+
     emit settingsChanged(this);
     emit typeChanged(this, mType);
 }
@@ -447,6 +452,16 @@ void AbstractRelais::setNormallyUp(bool newNormallyUp)
         return;
 
     mNormallyUp = newNormallyUp;
+
+    if(stateIndependent())
+    {
+        // For stabilized relais we start in normal condition
+        if(mNormallyUp)
+            setPosition(1.0);
+        else
+            setPosition(0.0);
+    }
+
     emit settingsChanged(this);
 
     // Update nodes
