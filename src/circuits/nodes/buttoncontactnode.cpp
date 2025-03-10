@@ -91,6 +91,15 @@ void ButtonContactNode::saveToJSON(QJsonObject &obj) const
     }
 }
 
+void ButtonContactNode::getObjectProperties(QVector<ObjectProperty> &result) const
+{
+    ObjectProperty butProp;
+    butProp.name = "button";
+    butProp.prettyName = tr("Button");
+    butProp.interface = ButtonInterface::IfaceType;
+    result.append(butProp);
+}
+
 QString ButtonContactNode::nodeType() const
 {
     return NodeType;
