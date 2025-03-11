@@ -31,6 +31,8 @@
 #include "../views/viewmanager.h"
 #include "../views/modemanager.h"
 
+#include "../utils/jsondiff.h"
+
 #include <QVBoxLayout>
 #include <QTableView>
 #include <QPushButton>
@@ -302,40 +304,10 @@ void SimulationObjectListWidget::onBatchEdit()
     QString namePrefix;
     QString nameSuffix;
 
-    QStringList modifiedKeys;
-    const QString NameKey = QLatin1String("name");
-
-    for(const QString& key : newSettings.keys())
-    {
-        if(key == NameKey)
-        {
-            const QString oldName = origSettings[NameKey].toString();
-            const QString newName = newSettings[NameKey].toString();
-
-            int idx = newName.indexOf(oldName);
-            if(idx >= 0)
-            {
-                if(idx > 0)
-                    namePrefix = newName.mid(0, idx);
-
-                if((idx + oldName.length()) < newName.size())
-                    nameSuffix = newName.mid(idx + oldName.length());
-
-                modifiedKeys.append(NameKey);
-            }
-        }
-        else
-        {
-            const QJsonValueRef oldVal = origSettings[key];
-            const QJsonValueRef newVal = newSettings[key];
-
-            if(oldVal.isObject() || newVal.isObject())
-                continue; // Skip sub objects
-
-            if(oldVal.toVariant() != newVal.toVariant())
-                modifiedKeys.append(key);
-        }
-    }
+    QStringList modifiedKeys = JSONDiff::checkDifferencesTopLevel(origSettings,
+                                                                  newSettings,
+                                                                  namePrefix,
+                                                                  nameSuffix);
 
     for(AbstractSimulationObject *obj : std::as_const(selectedObjs))
     {
@@ -345,21 +317,8 @@ void SimulationObjectListWidget::onBatchEdit()
         QJsonObject settings;
         obj->saveToJSON(settings);
 
-        for(const QString& key : std::as_const(modifiedKeys))
-        {
-            // Set new value
-            if(key == NameKey)
-            {
-                QString newName = namePrefix;
-                newName.append(settings[NameKey].toString());
-                newName.append(nameSuffix);
-                settings[NameKey] = newName;
-            }
-            else
-            {
-                settings[key] = newSettings[key];
-            }
-        }
+        JSONDiff::applyDiff(settings, newSettings, modifiedKeys,
+                            namePrefix, nameSuffix);
 
         obj->loadFromJSON(settings, LoadPhase::Creation);
         obj->loadFromJSON(settings, LoadPhase::AllCreated);

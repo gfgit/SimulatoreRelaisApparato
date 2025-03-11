@@ -25,6 +25,7 @@
 #include "../graphs/abstractnodegraphitem.h"
 #include "../nodes/abstractcircuitnode.h"
 
+#include "../../utils/jsondiff.h"
 #include <QJsonObject>
 
 #include "../../objects/simulationobjectlineedit.h"
@@ -207,23 +208,14 @@ void CircuitNodeObjectReplaceDlg::batchNodeEdit(const QVector<AbstractNodeGraphI
     QJsonObject newSettings;
     curItem->saveToJSON(newSettings);
 
+    JSONDiff::checkDifferences(origSettings, newSettings);
+
     const QStringList ignoreKeys{"x", "y", "name", "rotation",
                                  "text_rotation", "type"};
-    QStringList modifiedKeys;
 
-    for(const QString& key : newSettings.keys())
+    for(const QString& key : ignoreKeys)
     {
-        if(ignoreKeys.contains(key))
-            continue;
-
-        const QJsonValueRef oldVal = origSettings[key];
-        const QJsonValueRef newVal = newSettings[key];
-
-        if(oldVal.isObject() || newVal.isObject())
-            continue; // Skip sub objects
-
-        if(oldVal.toVariant() != newVal.toVariant())
-            modifiedKeys.append(key);
+        newSettings.remove(key);
     }
 
     for(AbstractNodeGraphItem *item : std::as_const(items))
@@ -234,11 +226,7 @@ void CircuitNodeObjectReplaceDlg::batchNodeEdit(const QVector<AbstractNodeGraphI
         QJsonObject settings;
         item->saveToJSON(settings);
 
-        for(const QString& key : std::as_const(modifiedKeys))
-        {
-            // Set new value
-            settings[key] = newSettings[key];
-        }
+        JSONDiff::applyDiffSub(settings, newSettings);
 
         item->loadFromJSON(settings);
     }
