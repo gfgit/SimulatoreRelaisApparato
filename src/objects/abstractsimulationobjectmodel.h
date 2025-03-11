@@ -34,6 +34,7 @@ class AbstractSimulationObject;
 class ModeManager;
 
 class QJsonObject;
+class QJsonArray;
 
 class AbstractSimulationObjectModel : public QAbstractTableModel
 {
@@ -104,6 +105,10 @@ public:
     void addObject(AbstractSimulationObject *item);
     void removeObject(AbstractSimulationObject *item);
 
+    void addObjectsFromArray(const QJsonArray& arr,
+                             QJsonArray &result,
+                             LoadPhase phase);
+
 signals:
     void modelEdited(bool val);
 
@@ -116,6 +121,10 @@ private:
     void updateObjectRow(AbstractSimulationObject *item);
     void setModelEdited();
     void clearInternal();
+
+    void addObjectsFromArray_internal(const QJsonArray& arr,
+                                      QJsonArray &result,
+                                      LoadPhase phase);
 
 protected:
     virtual void addObjectInternal(AbstractSimulationObject *item);

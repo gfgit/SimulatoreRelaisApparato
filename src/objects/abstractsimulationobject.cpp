@@ -100,6 +100,17 @@ void AbstractSimulationObject::saveToJSON(QJsonObject &obj) const
     obj["interfaces"] = ifaceListObj;
 }
 
+void AbstractSimulationObject::getReferencedObjects(QSet<AbstractSimulationObject *> &result)
+{
+    for(AbstractObjectInterface *iface : std::as_const(mInterfaces))
+    {
+        iface->getReferencedObjects(result);
+    }
+
+    for(auto it = mTrackedObjects.cbegin(); it != mTrackedObjects.cend(); it++)
+        result.insert(it.key());
+}
+
 QString AbstractSimulationObject::name() const
 {
     return mName;

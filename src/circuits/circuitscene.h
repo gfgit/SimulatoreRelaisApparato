@@ -33,7 +33,7 @@
 
 class AbstractCircuitNode;
 class AbstractNodeGraphItem;
-class Connector;
+struct Connector;
 class CircuitCable;
 class CableGraphItem;
 class CableGraphPath;
@@ -198,8 +198,6 @@ private:
     void endSelectionMove();
 
     void moveSelectedCableAt(const TileLocation& tile);
-
-    static constexpr QLatin1String CircuitMimeType = QLatin1String("application/x-simulatore-rele-circuits");
 
     bool insertFragment(const TileLocation& tileHint,
                         const QJsonObject& fragmentRoot,

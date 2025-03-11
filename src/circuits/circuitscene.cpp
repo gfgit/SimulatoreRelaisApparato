@@ -30,6 +30,8 @@
 #include "nodes/circuitcable.h"
 #include "nodes/abstractcircuitnode.h"
 
+#include "../objects/simulationobjectcopyhelper.h"
+
 #include <QGraphicsPathItem>
 #include <QPen>
 
@@ -40,14 +42,12 @@
 
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QJsonDocument>
 
 #include <QPainter>
 
-#include <QClipboard>
-#include <QMimeData>
-
 #include <QToolTip>
+
+#include <QGuiApplication>
 
 #include "edit/nodeeditfactory.h"
 
@@ -1469,6 +1469,9 @@ void CircuitScene::moveSelectedCableAt(const TileLocation &tile)
 
 void CircuitScene::copySelectedItems()
 {
+    // Type, List of names
+    QHash<QString, QStringList> objectsToCopy;
+
     QJsonArray nodes;
     for(auto it : mSelectedItemPositions)
     {
@@ -1476,6 +1479,31 @@ void CircuitScene::copySelectedItems()
 
         QJsonObject nodeObj;
         item->saveToJSON(nodeObj);
+
+        QVector<AbstractCircuitNode::ObjectProperty> objProps;
+        item->getAbstractNode()->getObjectProperties(objProps);
+
+        for(const AbstractCircuitNode::ObjectProperty& prop : std::as_const(objProps))
+        {
+            const QString objName = nodeObj.value(prop.name).toString();
+            QString objType;
+
+            const bool needsType = !prop.interface.isEmpty() || prop.types.size() != 1;
+            if(needsType)
+                objType = nodeObj.value(prop.name + QLatin1String("_type")).toString();
+            else
+                objType = prop.types.first();
+
+            if(!objName.isEmpty())
+            {
+                auto it2 = objectsToCopy.find(objType);
+                if(it2 == objectsToCopy.end())
+                    it2 = objectsToCopy.insert(objType, {});
+
+                it2.value().append(objName);
+            }
+        }
+
         nodes.append(nodeObj);
     }
 
@@ -1489,40 +1517,27 @@ void CircuitScene::copySelectedItems()
         cables.append(cableObj);
     }
 
+    QJsonObject objectPool = SimulationObjectCopyHelper::copyObjects(modeMgr(),
+                                                                     objectsToCopy);
+
     QJsonObject rootObj;
     rootObj["nodes"] = nodes;
     rootObj["cables"] = cables;
+    rootObj["objects"] = objectPool;
 
-    QByteArray value = QJsonDocument(rootObj).toJson(QJsonDocument::Compact);
-
-    QMimeData *mime = new QMimeData;
-    mime->setData(CircuitMimeType, value);
-
-    QGuiApplication::clipboard()->setMimeData(mime, QClipboard::Clipboard);
+    SimulationObjectCopyHelper::copyToClipboard(rootObj);
 }
 
 bool CircuitScene::tryPasteItems(const TileLocation &tileHint,
                                  TileLocation &outTopLeft,
                                  TileLocation &outBottomRight)
 {
-    QClipboard *clipboard = QGuiApplication::clipboard();
-    if(!clipboard)
+    QJsonObject rootObj;
+    if(!SimulationObjectCopyHelper::getPasteDataFromClipboard(rootObj))
         return false;
 
-    const QMimeData *mime = clipboard->mimeData(QClipboard::Clipboard);
-    if(!mime)
-        return false;
-
-    QByteArray value = mime->data(CircuitMimeType);
-    if(value.isEmpty())
-        return false;
-
-    QJsonDocument doc = QJsonDocument::fromJson(value);
-    if(doc.isNull())
-        return false;
-
-
-    const QJsonObject rootObj = doc.object();
+    const QJsonObject objPool = rootObj.value("objects").toObject();
+    SimulationObjectCopyHelper::pasteObjects(modeMgr(), objPool);
 
     return insertFragment(tileHint, rootObj,
                           modeMgr()->circuitFactory(),

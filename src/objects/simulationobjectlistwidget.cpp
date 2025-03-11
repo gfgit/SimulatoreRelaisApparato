@@ -28,6 +28,8 @@
 #include "simulationobjectfactory.h"
 #include "simulationobjectoptionswidget.h"
 
+#include "simulationobjectcopyhelper.h"
+
 #include "../views/viewmanager.h"
 #include "../views/modemanager.h"
 
@@ -51,6 +53,8 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPointer>
+
+#include <QKeyEvent>
 
 SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, AbstractSimulationObjectModel *model, QWidget *parent)
     : QWidget{parent}
@@ -149,6 +153,24 @@ AbstractSimulationObject *SimulationObjectListWidget::addObjectHelper(AbstractSi
     model->addObject(item);
 
     return item;
+}
+
+void SimulationObjectListWidget::keyPressEvent(QKeyEvent *ev)
+{
+    if(ev->matches(QKeySequence::Copy))
+    {
+        copySelectedObjectToClipboard();
+        ev->accept();
+        return;
+    }
+    else if(ev->matches(QKeySequence::Paste))
+    {
+        pasteFromClipboard();
+        ev->accept();
+        return;
+    }
+
+    QWidget::keyPressEvent(ev);
 }
 
 bool hasMultipleRows(const QItemSelection& sel)
@@ -257,32 +279,14 @@ void SimulationObjectListWidget::onSelectionChanged()
 
 void SimulationObjectListWidget::onBatchEdit()
 {
-    QVector<AbstractSimulationObject *> selectedObjs;
-
-    const QItemSelection sel = mView->selectionModel()->selection();
-    const QModelIndex curIdx = mView->selectionModel()->currentIndex();
-
-    AbstractSimulationObject *curObj = nullptr;
-
-    for(const QItemSelectionRange& r : sel)
-    {
-        if(r.isEmpty() || !r.isValid())
-            continue;
-
-        for(int i = r.top(); i <= r.bottom(); i++)
-        {
-            AbstractSimulationObject *obj = mModel->objectAt(i);
-            selectedObjs.append(obj);
-
-            if(i == curIdx.row())
-                curObj = obj;
-        }
-    }
-
+    QVector<AbstractSimulationObject *> selectedObjs = getSelectedObjects();
     if(selectedObjs.isEmpty())
         return;
 
-    if(!curObj)
+    const QModelIndex curIdx = mProxyModel->mapToSource(mView->selectionModel()->currentIndex());
+    AbstractSimulationObject *curObj = mModel->objectAt(curIdx.row());
+
+    if(!curObj || !selectedObjs.contains(curObj))
         curObj = selectedObjs.first();
 
     QJsonObject origSettings;
@@ -345,4 +349,55 @@ void SimulationObjectListWidget::onBatchEdit()
         obj->loadFromJSON(settings, LoadPhase::Creation);
         obj->loadFromJSON(settings, LoadPhase::AllCreated);
     }
+}
+
+bool SimulationObjectListWidget::copySelectedObjectToClipboard()
+{
+    QVector<AbstractSimulationObject *> selectedObjs = getSelectedObjects();
+    if(selectedObjs.isEmpty())
+        return false;
+
+    QJsonObject rootObj;
+    rootObj["objects"] = SimulationObjectCopyHelper::copyObjects(mModel->modeMgr(),
+                                                                 selectedObjs);
+
+    SimulationObjectCopyHelper::copyToClipboard(rootObj);
+    return true;
+}
+
+bool SimulationObjectListWidget::pasteFromClipboard()
+{
+    QJsonObject rootObj;
+    if(!SimulationObjectCopyHelper::getPasteDataFromClipboard(rootObj))
+        return false;
+
+    const QJsonObject objPool = rootObj.value("objects").toObject();
+    SimulationObjectCopyHelper::pasteObjects(mModel->modeMgr(), objPool);
+    return true;
+}
+
+QVector<AbstractSimulationObject *> SimulationObjectListWidget::getSelectedObjects()
+{
+    QVector<AbstractSimulationObject *> selectedObjs;
+
+    const QItemSelection sel = mView->selectionModel()->selection();
+
+    for(const QItemSelectionRange& r : sel)
+    {
+        if(r.isEmpty() || !r.isValid())
+            continue;
+
+        for(int i = r.top(); i <= r.bottom(); i++)
+        {
+            const QModelIndex dest = mProxyModel->index(i, 0);
+            const QModelIndex source = mProxyModel->mapToSource(dest);
+            if(!source.isValid())
+                continue;
+
+            AbstractSimulationObject *obj = mModel->objectAt(source.row());
+            selectedObjs.append(obj);
+        }
+    }
+
+    return selectedObjs;
 }
