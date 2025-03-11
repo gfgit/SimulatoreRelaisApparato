@@ -226,24 +226,17 @@ void SimulationObjectListWidget::removeCurrentObject()
     if(mModel->modeMgr()->mode() != FileMode::Editing)
         return;
 
-    QModelIndex idx = mView->currentIndex();
-    idx = mProxyModel->mapToSource(idx);
-    if(!idx.isValid())
+    const QVector<AbstractSimulationObject *> selectedObjs = getSelectedObjects();
+    if(selectedObjs.isEmpty())
         return;
-
-    AbstractSimulationObject *item = mModel->objectAt(idx.row());
-    if(!item)
-        return;
-
-    const QString prettyName = mModel->getObjectPrettyName();
 
     int ret = QMessageBox::question(this,
-                                    tr("Delete %1?").arg(prettyName),
-                                    tr("Are you sure to delete <b>%1</b>?")
-                                    .arg(item->name()));
+                                    tr("Delete?"),
+                                    tr("Are you sure to delete selected object?"));
     if(ret == QMessageBox::Yes)
     {
-        mModel->removeObject(item);
+        for(AbstractSimulationObject *item : selectedObjs)
+            mModel->removeObject(item);
     }
 }
 
@@ -279,7 +272,7 @@ void SimulationObjectListWidget::onSelectionChanged()
 
 void SimulationObjectListWidget::onBatchEdit()
 {
-    QVector<AbstractSimulationObject *> selectedObjs = getSelectedObjects();
+    const QVector<AbstractSimulationObject *> selectedObjs = getSelectedObjects();
     if(selectedObjs.isEmpty())
         return;
 
