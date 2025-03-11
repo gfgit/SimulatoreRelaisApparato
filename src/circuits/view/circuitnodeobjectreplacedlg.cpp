@@ -47,6 +47,8 @@
 
 #include <QDialogButtonBox>
 
+#include <QScrollArea>
+
 CircuitNodeObjectReplaceDlg::CircuitNodeObjectReplaceDlg(ViewManager *viewMgr,
                                                          const QVector<AbstractNodeGraphItem *> &items,
                                                          QWidget *parent)
@@ -59,14 +61,21 @@ CircuitNodeObjectReplaceDlg::CircuitNodeObjectReplaceDlg(ViewManager *viewMgr,
     QPushButton *replaceStrBut = new QPushButton(tr("Replace Name String"));
     mainLay->addWidget(replaceStrBut);
 
-    mGroupsLay = new QVBoxLayout;
-    mainLay->addLayout(mGroupsLay);
+    QScrollArea *scrollArea = new QScrollArea;
+    scrollArea->setWidgetResizable(true);
+    mainLay->addWidget(scrollArea);
+
+    QWidget *viewport = new QWidget;
+    scrollArea->setWidget(viewport);
+    mGroupsLay = new QVBoxLayout(viewport);
 
     createGroups();
     reloadGroups();
 
     connect(replaceStrBut, &QPushButton::clicked,
             this, &CircuitNodeObjectReplaceDlg::onReplaceName);
+
+    setWindowTitle(tr("Batch Object Replace"));
 }
 
 void CircuitNodeObjectReplaceDlg::replaceName(const QString &oldStr, const QString &newStr)
