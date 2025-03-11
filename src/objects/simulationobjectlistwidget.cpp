@@ -70,7 +70,8 @@ SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, Abstrac
 
     butLay->addWidget(addBut);
     butLay->addWidget(remBut);
-    butLay->addWidget(batchEditBut);
+    lay->addWidget(batchEditBut); // Put under
+
     batchEditBut->setVisible(false);
     batchEditBut->setToolTip(tr("Edit multiple objects togheter.\n"
                                 "Edit one object, changed settings will be applied to"
