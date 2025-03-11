@@ -236,10 +236,16 @@ void SimulationObjectListWidget::showViewContextMenu(const QPoint &pos)
     if(!item)
         return;
 
+    QAction *actionBatchEdit = menu->addAction(tr("Batch Edit"));
+    actionBatchEdit->setVisible(batchEditBut->isEnabled() && hasMultipleRows(mView->selectionModel()->selection()));
+
     QAction *actionProperties = menu->addAction(tr("Properties"));
     QAction *ret = menu->exec(mView->viewport()->mapToGlobal(pos));
+
     if(ret == actionProperties)
         mViewMgr->showObjectProperties(item);
+    else if(ret == actionBatchEdit)
+        onBatchEdit();
 }
 
 void SimulationObjectListWidget::onSelectionChanged()
@@ -285,6 +291,7 @@ void SimulationObjectListWidget::onBatchEdit()
     SimulationObjectFactory *factory = mModel->modeMgr()->objectFactory();
 
     QPointer<QDialog> dlg = new QDialog(this);
+    dlg->setWindowTitle(tr("Batch Object Edit"));
 
     QVBoxLayout *lay = new QVBoxLayout(dlg);
 
