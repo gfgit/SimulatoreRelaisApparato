@@ -71,6 +71,11 @@ public:
 
     AbstractSimulationObject *getObjectByName(const QString& name) const;
 
+    inline int rowForObject(AbstractSimulationObject *item) const
+    {
+        return mObjects.indexOf(item);
+    }
+
     inline ModeManager *modeMgr() const
     {
         return mModeMgr;

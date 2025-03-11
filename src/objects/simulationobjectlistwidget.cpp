@@ -181,7 +181,22 @@ void SimulationObjectListWidget::onFileModeChanged(FileMode mode)
 
 void SimulationObjectListWidget::addObject()
 {
-    addObjectHelper(mModel, this);
+    AbstractSimulationObject *item = addObjectHelper(mModel, this);
+    if(!item)
+        return;
+
+    mView->clearSelection();
+
+    const int row = mModel->rowForObject(item);
+    if(row < 0)
+        return;
+
+    const QModelIndex source = mModel->index(row, 0);
+    const QModelIndex dest = mProxyModel->mapFromSource(source);
+
+    mView->scrollTo(dest);
+    mView->selectionModel()->select(dest, QItemSelectionModel::Select);
+    mView->setCurrentIndex(dest);
 }
 
 void SimulationObjectListWidget::removeCurrentObject()
