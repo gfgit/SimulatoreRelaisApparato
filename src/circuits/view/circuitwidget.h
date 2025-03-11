@@ -50,9 +50,6 @@ public:
     int uniqueNum() const;
     void setUniqueNum(int newUniqueNum);
 
-    void batchNodeEdit();
-    void batchObjectReplace();
-
 private slots:
     void onZoomChanged(double val);
     void onZoomSliderChanged(int val);

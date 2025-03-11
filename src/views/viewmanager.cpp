@@ -678,9 +678,9 @@ bool ViewManager::batchCircuitNodeEdit(bool objectReplace)
         return false;
 
     if(objectReplace)
-        mActiveCircuitView->batchObjectReplace();
+        mActiveCircuitView->mCircuitView->batchObjectReplace();
     else
-        mActiveCircuitView->batchNodeEdit();
+        mActiveCircuitView->mCircuitView->batchNodeEdit();
 
     return true;
 }

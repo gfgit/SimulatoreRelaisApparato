@@ -44,7 +44,7 @@ CircuitWidget::CircuitWidget(ViewManager *mgr, QWidget *parent)
     lay->setContentsMargins(QMargins());
     setContentsMargins(QMargins());
 
-    mCircuitView = new CircuitsView;
+    mCircuitView = new CircuitsView(mgr);
     mCircuitView->installEventFilter(this);
     lay->addWidget(mCircuitView);
 
@@ -119,7 +119,7 @@ void CircuitWidget::setScene(CircuitScene *newScene, bool updateName)
                 this, &CircuitWidget::onSceneDestroyed);
     }
 
-    setUniqueNum(mViewMgr->getUniqueNum(mScene, this));
+    setUniqueNum(mCircuitView->viewMgr()->getUniqueNum(mScene, this));
 
     if(updateName)
         onSceneNameChanged();
@@ -151,7 +151,7 @@ void CircuitWidget::resetZoom()
 
 void CircuitWidget::onSceneNameChanged()
 {
-    mViewMgr->updateDockName(this);
+    mCircuitView->viewMgr()->updateDockName(this);
 }
 
 void CircuitWidget::onSceneDestroyed()
@@ -169,7 +169,7 @@ bool CircuitWidget::eventFilter(QObject *watched, QEvent *e)
         if(e->type() == QEvent::FocusIn)
         {
             // Set this view as active
-            mViewMgr->setActiveCircuit(this);
+            mCircuitView->viewMgr()->setActiveCircuit(this);
         }
         else if(e->type() == QEvent::KeyPress)
         {
@@ -189,7 +189,7 @@ bool CircuitWidget::eventFilter(QObject *watched, QEvent *e)
 void CircuitWidget::focusInEvent(QFocusEvent *ev)
 {
     // Set this view as active
-    mViewMgr->setActiveCircuit(this);
+    mCircuitView->viewMgr()->setActiveCircuit(this);
 
     QWidget::focusInEvent(ev);
 }
@@ -229,26 +229,6 @@ int CircuitWidget::uniqueNum() const
 void CircuitWidget::setUniqueNum(int newUniqueNum)
 {
     mUniqueNum = newUniqueNum;
-}
-
-void CircuitWidget::batchNodeEdit()
-{
-    if(!mScene || !mScene->hasMultipleNodesSelected() || !mScene->areSelectedNodesSameType())
-        return;
-
-    QVector<AbstractNodeGraphItem *> items = mScene->getSelectedNodes();
-
-    CircuitNodeObjectReplaceDlg::batchNodeEdit(items, mViewMgr, this);
-}
-
-void CircuitWidget::batchObjectReplace()
-{
-    QPointer<CircuitNodeObjectReplaceDlg> dlg = new CircuitNodeObjectReplaceDlg(mViewMgr,
-                                                                                mScene->getSelectedNodes(),
-                                                                                this);
-    dlg->exec();
-    if(dlg)
-        delete dlg;
 }
 
 CircuitsView *CircuitWidget::circuitsView() const

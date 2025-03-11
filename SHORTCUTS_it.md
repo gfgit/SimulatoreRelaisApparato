@@ -94,7 +94,8 @@ Per selezionare gli elementi puoi fare:
 - `Shift + Ctrl + A` per invertire la selezione.
 
 Per copiare la selezione attuale, premi `Ctrl + C`.
-Per incollare nella schermata attiva, premi `Ctrl + V`
+Per incollare nella schermata attiva, premi `Ctrl + V`.
+Per sostituire oggetti o modificare in gruppo nella selezione attuale, premi `Ctrl + D` o `Shift + Ctrl + D`.
 
 # Scorciatoie Nodi
 

@@ -93,7 +93,9 @@ To select items you can:
 - `Shift + Ctrl + A` to invert selection.
 
 To copy current selection press `Ctrl + C`.
-To paste items into a view, press `Ctrl + V`
+To paste items into a view, press `Ctrl + V`.
+
+To replace objects/batch edit in current selection, press `Ctrl + D` or `Shift + Ctrl + D`.
 
 # Items shortcuts
 
