@@ -96,6 +96,7 @@ QVariant AbstractSimulationObjectModel::data(const QModelIndex &idx, int role) c
         {
         case Qt::DisplayRole:
         case Qt::EditRole:
+        case Qt::ToolTipRole:
             return item->name();
         default:
             break;
