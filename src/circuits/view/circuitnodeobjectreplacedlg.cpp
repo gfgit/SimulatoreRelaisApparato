@@ -69,6 +69,15 @@ CircuitNodeObjectReplaceDlg::CircuitNodeObjectReplaceDlg(ViewManager *viewMgr,
     scrollArea->setWidget(viewport);
     mGroupsLay = new QVBoxLayout(viewport);
 
+    QDialogButtonBox *dlgBut = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                                                    Qt::Horizontal);
+    mainLay->addWidget(dlgBut);
+
+    connect(dlgBut, &QDialogButtonBox::accepted,
+            this, &QDialog::accept);
+    connect(dlgBut, &QDialogButtonBox::rejected,
+            this, &QDialog::reject);
+
     createGroups();
     reloadGroups();
 
