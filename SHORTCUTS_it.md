@@ -18,6 +18,10 @@ Premi `Ctrl+R` su una schermata attiva, una finestra di dialogo apparirà per se
 Puoi ingrandire/rimpicciolire i contenuti usand `Ctrl` e ruotando la rotella del mouse.
 Oppure puoi inserire il livello di zoom nella barra di stato della schermata.
 
+## Pan schermata
+
+Puoi scorrere la visuale premendo `Alt + Click Destro` e muovendo il puntatore in giro.
+
 ## Finestra Proprietà
 
 ### Campi oggetto

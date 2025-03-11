@@ -25,6 +25,8 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 
+#include <QScrollBar>
+
 ZoomGraphView::ZoomGraphView(QWidget *parent)
     : QGraphicsView{parent}
 {
@@ -83,6 +85,48 @@ bool ZoomGraphView::viewportEvent(QEvent *e)
     return QGraphicsView::viewportEvent(e);
 }
 
+void ZoomGraphView::mousePressEvent(QMouseEvent *e)
+{
+    if (e->buttons() == Qt::RightButton && e->modifiers() == Qt::AltModifier)
+    {
+        mIsPanning = true;
+        mPanStart = e->position();
+        setCursor(Qt::ClosedHandCursor);
+        return;
+    }
+
+    QGraphicsView::mousePressEvent(e);
+}
+
+void ZoomGraphView::mouseMoveEvent(QMouseEvent *e)
+{
+    if (e->buttons() == Qt::RightButton && mIsPanning)
+    {
+        QPoint delta = (e->position() - mPanStart).toPoint();
+
+        horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
+        verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());
+
+        mPanStart = e->pos();
+        e->accept();
+        return;
+    }
+
+    QGraphicsView::mouseMoveEvent(e);
+}
+
+void ZoomGraphView::mouseReleaseEvent(QMouseEvent *e)
+{
+    if (e->button() == Qt::RightButton && mIsPanning)
+    {
+        stopPanOperation();
+        e->accept();
+        return;
+    }
+
+    QGraphicsView::mouseReleaseEvent(e);
+}
+
 void ZoomGraphView::zoomBy(double factor)
 {
     setZoom(mZoomFactor * factor); // Accumulate
@@ -96,4 +140,13 @@ double ZoomGraphView::zoomFactor() const
 QPointF ZoomGraphView::getTargetScenePos() const
 {
     return mapToScene(targetViewportPos.toPoint());
+}
+
+void ZoomGraphView::stopPanOperation()
+{
+    if(!mIsPanning)
+        return;
+
+    mIsPanning = false;
+    setCursor(Qt::ArrowCursor);
 }
