@@ -138,6 +138,7 @@ void SimpleActivationNode::setObject(AbstractSimpleActivableObject *newObject)
             mObject->onNodeStateChanged(this, false);
     }
 
+    emit shapeChanged(true);
     mObject = newObject;
 
     if(mObject)
@@ -148,6 +149,7 @@ void SimpleActivationNode::setObject(AbstractSimpleActivableObject *newObject)
             mObject->onNodeStateChanged(this, true);
     }
 
+    emit shapeChanged(false);
     emit objectChanged(mObject);
     modeMgr()->setFileEdited();
 }
