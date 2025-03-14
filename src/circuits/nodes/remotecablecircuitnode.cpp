@@ -31,6 +31,8 @@
 
 #include <QJsonObject>
 
+#include <QScopedValueRollback>
+
 RemoteCableCircuitNode::RemoteCableCircuitNode(ModeManager *mgr, QObject *parent)
     : AbstractCircuitNode{mgr, true, parent}
 {
@@ -124,7 +126,8 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
 
 void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
 {
-    insideRemoveCircuit = true;
+    // Set insideRemoveCircuit to true and reset to false on function return
+    QScopedValueRollback<bool> guard(insideRemoveCircuit, true);
 
     const AnyCircuitType before = hasAnyCircuit(0);
 
@@ -152,14 +155,10 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
                     setMode(Mode::ReceiveCurrentOpen);
 
                 scheduleStateRefresh();
-
-                insideRemoveCircuit = false;
                 return;
             }
 
             setMode(Mode::None);
-
-            insideRemoveCircuit = false;
             return;
         }
 
@@ -187,8 +186,6 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
         default:
             break;
         }
-
-        insideRemoveCircuit = false;
         return;
     }
 }
