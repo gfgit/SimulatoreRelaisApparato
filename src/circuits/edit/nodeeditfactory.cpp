@@ -68,7 +68,10 @@ AbstractNodeGraphItem *NodeEditFactory::createItem(const QString &nodeType,
     return item;
 }
 
-void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item, ViewManager *viewMgr)
+void NodeEditFactory::editItem(QWidget *parent,
+                               AbstractNodeGraphItem *item,
+                               ViewManager *viewMgr,
+                               bool allowDelete)
 {
     const FactoryItem *factory = getItemForType(item->getAbstractNode()->nodeType());
     if(!factory)
@@ -113,26 +116,31 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item, Vie
             lay->addWidget(customWidget);
     }
 
-    QPushButton *delBut = new QPushButton(tr("Delete"));
-    delBut->setAutoDefault(false);
-    delBut->setDefault(false);
-
-    connect(delBut, &QPushButton::clicked,
-            dlg, [dlg, item]()
+    QPushButton *delBut;
+    if(allowDelete)
     {
-        int ret = QMessageBox::question(dlg,
-                                        tr("Delete Item?"),
-                                        tr("Are you sure?"));
-        if(ret == QMessageBox::Yes)
-        {
-            delete dlg;
+        delBut = new QPushButton(tr("Delete"));
+        delBut->setAutoDefault(false);
+        delBut->setDefault(false);
 
-            // Remove item
-            auto *scene = item->circuitScene();
-            if(scene)
-                scene->removeNode(item);
-        }
-    });
+        connect(delBut, &QPushButton::clicked,
+                dlg, [dlg, item]()
+        {
+            int ret = QMessageBox::question(dlg,
+                                            tr("Delete Item?"),
+                                            tr("Are you sure?"));
+            if(ret == QMessageBox::Yes)
+            {
+                delete dlg;
+
+                // Remove item
+                auto *scene = item->circuitScene();
+                if(scene)
+                    scene->removeNode(item);
+            }
+        });
+    }
+
 
     QPushButton *okBut = new QPushButton(tr("Ok"));
     connect(okBut, &QPushButton::clicked, dlg, &QDialog::accept);
@@ -142,7 +150,8 @@ void NodeEditFactory::editItem(QWidget *parent, AbstractNodeGraphItem *item, Vie
     okBut->setDefault(false);
 
     QHBoxLayout *butLay = new QHBoxLayout;
-    butLay->addWidget(delBut);
+    if(allowDelete)
+        butLay->addWidget(delBut);
     butLay->addWidget(okBut);
     lay->setLayout(lay->rowCount(), QFormLayout::SpanningRole, butLay);
 

@@ -15,6 +15,9 @@ set(SIMULATORE_RELAIS_SOURCES
     utils/genericleverutils.cpp
     utils/genericleverutils.h
 
+    utils/jsondiff.cpp
+    utils/jsondiff.h
+
     utils/tilerotate.cpp
     utils/tilerotate.h
 

@@ -49,6 +49,9 @@ public:
     static AbstractSimulationObject *addObjectHelper(AbstractSimulationObjectModel *model,
                                                      QWidget *parent);
 
+protected:
+    void keyPressEvent(QKeyEvent *ev) override;
+
 private slots:
     void onFileModeChanged(FileMode mode);
 
@@ -56,11 +59,21 @@ private slots:
     void removeCurrentObject();
     void showViewContextMenu(const QPoint &pos);
 
+    void onSelectionChanged();
+
+    void onBatchEdit();
+
+    bool copySelectedObjectToClipboard();
+    bool pasteFromClipboard();
+
+    QVector<AbstractSimulationObject *> getSelectedObjects();
+
 private:
     QTableView *mView;
 
     QPushButton *addBut;
     QPushButton *remBut;
+    QPushButton *batchEditBut;
 
     ViewManager *mViewMgr;
     AbstractSimulationObjectModel *mModel;

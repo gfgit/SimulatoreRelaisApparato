@@ -70,7 +70,8 @@ public:
 
     AbstractNodeGraphItem *createItem(const QString& nodeType,
                                       CircuitScene *scene);
-    void editItem(QWidget *parent, AbstractNodeGraphItem *item, ViewManager *viewMgr);
+    void editItem(QWidget *parent, AbstractNodeGraphItem *item,
+                  ViewManager *viewMgr, bool allowDelete = true);
     void editCable(QWidget *parent, CableGraphItem *item);
 
     QString prettyName(const QString& nodeType) const;

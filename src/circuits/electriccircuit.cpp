@@ -56,7 +56,7 @@ void ElectricCircuit::enableCircuit()
         if(other->mItems == mItems)
         {
             // We are a duplicate
-            qDebug() << "DUPLICATE CIRCUIT OF TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
+            //qDebug() << "DUPLICATE CIRCUIT OF TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
             delete this;
             return;
         }

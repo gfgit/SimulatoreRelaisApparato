@@ -61,6 +61,8 @@ public:
     virtual bool loadFromJSON(const QJsonObject& obj, LoadPhase phase);
     virtual void saveToJSON(QJsonObject& obj) const;
 
+    virtual void getReferencedObjects(QSet<AbstractSimulationObject *> &result);
+
     QString name() const;
     bool setName(const QString &newName);
 

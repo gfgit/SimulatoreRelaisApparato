@@ -194,6 +194,15 @@ void RelaisPowerNode::saveToJSON(QJsonObject &obj) const
     obj["combinator_second_coil"] = combinatorSecondCoil();
 }
 
+void RelaisPowerNode::getObjectProperties(QVector<ObjectProperty> &result) const
+{
+    ObjectProperty relProp;
+    relProp.name = "relais";
+    relProp.prettyName = tr("Relay");
+    relProp.types = {AbstractRelais::Type};
+    result.append(relProp);
+}
+
 QString RelaisPowerNode::nodeType() const
 {
     return NodeType;

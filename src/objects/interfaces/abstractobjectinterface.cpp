@@ -41,6 +41,11 @@ int AbstractObjectInterface::getReferencingNodes(QVector<AbstractCircuitNode *> 
     return 0;
 }
 
+void AbstractObjectInterface::getReferencedObjects(QSet<AbstractSimulationObject *> &result)
+{
+    Q_UNUSED(result);
+}
+
 bool AbstractObjectInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
 {
     Q_UNUSED(obj)

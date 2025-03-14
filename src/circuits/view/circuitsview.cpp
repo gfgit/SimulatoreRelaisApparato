@@ -28,6 +28,8 @@
 #include "../graphs/abstractnodegraphitem.h"
 #include "../nodes/abstractcircuitnode.h"
 
+#include "circuitnodeobjectreplacedlg.h"
+
 #include "../../views/modemanager.h"
 
 #include <QKeyEvent>
@@ -39,8 +41,11 @@
 #include <QPainter>
 #include <QSvgGenerator>
 
-CircuitsView::CircuitsView(QWidget *parent)
+#include <QPointer>
+
+CircuitsView::CircuitsView(ViewManager *viewMgr, QWidget *parent)
     : ZoomGraphView{parent}
+    , mViewMgr(viewMgr)
 {
     setDragMode(RubberBandDrag);
     setRubberBandSelectionMode(Qt::IntersectsItemShape);
@@ -95,6 +100,47 @@ void CircuitsView::setMode(FileMode newMode, FileMode oldMode)
     circuitScene()->setMode(newMode, oldMode);
 
     centerOn(sceneVpCenter);
+}
+
+void CircuitsView::batchNodeEdit()
+{
+    if(!circuitScene() || !circuitScene()->hasMultipleNodesSelected() || !circuitScene()->areSelectedNodesSameType())
+        return;
+
+    if(circuitScene()->modeMgr()->mode() != FileMode::Editing)
+        return;
+
+    QVector<AbstractNodeGraphItem *> items = circuitScene()->getSelectedNodes();
+
+    CircuitNodeObjectReplaceDlg::batchNodeEdit(items, mViewMgr, this);
+
+    QMetaObject::invokeMethod(this, [this, items]()
+    {
+        ensureItemsSelected(items);
+    }, Qt::QueuedConnection);
+}
+
+void CircuitsView::batchObjectReplace()
+{
+    if(!circuitScene())
+        return;
+
+    if(circuitScene()->modeMgr()->mode() != FileMode::Editing)
+        return;
+
+    QVector<AbstractNodeGraphItem *> items = circuitScene()->getSelectedNodes();
+
+    QPointer<CircuitNodeObjectReplaceDlg> dlg = new CircuitNodeObjectReplaceDlg(mViewMgr,
+                                                                                items,
+                                                                                this);
+    dlg->exec();
+    if(dlg)
+        delete dlg;
+
+    QMetaObject::invokeMethod(this, [this, items]()
+    {
+        ensureItemsSelected(items);
+    }, Qt::QueuedConnection);
 }
 
 void CircuitsView::keyPressEvent(QKeyEvent *ev)
@@ -173,6 +219,16 @@ void CircuitsView::keyReleaseEvent(QKeyEvent *ev)
         {
             renderToSVG(fileName);
         }
+        return;
+    }
+    else if(ev->key() == Qt::Key_D && ev->modifiers() & Qt::ControlModifier)
+    {
+        // Batch Edit
+        if(ev->modifiers() & Qt::ShiftModifier)
+            batchNodeEdit();
+        else
+            batchObjectReplace();
+        return;
     }
 
     ZoomGraphView::keyReleaseEvent(ev);
@@ -213,4 +269,21 @@ void CircuitsView::renderToSVG(const QString &fileName)
 
     p.translate(-bounds.topLeft());
     circuitScene()->render(&p);
+}
+
+void CircuitsView::ensureItemsSelected(const QVector<AbstractNodeGraphItem *> &items)
+{
+    // NOTE: sometime when closing dialog with Esc key, the event is handled
+    // by scene too which disables selection. In that case restore it manually.
+
+    if(!circuitScene() || circuitScene()->modeMgr()->mode() != FileMode::Editing)
+        return;
+
+    if(circuitScene()->modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
+        return; // Everything ok
+
+    circuitScene()->modeMgr()->setEditingSubMode(EditingSubMode::ItemSelection);
+
+    for(AbstractNodeGraphItem *item : items)
+        item->setSelected(true);
 }

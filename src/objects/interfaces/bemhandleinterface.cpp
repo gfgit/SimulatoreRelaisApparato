@@ -127,6 +127,18 @@ void BEMHandleInterface::saveToJSON(QJsonObject &obj) const
     obj[ArtificialLibButPropName + "_type"] = mArtificialLiberation ? mArtificialLiberation->object()->getType() : QString();
 }
 
+void BEMHandleInterface::getReferencedObjects(QSet<AbstractSimulationObject *> &result)
+{
+    if(twinHandle)
+        result.insert(twinHandle->object());
+
+    if(mLiberationRelay)
+        result.insert(mLiberationRelay);
+
+    if(mArtificialLiberation)
+        result.insert(mArtificialLiberation->object());
+}
+
 BEMHandleInterface::LeverType BEMHandleInterface::leverType() const
 {
     return mLeverType;

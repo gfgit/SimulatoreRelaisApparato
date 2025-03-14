@@ -14,6 +14,10 @@ This way you can save some screen space when many views are visible at same time
 You can zoom in/out by pressing `Ctrl` and rotate mouse wheel.
 Or you can enter zoom level in view's status bar.
 
+## View pan
+
+You can pan view by pressing `Alt + Right click` and move mouse around.
+
 ## Render View to SVG
 
 Press `Ctrl+R` on an active view, a file dialog will appear for chosing destination SVG file.
@@ -89,7 +93,9 @@ To select items you can:
 - `Shift + Ctrl + A` to invert selection.
 
 To copy current selection press `Ctrl + C`.
-To paste items into a view, press `Ctrl + V`
+To paste items into a view, press `Ctrl + V`.
+
+To replace objects/batch edit in current selection, press `Ctrl + D` or `Shift + Ctrl + D`.
 
 # Items shortcuts
 

@@ -31,11 +31,15 @@ class CircuitScene;
 struct TileLocation;
 class NodeEditFactory;
 
+class AbstractNodeGraphItem;
+
+class ViewManager;
+
 class CircuitsView : public ZoomGraphView
 {
     Q_OBJECT
 public:
-    explicit CircuitsView(QWidget *parent = nullptr);
+    explicit CircuitsView(ViewManager *viewMgr, QWidget *parent = nullptr);
 
     CircuitScene *circuitScene() const;
 
@@ -45,6 +49,11 @@ public:
 
     void setMode(FileMode newMode, FileMode oldMode);
 
+    void batchNodeEdit();
+    void batchObjectReplace();
+
+    inline ViewManager *viewMgr() const { return mViewMgr; }
+
 protected:
     void keyPressEvent(QKeyEvent *ev) override;
     void keyReleaseEvent(QKeyEvent *ev) override;
@@ -53,6 +62,11 @@ private:
     void deleteSelectedItems();
 
     void renderToSVG(const QString& fileName);
+
+    void ensureItemsSelected(const QVector<AbstractNodeGraphItem *>& items);
+
+private:
+    ViewManager *mViewMgr = nullptr;
 };
 
 #endif // CIRCUITSVIEW_H

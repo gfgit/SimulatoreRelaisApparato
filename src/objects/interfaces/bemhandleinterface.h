@@ -54,6 +54,8 @@ public:
     bool loadFromJSON(const QJsonObject &obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject &obj) const override;
 
+    void getReferencedObjects(QSet<AbstractSimulationObject *> &result) override;
+
     // Options
     LeverType leverType() const;
     void setLeverType(LeverType newLeverType);

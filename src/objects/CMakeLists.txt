@@ -22,6 +22,9 @@ set(SIMULATORE_RELAIS_SOURCES
     objects/simulationobjectmultitypemodel.cpp
     objects/simulationobjectmultitypemodel.h
 
+    objects/simulationobjectcopyhelper.cpp
+    objects/simulationobjectcopyhelper.h
+
     objects/simulationobjectfactory.cpp
     objects/simulationobjectfactory.h
 

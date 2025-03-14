@@ -124,6 +124,12 @@ void MechanicalInterface::saveToJSON(QJsonObject &obj) const
     obj["conditions"] = conditionsArr;
 }
 
+void MechanicalInterface::getReferencedObjects(QSet<AbstractSimulationObject *> &result)
+{
+    for(MechanicalInterface *other : mWantsObjects)
+        result.insert(other->object());
+}
+
 void MechanicalInterface::init()
 {
     // Recalculate range

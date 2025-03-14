@@ -30,6 +30,8 @@
 #include "nodes/circuitcable.h"
 #include "nodes/abstractcircuitnode.h"
 
+#include "../objects/simulationobjectcopyhelper.h"
+
 #include <QGraphicsPathItem>
 #include <QPen>
 
@@ -40,14 +42,12 @@
 
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QJsonDocument>
 
 #include <QPainter>
 
-#include <QClipboard>
-#include <QMimeData>
-
 #include <QToolTip>
+
+#include <QGuiApplication>
 
 #include "edit/nodeeditfactory.h"
 
@@ -1155,6 +1155,8 @@ void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
                    "Item location is not registered");
 
         mSelectedItemPositions.insert({item, tile});
+
+        emit circuitsModel()->nodeSelectionChanged();
     }
     else
     {
@@ -1165,6 +1167,8 @@ void CircuitScene::onItemSelected(AbstractNodeGraphItem *item, bool value)
             const TileLocation lastValidLocation = it->second;
             item->setLocation(lastValidLocation);
             mSelectedItemPositions.erase(it);
+
+            emit circuitsModel()->nodeSelectionChanged();
         }
     }
 }
@@ -1465,6 +1469,9 @@ void CircuitScene::moveSelectedCableAt(const TileLocation &tile)
 
 void CircuitScene::copySelectedItems()
 {
+    // Type, List of names
+    QHash<QString, QStringList> objectsToCopy;
+
     QJsonArray nodes;
     for(auto it : mSelectedItemPositions)
     {
@@ -1472,6 +1479,31 @@ void CircuitScene::copySelectedItems()
 
         QJsonObject nodeObj;
         item->saveToJSON(nodeObj);
+
+        QVector<AbstractCircuitNode::ObjectProperty> objProps;
+        item->getAbstractNode()->getObjectProperties(objProps);
+
+        for(const AbstractCircuitNode::ObjectProperty& prop : std::as_const(objProps))
+        {
+            const QString objName = nodeObj.value(prop.name).toString();
+            QString objType;
+
+            const bool needsType = !prop.interface.isEmpty() || prop.types.size() != 1;
+            if(needsType)
+                objType = nodeObj.value(prop.name + QLatin1String("_type")).toString();
+            else
+                objType = prop.types.first();
+
+            if(!objName.isEmpty())
+            {
+                auto it2 = objectsToCopy.find(objType);
+                if(it2 == objectsToCopy.end())
+                    it2 = objectsToCopy.insert(objType, {});
+
+                it2.value().append(objName);
+            }
+        }
+
         nodes.append(nodeObj);
     }
 
@@ -1485,40 +1517,27 @@ void CircuitScene::copySelectedItems()
         cables.append(cableObj);
     }
 
+    QJsonObject objectPool = SimulationObjectCopyHelper::copyObjects(modeMgr(),
+                                                                     objectsToCopy);
+
     QJsonObject rootObj;
     rootObj["nodes"] = nodes;
     rootObj["cables"] = cables;
+    rootObj["objects"] = objectPool;
 
-    QByteArray value = QJsonDocument(rootObj).toJson(QJsonDocument::Compact);
-
-    QMimeData *mime = new QMimeData;
-    mime->setData(CircuitMimeType, value);
-
-    QGuiApplication::clipboard()->setMimeData(mime, QClipboard::Clipboard);
+    SimulationObjectCopyHelper::copyToClipboard(rootObj);
 }
 
 bool CircuitScene::tryPasteItems(const TileLocation &tileHint,
                                  TileLocation &outTopLeft,
                                  TileLocation &outBottomRight)
 {
-    QClipboard *clipboard = QGuiApplication::clipboard();
-    if(!clipboard)
+    QJsonObject rootObj;
+    if(!SimulationObjectCopyHelper::getPasteDataFromClipboard(rootObj))
         return false;
 
-    const QMimeData *mime = clipboard->mimeData(QClipboard::Clipboard);
-    if(!mime)
-        return false;
-
-    QByteArray value = mime->data(CircuitMimeType);
-    if(value.isEmpty())
-        return false;
-
-    QJsonDocument doc = QJsonDocument::fromJson(value);
-    if(doc.isNull())
-        return false;
-
-
-    const QJsonObject rootObj = doc.object();
+    const QJsonObject objPool = rootObj.value("objects").toObject();
+    SimulationObjectCopyHelper::pasteObjects(modeMgr(), objPool);
 
     return insertFragment(tileHint, rootObj,
                           modeMgr()->circuitFactory(),
@@ -1636,6 +1655,43 @@ AbstractNodeGraphItem *CircuitScene::getGraphForNode(AbstractCircuitNode *node) 
     return nullptr;
 }
 
+bool CircuitScene::areSelectedNodesSameType() const
+{
+    if(mSelectedItemPositions.empty())
+        return false;
+
+    auto it = mSelectedItemPositions.cbegin();
+    const QString nodeType = it->first->getAbstractNode()->nodeType();
+    it++;
+
+    for(auto e = mSelectedItemPositions.cend(); it != e; it++)
+    {
+        const QString nodeType2 = it->first->getAbstractNode()->nodeType();
+        if(nodeType != nodeType2)
+            return false;
+    }
+
+    return true;
+}
+
+QVector<AbstractNodeGraphItem *> CircuitScene::getSelectedNodes()
+{
+    QVector<AbstractNodeGraphItem *> result;
+
+    if(mSelectedItemPositions.empty())
+        return result;
+
+    result.reserve(mSelectedItemPositions.size());
+
+    for(auto it = mSelectedItemPositions.cbegin(), e = mSelectedItemPositions.cend();
+        it != e; it++)
+    {
+        result.append(it->first);
+    }
+
+    return result;
+}
+
 void CircuitScene::helpEvent(QGraphicsSceneHelpEvent *e)
 {
     const TileLocation tile = TileLocation::fromPointFloor(e->scenePos());
@@ -1731,7 +1787,7 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
         CableGraphItem *item = new CableGraphItem(cable);
         item->setPos(0, 0);
 
-        if(!item->loadFromJSON(cableObj))
+        if(!item->loadFromJSON(cableObj) || item->cableZeroLength())
         {
             delete item;
             delete cable;
@@ -2552,7 +2608,15 @@ void CircuitScene::refreshItemConnections(AbstractNodeGraphItem *item, bool tryR
 
 void CircuitScene::drawBackground(QPainter *painter, const QRectF &rect)
 {
-    const QRectF sr = sceneRect();
+    QRectF sr = sceneRect();
+    if(sr.isEmpty() || sr.isNull())
+    {
+        sr = itemsBoundingRect();
+
+        // Add some margin
+        sr.adjust(-TileLocation::HalfSize, -TileLocation::HalfSize,
+                  TileLocation::HalfSize, TileLocation::HalfSize);
+    }
 
     // Actual scene background
     QRectF bgRect = rect.intersected(sr);

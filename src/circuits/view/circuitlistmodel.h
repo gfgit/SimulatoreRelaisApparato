@@ -102,6 +102,7 @@ public:
 signals:
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);
+    void nodeSelectionChanged();
 
 private slots:
     void onSceneNameChanged(const QString& name, CircuitScene *scene);

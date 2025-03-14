@@ -44,6 +44,8 @@ public:
 
     virtual int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const;
 
+    virtual void getReferencedObjects(QSet<AbstractSimulationObject *> &result);
+
     virtual bool loadFromJSON(const QJsonObject &obj, LoadPhase phase);
     virtual void saveToJSON(QJsonObject &obj) const;
 

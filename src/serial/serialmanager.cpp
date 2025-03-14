@@ -24,6 +24,8 @@
 
 #include "../objects/circuit_bridge/remotecircuitbridge.h"
 
+#include "../views/modemanager.h"
+
 #include <QSerialPort>
 #include <QSerialPortInfo>
 
@@ -284,6 +286,8 @@ void SerialManager::disconnectAllDevices()
 
 void SerialManager::onOutputChanged(qint64 deviceId, int outputId, int mode)
 {
+    //qDebug() << "SERIAL OUTPUT: dev=" << deviceId << "id:" << outputId << "mode:" << mode;
+
     auto dev = mDevices.find(deviceId);
     if(dev == mDevices.end())
         return;
@@ -607,6 +611,9 @@ bool SerialManager::changeRemoteBridgeInput(RemoteCircuitBridge *bridge, const Q
         dev->inputs.erase(it);
     }
 
+    if(newValue)
+        dev->inputs.insert(newValue, bridge);
+
     return true;
 }
 
@@ -630,6 +637,9 @@ bool SerialManager::changeRemoteBridgeOutput(RemoteCircuitBridge *bridge, const 
         Q_ASSERT(it != dev->outputs.cend() && it.value() == bridge);
         dev->outputs.erase(it);
     }
+
+    if(newValue)
+        dev->outputs.insert(newValue, bridge);
 
     return true;
 }

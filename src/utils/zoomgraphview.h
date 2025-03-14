@@ -38,6 +38,13 @@ public:
 
     QPointF getTargetScenePos() const;
 
+    void stopPanOperation();
+
+    inline bool isPanning() const
+    {
+        return mIsPanning;
+    }
+
 signals:
     void zoomChanged(double val);
 
@@ -46,6 +53,10 @@ public slots:
 
 protected:
     bool viewportEvent(QEvent *e) override;
+
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *e) override;
 
 private:
     void zoomBy(double factor);
@@ -57,6 +68,8 @@ private:
     double mZoomFactor = 1.0;
 
     QPointF targetViewportPos;
+    QPointF mPanStart;
+    bool mIsPanning = false;
 };
 
 #endif // ZOOMGRAPHVIEW_H

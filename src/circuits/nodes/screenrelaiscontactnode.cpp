@@ -69,6 +69,15 @@ void ScreenRelaisContactNode::saveToJSON(QJsonObject &obj) const
     obj["contact_a"] = isContactA();
 }
 
+void ScreenRelaisContactNode::getObjectProperties(QVector<ObjectProperty> &result) const
+{
+    ObjectProperty relProp;
+    relProp.name = "screen_relais";
+    relProp.prettyName = tr("Screen Relay");
+    relProp.types = {ScreenRelais::Type};
+    result.append(relProp);
+}
+
 QString ScreenRelaisContactNode::nodeType() const
 {
     return NodeType;
