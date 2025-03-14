@@ -384,8 +384,8 @@ void RemoteCircuitBridge::setSerialInputId(int newSerialInputId)
     if(mUseSerial)
     {
         SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
-        bool ret = serialMgr->changeRemoteBridgeOutput(this, mSerialName,
-                                                       mSerialInputId, newSerialInputId);
+        bool ret = serialMgr->changeRemoteBridgeInput(this, mSerialName,
+                                                      mSerialInputId, newSerialInputId);
         if(!ret)
             return;
     }
