@@ -1787,7 +1787,7 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
         CableGraphItem *item = new CableGraphItem(cable);
         item->setPos(0, 0);
 
-        if(!item->loadFromJSON(cableObj))
+        if(!item->loadFromJSON(cableObj) || item->cableZeroLength())
         {
             delete item;
             delete cable;
