@@ -150,3 +150,15 @@ void ZoomGraphView::stopPanOperation()
     mIsPanning = false;
     setCursor(Qt::ArrowCursor);
 }
+
+QPoint ZoomGraphView::getScrollPosition() const
+{
+    return QPoint{horizontalScrollBar()->value(),
+                  verticalScrollBar()->value()};
+}
+
+void ZoomGraphView::setScrollPosition(const QPoint &scrollPos) const
+{
+    horizontalScrollBar()->setValue(scrollPos.x());
+    verticalScrollBar()->setValue(scrollPos.y());
+}

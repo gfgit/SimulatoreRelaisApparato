@@ -35,13 +35,19 @@ class DockWidget;
 class QString;
 class QByteArray;
 
+class QJsonObject;
+
 class LayoutLoader
 {
 public:
     static void registerLoader();
 
-
     static void loadLayout(const QByteArray& data);
+
+    static QByteArray saveLayout();
+
+    static QJsonObject saveLayoutConfig();
+    static void loadLayoutConfig(const QJsonObject& layout);
 
 private:
     static KDDockWidgets::QtWidgets::DockWidget *createDockWidget(const QString &name);

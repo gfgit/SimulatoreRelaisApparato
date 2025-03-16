@@ -879,7 +879,7 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="126"/>
-        <location filename="../mainwindow.cpp" line="684"/>
+        <location filename="../mainwindow.cpp" line="691"/>
         <source>Save Layout</source>
         <translation>Salva Layout</translation>
     </message>
@@ -914,130 +914,135 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
         <translation>Chiudi finestre Proprietà</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="208"/>
+        <location filename="../mainwindow.cpp" line="206"/>
+        <source>UI Layouts</source>
+        <translation>Layout UI</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="211"/>
         <source>Network</source>
         <translation>Rete</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="212"/>
+        <location filename="../mainwindow.cpp" line="215"/>
         <source>Change Session Name</source>
         <translation>Modifica Nome Sessione</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="221"/>
-        <location filename="../mainwindow.cpp" line="234"/>
+        <location filename="../mainwindow.cpp" line="224"/>
+        <location filename="../mainwindow.cpp" line="237"/>
         <source>Session Name</source>
         <translation>Nome Sessione</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="222"/>
+        <location filename="../mainwindow.cpp" line="225"/>
         <source>Name:</source>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="235"/>
+        <location filename="../mainwindow.cpp" line="238"/>
         <source>Session Name cannot be empty!</source>
         <translation>Il Nome della Sessione non può essre vuoto!</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="244"/>
+        <location filename="../mainwindow.cpp" line="247"/>
         <source>Online</source>
         <translation>Online</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="259"/>
+        <location filename="../mainwindow.cpp" line="262"/>
         <source>Empty Session Name</source>
         <translation>Nome Sessione Vuoto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="260"/>
+        <location filename="../mainwindow.cpp" line="263"/>
         <source>Please set Session Name first.</source>
         <translation>Per favore imposta prima il Nome della Sessione.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="265"/>
+        <location filename="../mainwindow.cpp" line="268"/>
         <source>Discoverable</source>
         <translation>Raggiungibile</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="292"/>
+        <location filename="../mainwindow.cpp" line="295"/>
         <source>Circuit Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="293"/>
+        <location filename="../mainwindow.cpp" line="296"/>
         <source>Circuit Tools 2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="298"/>
+        <location filename="../mainwindow.cpp" line="301"/>
         <source>New Circuit Item</source>
         <translation>Nuovo Elemento Circuito</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="304"/>
+        <location filename="../mainwindow.cpp" line="307"/>
         <source>Batch Edit</source>
         <translation>Modifica Gruppo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="305"/>
+        <location filename="../mainwindow.cpp" line="308"/>
         <source>Object Replace</source>
         <translation>Sostituisci Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="359"/>
+        <location filename="../mainwindow.cpp" line="362"/>
         <source>&lt;b&gt;(C)&lt;/b&gt; Cable</source>
         <translation>&lt;b&gt;(C)&lt;/b&gt; Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="393"/>
+        <location filename="../mainwindow.cpp" line="396"/>
         <source>%1</source>
         <translation>%1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="664"/>
+        <location filename="../mainwindow.cpp" line="671"/>
         <source>Open Layout</source>
         <translation>Apri Layout</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="358"/>
+        <location filename="../mainwindow.cpp" line="361"/>
         <source>Cable</source>
         <translation>Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="378"/>
+        <location filename="../mainwindow.cpp" line="381"/>
         <source>Panel Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="382"/>
+        <location filename="../mainwindow.cpp" line="385"/>
         <source>New Panel Item</source>
         <translation>Nuovo Elemento QL</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="464"/>
+        <location filename="../mainwindow.cpp" line="467"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="523"/>
+        <location filename="../mainwindow.cpp" line="527"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="579"/>
+        <location filename="../mainwindow.cpp" line="584"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="580"/>
+        <location filename="../mainwindow.cpp" line="585"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="643"/>
+        <location filename="../mainwindow.cpp" line="650"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>
@@ -1418,12 +1423,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RemoteCableCircuitNode</name>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="596"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="593"/>
         <source>BRIDGE!!!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="601"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="598"/>
         <source>EMPTY!!!</source>
         <translation></translation>
     </message>
@@ -2426,50 +2431,161 @@ Scegli un altro nome:</translation>
     </message>
 </context>
 <context>
+    <name>UILayoutDialog</name>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="33"/>
+        <source>Add Layout</source>
+        <translation>Aggiungi Layout</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="34"/>
+        <source>To use a layout double click on its row.</source>
+        <translation>Per usare un layout fai doppio click sulla sua riga.</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="36"/>
+        <source>Remove Layout</source>
+        <translation>Rimuovi Layout</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="38"/>
+        <source>Edit</source>
+        <translation>Modifica</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="39"/>
+        <source>Change selected layout name</source>
+        <translation>Cambia nome al layout selezionato</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="41"/>
+        <source>Store Layout</source>
+        <translation>Salva Layout</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="42"/>
+        <source>Store current layout with selected layout name.
+It will overwrite previous saved layout of same name.</source>
+        <translation>Salva il layout attuale con il nome layout selezionato.
+Sovrascrive il precedente layout salvato con lo stesso nome.</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="45"/>
+        <source>Load on start</source>
+        <translation>Carica all&apos;avvio</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="47"/>
+        <source>Load last layout at start</source>
+        <translation>Carica ultimo layout all&apos;avvio</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="98"/>
+        <source>Save first!</source>
+        <translation>Prima devi salvare!</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="99"/>
+        <source>This is a new file.
+To save layouts, first save the file.</source>
+        <translation>Questo è un file nuovo.
+Per salvare i layout, prima salva il file.</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="111"/>
+        <source>New Layout</source>
+        <translation>Nuovo Layout</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="113"/>
+        <location filename="../views/uilayoutdialog.cpp" line="176"/>
+        <source>Choose name:</source>
+        <translation>Scegli nome:</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="114"/>
+        <location filename="../views/uilayoutdialog.cpp" line="177"/>
+        <source>Name is not available.
+Choose another name:</source>
+        <translation>Il nome non è disponibile.
+Scegli un altro nome:</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="140"/>
+        <source>Remove Layout?</source>
+        <translation>Rimuovere Layout?</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="141"/>
+        <source>Remote &lt;b&gt;%1&lt;/b&gt; layout?</source>
+        <translation>Rimuovere layout &lt;b&gt;%1&lt;/b&gt;?</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutdialog.cpp" line="174"/>
+        <source>Edit Layout</source>
+        <translation>Modifica Layout</translation>
+    </message>
+</context>
+<context>
+    <name>UILayoutsModel</name>
+    <message>
+        <location filename="../views/uilayoutsmodel.cpp" line="61"/>
+        <source>Name</source>
+        <translation>Nome</translation>
+    </message>
+    <message>
+        <location filename="../views/uilayoutsmodel.cpp" line="101"/>
+        <source>%1
+This layout will be loaded on start.</source>
+        <translation>%1
+Questo layout verrà caricato all&apos;avvio.</translation>
+    </message>
+</context>
+<context>
     <name>ViewManager</name>
     <message>
-        <location filename="../views/viewmanager.cpp" line="126"/>
-        <location filename="../views/viewmanager.cpp" line="141"/>
+        <location filename="../views/viewmanager.cpp" line="129"/>
+        <location filename="../views/viewmanager.cpp" line="144"/>
         <source>Empty</source>
         <translation>Vuoto</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="133"/>
+        <location filename="../views/viewmanager.cpp" line="136"/>
         <source>Circuit %1 (%2)</source>
         <translation>Circuito %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="148"/>
+        <location filename="../views/viewmanager.cpp" line="151"/>
         <source>Panel %1 (%2)</source>
         <translation>Pannello %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="268"/>
+        <location filename="../views/viewmanager.cpp" line="271"/>
         <source>Properties Circuit %1</source>
         <translation>Proprietà Circuito %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="451"/>
+        <location filename="../views/viewmanager.cpp" line="480"/>
         <source>Properties Panel %1</source>
         <translation>Proprietà Pannello %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="498"/>
+        <location filename="../views/viewmanager.cpp" line="527"/>
         <source>Properties %1 %2</source>
         <translation>Proprietà %1 %2</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="602"/>
+        <location filename="../views/viewmanager.cpp" line="631"/>
         <source>Circuit Sheets</source>
         <translation>Fogli Circuiti</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="622"/>
+        <location filename="../views/viewmanager.cpp" line="651"/>
         <source>Panel Sheets</source>
         <translation>Fogli Banco</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="651"/>
+        <location filename="../views/viewmanager.cpp" line="680"/>
         <source>%1 List</source>
         <translation>Lista %1</translation>
     </message>

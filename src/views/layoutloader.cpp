@@ -29,16 +29,29 @@
 
 #include "../circuits/view/circuitlistmodel.h"
 #include "../circuits/view/circuitwidget.h"
+#include "../circuits/view/circuitsview.h"
 
 #include "../panels/view/panellistmodel.h"
 #include "../panels/view/panelwidget.h"
+#include "../panels/view/panelview.h"
 
 #include <kddockwidgets/Config.h>
 #include <kddockwidgets/DockWidget.h>
 #include <kddockwidgets/LayoutSaver.h>
 
+#include <QJsonObject>
+
+static constexpr QLatin1String IDKey("id");
+static constexpr QLatin1String ZoomKey("zoom");
+static constexpr QLatin1String ScrollXKey("scroll_x");
+static constexpr QLatin1String ScrollYKey("scroll_y");
+static constexpr QLatin1String StatusBarKey("status_bar");
+
 void LayoutLoader::loadLayout(const QByteArray &data)
 {
+    // Close all before loading new layout
+    ViewManager::self()->closeAll();
+
     setDeleteOnClose(false);
 
     // NOTE: we skip restoring MainWindow geometry because:
@@ -48,6 +61,110 @@ void LayoutLoader::loadLayout(const QByteArray &data)
     sa.restoreLayout(data);
 
     setDeleteOnClose(true);
+}
+
+QByteArray LayoutLoader::saveLayout()
+{
+    KDDockWidgets::LayoutSaver sa;
+    return sa.serializeLayout();
+}
+
+QJsonObject LayoutLoader::saveLayoutConfig()
+{
+    QJsonObject layout;
+
+    // Custom zoom config for circuits/panels views
+    ViewManager *viewMgr = ViewManager::self();
+
+    // Circuits
+    for(auto it = viewMgr->mCircuitViews.cbegin(), e = viewMgr->mCircuitViews.cend();
+        it != e; it++)
+    {
+        CircuitWidget *w = it.key();
+
+        QJsonObject obj;
+        obj[IDKey] = it.value()->uniqueName();
+        obj[ZoomKey] = w->circuitsView()->zoomFactor();
+
+        const QPoint scrollPos = w->circuitsView()->getScrollPosition();
+        obj[ScrollXKey] = scrollPos.x();
+        obj[ScrollYKey] = scrollPos.y();
+
+        obj[StatusBarKey] = w->isStatusBarVisible();
+
+        layout[it.value()->uniqueName()] = obj;
+    }
+
+    // Panels
+    for(auto it = viewMgr->mPanelViews.cbegin(), e = viewMgr->mPanelViews.cend();
+        it != e; it++)
+    {
+        PanelWidget *w = it.key();
+
+        QJsonObject obj;
+        obj[IDKey] = it.value()->uniqueName();
+        obj[ZoomKey] = w->panelView()->zoomFactor();
+
+        const QPoint scrollPos = w->panelView()->getScrollPosition();
+        obj[ScrollXKey] = scrollPos.x();
+        obj[ScrollYKey] = scrollPos.y();
+
+        obj[StatusBarKey] = w->isStatusBarVisible();
+
+        layout[it.value()->uniqueName()] = obj;
+    }
+
+    return layout;
+}
+
+void LayoutLoader::loadLayoutConfig(const QJsonObject &layout)
+{
+    // Custom zoom config for circuits/panels views
+    ViewManager *viewMgr = ViewManager::self();
+
+    // Circuits
+    for(auto it = viewMgr->mCircuitViews.cbegin(), e = viewMgr->mCircuitViews.cend();
+        it != e; it++)
+    {
+        CircuitWidget *w = it.key();
+
+        const QJsonValue v = layout.value(it.value()->uniqueName());
+        if(!v.isObject())
+            continue;
+
+        const QJsonObject obj = v.toObject();
+
+        w->circuitsView()->setZoom(obj.value(ZoomKey).toDouble(1.0));
+        w->setStatusBarVisible(obj.value(StatusBarKey).toBool(false));
+
+        QPoint scrollPos;
+        scrollPos.setX(obj.value(ScrollXKey).toInt());
+        scrollPos.setY(obj.value(ScrollYKey).toInt());
+
+        w->circuitsView()->setScrollPosition(scrollPos);
+    }
+
+    // Panels
+    for(auto it = viewMgr->mPanelViews.cbegin(), e = viewMgr->mPanelViews.cend();
+        it != e; it++)
+    {
+        PanelWidget *w = it.key();
+
+        const QJsonValue v = layout.value(it.value()->uniqueName());
+        if(!v.isObject())
+            continue;
+
+        const QJsonObject obj = v.toObject();
+
+        w->panelView()->setZoom(obj.value(ZoomKey).toDouble(1.0));
+        w->setStatusBarVisible(obj.value(StatusBarKey).toBool(false));
+
+        QPoint scrollPos;
+        scrollPos.setX(obj.value(ScrollXKey).toInt());
+        scrollPos.setY(obj.value(ScrollYKey).toInt());
+
+        w->panelView()->setScrollPosition(scrollPos);
+    }
 }
 
 inline void setFlag(ViewManager::DockWidget *dock, bool value)

@@ -31,6 +31,7 @@
 
 class MainWindow;
 class ModeManager;
+class UILayoutsModel;
 
 class CircuitWidget;
 class CircuitScene;
@@ -93,6 +94,17 @@ public:
     void ensureCircuitItemIsVisible(AbstractNodeGraphItem *item,
                                     bool forceNew, bool adjustZoom);
 
+    void clearLayouts();
+    void loadLayoutFile();
+    void saveLayoutFile();
+
+    void loadStartLayout();
+
+    inline UILayoutsModel *getLayoutsModel() const
+    {
+        return mLayoutsModel;
+    }
+
 signals:
     void currentViewTypeChanged(ViewType newVal);
     void activeViewChanged();
@@ -138,6 +150,7 @@ private:
 
 private:
     friend class LayoutLoader;
+    UILayoutsModel *mLayoutsModel = nullptr;
 
     // File specific views
     CircuitWidget *mActiveCircuitView = nullptr;

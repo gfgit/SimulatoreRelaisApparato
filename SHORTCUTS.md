@@ -2,6 +2,10 @@
 
 [Versione in italiano](SHORTCUTS_it.md)
 
+## UI Layouts Dialog
+
+`Ctrl + L` to open UI Layouts dialog.
+
 ## View status bar
 
 When you have keyboard focus on a view like Circuit View or Panel view,

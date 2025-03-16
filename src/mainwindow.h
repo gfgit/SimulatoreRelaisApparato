@@ -78,6 +78,8 @@ private slots:
 
     void showCurrentEditToolbars();
 
+    void showLayoutDialog();
+
 private:
     // Actions
     QAction *actionOpen;

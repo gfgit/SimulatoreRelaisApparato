@@ -45,6 +45,9 @@ public:
         return mIsPanning;
     }
 
+    QPoint getScrollPosition() const;
+    void setScrollPosition(const QPoint& scrollPos) const;
+
 signals:
     void zoomChanged(double val);
 

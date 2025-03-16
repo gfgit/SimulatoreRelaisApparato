@@ -93,7 +93,7 @@ public:
     AbstractSimulationObjectModel *modelForType(const QString& objType) const;
 
     QString filePath() const;
-    void setFilePath(const QString &newFilePath);
+    void setFilePath(const QString &newFilePath, bool newFile = false);
 
     inline RemoteManager *getRemoteManager() const
     {
@@ -106,6 +106,8 @@ public:
     }
 
 signals:
+    void fileChanged(const QString& newFile, const QString& oldFile);
+
     void modeChanged(FileMode newMode, FileMode oldMode);
     void fileEdited(bool val);
 

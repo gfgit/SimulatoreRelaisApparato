@@ -2,6 +2,10 @@
 
 [English version](SHORTCUTS.md)
 
+## Finestra Layout UI
+
+`Ctrl + L` per aprire Finestra Layout UI.
+
 ## Barra di stato nelle schermate
 
 Quando il focus della tastiera è su una schermata di un Circuito o Pannello/Banco,

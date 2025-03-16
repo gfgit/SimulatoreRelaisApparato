@@ -24,6 +24,7 @@
 
 #include "../mainwindow.h"
 #include "modemanager.h"
+#include "uilayoutsmodel.h"
 
 #include "../circuits/edit/nodeeditfactory.h"
 
@@ -61,6 +62,8 @@ ViewManager::ViewManager(MainWindow *parent)
 
     connect(modeMgr, &ModeManager::modeChanged,
             this, &ViewManager::onFileModeChanged);
+
+    mLayoutsModel = new UILayoutsModel(this, this);
 
     CircuitListModel *circuitList = modeMgr->circuitList();
     connect(circuitList, &CircuitListModel::nodeEditRequested,
@@ -369,6 +372,32 @@ void ViewManager::ensureCircuitItemIsVisible(AbstractNodeGraphItem *item, bool f
 
     // Scroll to show item
     view->centerOn(item);
+}
+
+void ViewManager::clearLayouts()
+{
+    mLayoutsModel->clear();
+}
+
+void ViewManager::loadLayoutFile()
+{
+    mLayoutsModel->loadFromLayoutFile();
+}
+
+void ViewManager::saveLayoutFile()
+{
+    // Save current layout and rest of file
+    mLayoutsModel->saveLayout(QString());
+}
+
+void ViewManager::loadStartLayout()
+{
+    if(!mLayoutsModel->loadLayout(mLayoutsModel->layoutToLoadAtStart()))
+    {
+        // Fallback to show circuit and panel lists
+        showCircuitListView();
+        showPanelListView();
+    }
 }
 
 void ViewManager::setCurrentViewType(ViewType newCurrentViewType)

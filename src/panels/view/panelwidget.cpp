@@ -244,7 +244,7 @@ void PanelWidget::addNodeToCenter(PanelItemFactory *editFactory,
 
 void PanelWidget::toggleStatusBar()
 {
-    statusBar->setVisible(!statusBar->isVisible());
+    setStatusBarVisible(!isStatusBarVisible());
 }
 
 int PanelWidget::uniqueNum() const
@@ -255,6 +255,16 @@ int PanelWidget::uniqueNum() const
 void PanelWidget::setUniqueNum(int newUniqueNum)
 {
     mUniqueNum = newUniqueNum;
+}
+
+bool PanelWidget::isStatusBarVisible() const
+{
+    return statusBar->isVisible();
+}
+
+void PanelWidget::setStatusBarVisible(bool val)
+{
+    statusBar->setVisible(val);
 }
 
 PanelView *PanelWidget::panelView() const

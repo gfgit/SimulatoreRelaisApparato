@@ -218,7 +218,7 @@ void CircuitWidget::addNodeToCenter(NodeEditFactory *editFactory,
 
 void CircuitWidget::toggleStatusBar()
 {
-    statusBar->setVisible(!statusBar->isVisible());
+    setStatusBarVisible(!isStatusBarVisible());
 }
 
 int CircuitWidget::uniqueNum() const
@@ -229,6 +229,16 @@ int CircuitWidget::uniqueNum() const
 void CircuitWidget::setUniqueNum(int newUniqueNum)
 {
     mUniqueNum = newUniqueNum;
+}
+
+bool CircuitWidget::isStatusBarVisible() const
+{
+    return statusBar->isVisible();
+}
+
+void CircuitWidget::setStatusBarVisible(bool val)
+{
+    statusBar->setVisible(val);
 }
 
 CircuitsView *CircuitWidget::circuitsView() const
