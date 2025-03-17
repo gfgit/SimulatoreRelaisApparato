@@ -381,9 +381,15 @@ void AbstractRelais::startMove(bool up)
     mInternalState = up ? State::GoingUp : State::GoingDown;
 
     int totalTime = 0;
-    if(up || relaisType() == RelaisType::Combinator)
+    if(relaisType() == RelaisType::Combinator)
     {
         // Combinators have same time in either directions
+        totalTime = mCustomUpMS;
+        if(!totalTime)
+            totalTime = DefaultCombinatorMS;
+    }
+    else if(up || relaisType() == RelaisType::Combinator)
+    {
         totalTime = mCustomUpMS;
         if(!totalTime)
             totalTime = DefaultUpMS;
