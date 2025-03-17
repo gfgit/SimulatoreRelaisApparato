@@ -50,6 +50,9 @@ public:
     int uniqueNum() const;
     void setUniqueNum(int newUniqueNum);
 
+    bool isStatusBarVisible() const;
+    void setStatusBarVisible(bool val);
+
 private slots:
     void onZoomChanged(double val);
     void onZoomSliderChanged(int val);

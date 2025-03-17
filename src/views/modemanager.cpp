@@ -432,7 +432,11 @@ QString ModeManager::filePath() const
     return mFilePath;
 }
 
-void ModeManager::setFilePath(const QString &newFilePath)
+void ModeManager::setFilePath(const QString &newFilePath, bool newFile)
 {
+    const QString oldFile = mFilePath;
+
     mFilePath = newFilePath;
+
+    emit fileChanged(mFilePath, newFile ? QString() : oldFile);
 }

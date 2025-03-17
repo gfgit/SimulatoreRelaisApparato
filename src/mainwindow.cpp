@@ -47,8 +47,8 @@
 #include "panels/edit/panelitemfactory.h"
 #include "objects/simulationobjectfactory.h"
 
-#include <kddockwidgets/LayoutSaver.h>
 #include "views/layoutloader.h"
+#include "views/uilayoutdialog.h"
 
 static constexpr const char *allFiles =
         QT_TRANSLATE_NOOP("MainWindow", "All Files (*.*)");
@@ -203,6 +203,9 @@ void MainWindow::buildMenuBar()
         mViewMgr->closeAllEditDocks();
     });
 
+    QAction *actionLayouts = menuView->addAction(tr("UI Layouts"), this,
+                                                 &MainWindow::showLayoutDialog);
+    actionLayouts->setShortcut(QKeyCombination(Qt::ControlModifier, Qt::Key_L));
 
     // Menu Network
     QMenu *menuNetwork = menuBar()->addMenu(tr("Network"));
@@ -334,7 +337,7 @@ void MainWindow::buildEditToolBar()
 
     auto circuitEditFactory = mModeMgr->circuitFactory();
     for(const QString& nodeType : circuitEditFactory->getRegisteredTypes())
-    {        
+    {
         QString prettyName = circuitEditFactory->prettyName(nodeType);
         QChar letter = circuitEditFactory->letterForType(nodeType);
 
@@ -501,11 +504,12 @@ void MainWindow::onNew()
 
     setWindowModified(false);
     setWindowFilePath(QString());
-    mModeMgr->setFilePath(QString());
+    mModeMgr->setFilePath(QString(), true);
 
     // Reset scenes and objects
     mViewMgr->closeAllFileSpecificDocks();
     mModeMgr->clearAll();
+    mViewMgr->clearLayouts();
 
     // Show circuit list view for new files
     mViewMgr->showCircuitListView();
@@ -550,7 +554,7 @@ void MainWindow::loadFile(const QString& fileName)
     mViewMgr->closeAllFileSpecificDocks();
 
     setWindowFilePath(fileName);
-    mModeMgr->setFilePath(fileName);
+    mModeMgr->setFilePath(fileName, true);
     updateWindowModified();
 
     addFileToRecents(fileName);
@@ -563,10 +567,11 @@ void MainWindow::loadFile(const QString& fileName)
 
     mModeMgr->loadFromJSON(rootObj);
 
+    mViewMgr->loadLayoutFile();
+
     updateWindowModified();
 
-    // Show circuit list view for opened files
-    mViewMgr->showCircuitListView();
+    mViewMgr->loadStartLayout();
 }
 
 bool MainWindow::maybeSave()
@@ -605,7 +610,7 @@ bool MainWindow::saveFile(const QString& fileName)
     mModeMgr->saveToJSON(rootObj);
 
     // Reset
-    mModeMgr->setFilePath(oldFilePath);
+    mModeMgr->setFilePath(oldFilePath, true);
 
     QJsonDocument doc(rootObj);
 
@@ -614,6 +619,8 @@ bool MainWindow::saveFile(const QString& fileName)
         return false;
 
     f.write(doc.toJson());
+
+    mViewMgr->saveLayoutFile();
 
     addFileToRecents(fileName);
 
@@ -651,7 +658,7 @@ bool MainWindow::onSaveAs()
 
     // Set current file to new file path
     setWindowFilePath(fileName);
-    mModeMgr->setFilePath(fileName);
+    mModeMgr->setFilePath(fileName, true);
     return true;
 }
 
@@ -691,8 +698,7 @@ void MainWindow::saveLayout()
     if(!f.open(QFile::WriteOnly))
         return;
 
-    KDDockWidgets::LayoutSaver sa;
-    f.write(sa.serializeLayout());
+    f.write(LayoutLoader::saveLayout());
     f.close();
 }
 
@@ -749,4 +755,11 @@ void MainWindow::showCurrentEditToolbars()
         panelEditToolbar1->setVisible(canShowPanels);
         panelEditToolbar1->setEnabled(canEditPanels);
     }
+}
+
+void MainWindow::showLayoutDialog()
+{
+    QPointer<UILayoutDialog> dlg = new UILayoutDialog(mViewMgr, this);
+    dlg->exec();
+    delete dlg;
 }
