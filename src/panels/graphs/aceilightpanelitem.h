@@ -40,6 +40,8 @@ public:
     static constexpr QLatin1String ItemType = QLatin1String("acei_light");
     QString itemType() const override;
 
+    QString tooltipString() const override;
+
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 

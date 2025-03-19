@@ -12,7 +12,32 @@
 <context>
     <name>ACEIButtonPanelItem</name>
     <message>
-        <location filename="../panels/graphs/aceibuttonpanelitem.cpp" line="167"/>
+        <location filename="../panels/graphs/aceibuttonpanelitem.cpp" line="67"/>
+        <source>NO BUTTON SET!!!</source>
+        <translation>NESSUN PULSANTE IMPOSTATO!!!</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceibuttonpanelitem.cpp" line="74"/>
+        <source>Extracted</source>
+        <translation>Estratto</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceibuttonpanelitem.cpp" line="77"/>
+        <source>Normal</source>
+        <translation>Normale</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceibuttonpanelitem.cpp" line="80"/>
+        <source>Pressed</source>
+        <translation>Premuto</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceibuttonpanelitem.cpp" line="86"/>
+        <source>Button &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;State: %2</source>
+        <translation>Pulsante &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Stato: %2</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceibuttonpanelitem.cpp" line="202"/>
         <source>NULL</source>
         <translation></translation>
     </message>
@@ -66,27 +91,27 @@
 <context>
     <name>ACEILeverPanelItem</name>
     <message>
-        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="190"/>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="239"/>
         <source>NULL</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="296"/>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="74"/>
         <source>NO LEVER SET!!!</source>
         <translation>NESSUNA LEVA IMPOSTATA!!!</translation>
     </message>
     <message>
-        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="317"/>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="94"/>
         <source>Between&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;and&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</source>
         <translation>Tra&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;e&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="325"/>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="102"/>
         <source>&lt;b&gt;%1&lt;/b&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="329"/>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="106"/>
         <source>ACEI Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
         <translation>Leva ACEI: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
     </message>
@@ -94,7 +119,27 @@
 <context>
     <name>ACEILightPanelItem</name>
     <message>
-        <location filename="../panels/graphs/aceilightpanelitem.cpp" line="103"/>
+        <location filename="../panels/graphs/aceilightpanelitem.cpp" line="57"/>
+        <source>NO LIGHT SET!!!</source>
+        <translation>NESSUNA LAMPADINA IMPOSTATA!!!</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceilightpanelitem.cpp" line="60"/>
+        <source>Light &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;State: %2</source>
+        <translation>Lampadina &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Stato: %2</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceilightpanelitem.cpp" line="63"/>
+        <source>On</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceilightpanelitem.cpp" line="63"/>
+        <source>Off</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceilightpanelitem.cpp" line="123"/>
         <source>NULL</source>
         <translation></translation>
     </message>
@@ -273,7 +318,7 @@
     <name>AbstractRelais</name>
     <message>
         <location filename="../objects/relais/model/abstractrelais.cpp" line="39"/>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="502"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="508"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
@@ -303,37 +348,37 @@
         <translation>Temporizzatore</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="500"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="506"/>
         <source>Reverse</source>
         <translation>Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="504"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="510"/>
         <source>Going reverse</source>
         <translation>Andando in Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="506"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="512"/>
         <source>Going normal</source>
         <translation>Andando in Normale</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="516"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="522"/>
         <source>Up</source>
         <translation>Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="518"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="524"/>
         <source>Down</source>
         <translation>Basso</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="520"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="526"/>
         <source>Going up</source>
         <translation>Andando Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="522"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="528"/>
         <source>Going down</source>
         <translation>Andando Basso</translation>
     </message>
@@ -434,6 +479,64 @@
         <location filename="../objects/lever/bem/bemleverobject.cpp" line="73"/>
         <source>Activate Both Signals</source>
         <translation>Manovra entrambi i Segnali</translation>
+    </message>
+</context>
+<context>
+    <name>BEMPanelItem</name>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="79"/>
+        <source>Between&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;and&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</source>
+        <translation>Tra&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;e&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="87"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="98"/>
+        <source>NO Request Lever SET!!!</source>
+        <translation>NESSUNA Maniglia Richiesta IMPOSTATA!!!</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="103"/>
+        <source>NO Consensus Lever SET!!!</source>
+        <translation>NESSUNA Maniglia Consenso IMPOSTATA!!!</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="108"/>
+        <source>NO Transmission Button SET!!!</source>
+        <translation>NESSUN Pulsante Corrispondenza IMPOSTATO!!!</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="111"/>
+        <source>&lt;b&gt;BEM&lt;/b&gt;&lt;br&gt;&lt;br&gt;Request Lever: %1&lt;br&gt;Consensus Lever: %2</source>
+        <translation>&lt;b&gt;BEM&lt;/b&gt;&lt;br&gt;&lt;br&gt;Maniglia Richiesta: %1&lt;br&gt;Maniglia Consenso: %2</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="119"/>
+        <source>&lt;br&gt;&lt;br&gt;You have an unread message!</source>
+        <translation>&lt;br&gt;&lt;br&gt;Hai un messaggio non letto!</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="135"/>
+        <source>&lt;br&gt;&lt;b&gt;Now expired!&lt;/b&gt;</source>
+        <translation>&lt;br&gt;&lt;b&gt;Ora utilizzato!&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="124"/>
+        <source>&lt;br&gt;&lt;br&gt;&lt;b&gt;Ready to free block!&lt;/b&gt;</source>
+        <translation>&lt;br&gt;&lt;br&gt;&lt;b&gt;Pronto a liberare il blocco!&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="130"/>
+        <source>&lt;br&gt;&lt;br&gt;&lt;b&gt;Consensus received!&lt;/b&gt;</source>
+        <translation>&lt;br&gt;&lt;br&gt;&lt;b&gt;Consenso ricevuto!&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/bempanelitem.cpp" line="142"/>
+        <source>&lt;br&gt;&lt;br&gt;You sent a consensus!</source>
+        <translation>&lt;br&gt;&lt;br&gt;Hai inviato un consenso!</translation>
     </message>
 </context>
 <context>
@@ -2433,95 +2536,95 @@ Scegli un altro nome:</translation>
 <context>
     <name>UILayoutDialog</name>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="33"/>
+        <location filename="../views/uilayoutdialog.cpp" line="55"/>
         <source>Add Layout</source>
         <translation>Aggiungi Layout</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="34"/>
+        <location filename="../views/uilayoutdialog.cpp" line="56"/>
         <source>To use a layout double click on its row.</source>
         <translation>Per usare un layout fai doppio click sulla sua riga.</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="36"/>
+        <location filename="../views/uilayoutdialog.cpp" line="58"/>
         <source>Remove Layout</source>
         <translation>Rimuovi Layout</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="38"/>
+        <location filename="../views/uilayoutdialog.cpp" line="60"/>
         <source>Edit</source>
         <translation>Modifica</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="39"/>
+        <location filename="../views/uilayoutdialog.cpp" line="61"/>
         <source>Change selected layout name</source>
         <translation>Cambia nome al layout selezionato</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="41"/>
+        <location filename="../views/uilayoutdialog.cpp" line="63"/>
         <source>Store Layout</source>
         <translation>Salva Layout</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="42"/>
+        <location filename="../views/uilayoutdialog.cpp" line="64"/>
         <source>Store current layout with selected layout name.
 It will overwrite previous saved layout of same name.</source>
         <translation>Salva il layout attuale con il nome layout selezionato.
 Sovrascrive il precedente layout salvato con lo stesso nome.</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="45"/>
+        <location filename="../views/uilayoutdialog.cpp" line="67"/>
         <source>Load on start</source>
         <translation>Carica all&apos;avvio</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="47"/>
+        <location filename="../views/uilayoutdialog.cpp" line="69"/>
         <source>Load last layout at start</source>
         <translation>Carica ultimo layout all&apos;avvio</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="98"/>
+        <location filename="../views/uilayoutdialog.cpp" line="120"/>
         <source>Save first!</source>
         <translation>Prima devi salvare!</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="99"/>
+        <location filename="../views/uilayoutdialog.cpp" line="121"/>
         <source>This is a new file.
 To save layouts, first save the file.</source>
         <translation>Questo è un file nuovo.
 Per salvare i layout, prima salva il file.</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="111"/>
+        <location filename="../views/uilayoutdialog.cpp" line="133"/>
         <source>New Layout</source>
         <translation>Nuovo Layout</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="113"/>
-        <location filename="../views/uilayoutdialog.cpp" line="176"/>
+        <location filename="../views/uilayoutdialog.cpp" line="135"/>
+        <location filename="../views/uilayoutdialog.cpp" line="198"/>
         <source>Choose name:</source>
         <translation>Scegli nome:</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="114"/>
-        <location filename="../views/uilayoutdialog.cpp" line="177"/>
+        <location filename="../views/uilayoutdialog.cpp" line="136"/>
+        <location filename="../views/uilayoutdialog.cpp" line="199"/>
         <source>Name is not available.
 Choose another name:</source>
         <translation>Il nome non è disponibile.
 Scegli un altro nome:</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="140"/>
+        <location filename="../views/uilayoutdialog.cpp" line="162"/>
         <source>Remove Layout?</source>
         <translation>Rimuovere Layout?</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="141"/>
+        <location filename="../views/uilayoutdialog.cpp" line="163"/>
         <source>Remote &lt;b&gt;%1&lt;/b&gt; layout?</source>
         <translation>Rimuovere layout &lt;b&gt;%1&lt;/b&gt;?</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutdialog.cpp" line="174"/>
+        <location filename="../views/uilayoutdialog.cpp" line="196"/>
         <source>Edit Layout</source>
         <translation>Modifica Layout</translation>
     </message>

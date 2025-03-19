@@ -60,6 +60,41 @@ QString ACEIButtonPanelItem::itemType() const
     return ItemType;
 }
 
+QString ACEIButtonPanelItem::tooltipString() const
+{
+    if(!mButtonIface)
+    {
+        return tr("NO BUTTON SET!!!");
+    }
+
+    QString butPosName;
+    switch (mButtonIface->state())
+    {
+    case ButtonInterface::State::Extracted:
+        butPosName = tr("Extracted");
+        break;
+    case ButtonInterface::State::Normal:
+        butPosName = tr("Normal");
+        break;
+    case ButtonInterface::State::Pressed:
+        butPosName = tr("Pressed");
+        break;
+    default:
+        break;
+    }
+
+    QString tipText = tr("Button <b>%1</b><br>"
+                         "State: %2").arg(mButton->name(),
+                                          butPosName);
+    if(!mButton->description().isEmpty())
+    {
+        tipText.append(QLatin1String("<br><br>"));
+        tipText.append(mButton->description().toHtmlEscaped());
+    }
+
+    return tipText;
+}
+
 QRectF ACEIButtonPanelItem::boundingRect() const
 {
     return QRectF(0, 0, ItemWidth, ItemHeight);

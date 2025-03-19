@@ -57,6 +57,100 @@ QString BEMPanelItem::itemType() const
     return ItemType;
 }
 
+QString getLeverTooltip(LeverInterface *leverIface)
+{
+    const int leverPos = leverIface->position();
+    const auto& desc = leverIface->positionDesc();
+
+    QString posStr;
+    if(leverIface->isPositionMiddle(leverPos))
+    {
+        int prevPos = leverPos - 1;
+        int nextPos = leverPos + 1;
+
+        if(leverIface->canWarpAroundZero())
+        {
+            if(leverPos == leverIface->positionDesc().maxValue)
+                nextPos = 0; // Wrap around, next is first position
+        }
+
+        // Position index increases going from left to right
+        // so we say between left position (-1) and right position (+1)
+        posStr = BEMPanelItem::tr("Between<br>"
+                    "<b>%1</b><br>"
+                    "and<br>"
+                    "<b>%2</b>")
+                .arg(desc.name(prevPos), desc.name(nextPos));
+    }
+    else
+    {
+        posStr = BEMPanelItem::tr("<b>%1</b>")
+                .arg(desc.name(leverPos));
+    }
+
+    return posStr;
+}
+
+QString BEMPanelItem::tooltipString() const
+{
+    if(!mReqLever)
+    {
+        return tr("NO Request Lever SET!!!");
+    }
+
+    if(!mConsLever)
+    {
+        return tr("NO Consensus Lever SET!!!");
+    }
+
+    if(!mTxButton)
+    {
+        return tr("NO Transmission Button SET!!!");
+    }
+
+    QString tipText = tr("<b>BEM</b><br><br>"
+                         "Request Lever: %1<br>"
+                         "Consensus Lever: %2")
+            .arg(getLeverTooltip(mReqLever),
+                 getLeverTooltip(mConsLever));
+
+    if(mLight && mLight->state() == AbstractSimpleActivableObject::State::On)
+    {
+        tipText.append(tr("<br><br>You have an unread message!"));
+    }
+
+    if(mLiberationRelay && mLiberationRelay->state() == AbstractRelais::State::Up)
+    {
+        tipText.append(tr("<br><br><b>Ready to free block!</b>"));
+    }
+
+    const bool hasRecvConsensus = mR1Relay && mR1Relay->state() == AbstractRelais::State::Down;
+    if(hasRecvConsensus)
+    {
+        tipText.append(tr("<br><br><b>Consensus received!</b>"));
+
+        const bool canUseConsensus = mOccupancyRelay && mOccupancyRelay->state() == AbstractRelais::State::Up;
+        if(!canUseConsensus)
+        {
+            tipText.append(tr("<br><b>Now expired!</b>"));
+        }
+    }
+
+    const bool hasSentConsensus = mC1Relay && mC1Relay->state() == AbstractRelais::State::Down;
+    if(hasSentConsensus)
+    {
+        tipText.append(tr("<br><br>You sent a consensus!"));
+    }
+
+    if(!mConsLeverObj->description().isEmpty())
+    {
+        tipText.append(QLatin1String("<br><br>"));
+        tipText.append(mConsLeverObj->description().toHtmlEscaped());
+    }
+
+    return tipText;
+}
+
 QRectF BEMPanelItem::boundingRect() const
 {
     return QRectF(0, 0, ItemWidth, ItemHeight);

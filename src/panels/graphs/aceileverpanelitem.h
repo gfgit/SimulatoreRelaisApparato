@@ -65,6 +65,8 @@ public:
     static constexpr QLatin1String ItemType = QLatin1String("acei_lever");
     QString itemType() const override;
 
+    QString tooltipString() const override;
+
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
@@ -105,9 +107,6 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
-
-private:
-    void updateLeverTooltip();
 
 private:
     static constexpr double baseCircleRadius = 34;

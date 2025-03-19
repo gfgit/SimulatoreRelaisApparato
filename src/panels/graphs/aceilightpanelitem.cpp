@@ -50,6 +50,26 @@ QString ACEILightPanelItem::itemType() const
     return ItemType;
 }
 
+QString ACEILightPanelItem::tooltipString() const
+{
+    if(!mLight)
+    {
+        return tr("NO LIGHT SET!!!");
+    }
+
+    QString tipText = tr("Light <b>%1</b><br>"
+                         "State: %2").arg(mLight->name(),
+                                          mLight->state() == AbstractSimpleActivableObject::State::On ?
+                                              tr("On") : tr("Off"));
+    if(!mLight->description().isEmpty())
+    {
+        tipText.append(QLatin1String("<br><br>"));
+        tipText.append(mLight->description().toHtmlEscaped());
+    }
+
+    return tipText;
+}
+
 QRectF ACEILightPanelItem::boundingRect() const
 {
     return QRectF(0, 0, ItemWidth, ItemHeight);

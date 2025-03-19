@@ -51,6 +51,8 @@ public:
 
     virtual QString itemType() const = 0;
 
+    virtual QString tooltipString() const;
+
 protected slots:
     void triggerUpdate();
 

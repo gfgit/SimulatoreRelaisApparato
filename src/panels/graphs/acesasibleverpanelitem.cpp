@@ -43,7 +43,7 @@
 ACESasibLeverPanelItem::ACESasibLeverPanelItem()
     : SnappablePanelItem()
 {
-    updateLeverTooltip();
+
 }
 
 ACESasibLeverPanelItem::~ACESasibLeverPanelItem()
@@ -54,6 +54,46 @@ ACESasibLeverPanelItem::~ACESasibLeverPanelItem()
 QString ACESasibLeverPanelItem::itemType() const
 {
     return ItemType;
+}
+
+QString ACESasibLeverPanelItem::tooltipString() const
+{
+    if(!mLeverIface)
+    {
+        return tr("NO LEVER SET!!!");
+    }
+
+    const int leverPos = mLeverIface->position();
+    const auto& desc = mLeverIface->positionDesc();
+
+    QString posStr;
+    if(mLeverIface->isPositionMiddle(leverPos))
+    {
+        // Position index increases going upwards
+        // so we say between above position (+1) and below position (-1)
+        posStr = tr("Between<br>"
+                    "<b>%1</b><br>"
+                    "and<br>"
+                    "<b>%2</b>")
+                .arg(desc.name(leverPos + 1), desc.name(leverPos - 1));
+    }
+    else
+    {
+        posStr = tr("<b>%1</b>")
+                .arg(desc.name(leverPos));
+    }
+
+    QString tipText = tr("ACE Lever: <b>%1</b><br>"
+                         "%2")
+            .arg(mLever->name(), posStr);
+
+    if(!mLever->description().isEmpty())
+    {
+        tipText.append(QLatin1String("<br><br>"));
+        tipText.append(mLever->description().toHtmlEscaped());
+    }
+
+    return tipText;
 }
 
 QRectF ACESasibLeverPanelItem::boundingRect() const
@@ -240,47 +280,6 @@ void ACESasibLeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     SnappablePanelItem::mouseReleaseEvent(ev);
 }
 
-void ACESasibLeverPanelItem::updateLeverTooltip()
-{
-    if(!mLeverIface)
-    {
-        setToolTip(tr("NO LEVER SET!!!"));
-        return;
-    }
-
-    const int leverPos = mLeverIface->position();
-    const auto& desc = mLeverIface->positionDesc();
-
-    QString posStr;
-    if(mLeverIface->isPositionMiddle(leverPos))
-    {
-        // Position index increases going upwards
-        // so we say between above position (+1) and below position (-1)
-        posStr = tr("Between<br>"
-                 "<b>%1</b><br>"
-                 "and<br>"
-                 "<b>%2</b>")
-                .arg(desc.name(leverPos + 1), desc.name(leverPos - 1));
-    }
-    else
-    {
-        posStr = tr("<b>%1</b>")
-                .arg(desc.name(leverPos));
-    }
-
-    QString tipText = tr("ACE Lever: <b>%1</b><br>"
-                         "%2")
-            .arg(mLever->name(), posStr);
-
-    if(!mLever->description().isEmpty())
-    {
-        tipText.append("<br><br>");
-        tipText.append(mLever->description());
-    }
-
-    setToolTip(tipText);
-}
-
 AbstractSimulationObject *ACESasibLeverPanelItem::lever() const
 {
     return mLever;
@@ -324,8 +323,6 @@ void ACESasibLeverPanelItem::setLever(AbstractSimulationObject *newLever)
     if(s)
         s->modeMgr()->setFileEdited();
 
-    updateLeverTooltip();
-
     emit leverChanged(mLever);
 }
 
@@ -365,10 +362,5 @@ void ACESasibLeverPanelItem::onInterfacePropertyChanged(const QString &ifaceName
     {
         if(!mLeverIface)
             return;
-
-        if(propName == LeverInterface::PositionPropName)
-        {
-            updateLeverTooltip();
-        }
     }
 }

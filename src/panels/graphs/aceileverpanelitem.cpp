@@ -49,7 +49,7 @@
 ACEILeverPanelItem::ACEILeverPanelItem()
     : SnappablePanelItem()
 {
-    updateLeverTooltip();
+
 }
 
 ACEILeverPanelItem::~ACEILeverPanelItem()
@@ -65,6 +65,55 @@ ACEILeverPanelItem::~ACEILeverPanelItem()
 QString ACEILeverPanelItem::itemType() const
 {
     return ItemType;
+}
+
+QString ACEILeverPanelItem::tooltipString() const
+{
+    if(!mLeverIface)
+    {
+       return tr("NO LEVER SET!!!");
+    }
+
+    const int leverPos = mLeverIface->position();
+    const auto& desc = mLeverIface->positionDesc();
+
+    QString posStr;
+    if(mLeverIface->isPositionMiddle(leverPos))
+    {
+        int prevPos = leverPos - 1;
+        int nextPos = leverPos + 1;
+
+        if(mLeverIface->canWarpAroundZero())
+        {
+            if(leverPos == mLeverIface->positionDesc().maxValue)
+                nextPos = 0; // Wrap around, next is first position
+        }
+
+        // Position index increases going from left to right
+        // so we say between left position (-1) and right position (+1)
+        posStr = tr("Between<br>"
+                    "<b>%1</b><br>"
+                    "and<br>"
+                    "<b>%2</b>")
+                .arg(desc.name(prevPos), desc.name(nextPos));
+    }
+    else
+    {
+        posStr = tr("<b>%1</b>")
+                .arg(desc.name(leverPos));
+    }
+
+    QString tipText = tr("ACEI Lever: <b>%1</b><br>"
+                         "%2")
+            .arg(mLever->name(), posStr);
+
+    if(!mLever->description().isEmpty())
+    {
+        tipText.append(QLatin1String("<br><br>"));
+        tipText.append(mLever->description().toHtmlEscaped());
+    }
+
+    return tipText;
 }
 
 QRectF ACEILeverPanelItem::boundingRect() const
@@ -289,50 +338,6 @@ void ACEILeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     SnappablePanelItem::mouseReleaseEvent(ev);
 }
 
-void ACEILeverPanelItem::updateLeverTooltip()
-{
-    if(!mLeverIface)
-    {
-        setToolTip(tr("NO LEVER SET!!!"));
-        return;
-    }
-
-    const int leverPos = mLeverIface->position();
-    const auto& desc = mLeverIface->positionDesc();
-
-    QString posStr;
-    if(mLeverIface->isPositionMiddle(leverPos))
-    {
-        int prevPos = leverPos - 1;
-        int nextPos = leverPos + 1;
-
-        if(mLeverIface->canWarpAroundZero())
-        {
-            if(leverPos == mLeverIface->positionDesc().maxValue)
-                nextPos = 0; // Wrap around, next is first position
-        }
-
-        // Position index increases going from left to right
-        // so we say between left position (-1) and right position (+1)
-        posStr = tr("Between<br>"
-                    "<b>%1</b><br>"
-                    "and<br>"
-                    "<b>%2</b>")
-                .arg(desc.name(prevPos), desc.name(nextPos));
-    }
-    else
-    {
-        posStr = tr("<b>%1</b>")
-                .arg(desc.name(leverPos));
-    }
-
-    QString tipText = tr("ACEI Lever: <b>%1</b><br>"
-                         "%2")
-            .arg(mLever->name(), posStr);
-
-    setToolTip(tipText);
-}
-
 void ACEILeverPanelItem::setLight(LightPosition pos, LightBulbObject *newLight)
 {
     LightBulbObject *&target = mLights[pos];
@@ -427,8 +432,6 @@ void ACEILeverPanelItem::setLever(AbstractSimulationObject *newLever)
     if(s)
         s->modeMgr()->setFileEdited();
 
-    updateLeverTooltip();
-
     emit leverChanged(mLever);
 }
 
@@ -505,10 +508,5 @@ void ACEILeverPanelItem::onInterfacePropertyChanged(const QString &ifaceName, co
     {
         if(!mLeverIface)
             return;
-
-        if(propName == LeverInterface::PositionPropName)
-        {
-            updateLeverTooltip();
-        }
     }
 }

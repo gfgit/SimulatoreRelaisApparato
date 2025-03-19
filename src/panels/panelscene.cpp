@@ -42,6 +42,8 @@
 #include <QClipboard>
 #include <QMimeData>
 
+#include <QToolTip>
+
 #include "edit/panelitemfactory.h"
 
 #include "graphs/lightrectitem.h"
@@ -349,6 +351,36 @@ void PanelScene::invertSelection()
     {
         item->setSelected(false);
     }
+}
+
+void PanelScene::helpEvent(QGraphicsSceneHelpEvent *e)
+{
+    const QList<QGraphicsItem *> itemsAtPos = items(e->scenePos());
+
+    AbstractPanelItem *toolTipItem = nullptr;
+    for (auto item : itemsAtPos)
+    {
+        QGraphicsObject *obj = item->toGraphicsObject();
+        toolTipItem = qobject_cast<AbstractPanelItem *>(obj);
+        if(toolTipItem)
+            break;
+    }
+
+    if(!toolTipItem)
+    {
+        // Default implementation
+        QGraphicsScene::helpEvent(e);
+        return;
+    }
+
+    // Show or hide the tooltip
+    QString tip = toolTipItem->tooltipString();
+    QPoint pt;
+    if(!tip.isEmpty())
+        pt = e->screenPos();
+
+    QToolTip::showText(pt, tip, e->widget());
+    e->setAccepted(!tip.isEmpty());
 }
 
 bool PanelScene::insertFragment(const QPointF &tileHint,

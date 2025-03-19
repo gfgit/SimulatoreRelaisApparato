@@ -134,3 +134,8 @@ void AbstractPanelItem::saveToJSON(QJsonObject &obj) const
     obj["x"] = x();
     obj["y"] = y();
 }
+
+QString AbstractPanelItem::tooltipString() const
+{
+    return QString();
+}
