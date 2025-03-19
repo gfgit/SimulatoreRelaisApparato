@@ -147,9 +147,12 @@ void BEMPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     const bool canSendConsensus = mKConditionsRelay && mKConditionsRelay->state() == AbstractRelais::State::Up;
     if(!canSendConsensus)
     {
+        const QPointF invertedLineDiff(statusLineDiff.x(),
+                                       -statusLineDiff.y());
+
         painter->setPen(barPen);
-        painter->drawLine(statusCircle.center() + statusLineDiff,
-                          statusCircle.center() - statusLineDiff);
+        painter->drawLine(statusCircle.center() + invertedLineDiff,
+                          statusCircle.center() - invertedLineDiff);
     }
 
     // A3
