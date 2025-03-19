@@ -38,7 +38,7 @@ public:
     static constexpr int DefaultDownMS = 200;
 
     // Combinators are super fast
-    static constexpr int DefaultCombinatorMS = 50;
+    static constexpr int DefaultCombinatorMS = 200;
 
     enum class State
     {
