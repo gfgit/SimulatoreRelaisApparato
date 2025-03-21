@@ -20,8 +20,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACESasibLeverPanelItem_H
-#define ACESasibLeverPanelItem_H
+#ifndef ACE_SASIB_LEVER_PANELITEM_H
+#define ACE_SASIB_LEVER_PANELITEM_H
 
 #include "../snappablepanelitem.h"
 
@@ -78,4 +78,4 @@ private:
 
 };
 
-#endif // ACESasibLeverPanelItem_H
+#endif // ACE_SASIB_LEVER_PANELITEM_H

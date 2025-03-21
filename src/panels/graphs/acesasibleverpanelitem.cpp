@@ -98,7 +98,6 @@ QString ACESasibLeverPanelItem::tooltipString() const
 
 QRectF ACESasibLeverPanelItem::boundingRect() const
 {
-
     return QRectF(0, 0, ItemWidth, ItemHeight);
 }
 
