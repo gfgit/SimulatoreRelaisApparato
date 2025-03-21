@@ -287,7 +287,10 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
         startMove(true);
     }
 
-    emit stateChanged(this);
+    // NOTE: we do not emit stateChanged(this) signal
+    // because we are called from inside circuit creation logic.
+    // This could allow recursion and trigger asserts.
+    // Since we did startMove() we let timerEvent() emit it.
 }
 
 void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact)
@@ -349,7 +352,7 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
         startMove(false);
     }
 
-    emit stateChanged(this);
+    // NOTE: see powerNodeActivated() comment
 }
 
 void AbstractRelais::setPosition(double newPosition)
