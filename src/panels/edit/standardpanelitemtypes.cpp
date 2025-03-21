@@ -29,6 +29,9 @@
 
 // Special items
 #include "../graphs/lightrectitem.h"
+#include "lightrectlightsmodel.h"
+#include "lightrectlightsview.h"
+
 #include "../graphs/imagepanelitem.h"
 
 // Other items
@@ -155,37 +158,22 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
                 node->setRotation(newR);
             });
 
-            // Light
-            SimulationObjectLineEdit *lightEdit = new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
-            QObject::connect(node, &LightRectItem::lightChanged,
-                             lightEdit, [node, lightEdit]()
+            // Lights
+            LightRectLightsView *lightsView = new LightRectLightsView;
+            lay->addRow(lightsView);
+
+            QObject::connect(node, &LightRectItem::lightsChanged,
+                             lightsView, [node, lightsView]()
             {
-                lightEdit->setObject(node->lightObject());
+                lightsView->loadFrom(node);
             });
-            QObject::connect(lightEdit, &SimulationObjectLineEdit::objectChanged,
-                             node, [node](AbstractSimulationObject *obj)
+            QObject::connect(lightsView, &LightRectLightsView::needsSave,
+                             node, [node, lightsView]()
             {
-                node->setLightObject(static_cast<LightBulbObject *>(obj));
+                lightsView->saveTo(node);
             });
 
-            lightEdit->setObject(node->lightObject());
-            lay->addRow(tr("Light:"), lightEdit);
-
-            // Color
-            ColorSelectionWidget *colorW = new ColorSelectionWidget;
-            colorW->setColor(node->color());
-
-            QObject::connect(colorW, &ColorSelectionWidget::colorChanged,
-                             node, [node, colorW]()
-            {
-                node->setColor(colorW->color());
-            });
-            QObject::connect(node, &LightRectItem::colorChanged,
-                             colorW, [node, colorW]()
-            {
-                colorW->setColor(node->color());
-            });
-            lay->addRow(tr("Color:"), colorW);
+            lightsView->loadFrom(node);
 
             return w;
         };

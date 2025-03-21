@@ -44,6 +44,8 @@ qt_add_executable(${SIMULATORE_RELAIS_TARGET} WIN32
     #${SIMULATORE_RELAIS_UI_FILES}
     ${SIMULATORE_RELAIS_RESOURCES}
     views/uilayoutdialog.h views/uilayoutdialog.cpp
+    panels/edit/lightrectlightsmodel.h panels/edit/lightrectlightsmodel.cpp
+    panels/edit/lightrectlightsview.h panels/edit/lightrectlightsview.cpp
 )
 
 if (WIN32)

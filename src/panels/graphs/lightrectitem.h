@@ -26,13 +26,21 @@
 #include "../abstractpanelitem.h"
 
 #include <QColor>
+#include <QVector>
 
+class AbstractSimulationObject;
 class LightBulbObject;
 
 class LightRectItem : public AbstractPanelItem
 {
     Q_OBJECT
 public:
+    struct LightEntry
+    {
+        LightBulbObject *light = nullptr;
+        QColor color = Qt::red;
+    };
+
     explicit LightRectItem();
     ~LightRectItem();
 
@@ -52,29 +60,29 @@ public:
     QPainterPath opaqueArea() const override;
 
     bool active() const;
-    void setActive(bool newActive);
 
-    QColor color() const;
-    void setColor(const QColor &newColor);
-
-    LightBulbObject *lightObject() const;
-    void setLightObject(LightBulbObject *newLightObject);
+    QVector<LightEntry> lights() const;
+    void setLights(const QVector<LightEntry> &newLights);
 
 signals:
-    void colorChanged();
     void rectChanged();
-    void lightChanged();
+    void lightsChanged();
 
 private slots:
-    void onLightStateChanged();
+    void onLightStateChanged(AbstractSimulationObject *obj);
+    void onLightDestroyed(QObject *obj);
 
 private:
+    QVector<LightEntry> mLights;
+
     QRectF mRect = QRectF(0, 0, 20, 20);
-    QColor mColor = Qt::red;
 
-    LightBulbObject *mLightObject = nullptr;
-
-    bool mActive = false;
+    int mActive = 0;
 };
+
+inline bool operator==(const LightRectItem::LightEntry& lhs, const LightRectItem::LightEntry& rhs)
+{
+    return lhs.light == rhs.light && lhs.color == rhs.color;
+}
 
 #endif // LIGHTRECTITEM_H

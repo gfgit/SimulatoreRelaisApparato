@@ -37,6 +37,12 @@ AbstractSimpleActivableObject::~AbstractSimpleActivableObject()
     {
         node->setObject(nullptr);
     }
+
+    if(mActiveNodesCount > 0)
+    {
+        mActiveNodesCount = 0;
+        emit stateChanged(this);
+    }
 }
 
 int AbstractSimpleActivableObject::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
