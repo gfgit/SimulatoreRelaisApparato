@@ -404,8 +404,8 @@ void AbstractRelais::startMove(bool up)
             totalTime = DefaultDownMS;
     }
 
-    // Relay can be up to 33% faster/slower
-    const double MaxTimeOscillationRel = 0.33;
+    // Relay can be up to 5% faster/slower
+    const double MaxTimeOscillationRel = 0.05;
     const double factor =
             QRandomGenerator::global()->bounded(MaxTimeOscillationRel * 2) - MaxTimeOscillationRel;
     const int timeOscillation = qRound(double(totalTime) * factor);
