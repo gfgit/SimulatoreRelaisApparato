@@ -12,6 +12,9 @@ set(SIMULATORE_RELAIS_SOURCES
     views/modemanager.cpp
     views/modemanager.h
 
+    views/uilayoutdialog.cpp
+    views/uilayoutdialog.h
+
     views/viewmanager.cpp
     views/viewmanager.h
 
