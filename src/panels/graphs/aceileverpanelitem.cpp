@@ -449,7 +449,6 @@ bool ACEILeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *mgr)
     else
         setLever(nullptr);
 
-
     // Lights
     auto lightModel = mgr->modelForType(LightBulbObject::Type);
 

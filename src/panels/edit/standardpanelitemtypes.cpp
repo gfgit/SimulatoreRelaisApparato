@@ -396,7 +396,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
                 lay->addRow(lightNames[i], lightEdits[i]);
 
-                // Left Light Color
+                // Light Color
                 lightColorEdits[i] = new ColorSelectionWidget;
 
                 QObject::connect(lightColorEdits[i], &ColorSelectionWidget::colorChanged,
@@ -456,7 +456,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Light:"), lightEdit);
 
-            // Left Light Color
+            // Light Color
             lightColorEdit = new ColorSelectionWidget;
 
             QObject::connect(lightColorEdit, &ColorSelectionWidget::colorChanged,
@@ -493,7 +493,7 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
         factory.create = &addNewNodeToScene<ACESasibLeverPanelItem>;
         factory.edit = [](AbstractPanelItem *item, ViewManager *viewMgr) -> QWidget*
         {
-            ACESasibLeverPanelItem *specialItem = static_cast<ACESasibLeverPanelItem *>(item);
+            ACESasibLeverPanelItem *leverItem = static_cast<ACESasibLeverPanelItem *>(item);
 
             QWidget *w = new QWidget;
             QFormLayout *lay = new QFormLayout(w);
@@ -507,14 +507,14 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
                         viewMgr,
                         sasibTypes);
 
-            QObject::connect(specialItem, &ACESasibLeverPanelItem::leverChanged,
+            QObject::connect(leverItem, &ACESasibLeverPanelItem::leverChanged,
                              leverEdit, &SimulationObjectLineEdit::setObject);
             QObject::connect(leverEdit, &SimulationObjectLineEdit::objectChanged,
-                             specialItem, [specialItem](AbstractSimulationObject *obj)
+                             leverItem, [leverItem](AbstractSimulationObject *obj)
             {
-                specialItem->setLever(obj);
+                leverItem->setLever(obj);
             });
-            leverEdit->setObject(specialItem->lever());
+            leverEdit->setObject(leverItem->lever());
 
             lay->addRow(tr("Lever:"), leverEdit);
 
