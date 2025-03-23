@@ -266,27 +266,27 @@
 <context>
     <name>ACESasibLeverPanelItem</name>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="129"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="171"/>
         <source>NULL</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="247"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="66"/>
         <source>NO LEVER SET!!!</source>
         <translation>NESSUNA LEVA IMPOSTATA!!!</translation>
     </message>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="259"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="77"/>
         <source>Between&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;and&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</source>
         <translation>Tra&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;e&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="267"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="85"/>
         <source>&lt;b&gt;%1&lt;/b&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="271"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="89"/>
         <source>ACE Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
         <translation>Leva ACE: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
     </message>
@@ -318,7 +318,7 @@
     <name>AbstractRelais</name>
     <message>
         <location filename="../objects/relais/model/abstractrelais.cpp" line="39"/>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="508"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="511"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
@@ -348,37 +348,37 @@
         <translation>Temporizzatore</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="506"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="509"/>
         <source>Reverse</source>
         <translation>Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="510"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="513"/>
         <source>Going reverse</source>
         <translation>Andando in Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="512"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="515"/>
         <source>Going normal</source>
         <translation>Andando in Normale</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="522"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="525"/>
         <source>Up</source>
         <translation>Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="524"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="527"/>
         <source>Down</source>
         <translation>Basso</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="526"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="529"/>
         <source>Going up</source>
         <translation>Andando Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="528"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="531"/>
         <source>Going down</source>
         <translation>Andando Basso</translation>
     </message>
@@ -911,6 +911,60 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
         <location filename="../utils/genericleverutils.cpp" line="38"/>
         <source>From/To</source>
         <translation>Da/A</translation>
+    </message>
+</context>
+<context>
+    <name>LightEntryDialog</name>
+    <message>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="33"/>
+        <source>Light:</source>
+        <translation>Lampadina:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="36"/>
+        <source>Color:</source>
+        <translation>Colore:</translation>
+    </message>
+</context>
+<context>
+    <name>LightRectLightsModel</name>
+    <message>
+        <location filename="../panels/edit/lightrectlightsmodel.cpp" line="39"/>
+        <source>Light</source>
+        <translation>Lampadina</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/lightrectlightsmodel.cpp" line="41"/>
+        <source>Color</source>
+        <translation>Colore</translation>
+    </message>
+</context>
+<context>
+    <name>LightRectLightsView</name>
+    <message>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="84"/>
+        <source>Add Light</source>
+        <translation>Aggiungi Lampada</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="85"/>
+        <source>Remove Light</source>
+        <translation>Rimuovi Lampada</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="86"/>
+        <source>Edit Light</source>
+        <translation>Modifica Lampada</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="87"/>
+        <source>Move Up</source>
+        <translation>Sposta Su</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="88"/>
+        <source>Move Down</source>
+        <translation>Sposta Giù</translation>
     </message>
 </context>
 <context>
@@ -2358,177 +2412,189 @@ Scegli un altro nome:</translation>
 <context>
     <name>StandardPanelItemTypes</name>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="85"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="88"/>
         <source>Light Rect</source>
         <translation>Rettangolo Luminoso</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="98"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="101"/>
         <source>Width:</source>
         <translation>Larghezza:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="103"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="106"/>
         <source>Height:</source>
         <translation>Altezza:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="140"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="143"/>
         <source>Rotation:</source>
         <translation>Rotazione:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="172"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="469"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="596"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="457"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="670"/>
         <source>Light:</source>
         <translation>Lampadina:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="188"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="480"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="468"/>
         <source>Color:</source>
         <translation>Colore:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="201"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="189"/>
         <source>Image</source>
         <translation>Immagine</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="212"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="200"/>
         <source>Image File:</source>
         <translation>File Immagine:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="214"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="202"/>
         <source>Browse</source>
         <translation>Esplora</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="217"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="205"/>
         <source>Apply</source>
         <translation>Applica</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="232"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="220"/>
         <source>Choose PNG Image</source>
         <translation>Scegli Immagine PNG</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="241"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="229"/>
         <source>Scale:</source>
         <translation>Scala:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="244"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="232"/>
         <source>%</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="271"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="259"/>
         <source>ACEI Button</source>
         <translation>Pulsante ACEI</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="296"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="284"/>
         <source>Button:</source>
         <translation>Pulsante:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="303"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="390"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="291"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="378"/>
         <source>Central light:</source>
         <translation>Lampada centrale:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="307"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="394"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="295"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="382"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="564"/>
         <source>Left color:</source>
         <translation>Colore sinistra:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="308"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="395"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="296"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="383"/>
         <source>Central color:</source>
         <translation>Colore centrale:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="309"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="396"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="297"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="384"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="565"/>
         <source>Right color:</source>
         <translation>Colore destra:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="362"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="350"/>
         <source>ACEI Lever</source>
         <translation>Levetta ACEI</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="383"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="531"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="371"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="519"/>
         <source>Lever:</source>
         <translation>Leva:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="302"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="389"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="290"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="377"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="560"/>
         <source>Left light:</source>
         <translation>Lampada sinistra:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="304"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="391"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="292"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="379"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="561"/>
         <source>Right light:</source>
         <translation>Lampada destra:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="449"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="437"/>
         <source>ACEI Light</source>
         <translation>Lampada ACEI</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="504"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="492"/>
         <source>ACE Sasib Lever</source>
         <translation>Leva ACE Sasib</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="544"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="524"/>
+        <source>Left button:</source>
+        <translation>Pulsante Sinistro:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="525"/>
+        <source>Right button:</source>
+        <translation>Pulsante Destro:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="618"/>
         <source>BEM Case</source>
         <translation>Chassis BEM</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="563"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="637"/>
         <source>Consensus Lever:</source>
         <translation>Leva Concessione Consenso:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="574"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="648"/>
         <source>Tx Button:</source>
         <translation>Pulsante Corrispondenza:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="585"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="659"/>
         <source>Light Button:</source>
         <translation>Pulsante Lampadina:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="607"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="681"/>
         <source>R1:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="618"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="692"/>
         <source>C1:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="629"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="703"/>
         <source>H:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="640"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="714"/>
         <source>K:</source>
         <translation></translation>
     </message>
