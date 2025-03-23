@@ -518,6 +518,92 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Lever:"), leverEdit);
 
+            // Button
+            SimulationObjectLineEdit *buttonEdits[ACESasibLeverPanelItem::NLights];
+            const QString buttonNames[ACESasibLeverPanelItem::NLights] = {
+                tr("Left button:"),
+                tr("Right button:")
+            };
+
+            const QStringList buttonTypes = viewMgr->modeMgr()->objectFactory()
+                    ->typesForInterface(ButtonInterface::IfaceType);
+
+            for(int i = 0; i < ACESasibLeverPanelItem::NLights; i++)
+            {
+                buttonEdits[i] = new SimulationObjectLineEdit(viewMgr, buttonTypes);
+                QObject::connect(buttonEdits[i], &SimulationObjectLineEdit::objectChanged,
+                                 leverItem, [leverItem, i](AbstractSimulationObject *obj)
+                {
+                    leverItem->setButton(ACESasibLeverPanelItem::LightPosition(i),
+                                         obj);
+                });
+
+                lay->addRow(buttonNames[i], buttonEdits[i]);
+            }
+
+            auto updateButtons = [leverItem, buttonEdits]()
+            {
+                for(int i = 0; i < ACESasibLeverPanelItem::NLights; i++)
+                {
+                    buttonEdits[i]->setObject(leverItem->getButton(ACESasibLeverPanelItem::LightPosition(i)));
+                }
+            };
+
+            QObject::connect(leverItem, &ACESasibLeverPanelItem::buttonsChanged,
+                             w, updateButtons);
+            updateButtons();
+
+            // Lights
+            SimulationObjectLineEdit *lightEdits[ACESasibLeverPanelItem::NLights];
+            ColorSelectionWidget *lightColorEdits[ACESasibLeverPanelItem::NLights];
+            const QString lightNames[ACESasibLeverPanelItem::NLights] = {
+                tr("Left light:"),
+                tr("Right light:")
+            };
+            const QString lightColorNames[ACESasibLeverPanelItem::NLights] = {
+                tr("Left color:"),
+                tr("Right color:")
+            };
+
+            for(int i = 0; i < ACESasibLeverPanelItem::NLights; i++)
+            {
+                lightEdits[i] = new SimulationObjectLineEdit(viewMgr, {LightBulbObject::Type});
+                QObject::connect(lightEdits[i], &SimulationObjectLineEdit::objectChanged,
+                                 leverItem, [leverItem, i](AbstractSimulationObject *obj)
+                {
+                    leverItem->setLight(ACESasibLeverPanelItem::LightPosition(i),
+                                        static_cast<LightBulbObject *>(obj));
+                });
+
+                lay->addRow(lightNames[i], lightEdits[i]);
+
+                // Light Color
+                lightColorEdits[i] = new ColorSelectionWidget;
+
+                QObject::connect(lightColorEdits[i], &ColorSelectionWidget::colorChanged,
+                                 leverItem, [leverItem, lightColorEdits, i]()
+                {
+                    leverItem->setLightColor(ACESasibLeverPanelItem::LightPosition(i),
+                                             lightColorEdits[i]->color());
+                });
+
+                lay->addRow(lightColorNames[i], lightColorEdits[i]);
+            }
+
+            auto updateLights = [leverItem, lightEdits, lightColorEdits]()
+            {
+                for(int i = 0; i < ACESasibLeverPanelItem::NLights; i++)
+                {
+                    lightEdits[i]->setObject(leverItem->getLight(ACESasibLeverPanelItem::LightPosition(i)));
+                    lightColorEdits[i]->setColor(leverItem->getLightColor(ACESasibLeverPanelItem::LightPosition(i)));
+                }
+            };
+
+            QObject::connect(leverItem, &ACESasibLeverPanelItem::lightsChanged,
+                             w, updateLights);
+
+            updateLights();
+
             return w;
         };
 
