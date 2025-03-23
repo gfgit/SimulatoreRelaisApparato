@@ -28,6 +28,7 @@
 
 #include "../../enums/circuittypes.h"
 #include "../../enums/cabletypes.h"
+#include "../../utils/objectproperty.h"
 
 class ElectricCircuit;
 
@@ -116,14 +117,6 @@ public:
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
 
-    struct ObjectProperty
-    {
-        QString name;
-        QString prettyName;
-        QStringList types;
-        QString interface;
-        bool exclusive = false;
-    };
     virtual void getObjectProperties(QVector<ObjectProperty> &result) const;
 
     // Source methods

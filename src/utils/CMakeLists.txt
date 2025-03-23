@@ -15,8 +15,13 @@ set(SIMULATORE_RELAIS_SOURCES
     utils/genericleverutils.cpp
     utils/genericleverutils.h
 
+    utils/itemobjectreplacedlg.h
+    utils/itemobjectreplacedlg_impl.hpp
+
     utils/jsondiff.cpp
     utils/jsondiff.h
+
+    utils/objectproperty.h
 
     utils/tilerotate.cpp
     utils/tilerotate.h

@@ -20,89 +20,43 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef CIRCUITNODEOBJECTREPLACEDLG_H
-#define CIRCUITNODEOBJECTREPLACEDLG_H
+#ifndef CIRCUIT_NODE_OBJECT_REPLACE_DLG_H
+#define CIRCUIT_NODE_OBJECT_REPLACE_DLG_H
 
-#include <QDialog>
-#include <QGroupBox>
-#include <QVector>
+#include "../../utils/itemobjectreplacedlg.h"
 
 class AbstractNodeGraphItem;
 
-class SimulationObjectLineEdit;
-class NodeGroupEditWidget;
-
+class ModeManager;
 class ViewManager;
 
-class QVBoxLayout;
+class ObjectProperty;
 
-class CircuitNodeObjectReplaceDlg : public QDialog
+struct CircuitNodeTraits
 {
-    Q_OBJECT
-public:
-    explicit CircuitNodeObjectReplaceDlg(ViewManager *viewMgr,
-                                         const QVector<AbstractNodeGraphItem *>& items,
-                                         QWidget *parent = nullptr);
+    typedef AbstractNodeGraphItem Node;
 
-    void replaceName(const QString& oldStr, const QString &newStr);
+    static void getObjectProperties(Node *node,
+                                    QVector<ObjectProperty> &result);
+    static QString getNodeType(Node *node);
 
-    static void batchNodeEdit(const QVector<AbstractNodeGraphItem *> &items,
-                              ViewManager *viewMgr,
-                              QWidget *parent = nullptr);
-protected:
-    void done(int result) override;
+    static bool loadFromJSON(Node *node, const QJsonObject& obj);
+    static void saveToJSON(Node *node, QJsonObject& obj);
 
-private:
-    void reloadGroups();
-    void createGroups();
+    static void editItem(Node *node,
+                         ViewManager *viewMgr,
+                         QWidget *parent);
 
-    void saveChanges();
-
-private slots:
-    void onReplaceName();
-
-private:
-    ViewManager *mViewMgr;
-    QVBoxLayout *mGroupsLay;
-    QVector<NodeGroupEditWidget *> mGroups;
-    QVector<AbstractNodeGraphItem *> mItems;
+    static QStringList getRegisteredTypes(ModeManager *modeMgr);
+    static QString prettyTypeName(ModeManager *modeMgr, const QString& typeName);
 };
 
-class NodeGroupEditWidget : public QGroupBox
+class CircuitNodeObjectReplaceDlg : public ItemObjectReplaceDlg<CircuitNodeTraits>
 {
-    Q_OBJECT
 public:
-    explicit NodeGroupEditWidget(
-            const QVector<AbstractNodeGraphItem *>& items);
-
-public:
-    void createGroup(ViewManager *viewMgr);
-    void reloadGroup(ViewManager *viewMgr);
-
-    void saveChanges() const;
-
-    void replaceName(ViewManager *viewMgr, const QString& oldStr, const QString &newStr);
-
-private:
-    QString mTypeName;
-
-    struct PropertyValue
-    {
-        SimulationObjectLineEdit *mObjEdit;
-        QVector<AbstractNodeGraphItem *> items;
-        QString origObjectType;
-        QString origObjectName;
-    };
-
-    struct PropertyEntry
-    {
-        QString propName;
-        QString propPrettyName;
-        QVector<PropertyValue> mValues;
-    };
-
-    QVector<PropertyEntry> mEntries;
-    QVector<AbstractNodeGraphItem *> mItems;
+    CircuitNodeObjectReplaceDlg(ViewManager *viewMgr,
+                                const QVector<AbstractNodeGraphItem *>& items,
+                                QWidget *parent = nullptr);
 };
 
-#endif // CIRCUITNODEOBJECTREPLACEDLG_H
+#endif // CIRCUIT_NODE_OBJECT_REPLACE_DLG_H

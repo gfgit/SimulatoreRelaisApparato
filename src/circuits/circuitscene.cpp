@@ -1480,10 +1480,10 @@ void CircuitScene::copySelectedItems()
         QJsonObject nodeObj;
         item->saveToJSON(nodeObj);
 
-        QVector<AbstractCircuitNode::ObjectProperty> objProps;
+        QVector<ObjectProperty> objProps;
         item->getAbstractNode()->getObjectProperties(objProps);
 
-        for(const AbstractCircuitNode::ObjectProperty& prop : std::as_const(objProps))
+        for(const ObjectProperty& prop : std::as_const(objProps))
         {
             const QString objName = nodeObj.value(prop.name).toString();
             QString objType;
