@@ -25,6 +25,7 @@ private slots:
     void onAdd();
     void onRemove();
     void onEdit();
+    void editIndex(const QModelIndex& idx);
     void onMove(bool up);
 
 private:

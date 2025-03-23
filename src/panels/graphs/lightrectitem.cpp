@@ -126,10 +126,10 @@ void LightRectItem::saveToJSON(QJsonObject &obj) const
     for(const LightEntry& entry : std::as_const(mLights))
     {
         QJsonObject lightObj;
-        obj["light"] = entry.light->name();
+        lightObj["light"] = entry.light->name();
 
         // Color
-        obj["color"] = entry.color.name(QColor::HexRgb);
+        lightObj["color"] = entry.color.name(QColor::HexRgb);
 
         lights.append(lightObj);
     }

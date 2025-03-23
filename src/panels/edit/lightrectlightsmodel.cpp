@@ -139,18 +139,27 @@ void LightRectLightsModel::addEntryAt(int row, const LightEntry &entry)
     endInsertRows();
 }
 
-void LightRectLightsModel::moveRow(int row, bool up)
+void LightRectLightsModel::moveRow(int sourceRow, bool up)
 {
-    if (row == 0 && !up)
+    int destinationChild = up ? sourceRow - 1 : sourceRow + 2;
+
+    if (sourceRow < 0
+            || sourceRow >= mItems.size()
+            || destinationChild < 0
+            || destinationChild > mItems.size()
+            || sourceRow == destinationChild - 1)
+    {
         return;
-    if (row == mItems.size() - 1 && up)
+    }
+    if (!beginMoveRows(QModelIndex(), sourceRow, sourceRow,
+                       QModelIndex(), destinationChild))
         return;
 
-    const int dest = up ? row + 2 : row - 1;
+    if(destinationChild > sourceRow)
+        destinationChild--;
 
-    beginMoveRows(QModelIndex(), row, row, QModelIndex(), dest);
-    mItems.move(row, dest);
-    setChanged();
+    const int fromRow = sourceRow;
+    mItems.move(fromRow, destinationChild);
     endMoveRows();
 }
 

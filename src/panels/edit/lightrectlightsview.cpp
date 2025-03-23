@@ -109,6 +109,8 @@ LightRectLightsView::LightRectLightsView(QWidget *parent)
     {
         onMove(false);
     });
+    connect(mView, &QTableView::activated,
+            this, &LightRectLightsView::editIndex);
 }
 
 void LightRectLightsView::loadFrom(LightRectItem *item)
@@ -138,10 +140,17 @@ void LightRectLightsView::onAdd()
 {
     QPointer<LightEntryDialog> dlg = new LightEntryDialog(this);
 
+    // Default to red and then yellow for following lights
+    dlg->setEntry(nullptr, mModel->rowCount() == 0 ? Qt::red : Qt::yellow);
+
     if(dlg->exec() == QDialog::Accepted && dlg && dlg->getLight())
     {
         LightRectLightsModel::LightEntry entry{dlg->getLight(), dlg->getColor()};
-        mModel->addEntryAt(mView->currentIndex().row(), entry);
+
+        // Insert after current row or as last row
+        const QModelIndex idx = mView->currentIndex();
+        const int row = idx.isValid() ? idx.row() + 1 : mModel->rowCount();
+        mModel->addEntryAt(row, entry);
     }
 
     delete dlg;
@@ -159,6 +168,11 @@ void LightRectLightsView::onRemove()
 void LightRectLightsView::onEdit()
 {
     const QModelIndex idx = mView->currentIndex();
+    editIndex(idx);
+}
+
+void LightRectLightsView::editIndex(const QModelIndex &idx)
+{
     if(!idx.isValid())
         return;
 

@@ -67,7 +67,7 @@ public:
 
     void removeEntryAt(int row);
     void addEntryAt(int row, const LightEntry &entry);
-    void moveRow(int row, bool up);
+    void moveRow(int sourceRow, bool up);
 
     inline bool isChanged() const
     {
