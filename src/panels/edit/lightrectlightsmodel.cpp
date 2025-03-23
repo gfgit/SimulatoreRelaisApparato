@@ -120,8 +120,8 @@ void LightRectLightsModel::removeEntryAt(int row)
 {
     beginRemoveRows(QModelIndex(), row, row);
     mItems.removeAt(row);
-    setChanged();
     endRemoveRows();
+    setChanged();
 }
 
 void LightRectLightsModel::addEntryAt(int row, const LightEntry &entry)
@@ -135,8 +135,8 @@ void LightRectLightsModel::addEntryAt(int row, const LightEntry &entry)
     row = qBound(0, row, mItems.size());
     beginInsertRows(QModelIndex(), row, row);
     mItems.insert(row, entry);
-    setChanged();
     endInsertRows();
+    setChanged();
 }
 
 void LightRectLightsModel::moveRow(int sourceRow, bool up)
@@ -161,6 +161,8 @@ void LightRectLightsModel::moveRow(int sourceRow, bool up)
     const int fromRow = sourceRow;
     mItems.move(fromRow, destinationChild);
     endMoveRows();
+
+    setChanged();
 }
 
 QVector<LightRectLightsModel::LightEntry> LightRectLightsModel::items() const
