@@ -286,12 +286,12 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             // Lights
             SimulationObjectLineEdit *lightEdits[ACEIButtonPanelItem::NLights];
             ColorSelectionWidget *lightColorEdits[ACEIButtonPanelItem::NLights];
-            QString lightNames[ACEIButtonPanelItem::NLights] = {
+            const QString lightNames[ACEIButtonPanelItem::NLights] = {
                 tr("Left light:"),
                 tr("Central light:"),
                 tr("Right light:")
             };
-            QString lightColorNames[ACEIButtonPanelItem::NLights] = {
+            const QString lightColorNames[ACEIButtonPanelItem::NLights] = {
                 tr("Left color:"),
                 tr("Central color:"),
                 tr("Right color:")
@@ -373,12 +373,12 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
             // Lights
             SimulationObjectLineEdit *lightEdits[ACEILeverPanelItem::NLights];
             ColorSelectionWidget *lightColorEdits[ACEILeverPanelItem::NLights];
-            QString lightNames[ACEILeverPanelItem::NLights] = {
+            const QString lightNames[ACEILeverPanelItem::NLights] = {
                 tr("Left light:"),
                 tr("Central light:"),
                 tr("Right light:")
             };
-            QString lightColorNames[ACEILeverPanelItem::NLights] = {
+            const QString lightColorNames[ACEILeverPanelItem::NLights] = {
                 tr("Left color:"),
                 tr("Central color:"),
                 tr("Right color:")

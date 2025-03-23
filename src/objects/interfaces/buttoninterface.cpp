@@ -32,7 +32,7 @@
 static const EnumDesc button_mode_desc =
 {
     int(ButtonInterface::Mode::ReturnNormalOnRelease),
-    int(ButtonInterface::Mode::ReturnNormalAfterTimout),
+    int(ButtonInterface::Mode::ReturnNormalAfterTimeout),
     int(ButtonInterface::Mode::ReturnNormalOnRelease),
     "GenericButtonObject",
     {

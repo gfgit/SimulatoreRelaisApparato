@@ -49,7 +49,7 @@ public:
     {
         ReturnNormalOnRelease = 0,
         StayInLastPosition = 1,
-        ReturnNormalAfterTimout = 2
+        ReturnNormalAfterTimeout = 2
     };
 
     ButtonInterface(AbstractSimulationObject *obj);

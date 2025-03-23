@@ -821,7 +821,7 @@ void BEMPanelItem::onConsLeverDestroyed()
     setConsensusLever(nullptr);
 }
 
-bool distanceLess(const QPointF& diff, double radius)
+inline bool distanceLess(const QPointF& diff, double radius)
 {
     // Add some tolerance
     radius *= 1.1;
