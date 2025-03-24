@@ -47,6 +47,7 @@
 #include "edit/panelitemfactory.h"
 
 #include "graphs/lightrectitem.h"
+#include "graphs/imagepanelitem.h"
 
 PanelScene::PanelScene(PanelListModel *parent)
     : QGraphicsScene{parent}
@@ -147,7 +148,10 @@ void PanelScene::addNode(AbstractPanelItem *item)
     else
     {
         mOtherPanelItems.append(item);
-        item->setZValue(int(Layers::OtherItems));
+        if(item->itemType() == ImagePanelItem::ItemType)
+            item->setZValue(int(Layers::Images));
+        else
+            item->setZValue(int(Layers::OtherItems));
 
         if(editing)
             registerSnap(item->boundingRect().translated(item->pos()));
