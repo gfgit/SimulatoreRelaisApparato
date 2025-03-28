@@ -28,10 +28,18 @@
 struct ObjectProperty
 {
     QString name;
+    QString customType;
     QString prettyName;
     QStringList types;
     QString interface;
     bool exclusive = false;
+
+    inline QString getTypeProp() const
+    {
+        if(customType.isEmpty())
+            return name + QLatin1String("_type");
+        return customType;
+    }
 };
 
 #endif // OBJECTPROPERTY_H

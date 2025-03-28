@@ -732,6 +732,34 @@ void ACESasibLeverPanelItem::saveToJSON(QJsonObject &obj) const
     }
 }
 
+void ACESasibLeverPanelItem::getObjectProperties(QVector<ObjectProperty> &result) const
+{
+    ObjectProperty leverProp;
+    leverProp.name = "lever";
+    leverProp.prettyName = tr("Lever");
+    leverProp.interface = SasibACELeverExtraInterface::IfaceType;
+    result.append(leverProp);
+
+    for(int i = 0; i < LightPosition::NLights; i++)
+    {
+        ObjectProperty butProp;
+        butProp.name = butFmt.arg(lightKeyNames[i]);
+        butProp.prettyName = tr("Button %1").arg(i);
+        butProp.customType = butTypeFmt.arg(lightKeyNames[i]);
+        butProp.interface = ButtonInterface::IfaceType;
+        result.append(butProp);
+    }
+
+    for(int i = 0; i < LightPosition::NLights; i++)
+    {
+        ObjectProperty lightProp;
+        lightProp.name = lightFmt.arg(lightKeyNames[i]);
+        lightProp.prettyName = tr("Light %1").arg(i);
+        lightProp.types = {LightBulbObject::Type};
+        result.append(lightProp);
+    }
+}
+
 void ACESasibLeverPanelItem::onLeverDestroyed()
 {
     setLever(nullptr);

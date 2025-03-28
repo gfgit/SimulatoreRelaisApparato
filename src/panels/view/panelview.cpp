@@ -24,14 +24,18 @@
 
 #include "../panelscene.h"
 
+#include "panelitemobjectreplacedlg.h"
+#include "../../utils/itemobjectreplacedlg_impl.hpp"
+
 #include "../../views/modemanager.h"
 
 #include <QKeyEvent>
 
 #include <QMessageBox>
 
-PanelView::PanelView(QWidget *parent)
+PanelView::PanelView(ViewManager *viewMgr, QWidget *parent)
     : ZoomGraphView{parent}
+    , mViewMgr(viewMgr)
 {
     setDragMode(RubberBandDrag);
 }
@@ -41,6 +45,37 @@ PanelScene *PanelView::panelScene() const
     if(!scene())
         return nullptr;
     return static_cast<PanelScene *>(scene());
+}
+
+void PanelView::batchNodeEdit()
+{
+    if(!panelScene() || !panelScene()->areSelectedNodesSameType())
+        return;
+
+    if(panelScene()->modeMgr()->mode() != FileMode::Editing)
+        return;
+
+    QVector<AbstractPanelItem *> items = panelScene()->getSelectedItems();
+
+    PanelItemObjectReplaceDlg::batchNodeEdit(items, mViewMgr, this);
+}
+
+void PanelView::batchObjectReplace()
+{
+    if(!panelScene())
+        return;
+
+    if(panelScene()->modeMgr()->mode() != FileMode::Editing)
+        return;
+
+    QVector<AbstractPanelItem *> items = panelScene()->getSelectedItems();
+
+    QPointer<PanelItemObjectReplaceDlg> dlg = new PanelItemObjectReplaceDlg(mViewMgr,
+                                                                            items,
+                                                                            this);
+    dlg->exec();
+    if(dlg)
+        delete dlg;
 }
 
 void PanelView::keyPressEvent(QKeyEvent *ev)
@@ -78,6 +113,28 @@ void PanelView::keyPressEvent(QKeyEvent *ev)
     }
 
     ZoomGraphView::keyPressEvent(ev);
+}
+
+void PanelView::keyReleaseEvent(QKeyEvent *ev)
+{
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() == FileMode::Editing)
+    {
+        if(s->modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
+        {
+            if(ev->key() == Qt::Key_D && ev->modifiers() & Qt::ControlModifier)
+            {
+                // Batch Edit
+                if(ev->modifiers() & Qt::ShiftModifier)
+                    batchNodeEdit();
+                else
+                    batchObjectReplace();
+                return;
+            }
+        }
+    }
+
+    ZoomGraphView::keyReleaseEvent(ev);
 }
 
 void PanelView::deleteSelectedItems()

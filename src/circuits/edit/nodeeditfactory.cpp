@@ -141,7 +141,6 @@ void NodeEditFactory::editItem(QWidget *parent,
         });
     }
 
-
     QPushButton *okBut = new QPushButton(tr("Ok"));
     connect(okBut, &QPushButton::clicked, dlg, &QDialog::accept);
     okBut->setFocus();

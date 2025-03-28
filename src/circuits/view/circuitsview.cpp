@@ -20,6 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
 #include "circuitsview.h"
 
 #include "../circuitscene.h"
@@ -29,6 +30,7 @@
 #include "../nodes/abstractcircuitnode.h"
 
 #include "circuitnodeobjectreplacedlg.h"
+#include "../../utils/itemobjectreplacedlg_impl.hpp"
 
 #include "../../views/modemanager.h"
 

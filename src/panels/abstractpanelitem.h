@@ -25,6 +25,8 @@
 
 #include <QGraphicsObject>
 
+#include "../utils/objectproperty.h"
+
 class PanelScene;
 class ModeManager;
 
@@ -48,6 +50,8 @@ public:
 
     virtual bool loadFromJSON(const QJsonObject& obj, ModeManager *mgr);
     virtual void saveToJSON(QJsonObject& obj) const;
+
+    virtual void getObjectProperties(QVector<ObjectProperty> &result) const;
 
     virtual QString itemType() const = 0;
 

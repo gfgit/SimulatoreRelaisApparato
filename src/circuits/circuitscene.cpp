@@ -1490,7 +1490,7 @@ void CircuitScene::copySelectedItems()
 
             const bool needsType = !prop.interface.isEmpty() || prop.types.size() != 1;
             if(needsType)
-                objType = nodeObj.value(prop.name + QLatin1String("_type")).toString();
+                objType = nodeObj.value(prop.getTypeProp()).toString();
             else
                 objType = prop.types.first();
 

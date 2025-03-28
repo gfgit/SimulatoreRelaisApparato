@@ -27,19 +27,30 @@
 
 class PanelScene;
 
+class ViewManager;
+
 class PanelView : public ZoomGraphView
 {
     Q_OBJECT
 public:
-    explicit PanelView(QWidget *parent = nullptr);
+    explicit PanelView(ViewManager *viewMgr, QWidget *parent = nullptr);
 
     PanelScene *panelScene() const;
 
+    inline ViewManager *viewMgr() const { return mViewMgr; }
+
+    void batchNodeEdit();
+    void batchObjectReplace();
+
 protected:
     void keyPressEvent(QKeyEvent *ev) override;
+    void keyReleaseEvent(QKeyEvent *ev) override;
 
 private:
     void deleteSelectedItems();
+
+private:
+    ViewManager *mViewMgr = nullptr;
 };
 
 #endif // PanelView_H

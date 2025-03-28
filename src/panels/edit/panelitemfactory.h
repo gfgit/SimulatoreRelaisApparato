@@ -69,7 +69,8 @@ public:
                                   PanelScene *scene);
     void editItem(QWidget *parent,
                   AbstractPanelItem *item,
-                  ViewManager *viewMgr);
+                  ViewManager *viewMgr,
+                  bool allowDelete = true);
 
     QString prettyName(const QString& nodeType) const;
     NeedsName needsName(const QString &nodeType) const;

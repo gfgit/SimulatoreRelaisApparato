@@ -78,13 +78,11 @@ private:
 private:
     PanelScene *mScene = nullptr;
 
-    PanelView *mCircuitView = nullptr;
+    PanelView *mPanelView = nullptr;
     DoubleClickSlider *mZoomSlider = nullptr;
     QDoubleSpinBox *mZoomSpin = nullptr;
 
     QWidget *statusBar = nullptr;
-
-    ViewManager *mViewMgr = nullptr;
 
     int mUniqueNum = 1;
 };

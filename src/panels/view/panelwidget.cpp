@@ -41,15 +41,14 @@
 
 PanelWidget::PanelWidget(ViewManager *mgr, QWidget *parent)
     : QWidget{parent}
-    , mViewMgr(mgr)
 {
     QVBoxLayout *lay = new QVBoxLayout(this);
     lay->setContentsMargins(QMargins());
     setContentsMargins(QMargins());
 
-    mCircuitView = new PanelView;
-    mCircuitView->installEventFilter(this);
-    lay->addWidget(mCircuitView);
+    mPanelView = new PanelView(mgr);
+    mPanelView->installEventFilter(this);
+    lay->addWidget(mPanelView);
 
     statusBar = new QWidget;
     statusBar->installEventFilter(this);
@@ -76,7 +75,7 @@ PanelWidget::PanelWidget(ViewManager *mgr, QWidget *parent)
 
     lay->addWidget(statusBar);
 
-    connect(mCircuitView, &ZoomGraphView::zoomChanged,
+    connect(mPanelView, &ZoomGraphView::zoomChanged,
             this, &PanelWidget::onZoomChanged);
     connect(mZoomSlider, &QSlider::valueChanged,
             this, &PanelWidget::onZoomSliderChanged);
@@ -85,7 +84,7 @@ PanelWidget::PanelWidget(ViewManager *mgr, QWidget *parent)
     connect(mZoomSpin, &QDoubleSpinBox::valueChanged,
             this, &PanelWidget::onZoomSpinChanged);
 
-    onZoomChanged(mCircuitView->zoomFactor());
+    onZoomChanged(mPanelView->zoomFactor());
 }
 
 PanelWidget::~PanelWidget()
@@ -112,7 +111,7 @@ void PanelWidget::setScene(PanelScene *newScene, bool updateName)
     }
 
     mScene = newScene;
-    mCircuitView->setScene(mScene);
+    mPanelView->setScene(mScene);
 
     if(mScene)
     {
@@ -122,7 +121,7 @@ void PanelWidget::setScene(PanelScene *newScene, bool updateName)
                 this, &PanelWidget::onSceneDestroyed);
     }
 
-    setUniqueNum(mViewMgr->getUniqueNum(mScene, this));
+    setUniqueNum(mPanelView->viewMgr()->getUniqueNum(mScene, this));
 
     if(updateName)
         onSceneNameChanged();
@@ -139,22 +138,22 @@ void PanelWidget::onZoomChanged(double val)
 
 void PanelWidget::onZoomSliderChanged(int val)
 {
-    mCircuitView->setZoom(double(val) / 100.0);
+    mPanelView->setZoom(double(val) / 100.0);
 }
 
 void PanelWidget::onZoomSpinChanged(double val)
 {
-    mCircuitView->setZoom(val / 100.0);
+    mPanelView->setZoom(val / 100.0);
 }
 
 void PanelWidget::resetZoom()
 {
-    mCircuitView->setZoom(1.0);
+    mPanelView->setZoom(1.0);
 }
 
 void PanelWidget::onSceneNameChanged()
 {
-    mViewMgr->updateDockName(this);
+    mPanelView->viewMgr()->updateDockName(this);
 }
 
 void PanelWidget::onSceneDestroyed()
@@ -164,7 +163,7 @@ void PanelWidget::onSceneDestroyed()
 
 bool PanelWidget::eventFilter(QObject *watched, QEvent *e)
 {
-    if(watched == mCircuitView ||
+    if(watched == mPanelView ||
             watched == mZoomSlider ||
             watched == mZoomSpin ||
             watched == statusBar)
@@ -172,7 +171,7 @@ bool PanelWidget::eventFilter(QObject *watched, QEvent *e)
         if(e->type() == QEvent::FocusIn)
         {
             // Set this view as active
-            mViewMgr->setActivePanel(this);
+            mPanelView->viewMgr()->setActivePanel(this);
         }
         else if(e->type() == QEvent::KeyPress)
         {
@@ -192,7 +191,7 @@ bool PanelWidget::eventFilter(QObject *watched, QEvent *e)
 void PanelWidget::focusInEvent(QFocusEvent *ev)
 {
     // Set this view as active
-    mViewMgr->setActivePanel(this);
+    mPanelView->viewMgr()->setActivePanel(this);
 
     QWidget::focusInEvent(ev);
 }
@@ -226,8 +225,8 @@ void PanelWidget::addNodeToCenter(PanelItemFactory *editFactory,
             return;
     }
 
-    QPoint vpCenter = mCircuitView->viewport()->rect().center();
-    QPointF sceneCenter = mCircuitView->mapToScene(vpCenter);
+    QPoint vpCenter = mPanelView->viewport()->rect().center();
+    QPointF sceneCenter = mPanelView->mapToScene(vpCenter);
 
     auto item = editFactory->createItem(nodeType, mScene);
 
@@ -239,7 +238,7 @@ void PanelWidget::addNodeToCenter(PanelItemFactory *editFactory,
     // Add node to scene
     scene()->addNode(item);
 
-    mCircuitView->ensureVisible(item);
+    mPanelView->ensureVisible(item);
 }
 
 void PanelWidget::toggleStatusBar()
@@ -269,5 +268,5 @@ void PanelWidget::setStatusBarVisible(bool val)
 
 PanelView *PanelWidget::panelView() const
 {
-    return mCircuitView;
+    return mPanelView;
 }

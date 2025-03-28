@@ -38,6 +38,7 @@
 #include "../panels/edit/panelitemfactory.h"
 
 #include "../panels/view/panelwidget.h"
+#include "../panels/view/panelview.h"
 #include "../panels/view/panellistwidget.h"
 #include "../panels/view/panellistmodel.h"
 #include "../panels/panelscene.h"
@@ -710,6 +711,27 @@ bool ViewManager::batchCircuitNodeEdit(bool objectReplace)
         mActiveCircuitView->mCircuitView->batchObjectReplace();
     else
         mActiveCircuitView->mCircuitView->batchNodeEdit();
+
+    return true;
+}
+
+bool ViewManager::batchPanelItemEdit(bool objectReplace)
+{
+    if(!mActivePanelView)
+        return false;
+
+    PanelScene *scene = mActivePanelView->scene();
+    bool sameType = false;
+    if(!objectReplace)
+        sameType = scene->areSelectedNodesSameType();
+
+    if(!objectReplace && !sameType)
+        return false;
+
+    if(objectReplace)
+        mActivePanelView->panelView()->batchObjectReplace();
+    else
+        mActivePanelView->panelView()->batchNodeEdit();
 
     return true;
 }

@@ -183,7 +183,7 @@ void LightRectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
         r.adjust(halfW, halfW, -halfW, -halfW);
         painter->drawRect(r);
     }
-    else if(isActive())
+    else if(isLightOn())
     {
         // First active light wins
         for(const LightEntry& light : std::as_const(mLights))
@@ -204,7 +204,7 @@ QPainterPath LightRectItem::opaqueArea() const
     return QGraphicsObject::opaqueArea();
 }
 
-bool LightRectItem::active() const
+bool LightRectItem::isLightOn() const
 {
     return mActive > 0;
 }

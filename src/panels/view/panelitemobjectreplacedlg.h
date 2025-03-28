@@ -1,5 +1,5 @@
 /**
- * src/circuits/view/circuitnodeobjectreplacedlg.h
+ * src/panels/view/panelitemobjectreplacedlg.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,21 +20,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef CIRCUIT_NODE_OBJECT_REPLACE_DLG_H
-#define CIRCUIT_NODE_OBJECT_REPLACE_DLG_H
+#ifndef PANELITEMOBJECTREPLACEDLG_H
+#define PANELITEMOBJECTREPLACEDLG_H
 
 #include "../../utils/itemobjectreplacedlg.h"
 
-class AbstractNodeGraphItem;
+class AbstractPanelItem;
 
 class ModeManager;
 class ViewManager;
 
 class ObjectProperty;
 
-struct CircuitNodeTraits
+struct PanelItemTraits
 {
-    typedef AbstractNodeGraphItem Node;
+    typedef AbstractPanelItem Node;
 
     static void getObjectProperties(Node *node,
                                     QVector<ObjectProperty> &result);
@@ -42,7 +42,7 @@ struct CircuitNodeTraits
 
     static bool loadFromJSON(Node *node,
                              const QJsonObject& obj,
-                             ModeManager *);
+                             ModeManager *modeMgr);
     static void saveToJSON(Node *node, QJsonObject& obj);
 
     static void editItem(Node *node,
@@ -53,12 +53,12 @@ struct CircuitNodeTraits
     static QString prettyTypeName(ModeManager *modeMgr, const QString& typeName);
 };
 
-class CircuitNodeObjectReplaceDlg : public ItemObjectReplaceDlg<CircuitNodeTraits>
+class PanelItemObjectReplaceDlg : public ItemObjectReplaceDlg<PanelItemTraits>
 {
 public:
-    CircuitNodeObjectReplaceDlg(ViewManager *viewMgr,
-                                const QVector<AbstractNodeGraphItem *>& items,
-                                QWidget *parent = nullptr);
+    PanelItemObjectReplaceDlg(ViewManager *viewMgr,
+                              const QVector<AbstractPanelItem *>& items,
+                              QWidget *parent = nullptr);
 };
 
-#endif // CIRCUIT_NODE_OBJECT_REPLACE_DLG_H
+#endif // PANELITEMOBJECTREPLACEDLG_H

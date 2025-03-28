@@ -3,6 +3,9 @@
 set(SIMULATORE_RELAIS_SOURCES
     ${SIMULATORE_RELAIS_SOURCES}
 
+    panels/view/panelitemobjectreplacedlg.cpp
+    panels/view/panelitemobjectreplacedlg.h
+
     panels/view/panellistmodel.cpp
     panels/view/panellistmodel.h
 

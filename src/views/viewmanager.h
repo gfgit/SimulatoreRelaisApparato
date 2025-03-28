@@ -119,6 +119,7 @@ public slots:
     void showObjectListView(const QString &objType);
 
     bool batchCircuitNodeEdit(bool objectReplace);
+    bool batchPanelItemEdit(bool objectReplace);
 
 private slots:
     void onCircuitViewDestroyed(QObject *obj);

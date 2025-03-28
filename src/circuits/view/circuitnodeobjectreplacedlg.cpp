@@ -20,6 +20,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#include "../../utils/itemobjectreplacedlg_impl.hpp"
+
 #include "circuitnodeobjectreplacedlg.h"
 
 #include "../graphs/abstractnodegraphitem.h"
@@ -48,7 +50,9 @@ QString CircuitNodeTraits::getNodeType(Node *node)
     return node->getAbstractNode()->nodeType();
 }
 
-bool CircuitNodeTraits::loadFromJSON(Node *node, const QJsonObject &obj)
+bool CircuitNodeTraits::loadFromJSON(Node *node,
+                                     const QJsonObject &obj,
+                                     ModeManager *)
 {
     return node->loadFromJSON(obj);
 }
@@ -75,5 +79,3 @@ QString CircuitNodeTraits::prettyTypeName(ModeManager *modeMgr, const QString &t
     auto editFactory = modeMgr->circuitFactory();
     return editFactory->prettyName(typeName);
 }
-
-#include "../../utils/itemobjectreplacedlg_impl.hpp"

@@ -92,6 +92,10 @@ public:
     void selectAll();
     void invertSelection();
 
+    QVector<AbstractPanelItem *> getSelectedItems() const;
+
+    bool areSelectedNodesSameType() const;
+
 signals:
     void nameChanged(const QString& newName, PanelScene *self);
     void longNameChanged(const QString& newName, PanelScene *self);

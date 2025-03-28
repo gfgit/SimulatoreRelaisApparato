@@ -81,6 +81,8 @@ public:
     bool loadFromJSON(const QJsonObject& obj, ModeManager *mgr) override;
     void saveToJSON(QJsonObject& obj) const override;
 
+    void getObjectProperties(QVector<ObjectProperty> &result) const override;
+
     // Lever
     AbstractSimulationObject *lever() const;
     void setLever(AbstractSimulationObject *newLever);

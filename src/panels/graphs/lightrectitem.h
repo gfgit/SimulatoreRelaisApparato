@@ -59,7 +59,7 @@ public:
 
     QPainterPath opaqueArea() const override;
 
-    bool active() const;
+    bool isLightOn() const;
 
     QVector<LightEntry> lights() const;
     void setLights(const QVector<LightEntry> &newLights);

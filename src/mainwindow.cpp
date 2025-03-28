@@ -386,6 +386,32 @@ void MainWindow::buildEditToolBar()
     QMenu *newPanelItemMenu = new QMenu;
     newPanelItem->setMenu(newPanelItemMenu);
     panelEditToolbar1->addAction(newPanelItem);
+
+    QAction *batchPanelNodeEdit = panelEditToolbar1->addAction(tr("Batch Edit"));
+    QAction *batchPanelNodeObjectReplace = panelEditToolbar1->addAction(tr("Object Replace"));
+
+    // TODO
+    //batchPanelNodeEdit->setVisible(false);
+    //batchPanelNodeObjectReplace->setVisible(false);
+
+    // connect(mViewMgr, &ViewManager::allowNodeBatchEditChanged,
+    //         batchPanelNodeEdit,
+    //         [batchPanelNodeEdit, batchPanelNodeObjectReplace](bool allow, bool sameType)
+    // {
+    //     batchPanelNodeEdit->setVisible(allow && sameType);
+    //     batchPanelNodeObjectReplace->setVisible(allow);
+    // });
+
+    connect(batchPanelNodeEdit, &QAction::triggered,
+            mViewMgr, [mgr = mViewMgr]()
+    {
+        mgr->batchPanelItemEdit(false);
+    });
+    connect(batchPanelNodeObjectReplace, &QAction::triggered,
+            mViewMgr, [mgr = mViewMgr]()
+    {
+        mgr->batchPanelItemEdit(true);
+    });
     panelEditToolbar1->addSeparator();
 
     QVector<QAction *> addPanelItemActions;

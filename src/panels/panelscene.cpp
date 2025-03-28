@@ -357,6 +357,57 @@ void PanelScene::invertSelection()
     }
 }
 
+QVector<AbstractPanelItem *> PanelScene::getSelectedItems() const
+{
+    const auto selection = selectedItems();
+
+    QVector<AbstractPanelItem *> result;
+    result.reserve(selection.size());
+
+    for(QGraphicsItem *item : selection)
+    {
+        QGraphicsObject *obj = item->toGraphicsObject();
+        if(!obj)
+            continue;
+
+        AbstractPanelItem *panelItem = qobject_cast<AbstractPanelItem *>(obj);
+        if(panelItem)
+            result.append(panelItem);
+    }
+
+    return result;
+}
+
+bool PanelScene::areSelectedNodesSameType() const
+{
+    const auto selection = selectedItems();
+    if(selection.isEmpty())
+        return false;
+
+    QString itemType;
+    for(QGraphicsItem *item : selection)
+    {
+        QGraphicsObject *obj = item->toGraphicsObject();
+        if(!obj)
+            continue;
+
+        AbstractPanelItem *panelItem = qobject_cast<AbstractPanelItem *>(obj);
+        if(!panelItem)
+            continue;
+
+        if(itemType.isNull())
+        {
+            itemType = panelItem->itemType();
+            continue;
+        }
+
+        if(panelItem->itemType() != itemType)
+            return false;
+    }
+
+    return true;
+}
+
 void PanelScene::helpEvent(QGraphicsSceneHelpEvent *e)
 {
     const QList<QGraphicsItem *> itemsAtPos = items(e->scenePos());
