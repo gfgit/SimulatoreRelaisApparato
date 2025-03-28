@@ -96,12 +96,12 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             // Width, Height
             QDoubleSpinBox *wSpin = new QDoubleSpinBox;
-            wSpin->setRange(0, 1000);
+            wSpin->setRange(0, 99999);
             wSpin->setDecimals(5);
             lay->addRow(tr("Width:"), wSpin);
 
             QDoubleSpinBox *hSpin = new QDoubleSpinBox;
-            hSpin->setRange(0, 1000);
+            hSpin->setRange(0, 99999);
             hSpin->setDecimals(5);
             lay->addRow(tr("Height:"), hSpin);
 
