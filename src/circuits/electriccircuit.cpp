@@ -529,7 +529,25 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             circuit->enableCircuit();
             return {0, 1};
         }
-        return {};
+        else
+        {
+            // We returned to same source, on same pole
+            // The circuits is open
+            if(mode.testFlag(PassModes::ReverseVoltagePassed))
+            {
+                //qWarning() << "Open circuit with reverse voltage!";
+                return {};
+            }
+
+            // Register closed circuit
+            ElectricCircuit *circuit = new ElectricCircuit();
+            circuit->mItems = {items.begin(), items.end()};
+            circuit->mItems.append(nodeItem);
+            circuit->mType = CircuitType::Open;
+
+            circuit->enableCircuit();
+            return {1, 0};
+        }
     }
 
     if(node->isSourceNode(true))
