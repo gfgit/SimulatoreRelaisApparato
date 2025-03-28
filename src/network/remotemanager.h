@@ -53,6 +53,8 @@ public:
     void setDiscoveryEnabled(bool val);
     bool isDiscoveryEnabled() const;
 
+    void refreshNetworkAddresses();
+
     bool renameRemoteSession(const QString &fromName, const QString &toName);
 
     void addRemoteBridge(RemoteCircuitBridge *bridge, const QString& peerSession);

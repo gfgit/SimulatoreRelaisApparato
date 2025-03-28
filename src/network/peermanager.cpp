@@ -126,7 +126,7 @@ void PeerManager::sendBroadcastDatagram()
             validBroadcastAddresses = false;
     }
 
-    if (!validBroadcastAddresses)
+    if (!validBroadcastAddresses || broadcastAddresses.isEmpty())
         updateAddresses();
 }
 
@@ -217,7 +217,7 @@ void PeerManager::updateAddresses()
         for (const QNetworkAddressEntry &entry : entries)
         {
             QHostAddress broadcastAddress = entry.broadcast();
-            if (broadcastAddress != QHostAddress::Null && entry.ip() != QHostAddress::LocalHost)
+            if (broadcastAddress != QHostAddress::Null)
             {
                 broadcastAddresses << broadcastAddress;
                 ipAddresses << entry.ip();
@@ -244,6 +244,7 @@ void PeerManager::setDiscoveryEnabled(bool newEnabled)
     if(mEnabled)
     {
         // Start broadcasting
+        updateAddresses();
 
         // Ensure server is running
         mClient->setCommunicationEnabled(true);

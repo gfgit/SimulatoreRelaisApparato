@@ -66,6 +66,8 @@ public:
         return mRemoteMgr;
     }
 
+    void updateAddresses();
+
 signals:
     void sessionNameChanged(const QString& newName);
 
@@ -76,9 +78,6 @@ signals:
 private slots:
     void sendBroadcastDatagram();
     void readBroadcastDatagram();
-
-private:
-    void updateAddresses();
 
 private:
     RemoteManager *mRemoteMgr = nullptr;

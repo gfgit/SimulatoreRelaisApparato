@@ -107,6 +107,11 @@ bool RemoteManager::isDiscoveryEnabled() const
     return mPeerManager->isDiscoveryEnabled();
 }
 
+void RemoteManager::refreshNetworkAddresses()
+{
+    mPeerManager->updateAddresses();
+}
+
 bool RemoteManager::renameRemoteSession(const QString &fromName, const QString &toName)
 {
     if(isOnline())

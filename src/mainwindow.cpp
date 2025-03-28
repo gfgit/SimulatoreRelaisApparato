@@ -277,12 +277,22 @@ void MainWindow::buildMenuBar()
             actionNetworkDiscovery->setChecked(false);
     });
 
+    actionNetworkRefresh = menuNetwork->addAction(tr("Refresh Addresses"));
+    actionNetworkRefresh->setToolTip(tr("Useful if network connections changed"));
+    actionNetworkRefresh->setEnabled(remoteMgr->isOnline());
+    connect(actionNetworkRefresh, &QAction::toggled,
+            remoteMgr, [this, remoteMgr]()
+    {
+        remoteMgr->refreshNetworkAddresses();
+    });
+
     connect(remoteMgr, &RemoteManager::networkStateChanged,
             this, [this, remoteMgr]()
     {
         actionSetOnline->setChecked(remoteMgr->isOnline());
         actionNetworkDiscovery->setChecked(remoteMgr->isDiscoveryEnabled());
         actionNetworkDiscovery->setEnabled(remoteMgr->isOnline());
+        actionNetworkRefresh->setEnabled(remoteMgr->isOnline());
     });
 }
 

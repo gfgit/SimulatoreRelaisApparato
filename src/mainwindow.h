@@ -92,6 +92,7 @@ private:
     QAction *actionSessionName;
     QAction *actionSetOnline;
     QAction *actionNetworkDiscovery;
+    QAction *actionNetworkRefresh;
 
     // Edit toolbar
     QToolBar *circuitEditToolbar1 = nullptr;
