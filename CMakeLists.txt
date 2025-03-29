@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SimulatoreRelaisApparato VERSION 0.7.1 LANGUAGES CXX)
+project(SimulatoreRelaisApparato VERSION 0.7.2 LANGUAGES CXX)
 
 option(UPDATE_TS_KEEP_OBSOLETE "Keep obsolete entries when updating translations" ON)
 option(BUILD_DOXYGEN "Build Doxygen documentation" OFF)
