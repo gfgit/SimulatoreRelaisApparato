@@ -174,12 +174,12 @@ void ACESasibLeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphics
     textRect.setLeft(10);
     textRect.setRight(br.width() - 10.0);
     textRect.setTop(hole.bottom() + circleRadius);
-    textRect.setBottom(244);
+    textRect.setBottom(225);
 
     Qt::Alignment textAlign = Qt::AlignCenter;
 
     QFont f;
-    f.setPointSizeF(18.0);
+    f.setPointSizeF(30.0);
     f.setBold(true);
 
     QFontMetrics metrics(f, painter->device());
@@ -189,12 +189,13 @@ void ACESasibLeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphics
         f.setPointSizeF(f.pointSizeF() * textRect.width() / width * 0.9);
     }
 
-    painter->setBrush(Qt::NoBrush);
-    pen.setColor(Qt::black);
+    pen.setColor(mLeverNameColor);
     painter->setPen(pen);
 
     painter->setFont(f);
     painter->drawText(textRect, textAlign, leverName);
+
+    pen.setColor(Qt::black);
 
     // Draw buttons
     QRectF baseCircle;
@@ -512,6 +513,26 @@ void ACESasibLeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
     SnappablePanelItem::mouseReleaseEvent(ev);
 }
 
+QColor ACESasibLeverPanelItem::leverNameColor() const
+{
+    return mLeverNameColor;
+}
+
+void ACESasibLeverPanelItem::setLeverNameColor(const QColor &newLeverNameColor)
+{
+    if(mLeverNameColor == newLeverNameColor)
+        return;
+
+    mLeverNameColor = newLeverNameColor;
+
+    PanelScene *s = panelScene();
+    if(s)
+        s->modeMgr()->setFileEdited();
+
+    update();
+    emit lightsChanged();
+}
+
 AbstractSimulationObject *ACESasibLeverPanelItem::lever() const
 {
     return mLever;
@@ -671,6 +692,11 @@ bool ACESasibLeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *m
     else
         setLever(nullptr);
 
+    QColor c = QColor::fromString(obj.value("lever_name_color").toString());
+    if(!c.isValid())
+        c = Qt::black;
+    setLeverNameColor(c);
+
     // Buttons
     for(int i = 0; i < LightPosition::NLights; i++)
     {
@@ -697,7 +723,7 @@ bool ACESasibLeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *m
 
         setLight(LightPosition(i), light);
 
-        QColor c = QColor::fromString(obj.value(lightColorFmt.arg(lightKeyNames[i])).toString());
+        c = QColor::fromString(obj.value(lightColorFmt.arg(lightKeyNames[i])).toString());
         if(!c.isValid())
             c = lightDefaultColors[i];
 
@@ -714,6 +740,7 @@ void ACESasibLeverPanelItem::saveToJSON(QJsonObject &obj) const
     // Lever
     obj["lever"] = mLever ? mLever->name() : QString();
     obj["lever_type"] = mLever ? mLever->getType() : QString();
+    obj["lever_name_color"] = mLeverNameColor.name(QColor::HexRgb);
 
     // Buttons
     for(int i = 0; i < LightPosition::NLights; i++)

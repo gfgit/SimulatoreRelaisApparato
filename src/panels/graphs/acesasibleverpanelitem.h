@@ -110,6 +110,9 @@ public:
 
     void setLightColor(LightPosition pos, const QColor &newLightColor);
 
+    QColor leverNameColor() const;
+    void setLeverNameColor(const QColor &newLeverNameColor);
+
 signals:
     void leverChanged(AbstractSimulationObject *newLever);
     void buttonsChanged();
@@ -133,6 +136,8 @@ private:
     // Lever
     AbstractSimulationObject *mLever = nullptr;
     LeverInterface *mLeverIface = nullptr;
+
+    QColor mLeverNameColor = Qt::black;
 
     // Buttons
     struct Button
