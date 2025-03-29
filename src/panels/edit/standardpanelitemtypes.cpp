@@ -518,6 +518,15 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Lever:"), leverEdit);
 
+            ColorSelectionWidget *leverNameColor = new ColorSelectionWidget;
+            QObject::connect(leverNameColor, &ColorSelectionWidget::colorChanged,
+                             leverItem, [leverItem, leverNameColor]()
+            {
+                leverItem->setLeverNameColor(leverNameColor->color());
+            });
+
+            lay->addRow(tr("Lever Color:"), leverNameColor);
+
             // Button
             SimulationObjectLineEdit *buttonEdits[ACESasibLeverPanelItem::NLights];
             const QString buttonNames[ACESasibLeverPanelItem::NLights] = {
@@ -590,13 +599,15 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
                 lay->addRow(lightColorNames[i], lightColorEdits[i]);
             }
 
-            auto updateLights = [leverItem, lightEdits, lightColorEdits]()
+            auto updateLights = [leverItem, lightEdits, lightColorEdits, leverNameColor]()
             {
                 for(int i = 0; i < ACESasibLeverPanelItem::NLights; i++)
                 {
                     lightEdits[i]->setObject(leverItem->getLight(ACESasibLeverPanelItem::LightPosition(i)));
                     lightColorEdits[i]->setColor(leverItem->getLightColor(ACESasibLeverPanelItem::LightPosition(i)));
                 }
+
+                leverNameColor->setColor(leverItem->leverNameColor());
             };
 
             QObject::connect(leverItem, &ACESasibLeverPanelItem::lightsChanged,

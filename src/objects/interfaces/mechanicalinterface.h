@@ -41,6 +41,10 @@ public:
     typedef QVarLengthArray<MechanicalCondition::Type, 3> AllowedConditions;
     typedef QVarLengthArray<int, 3> LockablePositions;
 
+    typedef std::function<QString(AbstractSimulationObject *obj,
+                                  MechanicalCondition::Type t,
+                                  const MechanicalCondition::LockRange& r)> CondNameFunc;
+
     struct ConditionItem
     {
         MechanicalConditionSet conditions;
@@ -145,6 +149,11 @@ public:
         mUserCanChangeAbsoulteRange = val;
     }
 
+    void setCondNameFunc(const CondNameFunc &newCondNameFunc);
+
+    QString getCondName(MechanicalCondition::Type t,
+                        const MechanicalCondition::LockRange& r) const;
+
 protected:
     inline bool isPositionValidForLock(int pos) const
     {
@@ -160,6 +169,8 @@ private:
     void unregisterRelationship(MechanicalInterface *other, bool doRelock = true);
 
 private:
+    CondNameFunc mCondNameFunc;
+
     const EnumDesc mPositionDesc;
     LockConstraints mConstraints;
     LockRange mAllowedRangeByWanted;

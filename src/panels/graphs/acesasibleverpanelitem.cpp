@@ -27,10 +27,13 @@
 #include "../../objects/abstractsimulationobjectmodel.h"
 
 #include "../../objects/interfaces/leverinterface.h"
+#include "../../objects/interfaces/mechanicalinterface.h"
 #include "../../objects/interfaces/sasibaceleverextrainterface.h"
 #include "../../objects/interfaces/buttoninterface.h"
 
 #include "../../objects/simple_activable/lightbulbobject.h"
+
+#include "../../objects/simulationobjectfactory.h"
 
 #include "../../views/modemanager.h"
 
@@ -61,7 +64,7 @@ QString ACESasibLeverPanelItem::itemType() const
 
 QString ACESasibLeverPanelItem::tooltipString() const
 {
-    if(!mLeverIface)
+    if(!mLeverIface || !mLever)
     {
         return tr("NO LEVER SET!!!");
     }
@@ -94,6 +97,58 @@ QString ACESasibLeverPanelItem::tooltipString() const
     {
         tipText.append(QLatin1String("<br><br>"));
         tipText.append(mLever->description().toHtmlEscaped());
+    }
+
+    // Mechanical conditions
+    MechanicalInterface *mechanicalIface = mLever->getInterface<MechanicalInterface>();
+    if(mechanicalIface)
+    {
+        tipText.append(QLatin1String("<br><br>"));
+        tipText.append(tr("Mechanical Conditions:"));
+
+        int validCount = 0;
+        for(int i = 0; i < mechanicalIface->getConditionsSetsCount(); i++)
+        {
+            const auto cond = mechanicalIface->getConditionSet(i);
+
+            const QString conditionsDesc = cond.conditions.getHtmlString();
+            if(conditionsDesc.isEmpty())
+                continue;
+
+            QString title = cond.title;
+            if(cond.isLocked()) // Make bold if locked
+                title = QLatin1String("<b>%1</b>").arg(title);
+
+            if(cond.isSatisfied()) // Make dark green if satisfied
+                title = QLatin1String("<span style=\"color:  #1d8348 ;\">%1</span>").arg(title);
+
+            tipText.append(QLatin1String("<br><br>"));
+            tipText.append(QLatin1String("%1:<br>").arg(title));
+            tipText.append(conditionsDesc);
+
+            validCount++;
+        }
+
+        if(validCount == 0)
+            tipText.append(tr("<br>None"));
+
+        const auto constraints = mechanicalIface->constraints();
+        if(!constraints.isEmpty())
+        {
+            tipText.append(QLatin1String("<br><br>"));
+            tipText.append(tr("Locked by:"));
+
+            const auto factory = panelScene()->modeMgr()->objectFactory();
+
+            for(const MechanicalCondition::LockConstraint &c : constraints)
+            {
+                if(!c.obj)
+                    continue;
+
+                tipText.append(QLatin1String("<br>%1 <i>(%2)</i>")
+                        .arg(c.obj->name(), factory->prettyName(c.obj->getType())));
+            }
+        }
     }
 
     return tipText;

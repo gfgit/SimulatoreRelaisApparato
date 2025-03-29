@@ -65,11 +65,36 @@ static const LeverAngleDesc ace_sasib_5_angleDesc =
     {+80, +135}, // Normal
 };
 
+static QString ACESasibLever5PosObject_getCondName(AbstractSimulationObject *obj,
+                                                   MechanicalCondition::Type t,
+                                                   const MechanicalCondition::LockRange& r)
+{
+    if(!obj)
+        return QString();
+
+    switch (t)
+    {
+    case MechanicalCondition::Type::ExactPos:
+    {
+        if(r.first == int(ACESasibLeverPosition5::Normal))
+            return obj->name();
+        else if(r.first == int(ACESasibLeverPosition5::Reverse))
+            return QLatin1String("<u>%1</u>").arg(obj->name());
+        break;
+    }
+    default:
+        break;
+    }
+
+    return QString();
+}
+
 ACESasibLever5PosObject::ACESasibLever5PosObject(AbstractSimulationObjectModel *m)
     : ACESasibLeverCommonObject(m, ace_sasib_5_posDesc, ace_sasib_5_angleDesc)
 {
     leverInterface->setChangeRangeAllowed(false);
     mechanicalIface->setAllowedConditionTypes({MechanicalCondition::Type::ExactPos});
+    mechanicalIface->setCondNameFunc(&ACESasibLever5PosObject_getCondName);
 
     mechanicalIface->setLockablePositions(
                 {

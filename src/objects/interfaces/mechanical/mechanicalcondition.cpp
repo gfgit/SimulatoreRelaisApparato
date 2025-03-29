@@ -391,6 +391,81 @@ void MechanicalCondition::saveToJSON(QJsonObject &obj) const
     }
 }
 
+QString MechanicalCondition::getHtmlString(bool parentSatisfied, bool topLevel) const
+{
+    if(type == Type::Or)
+    {
+        QString result;
+
+        bool first = true;
+        for(const MechanicalCondition& sub : subConditions)
+        {
+            if(!first)
+                result.append(QLatin1String(" o "));
+            else
+                first = false;
+
+            QString str = sub.getHtmlString(parentSatisfied, false);
+            result.append(str);
+        }
+
+        if(!topLevel)
+            return QLatin1String("(%1)").arg(result);
+        return result;
+    }
+    else if(type == Type::And)
+    {
+        QString result;
+
+        bool first = true;
+        for(const MechanicalCondition& sub : subConditions)
+        {
+            if(!first)
+                result.append(QLatin1String(" "));
+            else
+                first = false;
+
+            QString str = sub.getHtmlString(parentSatisfied, false);
+            result.append(str);
+        }
+
+        if(!topLevel)
+            return QLatin1String("(%1)").arg(result);
+        return result;
+    }
+
+    // Now check our lever
+    if(!otherIface)
+        return MechanicalConditionTypeTranslation::tr("<b><i>NULL</i></b>");
+
+    const QString str = otherIface->getCondName(type, requiredPositions);
+    if(str.isEmpty())
+        return MechanicalConditionTypeTranslation::tr("<b><i>Err</i></b>");
+
+    QString result = str;
+
+    const bool condSatisfied = isSatisfied();
+    if(condSatisfied || !parentSatisfied)
+    {
+        // Make bold
+        result = QLatin1String("<b>%1</b>").arg(str);
+    }
+
+    if(!condSatisfied)
+    {
+        // If condition is not satisfied but parent condition is satisfied,
+        // then this is part of an OR branch which was not choses, make gray.
+        // Otherwise its the cause of parent not being satisfied so make red.
+        const QLatin1String color = parentSatisfied ?
+                    QLatin1String("#808b96") : // Gray
+                    QLatin1String("#FF0000");  // Red
+        result = QLatin1String("<span style=\"color: %1;\">%2</span>")
+                .arg(color, result);
+    }
+
+    return result;
+}
+
 bool MechanicalConditionSet::isSatisfied() const
 {
     if(rootCondition == MechanicalCondition())
@@ -413,6 +488,17 @@ bool MechanicalConditionSet::shouldLock(int position) const
     // been constrained to allowedRangeWhenUnstatisfied)
     // and we now should apply this condition by locking it
     return true;
+}
+
+QString MechanicalConditionSet::getHtmlString() const
+{
+    if(rootCondition == MechanicalCondition())
+    {
+        // Empty condition, do not block
+        return QString();
+    }
+
+    return rootCondition.getHtmlString(rootCondition.isSatisfied(), true);
 }
 
 void MechanicalInterface::ConditionItem::setLocked(bool lock, AbstractSimulationObject *self)

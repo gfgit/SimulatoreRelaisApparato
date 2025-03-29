@@ -74,6 +74,108 @@ static const LeverAngleDesc ace_sasib_7_angleDesc =
     {+80, +135}, // Backwards
 };
 
+inline QLatin1String getPosSuffix(ACESasibLeverPosition7 pos)
+{
+    switch (pos)
+    {
+    case ACESasibLeverPosition7::TurnedForward:
+    {
+        return QLatin1String("a");
+    }
+    case ACESasibLeverPosition7::WaitLiberationForward:
+    {
+        return QLatin1String("la");
+    }
+    case ACESasibLeverPosition7::WaitLiberationBackwards:
+    {
+        return QLatin1String("li");
+    }
+    case ACESasibLeverPosition7::TurnedBackwards:
+    {
+        return QLatin1String("i");
+    }
+    default:
+        break;
+    }
+
+    return QLatin1String();
+}
+
+static QString ACESasibLever7PosObject_getCondName(AbstractSimulationObject *obj,
+                                                   MechanicalCondition::Type t,
+                                                   const MechanicalCondition::LockRange& r)
+{
+    if(!obj)
+        return QString();
+
+    static const QLatin1String suffixFmt("<u>%1%2</u>");
+    ACESasibLeverPosition7 pos = ACESasibLeverPosition7(r.first);
+
+    switch (t)
+    {
+    case MechanicalCondition::Type::ExactPos:
+    {
+        if(pos == ACESasibLeverPosition7::Normal)
+            return obj->name();
+
+        QLatin1String suffix = getPosSuffix(pos);
+        if(suffix.isEmpty())
+            return QString();
+
+        return suffixFmt.arg(obj->name(), suffix);
+    }
+    case MechanicalCondition::Type::RangePos:
+    {
+        ACESasibLeverPosition7 pos2 = ACESasibLeverPosition7(r.second);
+
+        QString result;
+
+        if(pos == ACESasibLeverPosition7::Normal)
+            result = obj->name();
+        else
+        {
+            QLatin1String suffix = getPosSuffix(pos);
+            if(suffix.isEmpty())
+                return QString();
+
+            result = suffixFmt.arg(obj->name(), suffix);
+        }
+
+        result += QLatin1String("-");
+
+        if(pos2 == ACESasibLeverPosition7::Normal)
+            result += obj->name();
+        else
+        {
+            QLatin1String suffix = getPosSuffix(pos2);
+            if(suffix.isEmpty())
+                return QString();
+
+            result += suffixFmt.arg(obj->name(), suffix);
+        }
+
+        return result;
+    }
+    case MechanicalCondition::Type::NotPos:
+    {
+        if(pos == ACESasibLeverPosition7::Normal)
+            return QString(); // Cannot be used in NOT conditions
+
+        QLatin1String suffix = getPosSuffix(pos);
+        if(suffix.isEmpty())
+            return QString();
+
+        // No underline in NOT
+        return obj->name() + suffix;
+    }
+    default:
+        break;
+    }
+
+    return QString();
+}
+
+
 ACESasibLever7PosObject::ACESasibLever7PosObject(AbstractSimulationObjectModel *m)
     : ACESasibLeverCommonObject(m, ace_sasib_7_posDesc, ace_sasib_7_angleDesc)
 {
@@ -83,6 +185,7 @@ ACESasibLever7PosObject::ACESasibLever7PosObject(AbstractSimulationObjectModel *
                     MechanicalCondition::Type::RangePos,
                     MechanicalCondition::Type::NotPos
                 });
+    mechanicalIface->setCondNameFunc(&ACESasibLever7PosObject_getCondName);
 
     mechanicalIface->setLockablePositions(
                 {

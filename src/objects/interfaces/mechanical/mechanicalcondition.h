@@ -93,6 +93,8 @@ public:
         return !(*this == other);
     }
 
+    QString getHtmlString(bool parentSatisfied, bool topLevel) const;
+
 public:
     MechanicalInterface *otherIface = nullptr;
     LockRange requiredPositions = {0, 0};
@@ -110,6 +112,8 @@ struct MechanicalConditionSet
     bool isSatisfied() const;
 
     bool shouldLock(int position) const;
+
+    QString getHtmlString() const;
 };
 
 #endif // MECHANICALCONDITION_H

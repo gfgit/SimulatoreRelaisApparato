@@ -393,6 +393,10 @@ void MechanicalInterface::setConditionSetConditions(int idx, const MechanicalCon
     MechanicalCondition simplified = c;
     simplified.removeInvalidConditions();
     simplified.simplifyTree();
+
+    if(item.conditions.rootCondition == simplified)
+        return;
+
     item.conditions.rootCondition = simplified;
 
     // Refresh state
@@ -542,6 +546,18 @@ void MechanicalInterface::unregisterRelationship(MechanicalInterface *other, boo
         recalculateWantedConditionState();
         updateWantsLocks();
     }
+}
+
+void MechanicalInterface::setCondNameFunc(const CondNameFunc &newCondNameFunc)
+{
+    mCondNameFunc = newCondNameFunc;
+}
+
+QString MechanicalInterface::getCondName(MechanicalCondition::Type t, const MechanicalCondition::LockRange &r) const
+{
+    if(mCondNameFunc)
+        return mCondNameFunc(object(), t, r);
+    return QString();
 }
 
 const MechanicalInterface::LockablePositions& MechanicalInterface::lockablePositions() const
