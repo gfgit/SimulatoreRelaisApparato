@@ -177,12 +177,12 @@
         <translation>Normale</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever5positions.cpp" line="80"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever5positions.cpp" line="105"/>
         <source>Leave Normal</source>
         <translation>Superare Normale</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever5positions.cpp" line="85"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever5positions.cpp" line="110"/>
         <source>Leave Reverse</source>
         <translation>Superare Rovescio</translation>
     </message>
@@ -205,12 +205,12 @@
         <translation>Attesa Immobilizzazione I</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="96"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="199"/>
         <source>Go Forward</source>
         <translation>Rovesciare Avanti</translation>
     </message>
     <message>
-        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="101"/>
+        <location filename="../objects/lever/ace_sasib/acesasiblever7positions.cpp" line="204"/>
         <source>Go Backwards</source>
         <translation>Rovesciare Indietro</translation>
     </message>
@@ -266,29 +266,59 @@
 <context>
     <name>ACESasibLeverPanelItem</name>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="171"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="226"/>
         <source>NULL</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="66"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="69"/>
         <source>NO LEVER SET!!!</source>
         <translation>NESSUNA LEVA IMPOSTATA!!!</translation>
     </message>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="77"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="80"/>
         <source>Between&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;and&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</source>
         <translation>Tra&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;e&lt;br&gt;&lt;b&gt;%2&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="85"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="88"/>
         <source>&lt;b&gt;%1&lt;/b&gt;</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="89"/>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="92"/>
         <source>ACE Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
         <translation>Leva ACE: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="107"/>
+        <source>Mechanical Conditions:</source>
+        <translation>Condizioni Meccaniche:</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="133"/>
+        <source>&lt;br&gt;None</source>
+        <translation>&lt;br&gt;Nessuna</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="139"/>
+        <source>Locked by:</source>
+        <translation>Bloccato da:</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="821"/>
+        <source>Lever</source>
+        <translation>Leva</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="829"/>
+        <source>Button %1</source>
+        <translation>Pulsante: %1</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/acesasibleverpanelitem.cpp" line="839"/>
+        <source>Light %1</source>
+        <translation>Lampadina: %1</translation>
     </message>
 </context>
 <context>
@@ -646,33 +676,28 @@ Scegli un altro nome:</translation>
 <context>
     <name>CircuitNodeObjectReplaceDlg</name>
     <message>
-        <location filename="../circuits/view/circuitnodeobjectreplacedlg.cpp" line="61"/>
         <source>Replace Name String</source>
-        <translation>Sostituisci Stringa Nome</translation>
+        <translation type="vanished">Sostituisci Stringa Nome</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitnodeobjectreplacedlg.cpp" line="87"/>
         <source>Batch Object Replace</source>
-        <translation>Sostituisci Gruppo Oggetti</translation>
+        <translation type="vanished">Sostituisci Gruppo Oggetti</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitnodeobjectreplacedlg.cpp" line="179"/>
         <source>Replace a string in object names.
 If an object with new name exists it replaces the old one.
 If not, it&apos;s created by cloning the old one.</source>
-        <translation>Sostituisci stringa nel nome degli ogetti.
+        <translation type="vanished">Sostituisci stringa nel nome degli ogetti.
 Se un ogetto con il nuovo nome esiste rimpiazza quello vecchio.
 Altrimenti, viene creato clonando quello vecchio.</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitnodeobjectreplacedlg.cpp" line="184"/>
         <source>Old string</source>
-        <translation>Vecchia stringa</translation>
+        <translation type="vanished">Vecchia stringa</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitnodeobjectreplacedlg.cpp" line="188"/>
         <source>New string</source>
-        <translation>Nuova stringa</translation>
+        <translation type="vanished">Nuova stringa</translation>
     </message>
 </context>
 <context>
@@ -706,37 +731,37 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
 <context>
     <name>CircuitsView</name>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="71"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="73"/>
         <source>Choose Item Name</source>
         <translation>Scegli Nome Elemento</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="72"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="74"/>
         <source>Name:</source>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="215"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="217"/>
         <source>Render To SVG</source>
         <translation>Renderizza su SVG</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="217"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="219"/>
         <source>Scalable Vector Graphics (*.svg)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="247"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="249"/>
         <source>Delete Items</source>
         <translation>Elimina Elementi</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="248"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="250"/>
         <source>Delete selected items?Are you sure?</source>
         <translation>Eliminare elementi selezionati? Sei sicuro?</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="260"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="262"/>
         <source>Simulatore Relais Apparato</source>
         <translation></translation>
     </message>
@@ -839,6 +864,38 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
     </message>
 </context>
 <context>
+    <name>ItemObjectReplaceDlg_tr</name>
+    <message>
+        <location filename="../utils/itemobjectreplacedlg_impl.hpp" line="68"/>
+        <source>Replace Name String</source>
+        <translation>Sostituisci Stringa Nome</translation>
+    </message>
+    <message>
+        <location filename="../utils/itemobjectreplacedlg_impl.hpp" line="97"/>
+        <source>Batch Object Replace</source>
+        <translation>Sostituisci Gruppo Oggetti</translation>
+    </message>
+    <message>
+        <location filename="../utils/itemobjectreplacedlg_impl.hpp" line="194"/>
+        <source>Replace a string in object names.
+If an object with new name exists it replaces the old one.
+If not, it&apos;s created by cloning the old one.</source>
+        <translation>Sostituisci stringa nel nome degli ogetti.
+Se un ogetto con il nuovo nome esiste rimpiazza quello vecchio.
+Altrimenti, viene creato clonando quello vecchio.</translation>
+    </message>
+    <message>
+        <location filename="../utils/itemobjectreplacedlg_impl.hpp" line="199"/>
+        <source>Old string</source>
+        <translation>Vecchia stringa</translation>
+    </message>
+    <message>
+        <location filename="../utils/itemobjectreplacedlg_impl.hpp" line="203"/>
+        <source>New string</source>
+        <translation>Nuova stringa</translation>
+    </message>
+</context>
+<context>
     <name>LeverContactConditionsModel</name>
     <message>
         <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="37"/>
@@ -916,12 +973,12 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
 <context>
     <name>LightEntryDialog</name>
     <message>
-        <location filename="../panels/edit/lightrectlightsview.cpp" line="33"/>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="55"/>
         <source>Light:</source>
         <translation>Lampadina:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/lightrectlightsview.cpp" line="36"/>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="58"/>
         <source>Color:</source>
         <translation>Colore:</translation>
     </message>
@@ -942,27 +999,27 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
 <context>
     <name>LightRectLightsView</name>
     <message>
-        <location filename="../panels/edit/lightrectlightsview.cpp" line="84"/>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="106"/>
         <source>Add Light</source>
         <translation>Aggiungi Lampada</translation>
     </message>
     <message>
-        <location filename="../panels/edit/lightrectlightsview.cpp" line="85"/>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="107"/>
         <source>Remove Light</source>
         <translation>Rimuovi Lampada</translation>
     </message>
     <message>
-        <location filename="../panels/edit/lightrectlightsview.cpp" line="86"/>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="108"/>
         <source>Edit Light</source>
         <translation>Modifica Lampada</translation>
     </message>
     <message>
-        <location filename="../panels/edit/lightrectlightsview.cpp" line="87"/>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="109"/>
         <source>Move Up</source>
         <translation>Sposta Su</translation>
     </message>
     <message>
-        <location filename="../panels/edit/lightrectlightsview.cpp" line="88"/>
+        <location filename="../panels/edit/lightrectlightsview.cpp" line="110"/>
         <source>Move Down</source>
         <translation>Sposta Giù</translation>
     </message>
@@ -1036,7 +1093,7 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="126"/>
-        <location filename="../mainwindow.cpp" line="691"/>
+        <location filename="../mainwindow.cpp" line="727"/>
         <source>Save Layout</source>
         <translation>Salva Layout</translation>
     </message>
@@ -1122,84 +1179,96 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
         <translation>Raggiungibile</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="295"/>
+        <location filename="../mainwindow.cpp" line="280"/>
+        <source>Refresh Addresses</source>
+        <translation>Aggiorna Indirizzi</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="281"/>
+        <source>Useful if network connections changed</source>
+        <translation>Utile se la connessione di rete è cambiata</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="305"/>
         <source>Circuit Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="296"/>
+        <location filename="../mainwindow.cpp" line="306"/>
         <source>Circuit Tools 2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="301"/>
+        <location filename="../mainwindow.cpp" line="311"/>
         <source>New Circuit Item</source>
         <translation>Nuovo Elemento Circuito</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="307"/>
+        <location filename="../mainwindow.cpp" line="317"/>
+        <location filename="../mainwindow.cpp" line="400"/>
         <source>Batch Edit</source>
         <translation>Modifica Gruppo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="308"/>
+        <location filename="../mainwindow.cpp" line="318"/>
+        <location filename="../mainwindow.cpp" line="401"/>
         <source>Object Replace</source>
         <translation>Sostituisci Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="362"/>
+        <location filename="../mainwindow.cpp" line="372"/>
         <source>&lt;b&gt;(C)&lt;/b&gt; Cable</source>
         <translation>&lt;b&gt;(C)&lt;/b&gt; Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="396"/>
+        <location filename="../mainwindow.cpp" line="432"/>
         <source>%1</source>
         <translation>%1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="671"/>
+        <location filename="../mainwindow.cpp" line="707"/>
         <source>Open Layout</source>
         <translation>Apri Layout</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="361"/>
+        <location filename="../mainwindow.cpp" line="371"/>
         <source>Cable</source>
         <translation>Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="381"/>
+        <location filename="../mainwindow.cpp" line="391"/>
         <source>Panel Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="385"/>
+        <location filename="../mainwindow.cpp" line="395"/>
         <source>New Panel Item</source>
         <translation>Nuovo Elemento QL</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="467"/>
+        <location filename="../mainwindow.cpp" line="503"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="527"/>
+        <location filename="../mainwindow.cpp" line="563"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="584"/>
+        <location filename="../mainwindow.cpp" line="620"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="585"/>
+        <location filename="../mainwindow.cpp" line="621"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="650"/>
+        <location filename="../mainwindow.cpp" line="686"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>
@@ -1230,6 +1299,16 @@ Vuoi salvarle ora?</translation>
         <location filename="../objects/interfaces/mechanical/mechanicalcondition.cpp" line="55"/>
         <source>AND</source>
         <translation>E</translation>
+    </message>
+    <message>
+        <location filename="../objects/interfaces/mechanical/mechanicalcondition.cpp" line="439"/>
+        <source>&lt;b&gt;&lt;i&gt;NULL&lt;/i&gt;&lt;/b&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../objects/interfaces/mechanical/mechanicalcondition.cpp" line="443"/>
+        <source>&lt;b&gt;&lt;i&gt;Err&lt;/i&gt;&lt;/b&gt;</source>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -1297,34 +1376,34 @@ Vuoi salvarle ora?</translation>
     </message>
     <message>
         <location filename="../circuits/edit/nodeeditfactory.cpp" line="122"/>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="196"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="195"/>
         <source>Delete</source>
         <translation>Elimina</translation>
     </message>
     <message>
         <location filename="../circuits/edit/nodeeditfactory.cpp" line="130"/>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="204"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="203"/>
         <source>Delete Item?</source>
         <translation>Eliminare Elementi?</translation>
     </message>
     <message>
         <location filename="../circuits/edit/nodeeditfactory.cpp" line="131"/>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="205"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="204"/>
         <source>Are you sure?</source>
         <translation>Sei sicuro?</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="145"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="144"/>
         <source>Ok</source>
         <translation>Ok</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="175"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="174"/>
         <source>Edit Cable</source>
         <translation>Modifica Cavo</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/nodeeditfactory.cpp" line="177"/>
+        <location filename="../circuits/edit/nodeeditfactory.cpp" line="176"/>
         <source>Edit Path</source>
         <translation>Modifica Percorso</translation>
     </message>
@@ -1332,47 +1411,47 @@ Vuoi salvarle ora?</translation>
 <context>
     <name>PanelItemFactory</name>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="81"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="84"/>
         <source>Edit %1</source>
         <translation>Modifica %1</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="84"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="87"/>
         <source>Type</source>
         <translation>Tipo</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="105"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="108"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="113"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="116"/>
         <source>X:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="119"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="122"/>
         <source>Y:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="157"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="163"/>
         <source>Delete</source>
         <translation>Elimina</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="165"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="171"/>
         <source>Delete Item?</source>
         <translation>Eliminare Elementi?</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="166"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="172"/>
         <source>Are you sure?</source>
         <translation>Sei sicuro?</translation>
     </message>
     <message>
-        <location filename="../panels/edit/panelitemfactory.cpp" line="178"/>
+        <location filename="../panels/edit/panelitemfactory.cpp" line="185"/>
         <source>Ok</source>
         <translation>Ok</translation>
     </message>
@@ -1466,12 +1545,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>PanelView</name>
     <message>
-        <location filename="../panels/view/panelview.cpp" line="93"/>
+        <location filename="../panels/view/panelview.cpp" line="150"/>
         <source>Delete Items</source>
         <translation>Elimina Elementi</translation>
     </message>
     <message>
-        <location filename="../panels/view/panelview.cpp" line="94"/>
+        <location filename="../panels/view/panelview.cpp" line="151"/>
         <source>Delete selected items?Are you sure?</source>
         <translation>Eliminare elementi selezionati? Sei sicuro?</translation>
     </message>
@@ -1479,12 +1558,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>PanelWidget</name>
     <message>
-        <location filename="../panels/view/panelwidget.cpp" line="223"/>
+        <location filename="../panels/view/panelwidget.cpp" line="222"/>
         <source>Choose Item Name</source>
         <translation>Scegli Nome Elemento</translation>
     </message>
     <message>
-        <location filename="../panels/view/panelwidget.cpp" line="224"/>
+        <location filename="../panels/view/panelwidget.cpp" line="223"/>
         <source>Name:</source>
         <translation>Nome:</translation>
     </message>
@@ -2433,7 +2512,7 @@ Scegli un altro nome:</translation>
     </message>
     <message>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="457"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="670"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="681"/>
         <source>Light:</source>
         <translation>Lampadina:</translation>
     </message>
@@ -2496,7 +2575,7 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="295"/>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="382"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="564"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="573"/>
         <source>Left color:</source>
         <translation>Colore sinistra:</translation>
     </message>
@@ -2509,7 +2588,7 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="297"/>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="384"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="565"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="574"/>
         <source>Right color:</source>
         <translation>Colore destra:</translation>
     </message>
@@ -2527,14 +2606,14 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="290"/>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="377"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="560"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="569"/>
         <source>Left light:</source>
         <translation>Lampada sinistra:</translation>
     </message>
     <message>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="292"/>
         <location filename="../panels/edit/standardpanelitemtypes.cpp" line="379"/>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="561"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="570"/>
         <source>Right light:</source>
         <translation>Lampada destra:</translation>
     </message>
@@ -2549,52 +2628,57 @@ Scegli un altro nome:</translation>
         <translation>Leva ACE Sasib</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="524"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="528"/>
+        <source>Lever Color:</source>
+        <translation>Colore Leva:</translation>
+    </message>
+    <message>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="533"/>
         <source>Left button:</source>
         <translation>Pulsante Sinistro:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="525"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="534"/>
         <source>Right button:</source>
         <translation>Pulsante Destro:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="618"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="629"/>
         <source>BEM Case</source>
         <translation>Chassis BEM</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="637"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="648"/>
         <source>Consensus Lever:</source>
         <translation>Leva Concessione Consenso:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="648"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="659"/>
         <source>Tx Button:</source>
         <translation>Pulsante Corrispondenza:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="659"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="670"/>
         <source>Light Button:</source>
         <translation>Pulsante Lampadina:</translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="681"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="692"/>
         <source>R1:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="692"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="703"/>
         <source>C1:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="703"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="714"/>
         <source>H:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="714"/>
+        <location filename="../panels/edit/standardpanelitemtypes.cpp" line="725"/>
         <source>K:</source>
         <translation></translation>
     </message>
@@ -2713,48 +2797,48 @@ Questo layout verrà caricato all&apos;avvio.</translation>
 <context>
     <name>ViewManager</name>
     <message>
-        <location filename="../views/viewmanager.cpp" line="129"/>
-        <location filename="../views/viewmanager.cpp" line="144"/>
+        <location filename="../views/viewmanager.cpp" line="130"/>
+        <location filename="../views/viewmanager.cpp" line="145"/>
         <source>Empty</source>
         <translation>Vuoto</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="136"/>
+        <location filename="../views/viewmanager.cpp" line="137"/>
         <source>Circuit %1 (%2)</source>
         <translation>Circuito %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="151"/>
+        <location filename="../views/viewmanager.cpp" line="152"/>
         <source>Panel %1 (%2)</source>
         <translation>Pannello %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="271"/>
+        <location filename="../views/viewmanager.cpp" line="272"/>
         <source>Properties Circuit %1</source>
         <translation>Proprietà Circuito %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="480"/>
+        <location filename="../views/viewmanager.cpp" line="481"/>
         <source>Properties Panel %1</source>
         <translation>Proprietà Pannello %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="527"/>
+        <location filename="../views/viewmanager.cpp" line="528"/>
         <source>Properties %1 %2</source>
         <translation>Proprietà %1 %2</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="631"/>
+        <location filename="../views/viewmanager.cpp" line="632"/>
         <source>Circuit Sheets</source>
         <translation>Fogli Circuiti</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="651"/>
+        <location filename="../views/viewmanager.cpp" line="652"/>
         <source>Panel Sheets</source>
         <translation>Fogli Banco</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="680"/>
+        <location filename="../views/viewmanager.cpp" line="681"/>
         <source>%1 List</source>
         <translation>Lista %1</translation>
     </message>
