@@ -91,6 +91,12 @@ QVariant PanelListModel::data(const QModelIndex &idx, int role) const
             break;
         }
     }
+    else if(role == Qt::ToolTipRole)
+    {
+        return QLatin1String("<b>%1</b><br>%2")
+                .arg(scene->panelName().toHtmlEscaped(),
+                     scene->panelLongName().toHtmlEscaped());
+    }
 
     return QVariant();
 }
