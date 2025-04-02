@@ -24,6 +24,7 @@
 #define ABSTRACTRELAIS_H
 
 #include "../../abstractsimulationobject.h"
+#include <QElapsedTimer>
 
 class RelaisPowerNode;
 class RelaisContactNode;
@@ -56,6 +57,10 @@ public:
         Stabilized,
         Combinator,
         Timer,
+        Blinker,
+        Encoder,
+        Decoder,
+        CodeRepeater,
         NTypes
     };
 
@@ -63,6 +68,8 @@ public:
 
     explicit AbstractRelais(AbstractSimulationObjectModel *m);
     ~AbstractRelais();
+
+    bool event(QEvent *e) override;
 
     static constexpr QLatin1String Type = QLatin1String("abstract_relais");
     QString getType() const override;
@@ -150,6 +157,21 @@ private:
     void setPosition(double newPosition);
     void startMove(bool up);
 
+    void setDecodedResult(quint32 code, bool delay = true);
+
+    static constexpr inline int timeoutMillisForCode(int code)
+    {
+        // Code is number of interruptions per minute
+        // But interruption is a full cyle
+        // We want state change 2 times per cycle so return half time
+        return (30 * 1000) / code;
+    }
+
+    static quint32 codeForMillis(qint64 millis);
+
+    inline quint32 getCode() const { return mCustomUpMS; }
+    inline quint32 getDecodedCode() const { return mCustomDownMS; }
+
 private:
     RelaisType mType = RelaisType::Normal;
 
@@ -162,6 +184,9 @@ private:
     double mTickPositionDelta = 0;
     double mPosition = 0.0;
     int mTimerId = 0;
+
+    static constexpr int CodeErrorMarginMillis = 10;
+    QElapsedTimer mElapsedTimer;
 
     QVector<RelaisPowerNode *> mPowerNodes;
     int mActivePowerNodesUp = 0;

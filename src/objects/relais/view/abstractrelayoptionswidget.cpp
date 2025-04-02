@@ -37,7 +37,6 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(AbstractRelais *relay,
     , mRelay(relay)
 {
     QFormLayout *lay = new QFormLayout(this);
-
     // Normally Up
     mNormallyUp = new QCheckBox(tr("Relay normally Up"));
     mNormallyUp->setChecked(mRelay->normallyUp());
@@ -62,6 +61,13 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(AbstractRelais *relay,
     mDownTimeSpin->setSpecialValueText(tr("Default"));
     mDownTimeSpin->setSuffix(tr(" ms"));
     lay->addRow(tr("Down duration:"), mDownTimeSpin);
+
+    mCodeCombo = new QComboBox;
+    mCodeCombo->addItem(QLatin1String("75"), 75);
+    mCodeCombo->addItem(QLatin1String("120"), 120);
+    mCodeCombo->addItem(QLatin1String("180"), 180);
+    mCodeCombo->addItem(QLatin1String("270"), 270);
+    lay->addRow(tr("Code:"), mCodeCombo);
 
     QStringList typeList;
     typeList.reserve(int(AbstractRelais::RelaisType::NTypes));
@@ -97,9 +103,11 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(AbstractRelais *relay,
         updateDurations();
     });
 
-    connect(mUpTimeSpin, &QSpinBox::valueChanged,
+    connect(mUpTimeSpin, &QSpinBox::editingFinished,
             this, &AbstractRelayOptionsWidget::setNewDurations);
-    connect(mDownTimeSpin, &QSpinBox::valueChanged,
+    connect(mDownTimeSpin, &QSpinBox::editingFinished,
+            this, &AbstractRelayOptionsWidget::setNewDurations);
+    connect(mCodeCombo, &QComboBox::activated,
             this, &AbstractRelayOptionsWidget::setNewDurations);
 
     updateDurations();
@@ -107,6 +115,34 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(AbstractRelais *relay,
 
 void AbstractRelayOptionsWidget::updateDurations()
 {
+    if(mRelay->relaisType() == AbstractRelais::RelaisType::Blinker)
+    {
+        mDownTimeSpin->setSpecialValueText(tr("Symmetric"));
+    }
+    else
+    {
+        mDownTimeSpin->setSpecialValueText(tr("Default"));
+    }
+
+    const bool isEncoder = mRelay->relaisType() == AbstractRelais::RelaisType::Encoder ||
+            mRelay->relaisType() ==  AbstractRelais::RelaisType::Decoder;
+
+    const bool isRepeater = mRelay->relaisType() == AbstractRelais::RelaisType::CodeRepeater;
+
+    QFormLayout *lay = static_cast<QFormLayout *>(layout());
+    lay->setRowVisible(mUpTimeSpin, !isEncoder && !isRepeater);
+    lay->setRowVisible(mDownTimeSpin, !isEncoder && !isRepeater);
+    lay->setRowVisible(mCodeCombo, isEncoder && !isRepeater);
+
+    if(mCodeCombo->itemData(0).toInt() != 0 && mRelay->relaisType() == AbstractRelais::RelaisType::Decoder)
+    {
+        mCodeCombo->insertItem(0, tr("All codes"), 0);
+    }
+    else if(mCodeCombo->itemData(0).toInt() == 0 && mRelay->relaisType() != AbstractRelais::RelaisType::Decoder)
+    {
+        mCodeCombo->removeItem(0);
+    }
+
     const quint32 upDurationMS = mRelay->durationUp();
     if(upDurationMS == 0) // Default
         mUpTimeSpin->setValue(mUpTimeSpin->minimum());
@@ -118,10 +154,32 @@ void AbstractRelayOptionsWidget::updateDurations()
         mDownTimeSpin->setValue(mDownTimeSpin->minimum());
     else
         mDownTimeSpin->setValue(int(downDurationMS));
+
+    if(isEncoder)
+    {
+        int idx = mCodeCombo->findData(upDurationMS);
+        if(idx < 0)
+            idx = 0;
+
+        mCodeCombo->setCurrentIndex(idx);
+    }
 }
 
 void AbstractRelayOptionsWidget::setNewDurations()
 {
+    const bool isEncoder = mRelay->relaisType() == AbstractRelais::RelaisType::Encoder ||
+            mRelay->relaisType() ==  AbstractRelais::RelaisType::Decoder;
+
+    if(isEncoder)
+    {
+        int curIdx = mCodeCombo->currentIndex();
+        if(curIdx < 0)
+            curIdx = 0;
+
+        mRelay->setDurationUp(mCodeCombo->itemData(curIdx).toInt());
+        return;
+    }
+
     int upDurationMS = mUpTimeSpin->value();
     if(upDurationMS == mUpTimeSpin->minimum())
         upDurationMS = 0; // Default

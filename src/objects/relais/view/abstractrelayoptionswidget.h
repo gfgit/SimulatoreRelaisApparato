@@ -50,6 +50,7 @@ private:
 
     QSpinBox *mUpTimeSpin = nullptr;
     QSpinBox *mDownTimeSpin = nullptr;
+    QComboBox *mCodeCombo = nullptr;
 };
 
 #endif // ABSTRACT_RELAY_OPTIONSWIDGET_H

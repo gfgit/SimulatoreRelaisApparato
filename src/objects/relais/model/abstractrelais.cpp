@@ -31,6 +31,21 @@
 
 #include <QRandomGenerator>
 
+#include <QCoreApplication> // for postEvent()
+
+class DelayedSetStateEvent : public QEvent
+{
+public:
+    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 1);
+
+    DelayedSetStateEvent(AbstractRelais::State s) : QEvent(_Type), mState(s) {};
+
+    inline AbstractRelais::State getState() const { return mState; }
+
+private:
+    AbstractRelais::State mState = AbstractRelais::State::Down;
+};
+
 QString AbstractRelais::getRelaisTypeName(RelaisType t)
 {
     switch(t)
@@ -47,6 +62,14 @@ QString AbstractRelais::getRelaisTypeName(RelaisType t)
         return tr("Combinator");
     case RelaisType::Timer:
         return tr("Timer");
+    case RelaisType::Blinker:
+        return tr("Blinker");
+    case RelaisType::Encoder:
+        return tr("Encoder");
+    case RelaisType::Decoder:
+        return tr("Decoder");
+    case RelaisType::CodeRepeater:
+        return tr("Code Repeater");
     case RelaisType::NTypes:
         break;
     }
@@ -78,6 +101,17 @@ AbstractRelais::~AbstractRelais()
     mTimerId = 0;
 }
 
+bool AbstractRelais::event(QEvent *e)
+{
+    if(e->type() == DelayedSetStateEvent::_Type)
+    {
+        setState(static_cast<DelayedSetStateEvent *>(e)->getState());
+        return true;
+    }
+
+    return AbstractSimulationObject::event(e);
+}
+
 QString AbstractRelais::getType() const
 {
     return Type;
@@ -91,10 +125,10 @@ bool AbstractRelais::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     if(phase != LoadPhase::Creation)
         return true; // Alredy created, nothing to do
 
+    setRelaisType(RelaisType(obj.value("relay_type").toInt(int(RelaisType::Normal))));
     setDurationUp(quint32(obj.value("duration_up_ms").toInteger()));
     setDurationDown(quint32(obj.value("duration_down_ms").toInteger()));
     setNormallyUp(obj.value("normally_up").toBool());
-    setRelaisType(RelaisType(obj.value("relay_type").toInt(int(RelaisType::Normal))));
 
     return true;
 }
@@ -218,6 +252,50 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
 {
     if(mTimerId && e->timerId() == mTimerId)
     {
+        if(relaisType() == RelaisType::Decoder)
+        {
+            setDecodedResult(0, false);
+            return;
+        }
+
+        if(relaisType() == RelaisType::Blinker || relaisType() == RelaisType::Encoder)
+        {
+            if(mActivePowerNodesUp == 0)
+            {
+                // Go down and stop timer
+                killTimer(mTimerId);
+                mTimerId = 0;
+
+                setState(State::Down);
+                return;
+            }
+
+            // Invert state
+            switch (state())
+            {
+            case State::Down:
+            case State::GoingDown:
+            case State::GoingUp:
+                setState(State::Up);
+                break;
+            case State::Up:
+                setState(State::Down);
+            default:
+                break;
+            }
+
+            if(relaisType() == RelaisType::Blinker && mCustomDownMS > 0)
+            {
+                // Asymmetric blink
+
+                killTimer(mTimerId);
+                mTimerId = startTimer(state() == State::Down ? mCustomDownMS : mCustomUpMS,
+                                      Qt::PreciseTimer);
+            }
+
+            return;
+        }
+
         double newPosition = mPosition;
         if(mInternalState == State::GoingUp)
             newPosition += mTickPositionDelta;
@@ -283,8 +361,62 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
     }
     else if(mActivePowerNodesUp == 1)
     {
-        // Begin powering normal relais
-        startMove(true);
+        if(relaisType() == RelaisType::Blinker || relaisType() == RelaisType::Encoder)
+        {
+            if(mTimerId)
+                killTimer(mTimerId);
+
+            // Timer will switch state
+            if(relaisType() == RelaisType::Encoder)
+            {
+                if(mCustomUpMS > 0)
+                {
+                    mTimerId = startTimer(timeoutMillisForCode(getCode()),
+                                          Qt::PreciseTimer);
+                }
+            }
+            else
+            {
+                mTimerId = startTimer(mCustomDownMS > 0 ? mCustomDownMS : mCustomUpMS,
+                                      Qt::PreciseTimer);
+            }
+        }
+        else if(relaisType() == RelaisType::Decoder)
+        {
+            if(mElapsedTimer.isValid())
+            {
+                const qint64 elapsed = mElapsedTimer.restart();
+
+                const quint32 code = codeForMillis(elapsed);
+
+                // If no/wrong code detected, skip another cicle
+                if(code == 0 || (getDecodedCode() != 0 && code != getDecodedCode()))
+                {
+                    mElapsedTimer.invalidate();
+                    setDecodedResult(0, true);
+                }
+                else
+                {
+                    setDecodedResult(code, true);
+                }
+
+            }
+            else
+            {
+                mElapsedTimer.start();
+                setDecodedResult(0, true);
+            }
+        }
+        else if(relaisType() == AbstractRelais::RelaisType::CodeRepeater)
+        {
+            // This relay is super fast
+            QCoreApplication::postEvent(this, new DelayedSetStateEvent(State::Up));
+        }
+        else
+        {
+            // Begin powering normal relais
+            startMove(true);
+        }
     }
 
     // NOTE: we do not emit stateChanged(this) signal
@@ -348,8 +480,35 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
     }
     else if(mActivePowerNodesUp == 0)
     {
-        // End powering normal relais
-        startMove(false);
+        if(relaisType() == RelaisType::Blinker || relaisType() == RelaisType::Encoder)
+        {
+            // Timer will self stop at next timeout and set relais to Down state
+        }
+        else if(relaisType() == RelaisType::Decoder)
+        {
+            if(mElapsedTimer.isValid())
+            {
+                const qint64 elapsed = mElapsedTimer.restart();
+
+                const quint32 code = codeForMillis(elapsed);
+                setDecodedResult(code, true);
+            }
+            else
+            {
+                mElapsedTimer.start();
+                setDecodedResult(0, true);
+            }
+        }
+        else if(relaisType() == AbstractRelais::RelaisType::CodeRepeater)
+        {
+            // This relay is super fast
+            QCoreApplication::postEvent(this, new DelayedSetStateEvent(State::Down));
+        }
+        else
+        {
+            // End powering normal relais
+            startMove(false);
+        }
     }
 
     // NOTE: see powerNodeActivated() comment
@@ -421,6 +580,48 @@ void AbstractRelais::startMove(bool up)
     mTimerId = startTimer(tickDurationMS);
 }
 
+void AbstractRelais::setDecodedResult(quint32 code, bool delay)
+{
+    Q_ASSERT(relaisType() == RelaisType::Decoder);
+
+    mCustomDownMS = code;
+
+    killTimer(mTimerId);
+    mTimerId = 0;
+
+    if(code == 0 || (getCode() != 0 && code != getCode()))
+    {
+        // No code or wrong code detected
+        if(delay)
+            QCoreApplication::postEvent(this, new DelayedSetStateEvent(State::Down));
+        else
+            setState(State::Down);
+        return;
+    }
+
+    // We detected correct code
+    if(delay)
+        QCoreApplication::postEvent(this, new DelayedSetStateEvent(State::Up));
+    else
+        setState(State::Up);
+
+    // Start timer to end code detection
+    mTimerId = startTimer(timeoutMillisForCode(code) + CodeErrorMarginMillis);
+}
+
+quint32 AbstractRelais::codeForMillis(qint64 millis)
+{
+    if(std::abs(millis - timeoutMillisForCode(75)) <= CodeErrorMarginMillis)
+        return 75;
+    if(std::abs(millis - timeoutMillisForCode(120)) <= CodeErrorMarginMillis)
+        return 120;
+    if(std::abs(millis - timeoutMillisForCode(180)) <= CodeErrorMarginMillis)
+        return 180;
+    if(std::abs(millis - timeoutMillisForCode(270)) <= CodeErrorMarginMillis)
+        return 270;
+    return 0;
+}
+
 AbstractRelais::RelaisType AbstractRelais::relaisType() const
 {
     return mType;
@@ -431,7 +632,55 @@ void AbstractRelais::setRelaisType(RelaisType newType)
     if(mType == newType)
         return;
 
+    const RelaisType oldType = mType;
     mType = newType;
+
+    switch (oldType)
+    {
+    case RelaisType::Blinker:
+    case RelaisType::Encoder:
+    case RelaisType::Decoder:
+    case RelaisType::CodeRepeater:
+    {
+        // Reset to default
+        mCustomUpMS = 0;
+        mCustomDownMS = 0;
+        mElapsedTimer.invalidate();
+
+        if(mTimerId)
+        {
+            killTimer(mTimerId);
+            mTimerId = 0;
+
+            setState(State::Down);
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    if(newType == RelaisType::Blinker)
+    {
+        // Default to 1000 up and symmetric down time
+        mCustomUpMS = 1000;
+        mCustomDownMS = 0;
+
+        setState(State::Down);
+    }
+    else if(newType == RelaisType::Encoder || newType == RelaisType::Decoder)
+    {
+        mCustomUpMS = 75;
+        mCustomDownMS = 0;
+
+        setState(State::Down);
+    }
+    else if(newType == RelaisType::CodeRepeater)
+    {
+        mCustomUpMS = 0;
+        mCustomDownMS = 0;
+        setState(State::Down);
+    }
 
     if(stateIndependent())
     {
