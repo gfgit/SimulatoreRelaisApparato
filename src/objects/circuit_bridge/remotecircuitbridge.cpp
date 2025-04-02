@@ -284,12 +284,8 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
         // NOTE: we cannot directly call onPeerModeChanged()
         // because it triggers circuit add/remove from inside
         // another circuit add/remove.
-        // So use Qt::QueuedConnection
-
-        QMetaObject::invokeMethod(other,
-                                  &RemoteCableCircuitNode::onPeerModeChanged,
-                                  Qt::QueuedConnection,
-                                  currMode, currSendPole);
+        // So use delayed event posting
+        other->delayedPeerModeChanged(currMode, currSendPole);
     }
     else if(mPeerSessionId && mPeerNodeId)
     {
@@ -309,20 +305,14 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
             if(currMode == RemoteCableCircuitNode::Mode::SendCurrentOpen)
             {
                 // Fake close circuit
-                QMetaObject::invokeMethod(node,
-                                          &RemoteCableCircuitNode::onPeerModeChanged,
-                                          Qt::QueuedConnection,
-                                          RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
-                                          currSendPole);
+                node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
+                                             currSendPole);
             }
             else if(currMode == RemoteCableCircuitNode::Mode::SendCurrentClosed)
             {
                 // Fake close circuit
-                QMetaObject::invokeMethod(node,
-                                          &RemoteCableCircuitNode::onPeerModeChanged,
-                                          Qt::QueuedConnection,
-                                          RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
-                                          currSendPole);
+                node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
+                                             currSendPole);
 
                 int mode = currSendPole == CircuitPole::First ? 1 : 2;
                 serialMgr->onOutputChanged(mSerialNameId, mSerialOutputId, mode);
@@ -334,20 +324,14 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
             serialMgr->onOutputChanged(mSerialNameId, mSerialOutputId, mode);
 
             // Fake reset circuit
-            QMetaObject::invokeMethod(node,
-                                      &RemoteCableCircuitNode::onPeerModeChanged,
-                                      Qt::QueuedConnection,
-                                      RemoteCableCircuitNode::Mode::None,
-                                      currSendPole);
+            node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::None,
+                                         currSendPole);
         }
         else if(currMode == RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed && mSerialInputId)
         {
             // Fake close remote circuit
-            QMetaObject::invokeMethod(node,
-                                      &RemoteCableCircuitNode::onPeerModeChanged,
-                                      Qt::QueuedConnection,
-                                      RemoteCableCircuitNode::Mode::SendCurrentClosed,
-                                      node->mRecvPole);
+            node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::SendCurrentClosed,
+                                         node->mRecvPole);
         }
     }
 }

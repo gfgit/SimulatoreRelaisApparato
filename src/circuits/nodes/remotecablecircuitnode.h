@@ -54,6 +54,8 @@ public:
     explicit RemoteCableCircuitNode(ModeManager *mgr, QObject *parent = nullptr);
     ~RemoteCableCircuitNode();
 
+    bool event(QEvent *e) override;
+
     QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
 
     void addCircuit(ElectricCircuit *circuit) override;
@@ -142,6 +144,7 @@ signals:
 private:
     friend class RemoteCircuitBridge;
     void onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole);
+    void delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole);
 
     void scheduleStateRefresh();
     void refreshState();

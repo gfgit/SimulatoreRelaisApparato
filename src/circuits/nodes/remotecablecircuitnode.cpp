@@ -33,6 +33,27 @@
 
 #include <QScopedValueRollback>
 
+#include <QCoreApplication> // for postEvent()
+
+class RemoteCableDelayedPeerMode : public QEvent
+{
+public:
+    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 2);
+
+    RemoteCableDelayedPeerMode(RemoteCableCircuitNode::Mode peerMode, CircuitPole peerSendPole)
+        : QEvent(_Type)
+        , mPeerMode(peerMode)
+        , mPeerSendPole(peerSendPole)
+    {};
+
+    inline RemoteCableCircuitNode::Mode peerMode() const { return mPeerMode; }
+    inline CircuitPole peerSendPole() const { return mPeerSendPole; }
+
+private:
+    RemoteCableCircuitNode::Mode mPeerMode;
+    CircuitPole mPeerSendPole;
+};
+
 RemoteCableCircuitNode::RemoteCableCircuitNode(ModeManager *mgr, QObject *parent)
     : AbstractCircuitNode{mgr, true, parent}
 {
@@ -43,6 +64,18 @@ RemoteCableCircuitNode::RemoteCableCircuitNode(ModeManager *mgr, QObject *parent
 RemoteCableCircuitNode::~RemoteCableCircuitNode()
 {
     setRemote(nullptr);
+}
+
+bool RemoteCableCircuitNode::event(QEvent *e)
+{
+    if(e->type() == RemoteCableDelayedPeerMode::_Type)
+    {
+        RemoteCableDelayedPeerMode *ev = static_cast<RemoteCableDelayedPeerMode *>(e);
+        onPeerModeChanged(ev->peerMode(), ev->peerSendPole());
+        return true;
+    }
+
+    return AbstractCircuitNode::event(e);
 }
 
 QVector<CableItem> RemoteCableCircuitNode::getActiveConnections(CableItem source, bool invertDir)
@@ -517,6 +550,11 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
     default:
         break;
     }
+}
+
+void RemoteCableCircuitNode::delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole)
+{
+    QCoreApplication::postEvent(this, new RemoteCableDelayedPeerMode(peerMode, peerSendPole));
 }
 
 void RemoteCableCircuitNode::scheduleStateRefresh()
