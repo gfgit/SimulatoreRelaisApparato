@@ -33,7 +33,7 @@ PowerSourceNode::PowerSourceNode(ModeManager *mgr, QObject *parent)
     mContacts.append(NodeContact("1", "2"));
 }
 
-QVector<CableItem> PowerSourceNode::getActiveConnections(CableItem source, bool invertDir)
+AbstractCircuitNode::ConnectionsRes PowerSourceNode::getActiveConnections(CableItem source, bool invertDir)
 {
     // Make circuits end here
     return {};

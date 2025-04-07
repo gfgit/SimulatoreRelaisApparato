@@ -44,7 +44,7 @@ RelaisPowerNode::~RelaisPowerNode()
     setRelais(nullptr);
 }
 
-QVector<CableItem> RelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)
+AbstractCircuitNode::ConnectionsRes RelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || source.nodeContact > 1)
         return {};

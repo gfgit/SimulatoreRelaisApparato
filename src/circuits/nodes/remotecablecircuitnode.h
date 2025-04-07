@@ -56,7 +56,7 @@ public:
 
     bool event(QEvent *e) override;
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) override;
 
     void addCircuit(ElectricCircuit *circuit) override;
     void removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items) override;

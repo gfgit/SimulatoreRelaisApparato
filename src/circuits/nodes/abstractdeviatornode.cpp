@@ -37,7 +37,7 @@ AbstractDeviatorNode::AbstractDeviatorNode(ModeManager *mgr, QObject *parent)
     mContacts.append(NodeContact("31", "32")); // Down
 }
 
-QVector<CableItem> AbstractDeviatorNode::getActiveConnections(CableItem source, bool invertDir)
+AbstractDeviatorNode::ConnectionsRes AbstractDeviatorNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
@@ -83,7 +83,7 @@ QVector<CableItem> AbstractDeviatorNode::getActiveConnections(CableItem source, 
         }
     }
 
-    QVector<CableItem> result;
+    AbstractCircuitNode::ConnectionsRes result;
 
     if(otherContactIdx != -1)
     {

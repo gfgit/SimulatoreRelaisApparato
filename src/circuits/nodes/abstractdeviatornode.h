@@ -39,7 +39,7 @@ public:
 
     AbstractDeviatorNode(ModeManager *mgr, QObject *parent = nullptr);
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) override;
 
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;

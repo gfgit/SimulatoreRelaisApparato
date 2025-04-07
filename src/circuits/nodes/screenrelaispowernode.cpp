@@ -41,7 +41,7 @@ ScreenRelaisPowerNode::~ScreenRelaisPowerNode()
     setScreenRelais(nullptr);
 }
 
-QVector<CableItem> ScreenRelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)
+AbstractCircuitNode::ConnectionsRes ScreenRelaisPowerNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0)
         return {};

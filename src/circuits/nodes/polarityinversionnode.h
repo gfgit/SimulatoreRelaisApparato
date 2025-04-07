@@ -31,7 +31,7 @@ class PolarityInversionNode : public AbstractCircuitNode
 public:
     PolarityInversionNode(ModeManager *mgr, QObject *parent = nullptr);
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) override;
 
     static constexpr QLatin1String NodeType = QLatin1String("polarity_inversion");
     QString nodeType() const override;

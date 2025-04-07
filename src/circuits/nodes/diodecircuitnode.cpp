@@ -32,7 +32,7 @@ DiodeCircuitNode::DiodeCircuitNode(ModeManager *mgr, QObject *parent)
     mContacts.append(NodeContact()); // Cathode
 }
 
-QVector<CableItem> DiodeCircuitNode::getActiveConnections(CableItem source, bool invertDir)
+AbstractCircuitNode::ConnectionsRes DiodeCircuitNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || source.nodeContact >= getContactCount())
         return {};

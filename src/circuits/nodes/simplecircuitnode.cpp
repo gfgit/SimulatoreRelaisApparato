@@ -38,7 +38,7 @@ SimpleCircuitNode::SimpleCircuitNode(ModeManager *mgr, QObject *parent)
     mContacts.append(NodeContact());
 }
 
-QVector<CableItem> SimpleCircuitNode::getActiveConnections(CableItem source, bool invertDir)
+AbstractCircuitNode::ConnectionsRes SimpleCircuitNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if((source.nodeContact < 0) || source.nodeContact >= getContactCount())
         return {};
@@ -46,7 +46,7 @@ QVector<CableItem> SimpleCircuitNode::getActiveConnections(CableItem source, boo
     if(!isContactEnabled(source.nodeContact))
         return {};
 
-    QVector<CableItem> result;
+    AbstractCircuitNode::ConnectionsRes result;
     result.reserve(3);
 
     for(int i = 0; i < 4; i++) // Loop contacts of same polarity

@@ -31,7 +31,7 @@ class DiodeCircuitNode : public AbstractCircuitNode
 public:
     explicit DiodeCircuitNode(ModeManager *mgr, QObject *parent = nullptr);
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir) override;
+    ConnectionsRes getActiveConnections(CableItem source, bool invertDir) override;
 
     virtual void addCircuit(ElectricCircuit *circuit) override;
     void partialRemoveCircuit(ElectricCircuit *circuit, const NodeOccurences &items) override;

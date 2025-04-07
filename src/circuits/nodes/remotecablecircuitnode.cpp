@@ -78,7 +78,7 @@ bool RemoteCableCircuitNode::event(QEvent *e)
     return AbstractCircuitNode::event(e);
 }
 
-QVector<CableItem> RemoteCableCircuitNode::getActiveConnections(CableItem source, bool invertDir)
+AbstractCircuitNode::ConnectionsRes RemoteCableCircuitNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0)
         return {};

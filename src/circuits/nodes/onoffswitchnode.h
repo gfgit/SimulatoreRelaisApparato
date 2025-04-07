@@ -31,7 +31,7 @@ class OnOffSwitchNode : public AbstractCircuitNode
 public:
     explicit OnOffSwitchNode(ModeManager *mgr, QObject *parent = nullptr);
 
-    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) override;
+    virtual ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) override;
 
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;

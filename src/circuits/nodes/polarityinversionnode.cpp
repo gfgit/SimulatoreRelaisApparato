@@ -30,7 +30,7 @@ PolarityInversionNode::PolarityInversionNode(ModeManager *mgr, QObject *parent)
     mContacts.append(NodeContact("3", "4"));
 }
 
-QVector<CableItem> PolarityInversionNode::getActiveConnections(CableItem source, bool invertDir)
+AbstractCircuitNode::ConnectionsRes PolarityInversionNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0 && source.nodeContact != 1)
         return {};

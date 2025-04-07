@@ -24,6 +24,7 @@
 #define ABSTRACTCIRCUITNODE_H
 
 #include <QObject>
+#include <QVarLengthArray>
 #include <QVector>
 
 #include "../../enums/circuittypes.h"
@@ -102,12 +103,15 @@ public:
         }
     };
 
+    typedef QVarLengthArray<NodeContact, 4> NodeContacts;
+    typedef QVarLengthArray<CableItem, 4> ConnectionsRes;
+
     explicit AbstractCircuitNode(ModeManager *mgr, bool isLoad = false, QObject *parent = nullptr);
     ~AbstractCircuitNode();
 
     inline int getContactCount() const { return mContacts.size(); }
 
-    virtual QVector<CableItem> getActiveConnections(CableItem source, bool invertDir = false) = 0;
+    virtual ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) = 0;
 
     virtual void addCircuit(ElectricCircuit *circuit);
     virtual void removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items);
@@ -129,7 +133,7 @@ public:
 
     inline bool isElectricLoadNode() const { return isElectricLoad; }
 
-    inline const QVector<NodeContact> &getContacts() const
+    inline const NodeContacts &getContacts() const
     {
         return mContacts;
     }
@@ -236,7 +240,7 @@ signals:
     void shapeChanged(bool boundingRectChange = false);
 
 protected:
-    QVector<NodeContact> mContacts;
+    NodeContacts mContacts;
 
     typedef QVector<ElectricCircuit *> CircuitList;
     void disableCircuits(const CircuitList& listCopy,

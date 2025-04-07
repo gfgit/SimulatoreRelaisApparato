@@ -31,7 +31,7 @@ class BifilarizatorNode : public AbstractCircuitNode
 public:
     explicit BifilarizatorNode(ModeManager *mgr, QObject *parent = nullptr);
 
-    QVector<CableItem> getActiveConnections(CableItem source, bool invertDir) override;
+    ConnectionsRes getActiveConnections(CableItem source, bool invertDir) override;
 
     static constexpr QLatin1String NodeType = QLatin1String("bifilarizator_node");
     QString nodeType() const override;
