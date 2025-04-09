@@ -26,6 +26,7 @@
 #include <QWidget>
 
 class AbstractRelais;
+class EnumValuesModel;
 
 class QCheckBox;
 class QComboBox;
@@ -51,6 +52,8 @@ private:
     QSpinBox *mUpTimeSpin = nullptr;
     QSpinBox *mDownTimeSpin = nullptr;
     QComboBox *mCodeCombo = nullptr;
+
+    EnumValuesModel *mCodeComboModel = nullptr;
 };
 
 #endif // ABSTRACT_RELAY_OPTIONSWIDGET_H

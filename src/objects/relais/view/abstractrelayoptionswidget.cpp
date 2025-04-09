@@ -24,6 +24,8 @@
 
 #include "../model/abstractrelais.h"
 
+#include "../../../utils/enumvaluesmodel.h"
+
 #include <QFormLayout>
 #include <QCheckBox>
 #include <QComboBox>
@@ -62,11 +64,11 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(AbstractRelais *relay,
     mDownTimeSpin->setSuffix(tr(" ms"));
     lay->addRow(tr("Down duration:"), mDownTimeSpin);
 
+    mCodeComboModel = new EnumValuesModel(this);
+    mCodeComboModel->setEnumDescFull(SignalAspectCode_getDesc(), false);
+
     mCodeCombo = new QComboBox;
-    mCodeCombo->addItem(QLatin1String("75"), 75);
-    mCodeCombo->addItem(QLatin1String("120"), 120);
-    mCodeCombo->addItem(QLatin1String("180"), 180);
-    mCodeCombo->addItem(QLatin1String("270"), 270);
+    mCodeCombo->setModel(mCodeComboModel);
     lay->addRow(tr("Code:"), mCodeCombo);
 
     QStringList typeList;
@@ -95,6 +97,21 @@ AbstractRelayOptionsWidget::AbstractRelayOptionsWidget(AbstractRelais *relay,
             this, [this]()
     {
         mTypeCombo->setCurrentIndex(int(mRelay->relaisType()));
+
+        const bool isEncoder = mRelay->relaisType() == AbstractRelais::RelaisType::Encoder;
+        const bool isDecoder = mRelay->relaisType() == AbstractRelais::RelaisType::Decoder;
+        if(isEncoder)
+        {
+            mCodeComboModel->setEnumDescRange(SignalAspectCode_getDesc(), false,
+                                              int(SignalAspectCode::Code75),
+                                              int(SignalAspectCode::Code270));
+        }
+        else if(isDecoder)
+        {
+            mCodeComboModel->setEnumDescFull(SignalAspectCode_getDesc(), false);
+        }
+
+        mCodeCombo->setCurrentIndex(mCodeComboModel->rowForValue(int(mRelay->getExpectedCode())));
     });
 
     connect(mRelay, &AbstractRelais::settingsChanged,
@@ -124,24 +141,14 @@ void AbstractRelayOptionsWidget::updateDurations()
         mDownTimeSpin->setSpecialValueText(tr("Default"));
     }
 
-    const bool isEncoder = mRelay->relaisType() == AbstractRelais::RelaisType::Encoder ||
-            mRelay->relaisType() ==  AbstractRelais::RelaisType::Decoder;
-
+    const bool isEncoder = mRelay->relaisType() == AbstractRelais::RelaisType::Encoder;
+    const bool isDecoder = mRelay->relaisType() == AbstractRelais::RelaisType::Decoder;
     const bool isRepeater = mRelay->relaisType() == AbstractRelais::RelaisType::CodeRepeater;
 
     QFormLayout *lay = static_cast<QFormLayout *>(layout());
-    lay->setRowVisible(mUpTimeSpin, !isEncoder && !isRepeater);
+    lay->setRowVisible(mUpTimeSpin,   !isEncoder && !isRepeater);
     lay->setRowVisible(mDownTimeSpin, !isEncoder && !isRepeater);
-    lay->setRowVisible(mCodeCombo, isEncoder && !isRepeater);
-
-    if(mCodeCombo->itemData(0).toInt() != 0 && mRelay->relaisType() == AbstractRelais::RelaisType::Decoder)
-    {
-        mCodeCombo->insertItem(0, tr("All codes"), 0);
-    }
-    else if(mCodeCombo->itemData(0).toInt() == 0 && mRelay->relaisType() != AbstractRelais::RelaisType::Decoder)
-    {
-        mCodeCombo->removeItem(0);
-    }
+    lay->setRowVisible(mCodeCombo, isEncoder || isDecoder);
 
     const quint32 upDurationMS = mRelay->durationUp();
     if(upDurationMS == 0) // Default
@@ -155,13 +162,9 @@ void AbstractRelayOptionsWidget::updateDurations()
     else
         mDownTimeSpin->setValue(int(downDurationMS));
 
-    if(isEncoder)
+    if(isEncoder || isDecoder)
     {
-        int idx = mCodeCombo->findData(upDurationMS);
-        if(idx < 0)
-            idx = 0;
-
-        mCodeCombo->setCurrentIndex(idx);
+        mCodeCombo->setCurrentIndex(mCodeComboModel->rowForValue(int(mRelay->getExpectedCode())));
     }
 }
 
@@ -173,10 +176,13 @@ void AbstractRelayOptionsWidget::setNewDurations()
     if(isEncoder)
     {
         int curIdx = mCodeCombo->currentIndex();
-        if(curIdx < 0)
-            curIdx = 0;
+        int val = mCodeComboModel->valueAt(mCodeCombo->currentIndex());
 
-        mRelay->setDurationUp(mCodeCombo->itemData(curIdx).toInt());
+        SignalAspectCode code = SignalAspectCode(val);
+        if(curIdx < 0)
+            code = SignalAspectCode::CodeAbsent;
+
+        mRelay->setExpectedCode(code);
         return;
     }
 

@@ -24,6 +24,8 @@
 #define ABSTRACTRELAIS_H
 
 #include "../../abstractsimulationobject.h"
+#include "../../../enums/signalaspectcodes.h"
+
 #include <QElapsedTimer>
 
 class RelaisPowerNode;
@@ -38,8 +40,11 @@ public:
     static constexpr int DefaultUpMS = 700;
     static constexpr int DefaultDownMS = 200;
 
-    // Combinators are super fast
+    // Combinators are very fast and symmetric time
     static constexpr int DefaultCombinatorMS = 200;
+
+    // Decoders are very fast too and symmetric time
+    static constexpr int DefaultDecoderMS = 100;
 
     enum class State
     {
@@ -119,6 +124,10 @@ public:
     RelaisType relaisType() const;
     void setRelaisType(RelaisType newType);
 
+    SignalAspectCode getExpectedCode() const;
+    void setExpectedCode(SignalAspectCode code);
+
+
     inline int hasActivePowerUp() const
     {
         return mActivePowerNodesUp > 0;
@@ -157,20 +166,22 @@ private:
     void setPosition(double newPosition);
     void startMove(bool up);
 
-    void setDecodedResult(quint32 code, bool delay = true);
+    void decoderRelayRoutine();
+    void setDecodedResult(SignalAspectCode code, bool delay = true);
 
-    static constexpr inline int timeoutMillisForCode(int code)
+    static constexpr inline int timeoutMillisForCode(SignalAspectCode code)
     {
+        int pulsePerMinute = codeToNumber(code);
+        if (pulsePerMinute == 0)
+            return 0;
+
         // Code is number of interruptions per minute
         // But interruption is a full cyle
         // We want state change 2 times per cycle so return half time
-        return (30 * 1000) / code;
+        return (30 * 1000) / pulsePerMinute;
     }
 
-    static quint32 codeForMillis(qint64 millis);
-
-    inline quint32 getCode() const { return mCustomUpMS; }
-    inline quint32 getDecodedCode() const { return mCustomDownMS; }
+    static SignalAspectCode codeForMillis(qint64 millis);
 
 private:
     RelaisType mType = RelaisType::Normal;
@@ -185,14 +196,23 @@ private:
     double mPosition = 0.0;
     int mTimerId = 0;
 
-    static constexpr int CodeErrorMarginMillis = 10;
-    QElapsedTimer mElapsedTimer;
-
     QVector<RelaisPowerNode *> mPowerNodes;
     int mActivePowerNodesUp = 0;
     int mActivePowerNodesDown = 0;
 
     QVector<RelaisContactNode *> mContactNodes;
+
+    static constexpr int CodeErrorMarginMillis = 10;
+
+    struct Encoding
+    {
+        QElapsedTimer timer;
+        SignalAspectCode expectedCode = SignalAspectCode::CodeAbsent;
+        SignalAspectCode detectedCode = SignalAspectCode::CodeAbsent;
+        SignalAspectCode tempDetectedCode = SignalAspectCode::CodeAbsent;
+    };
+
+    Encoding mEncoding;
 };
 
 #endif // ABSTRACTRELAIS_H

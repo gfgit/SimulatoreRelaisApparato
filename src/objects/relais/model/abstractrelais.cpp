@@ -129,6 +129,7 @@ bool AbstractRelais::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     setDurationUp(quint32(obj.value("duration_up_ms").toInteger()));
     setDurationDown(quint32(obj.value("duration_down_ms").toInteger()));
     setNormallyUp(obj.value("normally_up").toBool());
+    setExpectedCode(codeFromNumber(obj.value("signal_encoding").toInteger()));
 
     return true;
 }
@@ -141,8 +142,12 @@ void AbstractRelais::saveToJSON(QJsonObject &obj) const
         obj["duration_up_ms"] = qint64(mCustomUpMS);
     if(mCustomDownMS > 0)
         obj["duration_down_ms"] = qint64(mCustomDownMS);
+
     obj["normally_up"] = normallyUp();
     obj["relay_type"] = int(relaisType());
+
+    if(relaisType() == RelaisType::Encoder || relaisType() == RelaisType::Decoder)
+        obj["signal_encoding"] = codeToNumber(mEncoding.expectedCode);
 }
 
 int AbstractRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
@@ -254,7 +259,7 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
     {
         if(relaisType() == RelaisType::Decoder)
         {
-            setDecodedResult(0, false);
+            setDecodedResult(SignalAspectCode::CodeAbsent, false);
             return;
         }
 
@@ -369,9 +374,9 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
             // Timer will switch state
             if(relaisType() == RelaisType::Encoder)
             {
-                if(mCustomUpMS > 0)
+                if(mEncoding.expectedCode != SignalAspectCode::CodeAbsent)
                 {
-                    mTimerId = startTimer(timeoutMillisForCode(getCode()),
+                    mTimerId = startTimer(timeoutMillisForCode(mEncoding.expectedCode),
                                           Qt::PreciseTimer);
                 }
             }
@@ -383,29 +388,7 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
         }
         else if(relaisType() == RelaisType::Decoder)
         {
-            if(mElapsedTimer.isValid())
-            {
-                const qint64 elapsed = mElapsedTimer.restart();
-
-                const quint32 code = codeForMillis(elapsed);
-
-                // If no/wrong code detected, skip another cicle
-                if(code == 0 || (getDecodedCode() != 0 && code != getDecodedCode()))
-                {
-                    mElapsedTimer.invalidate();
-                    setDecodedResult(0, true);
-                }
-                else
-                {
-                    setDecodedResult(code, true);
-                }
-
-            }
-            else
-            {
-                mElapsedTimer.start();
-                setDecodedResult(0, true);
-            }
+            decoderRelayRoutine();
         }
         else if(relaisType() == AbstractRelais::RelaisType::CodeRepeater)
         {
@@ -486,18 +469,7 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
         }
         else if(relaisType() == RelaisType::Decoder)
         {
-            if(mElapsedTimer.isValid())
-            {
-                const qint64 elapsed = mElapsedTimer.restart();
-
-                const quint32 code = codeForMillis(elapsed);
-                setDecodedResult(code, true);
-            }
-            else
-            {
-                mElapsedTimer.start();
-                setDecodedResult(0, true);
-            }
+            decoderRelayRoutine();
         }
         else if(relaisType() == AbstractRelais::RelaisType::CodeRepeater)
         {
@@ -542,25 +514,35 @@ void AbstractRelais::startMove(bool up)
 
     mInternalState = up ? State::GoingUp : State::GoingDown;
 
-    int totalTime = 0;
-    if(relaisType() == RelaisType::Combinator)
+    bool timeUp = up;
+    switch (relaisType())
     {
-        // Combinators have same time in either directions
-        totalTime = mCustomUpMS;
-        if(!totalTime)
+    case RelaisType::Combinator:
+    case RelaisType::Decoder:
+        // These types have symmetric time characteristic
+        // So use always custom up time
+        timeUp = true;
+        break;
+    default:
+        break;
+    }
+
+    int totalTime = timeUp ? mCustomUpMS : mCustomDownMS;
+
+    if(!totalTime)
+    {
+        switch (relaisType())
+        {
+        case RelaisType::Combinator:
             totalTime = DefaultCombinatorMS;
-    }
-    else if(up || relaisType() == RelaisType::Combinator)
-    {
-        totalTime = mCustomUpMS;
-        if(!totalTime)
-            totalTime = DefaultUpMS;
-    }
-    else
-    {
-        totalTime = mCustomDownMS;
-        if(!totalTime)
-            totalTime = DefaultDownMS;
+            break;
+        case RelaisType::Decoder:
+            totalTime = DefaultDecoderMS;
+            break;
+        default:
+            totalTime = timeUp ? DefaultUpMS : DefaultDownMS;
+            break;
+        }
     }
 
     // Relay can be up to 5% faster/slower
@@ -580,46 +562,87 @@ void AbstractRelais::startMove(bool up)
     mTimerId = startTimer(tickDurationMS);
 }
 
-void AbstractRelais::setDecodedResult(quint32 code, bool delay)
+void AbstractRelais::decoderRelayRoutine()
+{
+    if(mEncoding.timer.isValid())
+    {
+        const qint64 elapsed = mEncoding.timer.restart();
+
+        const SignalAspectCode code = codeForMillis(elapsed);
+
+        // If no/wrong code detected, skip another cicle
+        if(code == SignalAspectCode::CodeAbsent ||
+                (mEncoding.detectedCode != SignalAspectCode::CodeAbsent &&
+                 mEncoding.detectedCode != code))
+        {
+            setDecodedResult(SignalAspectCode::CodeAbsent, true);
+        }
+        else if(mEncoding.detectedCode == SignalAspectCode::CodeAbsent &&
+                mEncoding.tempDetectedCode == code)
+        {
+            // Last half cycle matches this code, so set it
+            setDecodedResult(code, true);
+        }
+        else if(mEncoding.tempDetectedCode == SignalAspectCode::CodeAbsent)
+        {
+            // Wait another half cycle to confirm code detection
+            mEncoding.tempDetectedCode = code;
+        }
+    }
+    else
+    {
+        mEncoding.timer.start();
+        setDecodedResult(SignalAspectCode::CodeAbsent, true);
+    }
+}
+
+void AbstractRelais::setDecodedResult(SignalAspectCode code, bool delay)
 {
     Q_ASSERT(relaisType() == RelaisType::Decoder);
 
-    mCustomDownMS = code;
+    if(mEncoding.detectedCode == code)
+        return;
+
+    mEncoding.detectedCode = code;
 
     killTimer(mTimerId);
     mTimerId = 0;
 
-    if(code == 0 || (getCode() != 0 && code != getCode()))
+    if(code == SignalAspectCode::CodeAbsent)
     {
-        // No code or wrong code detected
-        if(delay)
-            QCoreApplication::postEvent(this, new DelayedSetStateEvent(State::Down));
-        else
-            setState(State::Down);
+        // In case of no code detected reset also temp code
+        mEncoding.tempDetectedCode = SignalAspectCode::CodeAbsent;
+    }
+
+    if(code == SignalAspectCode::CodeAbsent ||
+            (mEncoding.expectedCode != SignalAspectCode::CodeAbsent &&
+             mEncoding.expectedCode != code))
+    {
+        // No code or wrong code detected, go down
+        startMove(false);
         return;
     }
 
-    // We detected correct code
-    if(delay)
-        QCoreApplication::postEvent(this, new DelayedSetStateEvent(State::Up));
-    else
-        setState(State::Up);
+    // We detected correct code, move up
+    startMove(true);
 
     // Start timer to end code detection
     mTimerId = startTimer(timeoutMillisForCode(code) + CodeErrorMarginMillis);
 }
 
-quint32 AbstractRelais::codeForMillis(qint64 millis)
+SignalAspectCode AbstractRelais::codeForMillis(qint64 millis)
 {
-    if(std::abs(millis - timeoutMillisForCode(75)) <= CodeErrorMarginMillis)
-        return 75;
-    if(std::abs(millis - timeoutMillisForCode(120)) <= CodeErrorMarginMillis)
-        return 120;
-    if(std::abs(millis - timeoutMillisForCode(180)) <= CodeErrorMarginMillis)
-        return 180;
-    if(std::abs(millis - timeoutMillisForCode(270)) <= CodeErrorMarginMillis)
-        return 270;
-    return 0;
+    if(std::abs(millis - timeoutMillisForCode(SignalAspectCode::Code75)) <= CodeErrorMarginMillis)
+        return SignalAspectCode::Code75;
+    if(std::abs(millis - timeoutMillisForCode(SignalAspectCode::Code120)) <= CodeErrorMarginMillis)
+        return SignalAspectCode::Code120;
+    if(std::abs(millis - timeoutMillisForCode(SignalAspectCode::Code180)) <= CodeErrorMarginMillis)
+        return SignalAspectCode::Code180;
+    if(std::abs(millis - timeoutMillisForCode(SignalAspectCode::Code270)) <= CodeErrorMarginMillis)
+        return SignalAspectCode::Code270;
+
+    // No code could be detected
+    return SignalAspectCode::CodeAbsent;
 }
 
 AbstractRelais::RelaisType AbstractRelais::relaisType() const
@@ -638,14 +661,19 @@ void AbstractRelais::setRelaisType(RelaisType newType)
     switch (oldType)
     {
     case RelaisType::Blinker:
-    case RelaisType::Encoder:
-    case RelaisType::Decoder:
-    case RelaisType::CodeRepeater:
     {
         // Reset to default
         mCustomUpMS = 0;
         mCustomDownMS = 0;
-        mElapsedTimer.invalidate();
+        break;
+    }
+    case RelaisType::Encoder:
+    case RelaisType::Decoder:
+    case RelaisType::CodeRepeater:
+    {
+        mEncoding.detectedCode = SignalAspectCode::CodeAbsent;
+        mEncoding.tempDetectedCode = SignalAspectCode::CodeAbsent;
+        mEncoding.timer.invalidate();
 
         if(mTimerId)
         {
@@ -660,26 +688,26 @@ void AbstractRelais::setRelaisType(RelaisType newType)
         break;
     }
 
-    if(newType == RelaisType::Blinker)
+    switch (newType)
+    {
+    case RelaisType::Blinker:
     {
         // Default to 1000 up and symmetric down time
         mCustomUpMS = 1000;
         mCustomDownMS = 0;
 
         setState(State::Down);
+        break;
     }
-    else if(newType == RelaisType::Encoder || newType == RelaisType::Decoder)
+    case RelaisType::Encoder:
+    case RelaisType::Decoder:
+    case RelaisType::CodeRepeater:
     {
-        mCustomUpMS = 75;
-        mCustomDownMS = 0;
-
         setState(State::Down);
+        break;
     }
-    else if(newType == RelaisType::CodeRepeater)
-    {
-        mCustomUpMS = 0;
-        mCustomDownMS = 0;
-        setState(State::Down);
+    default:
+        break;
     }
 
     if(stateIndependent())
@@ -697,6 +725,30 @@ void AbstractRelais::setRelaisType(RelaisType newType)
 
     emit settingsChanged(this);
     emit typeChanged(this, mType);
+}
+
+SignalAspectCode AbstractRelais::getExpectedCode() const
+{
+    if(relaisType() != RelaisType::Encoder && relaisType() != RelaisType::Decoder)
+        return SignalAspectCode::CodeAbsent;
+
+    return mEncoding.expectedCode;
+}
+
+void AbstractRelais::setExpectedCode(SignalAspectCode code)
+{
+    if(relaisType() != RelaisType::Encoder && relaisType() != RelaisType::Decoder)
+        code = SignalAspectCode::CodeAbsent;
+
+    if(relaisType() != RelaisType::Encoder && code == SignalAspectCode::CodeAbsent)
+        code = SignalAspectCode::Code75;
+
+    if(mEncoding.expectedCode == code)
+        return;
+
+    mEncoding.expectedCode = code;
+
+    emit settingsChanged(this);
 }
 
 bool AbstractRelais::normallyUp() const
