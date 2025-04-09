@@ -1,5 +1,5 @@
 /**
- * src/utils/itemobjectreplacedlg_imple.hpp
+ * src/utils/itemobjectreplacedlg_impl.hpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
