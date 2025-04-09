@@ -27,6 +27,7 @@
 #include "../../../enums/signalaspectcodes.h"
 
 #include <QElapsedTimer>
+#include <QBasicTimer>
 
 class RelaisPowerNode;
 class RelaisContactNode;
@@ -169,6 +170,8 @@ private:
     void decoderRelayRoutine();
     void setDecodedResult(SignalAspectCode code, bool delay = true);
 
+    void startCodeTimeout(SignalAspectCode code);
+
     static constexpr inline int timeoutMillisForCode(SignalAspectCode code)
     {
         int pulsePerMinute = codeToNumber(code);
@@ -194,7 +197,7 @@ private:
     quint32 mCustomDownMS = 0;
     double mTickPositionDelta = 0;
     double mPosition = 0.0;
-    int mTimerId = 0;
+    QBasicTimer mPositionTimer;
 
     QVector<RelaisPowerNode *> mPowerNodes;
     int mActivePowerNodesUp = 0;
@@ -202,7 +205,7 @@ private:
 
     QVector<RelaisContactNode *> mContactNodes;
 
-    static constexpr int CodeErrorMarginMillis = 10;
+    static constexpr int CodeErrorMarginMillis = 15;
 
     struct Encoding
     {
@@ -210,6 +213,7 @@ private:
         SignalAspectCode expectedCode = SignalAspectCode::CodeAbsent;
         SignalAspectCode detectedCode = SignalAspectCode::CodeAbsent;
         SignalAspectCode tempDetectedCode = SignalAspectCode::CodeAbsent;
+        QBasicTimer encodeTimeout;
     };
 
     Encoding mEncoding;
