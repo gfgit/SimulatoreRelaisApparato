@@ -347,68 +347,88 @@
 <context>
     <name>AbstractRelais</name>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="39"/>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="511"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="54"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="835"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="41"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="56"/>
         <source>Polarized</source>
         <translation>Polarizzato</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="43"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="58"/>
         <source>Polarized Inverted</source>
         <translation>Polarizzato Inverso</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="45"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="60"/>
         <source>Stabilized</source>
         <translation>Stabilizzato</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="47"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="62"/>
         <source>Combinator</source>
         <translation>Combinatore</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="49"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="64"/>
         <source>Timer</source>
         <translation>Temporizzatore</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="509"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="66"/>
+        <source>Blinker</source>
+        <translation>Lampeggiatore</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="68"/>
+        <source>Encoder</source>
+        <translation>Battitore di Codice</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="70"/>
+        <source>Decoder</source>
+        <translation>Rilevatore di Codice</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="72"/>
+        <source>Code Repeater</source>
+        <translation>Trasmetti Codice</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="833"/>
         <source>Reverse</source>
         <translation>Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="513"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="837"/>
         <source>Going reverse</source>
         <translation>Andando in Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="515"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="839"/>
         <source>Going normal</source>
         <translation>Andando in Normale</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="525"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="849"/>
         <source>Up</source>
         <translation>Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="527"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="851"/>
         <source>Down</source>
         <translation>Basso</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="529"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="853"/>
         <source>Going up</source>
         <translation>Andando Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="531"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="855"/>
         <source>Going down</source>
         <translation>Andando Basso</translation>
     </message>
@@ -416,36 +436,47 @@
 <context>
     <name>AbstractRelayOptionsWidget</name>
     <message>
-        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="42"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="43"/>
         <source>Relay normally Up</source>
         <translation>Relè normalmente Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="48"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="49"/>
         <source>Type:</source>
         <translation>Tipo:</translation>
     </message>
     <message>
-        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="56"/>
-        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="62"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="57"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="63"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="141"/>
         <source>Default</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="57"/>
-        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="63"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="58"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="64"/>
         <source> ms</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="58"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="59"/>
         <source>Up duration:</source>
         <translation>Durata Salita:</translation>
     </message>
     <message>
-        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="64"/>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="65"/>
         <source>Down duration:</source>
         <translation>Durata Discesa:</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="72"/>
+        <source>Code:</source>
+        <translation>Codice:</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/view/abstractrelayoptionswidget.cpp" line="137"/>
+        <source>Symmetric</source>
+        <translation>Simmetrico</translation>
     </message>
 </context>
 <context>
@@ -1659,12 +1690,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RemoteCableCircuitNode</name>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="593"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="631"/>
         <source>BRIDGE!!!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="598"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="636"/>
         <source>EMPTY!!!</source>
         <translation></translation>
     </message>
@@ -1798,6 +1829,34 @@ Scegli un altro nome:</translation>
         <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="177"/>
         <source>Screen Relay &lt;b&gt;%1&lt;/b&gt; (Power)&lt;br&gt;</source>
         <translation>Relè Schermo &lt;b&gt;%1&lt;/b&gt; (Alimentazione)&lt;br&gt;</translation>
+    </message>
+</context>
+<context>
+    <name>SignalAspectCodeTranslation</name>
+    <message>
+        <location filename="../enums/signalaspectcodes.cpp" line="39"/>
+        <source>Code Absent</source>
+        <translation>Assenza Codice</translation>
+    </message>
+    <message>
+        <location filename="../enums/signalaspectcodes.cpp" line="40"/>
+        <source>75</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../enums/signalaspectcodes.cpp" line="41"/>
+        <source>120</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../enums/signalaspectcodes.cpp" line="42"/>
+        <source>180</source>
+        <translation></translation>
+    </message>
+    <message>
+        <location filename="../enums/signalaspectcodes.cpp" line="43"/>
+        <source>270</source>
+        <translation></translation>
     </message>
 </context>
 <context>
