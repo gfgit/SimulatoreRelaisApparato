@@ -259,7 +259,7 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
     {
         if(relaisType() == RelaisType::Decoder)
         {
-            qDebug() << "CODE TIMEOUT:" << codeToNumber(mEncoding.detectedCode) << codeToNumber(mEncoding.tempDetectedCode) << "elapsed" << mEncoding.timer.elapsed();
+            //qDebug() << "CODE TIMEOUT:" << codeToNumber(mEncoding.detectedCode) << codeToNumber(mEncoding.tempDetectedCode) << "elapsed" << mEncoding.timer.elapsed();
 
             setDecodedResult(SignalAspectCode::CodeAbsent, false);
         }
@@ -561,7 +561,7 @@ void AbstractRelais::startMove(bool up)
 
 void AbstractRelais::decoderRelayRoutine()
 {
-    qDebug() << "routine tmp:" << codeToNumber(mEncoding.tempDetectedCode);
+    //qDebug() << "routine tmp:" << codeToNumber(mEncoding.tempDetectedCode);
 
     if(mEncoding.timer.isValid())
     {
@@ -574,13 +574,13 @@ void AbstractRelais::decoderRelayRoutine()
                 (mEncoding.detectedCode != SignalAspectCode::CodeAbsent &&
                  mEncoding.detectedCode != code))
         {
-            qDebug() << "WRONG CODE:" << codeToNumber(code) << "elapesed:" << elapsed << codeToNumber(mEncoding.expectedCode);
+            //qDebug() << "WRONG CODE:" << codeToNumber(code) << "elapesed:" << elapsed << codeToNumber(mEncoding.expectedCode);
             setDecodedResult(SignalAspectCode::CodeAbsent, true);
         }
         else if(mEncoding.detectedCode == SignalAspectCode::CodeAbsent &&
                 mEncoding.tempDetectedCode == code)
         {
-            qDebug() << "DETECTED CODE:" << codeToNumber(code) << "elapesed:" << elapsed;
+            //qDebug() << "DETECTED CODE:" << codeToNumber(code) << "elapesed:" << elapsed;
 
             // Last half cycle matches this code, so set it
             setDecodedResult(code, true);
@@ -589,7 +589,7 @@ void AbstractRelais::decoderRelayRoutine()
         {
             // Wait another half cycle to confirm code detection
 
-            qDebug() << "TRY CODE:" << codeToNumber(code) << "elapesed:" << elapsed;
+            //qDebug() << "TRY CODE:" << codeToNumber(code) << "elapesed:" << elapsed;
 
             startCodeTimeout(code);
             mEncoding.tempDetectedCode = code;
@@ -602,7 +602,7 @@ void AbstractRelais::decoderRelayRoutine()
     }
     else
     {
-        qDebug() << "CODE START:" << codeToNumber(mEncoding.expectedCode);
+        //qDebug() << "CODE START:" << codeToNumber(mEncoding.expectedCode);
         mEncoding.timer.start();
         setDecodedResult(SignalAspectCode::CodeAbsent, true);
         startCodeTimeout(SignalAspectCode::Code75);
@@ -611,7 +611,7 @@ void AbstractRelais::decoderRelayRoutine()
 
 void AbstractRelais::setDecodedResult(SignalAspectCode code, bool delay)
 {
-    qDebug() << "set result" << codeToNumber(code);
+    //qDebug() << "set result" << codeToNumber(code);
 
     Q_ASSERT(relaisType() == RelaisType::Decoder);
 
@@ -652,7 +652,7 @@ void AbstractRelais::startCodeTimeout(SignalAspectCode code)
         return;
 
     // Start timer to end code detection
-    qDebug() << "START TIMEOUT code:" << codeToNumber(SignalAspectCode::Code75) << "dur:" << millis << millis + CodeErrorMarginMillis;
+    //qDebug() << "START TIMEOUT code:" << codeToNumber(SignalAspectCode::Code75) << "dur:" << millis << millis + CodeErrorMarginMillis;
     mEncoding.encodeTimeout.start(millis + CodeErrorMarginMillis,
                                   Qt::PreciseTimer, this);
 }
