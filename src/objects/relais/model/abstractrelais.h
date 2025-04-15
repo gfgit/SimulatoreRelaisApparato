@@ -45,7 +45,7 @@ public:
     static constexpr int DefaultCombinatorMS = 200;
 
     // Decoders are very fast too and symmetric time
-    static constexpr int DefaultDecoderMS = 100;
+    static constexpr int DefaultDecoderMS = 50;
 
     enum class State
     {
@@ -168,7 +168,7 @@ private:
     void startMove(bool up);
 
     void decoderRelayRoutine();
-    void setDecodedResult(SignalAspectCode code, bool delay = true);
+    void setDecodedResult(SignalAspectCode code);
 
     void startCodeTimeout(SignalAspectCode code);
 
@@ -205,7 +205,7 @@ private:
 
     QVector<RelaisContactNode *> mContactNodes;
 
-    static constexpr int CodeErrorMarginMillis = 15;
+    static constexpr int CodeErrorMarginMillis = 18;
 
     struct Encoding
     {

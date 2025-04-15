@@ -261,7 +261,7 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
         {
             //qDebug() << "CODE TIMEOUT:" << codeToNumber(mEncoding.detectedCode) << codeToNumber(mEncoding.tempDetectedCode) << "elapsed" << mEncoding.timer.elapsed();
 
-            setDecodedResult(SignalAspectCode::CodeAbsent, false);
+            setDecodedResult(SignalAspectCode::CodeAbsent);
         }
         return;
     }
@@ -575,7 +575,7 @@ void AbstractRelais::decoderRelayRoutine()
                  mEncoding.detectedCode != code))
         {
             //qDebug() << "WRONG CODE:" << codeToNumber(code) << "elapesed:" << elapsed << codeToNumber(mEncoding.expectedCode);
-            setDecodedResult(SignalAspectCode::CodeAbsent, true);
+            setDecodedResult(SignalAspectCode::CodeAbsent);
         }
         else if(mEncoding.detectedCode == SignalAspectCode::CodeAbsent &&
                 mEncoding.tempDetectedCode == code)
@@ -583,7 +583,7 @@ void AbstractRelais::decoderRelayRoutine()
             //qDebug() << "DETECTED CODE:" << codeToNumber(code) << "elapesed:" << elapsed;
 
             // Last half cycle matches this code, so set it
-            setDecodedResult(code, true);
+            setDecodedResult(code);
         }
         else if(mEncoding.tempDetectedCode == SignalAspectCode::CodeAbsent)
         {
@@ -604,12 +604,12 @@ void AbstractRelais::decoderRelayRoutine()
     {
         //qDebug() << "CODE START:" << codeToNumber(mEncoding.expectedCode);
         mEncoding.timer.start();
-        setDecodedResult(SignalAspectCode::CodeAbsent, true);
+        setDecodedResult(SignalAspectCode::CodeAbsent);
         startCodeTimeout(SignalAspectCode::Code75);
     }
 }
 
-void AbstractRelais::setDecodedResult(SignalAspectCode code, bool delay)
+void AbstractRelais::setDecodedResult(SignalAspectCode code)
 {
     //qDebug() << "set result" << codeToNumber(code);
 
@@ -653,7 +653,7 @@ void AbstractRelais::startCodeTimeout(SignalAspectCode code)
 
     // Start timer to end code detection
     //qDebug() << "START TIMEOUT code:" << codeToNumber(SignalAspectCode::Code75) << "dur:" << millis << millis + CodeErrorMarginMillis;
-    mEncoding.encodeTimeout.start(millis + CodeErrorMarginMillis,
+    mEncoding.encodeTimeout.start(millis + (CodeErrorMarginMillis * 2),
                                   Qt::PreciseTimer, this);
 }
 
