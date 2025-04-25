@@ -25,6 +25,8 @@
 
 #include "../../abstractsimulationobject.h"
 
+#include <QBasicTimer>
+
 class ScreenRelaisPowerNode;
 class ScreenRelaisContactNode;
 
@@ -92,6 +94,7 @@ public:
     ContactState getContactStateA() const;
     ContactState getContactStateB() const;
 
+    static const EnumDesc &getTypeDesc();
     static const EnumDesc &getGlassColorDesc();
 
     inline GlassColor getColorAt(int idx) const
@@ -127,6 +130,8 @@ private:
     void setPowerState(PowerState newState);
     void setPosition(double newPosition);
 
+    static double getTargetPosition(ScreenType type, PowerState state);
+
 private:
     ScreenType mType = ScreenType::CenteredScreen;
     PowerState mState = PowerState::None;
@@ -136,7 +141,7 @@ private:
     double mPosition = 0.0;
     double mTargetPosition = 0.0;
 
-    int mTimerId = 0;
+    QBasicTimer mTimer;
 
     ScreenRelaisPowerNode *mPowerNode = nullptr;
 

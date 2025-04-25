@@ -1727,21 +1727,31 @@ Scegli un altro nome:</translation>
     </message>
     <message>
         <location filename="../objects/screen_relais/model/screenrelais.cpp" line="58"/>
+        <source>Centered</source>
+        <translation>Centrata</translation>
+    </message>
+    <message>
+        <location filename="../objects/screen_relais/model/screenrelais.cpp" line="59"/>
+        <source>Decentered</source>
+        <translation>Decentrata</translation>
+    </message>
+    <message>
+        <location filename="../objects/screen_relais/model/screenrelais.cpp" line="75"/>
         <source>Black</source>
         <translation>Nero</translation>
     </message>
     <message>
-        <location filename="../objects/screen_relais/model/screenrelais.cpp" line="59"/>
+        <location filename="../objects/screen_relais/model/screenrelais.cpp" line="76"/>
         <source>Red</source>
         <translation>Rosso</translation>
     </message>
     <message>
-        <location filename="../objects/screen_relais/model/screenrelais.cpp" line="60"/>
+        <location filename="../objects/screen_relais/model/screenrelais.cpp" line="77"/>
         <source>Yellow</source>
         <translation>Giallo</translation>
     </message>
     <message>
-        <location filename="../objects/screen_relais/model/screenrelais.cpp" line="61"/>
+        <location filename="../objects/screen_relais/model/screenrelais.cpp" line="78"/>
         <source>Green</source>
         <translation>Verde</translation>
     </message>
@@ -1803,17 +1813,22 @@ Scegli un altro nome:</translation>
 <context>
     <name>ScreenRelaisOptionsWidget</name>
     <message>
-        <location filename="../objects/screen_relais/view/screenrelaisoptionswidget.cpp" line="58"/>
+        <location filename="../objects/screen_relais/view/screenrelaisoptionswidget.cpp" line="52"/>
+        <source>Type:</source>
+        <translation>Tipo:</translation>
+    </message>
+    <message>
+        <location filename="../objects/screen_relais/view/screenrelaisoptionswidget.cpp" line="73"/>
         <source>Color 0:</source>
         <translation>Colore 0:</translation>
     </message>
     <message>
-        <location filename="../objects/screen_relais/view/screenrelaisoptionswidget.cpp" line="66"/>
+        <location filename="../objects/screen_relais/view/screenrelaisoptionswidget.cpp" line="81"/>
         <source>Color 1:</source>
         <translation>Colore 1:</translation>
     </message>
     <message>
-        <location filename="../objects/screen_relais/view/screenrelaisoptionswidget.cpp" line="74"/>
+        <location filename="../objects/screen_relais/view/screenrelaisoptionswidget.cpp" line="89"/>
         <source>Color 2:</source>
         <translation>Colore 2:</translation>
     </message>
@@ -1821,14 +1836,18 @@ Scegli un altro nome:</translation>
 <context>
     <name>ScreenRelaisPowerGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="175"/>
+        <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="191"/>
         <source>No Screen Relay set!</source>
         <translation>Nessuno Relè Schermo impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="177"/>
+        <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="195"/>
+        <source>Screen Relay &lt;b&gt;%1&lt;/b&gt; (Power)&lt;br&gt;Type: %2</source>
+        <translation>Relè Schermo &lt;b&gt;%1&lt;/b&gt; (Alimentazione)&lt;br&gt;Tipo: %2</translation>
+    </message>
+    <message>
         <source>Screen Relay &lt;b&gt;%1&lt;/b&gt; (Power)&lt;br&gt;</source>
-        <translation>Relè Schermo &lt;b&gt;%1&lt;/b&gt; (Alimentazione)&lt;br&gt;</translation>
+        <translation type="vanished">Relè Schermo &lt;b&gt;%1&lt;/b&gt; (Alimentazione)&lt;br&gt;</translation>
     </message>
 </context>
 <context>
