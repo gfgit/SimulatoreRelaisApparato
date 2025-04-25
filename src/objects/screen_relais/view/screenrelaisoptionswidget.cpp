@@ -36,6 +36,21 @@ ScreenRelaisOptionsWidget::ScreenRelaisOptionsWidget(ScreenRelais *relay,
 {
     QFormLayout *lay = new QFormLayout(this);
 
+    // Type
+    EnumValuesModel *typeModel = new EnumValuesModel(this);
+    typeModel->setEnumDescFull(ScreenRelais::getTypeDesc(), false);
+
+    QComboBox *typeCombo = new QComboBox;
+    typeCombo->setModel(typeModel);
+
+    QObject::connect(typeCombo, &QComboBox::activated,
+                     this, [this, typeModel](int idx)
+    {
+        mRelay->setScreenType(ScreenRelais::ScreenType(typeModel->valueAt(idx)));
+    });
+
+    lay->addRow(tr("Type:"), typeCombo);
+
     // Glass Colors
     EnumValuesModel *colorModel = new EnumValuesModel(this);
     colorModel->setEnumDescFull(ScreenRelais::getGlassColorDesc(), false);
@@ -73,8 +88,11 @@ ScreenRelaisOptionsWidget::ScreenRelaisOptionsWidget(ScreenRelais *relay,
 
     lay->addRow(tr("Color 2:"), colorCombo2);
 
-    auto updateSettings = [this, colorCombo0, colorCombo1, colorCombo2, colorModel]()
+    auto updateSettings = [this,
+            colorCombo0, colorCombo1, colorCombo2, colorModel,
+            typeCombo, typeModel]()
     {
+        typeCombo->setCurrentIndex(typeModel->rowForValue(int(mRelay->screenType())));
         colorCombo0->setCurrentIndex(colorModel->rowForValue(int(mRelay->getColorAt(0))));
         colorCombo1->setCurrentIndex(colorModel->rowForValue(int(mRelay->getColorAt(1))));
         colorCombo2->setCurrentIndex(colorModel->rowForValue(int(mRelay->getColorAt(2))));

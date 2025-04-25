@@ -48,6 +48,23 @@ QString ScreenRelais::getScreenTypeName(ScreenType t)
     return QString();
 }
 
+static const EnumDesc screen_type_desc =
+{
+    int(ScreenRelais::ScreenType::CenteredScreen),
+    int(ScreenRelais::ScreenType::DecenteredScreen),
+    int(ScreenRelais::ScreenType::CenteredScreen),
+    "ScreenRelais",
+    {
+        QT_TRANSLATE_NOOP("ScreenRelais", "Centered"),
+        QT_TRANSLATE_NOOP("ScreenRelais", "Decentered")
+    }
+};
+
+const EnumDesc &ScreenRelais::getTypeDesc()
+{
+    return screen_type_desc;
+}
+
 static const EnumDesc screen_glass_color_desc =
 {
     int(ScreenRelais::GlassColor::Black),
@@ -98,8 +115,7 @@ ScreenRelais::~ScreenRelais()
         c->setScreenRelais(nullptr);
     }
 
-    killTimer(mTimerId);
-    mTimerId = 0;
+    mTimer.stop();
 }
 
 QString ScreenRelais::getType() const
@@ -159,29 +175,29 @@ int ScreenRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) co
 
 void ScreenRelais::timerEvent(QTimerEvent *e)
 {
-    if(mTimerId && e->timerId() == mTimerId)
+    if(e->id() == mTimer.id())
     {
         if(qFuzzyCompare(mTargetPosition, mPosition))
         {
-            killTimer(mTimerId);
-            mTimerId = 0;
+            mTimer.stop();
         }
         else
         {
-            const bool goingToCenter = qFuzzyIsNull(mTargetPosition);
+            const double centerPosition = mType == ScreenType::CenteredScreen ? 0 : 1;
+            const bool goingToCenter = qFuzzyCompare(mTargetPosition, centerPosition);
 
             double newPosition = mPosition;
             if(mTargetPosition > newPosition)
             {
-                newPosition += 0.15;
+                newPosition += 0.08;
             }
             else
             {
-                newPosition -= 0.15;
+                newPosition -= 0.08;
             }
 
-            if(goingToCenter && qAbs(mPosition) < 0.2)
-                newPosition = 0.0; // TODO: oscillate a bit
+            if(goingToCenter && qAbs(mPosition - mTargetPosition) < 0.2)
+                newPosition = centerPosition; // TODO: oscillate a bit
 
             setPosition(newPosition);
         }
@@ -201,39 +217,18 @@ void ScreenRelais::setPowerState(PowerState newState)
 
     mState = newState;
 
-    mTargetPosition = 0.0;
+    mTargetPosition = getTargetPosition(screenType(), mState);
 
-    switch (screenType())
-    {
-    case ScreenType::CenteredScreen:
-    {
-        switch (mState)
-        {
-        case PowerState::None:
-            mTargetPosition = 0;
-            break;
-        case PowerState::Direct:
-            mTargetPosition = 1;
-            break;
-        case PowerState::Reversed:
-            mTargetPosition = -1;
-            break;
-        default:
-            break;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-
-    if(!mTimerId)
-        mTimerId = startTimer(100);
+    if(!mTimer.isActive())
+        mTimer.start(std::chrono::milliseconds(50), this);
 }
 
 void ScreenRelais::setPosition(double newPosition)
 {
-    newPosition = qBound(-1.0, newPosition, 1.0);
+    if(mType == ScreenType::CenteredScreen)
+        newPosition = qBound(-1.0, newPosition, 1.0);
+    else
+        newPosition = qBound(0.0, newPosition, 2.0);
 
     if(qFuzzyCompare(mPosition, newPosition))
         return;
@@ -242,8 +237,7 @@ void ScreenRelais::setPosition(double newPosition)
 
     if(qFuzzyCompare(mTargetPosition, mPosition))
     {
-        killTimer(mTimerId);
-        mTimerId = 0;
+        mTimer.stop();
     }
 
     // Update contact state
@@ -255,6 +249,30 @@ void ScreenRelais::setPosition(double newPosition)
     }
 
     emit stateChanged(this);
+}
+
+double ScreenRelais::getTargetPosition(ScreenType type, PowerState state)
+{
+    switch (state)
+    {
+    case PowerState::None:
+        return 0;
+    case PowerState::Direct:
+        return 1;
+    case PowerState::Reversed:
+    {
+        if(type == ScreenType::CenteredScreen)
+            return -1;
+
+        // For decentered screens we go over
+        return 2;
+    }
+    default:
+        break;
+    }
+
+    Q_UNREACHABLE();
+    return 0;
 }
 
 ScreenRelais::ScreenType ScreenRelais::screenType() const
@@ -270,26 +288,35 @@ void ScreenRelais::setScreenType(ScreenType newType)
     mType = newType;
     emit settingsChanged(this);
     emit typeChanged(this, mType);
+
+    // Adjust position
+    setPosition(getTargetPosition(screenType(), mState));
+
+    // Update contact state
+    const auto stateA = ScreenRelaisContactNode::ContactState(getContactStateA());
+    const auto stateB = ScreenRelaisContactNode::ContactState(getContactStateB());
+    for(ScreenRelaisContactNode *node : std::as_const(mContactNodes))
+    {
+        node->setState(node->isContactA() ? stateA : stateB);
+    }
+
+    emit stateChanged(this);
 }
 
 ScreenRelais::ContactState ScreenRelais::getContactStateA() const
 {
-    switch (screenType())
-    {
-    case ScreenType::CenteredScreen:
-    {
-        if(mPosition > 0.5)
-            return ContactState::Reversed;
-        if(mPosition > 0.2)
-            return ContactState::Middle;
-
+    // It's the same regardless of screen type
+    // Because position range changes
+    if(mPosition > 1.6)
         return ContactState::Straight;
-    }
-    default:
-        break;
-    }
+    if(mPosition > 1.4)
+        return ContactState::Middle;
+    if(mPosition > 0.6)
+        return ContactState::Reversed;
+    if(mPosition > 0.4)
+        return ContactState::Middle;
 
-    return ContactState::Middle;
+    return ContactState::Straight;
 }
 
 ScreenRelais::ContactState ScreenRelais::getContactStateB() const
@@ -298,9 +325,18 @@ ScreenRelais::ContactState ScreenRelais::getContactStateB() const
     {
     case ScreenType::CenteredScreen:
     {
-        if(mPosition < -0.5)
+        if(mPosition < -0.6)
             return ContactState::Reversed;
-        if(mPosition < -0.2)
+        if(mPosition < -0.4)
+            return ContactState::Middle;
+
+        return ContactState::Straight;
+    }
+    case ScreenType::DecenteredScreen:
+    {
+        if(mPosition > 1.6)
+            return ContactState::Reversed;
+        if(mPosition > 1.4)
             return ContactState::Middle;
 
         return ContactState::Straight;

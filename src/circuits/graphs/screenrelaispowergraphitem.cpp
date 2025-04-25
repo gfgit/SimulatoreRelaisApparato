@@ -27,6 +27,8 @@
 
 #include "../../views/modemanager.h"
 
+#include "../../utils/enum_desc.h"
+
 #include <QPainter>
 
 ScreenRelaisPowerGraphItem::ScreenRelaisPowerGraphItem(ScreenRelaisPowerNode *node_)
@@ -110,7 +112,15 @@ void ScreenRelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     painter->drawLine(commonLine);
 
     // Draw screen
-    const double angle = mScreenRelay ? mScreenRelay->getPosition() * 38 : 0;
+    double angle = 0;
+    if(mScreenRelay)
+    {
+        angle = mScreenRelay->getPosition();
+        if(mScreenRelay->screenType() == ScreenRelais::ScreenType::DecenteredScreen)
+            angle = 1 - angle;
+
+        angle *= 38;
+    }
 
     painter->save();
     painter->translate(center);
@@ -140,7 +150,13 @@ void ScreenRelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     painter->restore();
 
     // Draw central circle
-    painter->setBrush(Qt::lightGray);
+    if(!mScreenRelay)
+        painter->setBrush(Qt::red);
+    else if(mScreenRelay->screenType() == ScreenRelais::ScreenType::DecenteredScreen)
+        painter->setBrush(Qt::black);
+    else
+        painter->setBrush(Qt::lightGray);
+
     painter->setPen(Qt::black);
     painter->drawEllipse(centralCircleRect);
 
@@ -174,8 +190,12 @@ QString ScreenRelaisPowerGraphItem::tooltipString() const
     if(!node()->screenRelais())
         return tr("No Screen Relay set!");
 
-    return tr("Screen Relay <b>%1</b> (Power)<br>")
-            .arg(node()->screenRelais()->name());
+    QString typeStr = ScreenRelais::getTypeDesc().name(int(node()->screenRelais()->screenType()));
+
+    return tr("Screen Relay <b>%1</b> (Power)<br>"
+              "Type: %2")
+            .arg(node()->screenRelais()->name(),
+                 typeStr);
 }
 
 void ScreenRelaisPowerGraphItem::updateRelay()
