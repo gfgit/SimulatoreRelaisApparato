@@ -251,6 +251,9 @@ void ItemObjectReplaceDlg<NodeTraits>::batchNodeEdit(const QVector<Node *> &item
         newSettings.remove(key);
     }
 
+    if(newSettings.isEmpty())
+        return;
+
     for(Node *item : std::as_const(items))
     {
         if(item == curItem)
@@ -263,6 +266,8 @@ void ItemObjectReplaceDlg<NodeTraits>::batchNodeEdit(const QVector<Node *> &item
 
         NodeTraits::loadFromJSON(item, settings, viewMgr->modeMgr());
     }
+
+    viewMgr->modeMgr()->setFileEdited();
 }
 
 template<typename NodeTraits>
