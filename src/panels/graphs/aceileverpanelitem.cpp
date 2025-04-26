@@ -71,7 +71,7 @@ QString ACEILeverPanelItem::tooltipString() const
 {
     if(!mLeverIface)
     {
-       return tr("NO LEVER SET!!!");
+        return tr("NO LEVER SET!!!");
     }
 
     const int leverPos = mLeverIface->position();
@@ -107,6 +107,19 @@ QString ACEILeverPanelItem::tooltipString() const
                          "%2")
             .arg(mLever->name(), posStr);
 
+    if(mLever->getType() == ACEILeverObject::Type)
+    {
+        ACEILeverObject *aceiLever = static_cast<ACEILeverObject *>(mLever);
+        if(aceiLever->canSealLeftPosition() && mLeverIface->absoluteMin() == int(ACEILeverPosition::Left))
+        {
+            tipText.append(tr("<br>Left position normally security-sealed."));
+            if(aceiLever->isLeftPositionSealed())
+                tipText.append(tr("<br>Right click on the seal to unlock left position."));
+            else
+                tipText.append(tr("<br>Right click on the seal to re-lock left position."));
+        }
+    }
+
     if(!mLever->description().isEmpty())
     {
         tipText.append(QLatin1String("<br><br>"));
@@ -138,7 +151,8 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     const QPointF leverCenter(center.x(), center.y());
 
-    constexpr QRgb BorderColor = qRgb(97, 97, 97);
+    constexpr QRgb BorderColor = qRgb(97, 97, 97); // Medium dark gray
+    constexpr QRgb LeverColor = qRgb(77, 77, 77); // Very dark gray
 
     // Draw dark gray border around
     QPen borderPen;
@@ -199,7 +213,7 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->drawEllipse(circle);
 
     // Draw lever
-    QColor color = qRgb(77, 77, 77); // Medium Dark gray
+    QColor color = LeverColor;
     if(!mLeverIface || mLeverIface->isPressed())
         color = Qt::blue;
 
@@ -263,6 +277,55 @@ void ACEILeverPanelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     painter->setFont(f);
     painter->drawText(textRect, textAlign, leverName);
+
+    if(mLever && mLever->getType() == ACEILeverObject::Type)
+    {
+        ACEILeverObject *aceiLever = static_cast<ACEILeverObject *>(mLever);
+        if(aceiLever->canSealLeftPosition())
+        {
+            // Small seal lever will be vertical or horizontal
+            QPointF sealLeverTop(SealBaseCenter.x(), SealBaseCenter.y() - 12);
+            QPointF sealLeverRight(SealBaseCenter.x() + 12,
+                                   SealBaseCenter.y());
+
+            painter->setPen(QPen(Qt::black, 5));
+            painter->setBrush(Qt::NoBrush);
+            painter->drawLine(SealBaseCenter, sealLeverTop);
+
+            painter->setPen(QPen(QBrush(LeverColor), 5));
+            painter->drawLine(SealBaseCenter,
+                              aceiLever->isLeftPositionSealed() ?
+                                  sealLeverRight :
+                                  sealLeverTop);
+
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(QBrush(LeverColor));
+            painter->drawEllipse(SealBaseCenter,
+                                 sealBaseRadius, sealBaseRadius);
+
+            painter->setPen(QPen(Qt::red, 3));
+            painter->setBrush(Qt::NoBrush);
+            painter->drawLine(SealBaseCenter, SealCenter);
+
+            if(aceiLever->isLeftPositionSealed())
+            {
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(Qt::black);
+                painter->drawEllipse(SealCenter,
+                                     sealRadius, sealRadius);
+            }
+        }
+    }
+}
+
+inline bool distanceLess(const QPointF& diff, double radius)
+{
+    // Add some tolerance
+    radius *= 1.1;
+    radius += 1;
+
+    // Pitagora
+    return (diff.x() * diff.x() + diff.y() * diff.y()) < (radius * radius);
 }
 
 void ACEILeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
@@ -277,6 +340,24 @@ void ACEILeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             mLeverIface->setPressed(true);
             mLastMousePos = ev->pos();
             return;
+        }
+        else if(ev->button() == Qt::RightButton && mLever &&
+                mLever->getType() == ACEILeverObject::Type)
+        {
+            ACEILeverObject *aceiLever = static_cast<ACEILeverObject *>(mLever);
+            const bool sealClicked = distanceLess(ev->pos() - SealBaseCenter, sealBaseRadius) ||
+                    (aceiLever->isLeftPositionSealed() && distanceLess(ev->pos() - SealCenter, sealRadius));
+
+            if(sealClicked && aceiLever->canSealLeftPosition() &&
+                    (aceiLever->isLeftPositionSealed() || mLeverIface->position() >= int(ACEILeverPosition::Vertical)))
+            {
+
+
+                // We can always unlock but relock only when at least vertical
+                ev->accept();
+                aceiLever->setIsLeftPositionSealed(!aceiLever->isLeftPositionSealed());
+                return;
+            }
         }
     }
 

@@ -24,6 +24,8 @@
 
 #include "../../interfaces/leverinterface.h"
 
+#include <QJsonObject>
+
 static const EnumDesc acei_lever_posDesc =
 {
     int(ACEILeverPosition::Left),
@@ -69,4 +71,70 @@ ACEILeverObject::~ACEILeverObject()
 QString ACEILeverObject::getType() const
 {
     return Type;
+}
+
+bool ACEILeverObject::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
+{
+    if(!AbstractSimulationObject::loadFromJSON(obj, phase))
+        return false;
+
+    if(phase == LoadPhase::Creation)
+    {
+        setCanSealLeftPosition(obj.value("seal_left_pos").toBool(false));
+    }
+
+    return true;
+}
+
+void ACEILeverObject::saveToJSON(QJsonObject &obj) const
+{
+    AbstractSimulationObject::saveToJSON(obj);
+
+    obj["seal_left_pos"] = canSealLeftPosition();
+}
+
+bool ACEILeverObject::canSealLeftPosition() const
+{
+    return mCanSealLeftPosition;
+}
+
+void ACEILeverObject::setCanSealLeftPosition(bool newCanSealLeftPosition)
+{
+    if(mCanSealLeftPosition == newCanSealLeftPosition)
+        return;
+
+    mCanSealLeftPosition = newCanSealLeftPosition;
+
+    // Initially lock based on default
+    setIsLeftPositionSealed(mCanSealLeftPosition);
+
+    emit settingsChanged(this);
+}
+
+bool ACEILeverObject::isLeftPositionSealed() const
+{
+    return mIsLeftPositionSealed;
+}
+
+void ACEILeverObject::setIsLeftPositionSealed(bool newIsLeftPositionSealed)
+{
+    if(mIsLeftPositionSealed == newIsLeftPositionSealed)
+        return;
+
+    mIsLeftPositionSealed = newIsLeftPositionSealed;
+
+    if(mIsLeftPositionSealed)
+    {
+        const int min = std::max(leverInterface->absoluteMin(),
+                                 int(ACEILeverPosition::Vertical));
+        leverInterface->setLockedRange(min, leverInterface->absoluteMax());
+        leverInterface->checkPositionValidForLock();
+    }
+    else
+    {
+        leverInterface->setLockedRange(LeverAngleDesc::InvalidPosition,
+                                       LeverAngleDesc::InvalidPosition);
+    }
+
+    emit stateChanged(this);
 }

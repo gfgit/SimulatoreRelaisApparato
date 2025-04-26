@@ -73,17 +73,17 @@
 <context>
     <name>ACEILeverObject</name>
     <message>
-        <location filename="../objects/lever/acei/aceileverobject.cpp" line="34"/>
+        <location filename="../objects/lever/acei/aceileverobject.cpp" line="36"/>
         <source>Left</source>
         <translation>Sinistra</translation>
     </message>
     <message>
-        <location filename="../objects/lever/acei/aceileverobject.cpp" line="36"/>
+        <location filename="../objects/lever/acei/aceileverobject.cpp" line="38"/>
         <source>Vertical</source>
         <translation>Verticale</translation>
     </message>
     <message>
-        <location filename="../objects/lever/acei/aceileverobject.cpp" line="38"/>
+        <location filename="../objects/lever/acei/aceileverobject.cpp" line="40"/>
         <source>Right</source>
         <translation>Destra</translation>
     </message>
@@ -91,7 +91,7 @@
 <context>
     <name>ACEILeverPanelItem</name>
     <message>
-        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="239"/>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="253"/>
         <source>NULL</source>
         <translation></translation>
     </message>
@@ -114,6 +114,21 @@
         <location filename="../panels/graphs/aceileverpanelitem.cpp" line="106"/>
         <source>ACEI Lever: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
         <translation>Leva ACEI: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="115"/>
+        <source>&lt;br&gt;Left position normally security-sealed.</source>
+        <translation>&lt;br&gt;Posizione sinistra normalmente piombata.</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="117"/>
+        <source>&lt;br&gt;Right click on the seal to unlock left position.</source>
+        <translation>&lt;br&gt;Click destro sul piombo per sbloccare posizione sinistra.</translation>
+    </message>
+    <message>
+        <location filename="../panels/graphs/aceileverpanelitem.cpp" line="119"/>
+        <source>&lt;br&gt;Right click on the seal to re-lock left position.</source>
+        <translation>&lt;br&gt;Click destro sul piombo per ri-bloccare posizione sinistra.</translation>
     </message>
 </context>
 <context>
@@ -831,9 +846,13 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
 <context>
     <name>GenericLeverOptionsWidget</name>
     <message>
-        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="42"/>
         <source>Spring return to normal</source>
-        <translation>Ritorna normale a molla</translation>
+        <translation type="vanished">Ritorna normale a molla</translation>
+    </message>
+    <message>
+        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="42"/>
+        <source>Spring return to normal if before default position</source>
+        <translation>Ritorna normale a molla se prima della posizione di default</translation>
     </message>
     <message>
         <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="44"/>
@@ -841,22 +860,27 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
         <translation>Quando rilasciata, la leva ritornerà nella sua posizione normale.</translation>
     </message>
     <message>
-        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="56"/>
+        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="49"/>
+        <source>Spring return to normal if after default position</source>
+        <translation>Ritorna normale a molla se dopo della posizione di default</translation>
+    </message>
+    <message>
+        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="62"/>
         <source>Minimum Position:</source>
         <translation>Posizione Minima:</translation>
     </message>
     <message>
-        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="60"/>
+        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="66"/>
         <source>Maximum Position:</source>
         <translation>Posizione Massima:</translation>
     </message>
     <message>
-        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="67"/>
+        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="73"/>
         <source>On program start, lever will be in this position.</source>
         <translation>All&apos;avvio del programma, la leva sarà in questa posizione.</translation>
     </message>
     <message>
-        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="69"/>
+        <location filename="../objects/lever/view/genericleveroptionswidget.cpp" line="75"/>
         <source>Normal Position:</source>
         <translation>Posizione Normale:</translation>
     </message>
@@ -2380,188 +2404,193 @@ Scegli un altro nome:</translation>
         <translation>Magnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="161"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="195"/>
         <source>Can be pressed</source>
         <translation>Può essere premuto</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="172"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="206"/>
         <source>Can be extracted</source>
         <translation>Può essere estratto</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="195"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="229"/>
         <source>Mode:</source>
         <translation>Modalità:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="220"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="254"/>
         <source>Loop sound</source>
         <translation>Audio in Loop</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="232"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="266"/>
         <source>Sound File:</source>
         <translation>File audio:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="234"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="268"/>
         <source>Browse</source>
         <translation>Esplora</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="237"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="271"/>
         <source>Apply</source>
         <translation>Applica</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="252"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="286"/>
         <source>Choose WAV Sound</source>
         <translation>Scegli Audio WAV</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="285"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="319"/>
         <source>Type:</source>
         <translation>Tipo:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="308"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="342"/>
         <source>Twin Handle:</source>
         <translation>Maniglia Gemella:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="324"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="358"/>
         <source>Liberation Relay:</source>
         <translation>Relè Liberazione:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="339"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="373"/>
         <source>Artificial Liberation Button:</source>
         <translation>Pulsante Liberazione Artificiale:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="391"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="425"/>
         <source>Description A:</source>
         <translation>Descrizione A:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="392"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="426"/>
         <source>Description B:</source>
         <translation>Descrizione B:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="395"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="429"/>
         <source>Shown on node B</source>
         <translation>Mostrato sul nodo B</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="394"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="428"/>
         <source>Shown on node A</source>
         <translation>Mostrato sul nodo A</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="402"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="165"/>
+        <source>Left position can be security-sealed</source>
+        <translation>La posizione sinistra può essere piombata</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="436"/>
         <source>To Remote Node</source>
         <translation>Ad un Nodo Remoto</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="412"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="446"/>
         <source>Peer Session:</source>
         <translation>Sessione compagna:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="420"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="454"/>
         <source>Peer Node:</source>
         <translation>Nodo compagno:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="427"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="461"/>
         <source>Use serial device</source>
         <translation>Usa dispositivo seriale</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="437"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="471"/>
         <source>Device Name:</source>
         <translation>Nome Dispositivo:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="446"/>
-        <location filename="../objects/standardobjecttypes.cpp" line="458"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="480"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="492"/>
         <source>None</source>
         <translation>Nessuno</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="447"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="481"/>
         <source>Input ID:</source>
         <translation>ID Ingresso:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="459"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="493"/>
         <source>Output ID:</source>
         <translation>ID Uscita:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="484"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="518"/>
         <source>Node A not set!</source>
         <translation>Nodo A non impostato!</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="489"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="523"/>
         <source>Node B not set!</source>
         <translation>Nodo B non impostato!</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="530"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="564"/>
         <source>Relais</source>
         <translation>Relè</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="542"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="576"/>
         <source>Screen Relais</source>
         <translation>Relè Schermo</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="557"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="591"/>
         <source>ACEI Lever</source>
         <translation>Leva ACEI</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="569"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="603"/>
         <source>Ligth bulb</source>
         <translation>Lampada</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="581"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="615"/>
         <source>Electromagnet</source>
         <translation>Elettromagnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="597"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="631"/>
         <source>ACE Sasib 5 Lever</source>
         <translation>Leva ACE Sasib 5</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="614"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="648"/>
         <source>ACE Sasib 7 Lever</source>
         <translation>Leva ACE Sasib 7</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="629"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="663"/>
         <source>Generic Button</source>
         <translation>Pulsante Generico</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="641"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="675"/>
         <source>Sound Object</source>
         <translation>Oggetto Sonoro</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="657"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="691"/>
         <source>BEM Handle</source>
         <translation>Maniglia BEM</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="669"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="703"/>
         <source>Circuit Bridge</source>
         <translation>Ponte Circuito</translation>
     </message>

@@ -47,8 +47,20 @@ public:
     static constexpr QLatin1String Type = QLatin1String("acei_lever");
     QString getType() const override;
 
+    bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
+    void saveToJSON(QJsonObject& obj) const override;
+
+    bool canSealLeftPosition() const;
+    void setCanSealLeftPosition(bool newCanSealLeftPosition);
+
+    bool isLeftPositionSealed() const;
+    void setIsLeftPositionSealed(bool newIsLeftPositionSealed);
+
 private:
     LeverInterface *leverInterface = nullptr;
+
+    bool mCanSealLeftPosition = false;
+    bool mIsLeftPositionSealed = false;
 };
 
 #endif // ACEILEVEROBJECT_H

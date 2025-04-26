@@ -151,6 +151,40 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item, ViewManager *mgr)
     return w;
 }
 
+QWidget *defaultACEILeverEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    ACEILeverObject *lever = static_cast<ACEILeverObject *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Generic lever options
+    lay->addRow(defaultLeverEdit(item, mgr));
+
+    // Security seal
+    QCheckBox *leftSealCB = new QCheckBox(StandardObjectTypes::tr("Left position can be security-sealed"));
+    lay->addRow(leftSealCB);
+
+    QObject::connect(leftSealCB, &QCheckBox::toggled,
+                     item, [lever](bool val)
+    {
+        lever->setCanSealLeftPosition(val);
+    });
+
+    auto updateSettings = [lever, leftSealCB]()
+    {
+        leftSealCB->setChecked(lever->canSealLeftPosition());
+        leftSealCB->setEnabled(lever->getInterface<LeverInterface>()->absoluteMin() == int(ACEILeverPosition::Left));
+    };
+
+    QObject::connect(item, &AbstractSimulationObject::settingsChanged,
+                     leftSealCB, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
 QWidget *defaultButtonEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     ButtonInterface *buttonIface = item->getInterface<ButtonInterface>();
@@ -549,7 +583,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = nullptr;
         item.create = &createObject<ACEILeverObject>;
-        item.edit = &defaultLeverEdit;
+        item.edit = &defaultACEILeverEdit;
         item.objectType = ACEILeverObject::Type;
         item.interfaces = {
             LeverInterface::IfaceType

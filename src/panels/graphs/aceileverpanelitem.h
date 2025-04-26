@@ -119,6 +119,15 @@ private:
     static constexpr double lightOffsetY = 24;
     static constexpr double lightOffsetCentralY = 17;
 
+    static constexpr double sealOffsetY = 19;
+    static constexpr double sealBaseRadius = 7;
+    static constexpr double sealRadius = 12;
+
+    static constexpr QPointF SealBaseCenter = QPointF(ItemWidth / 2,
+                                                      sealOffsetY);
+    static constexpr QPointF SealCenter = QPointF(SealBaseCenter.x() - 14,
+                                                  SealBaseCenter.y() + 14);
+
 private:
     AbstractSimulationObject *mLever = nullptr;
     LeverInterface *mLeverIface = nullptr;
