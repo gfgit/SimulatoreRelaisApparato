@@ -27,6 +27,8 @@
 
 #include "../../utils/enum_desc.h"
 
+#include <QBasicTimer>
+
 class LeverContactNode;
 
 struct LeverAngleDesc
@@ -110,8 +112,11 @@ public:
     int lockedMax() const;
 
     // Options
-    bool hasSpringReturn() const;
-    void setHasSpringReturn(bool newHasSpringReturn);
+    bool hasSpringReturnMin() const;
+    void setHasSpringReturnMin(bool newHasSpringReturn);
+
+    bool hasSpringReturnMax() const;
+    void setHasSpringReturnMax(bool newHasSpringReturn);
 
     int absoluteMin() const;
     int absoluteMax() const;
@@ -236,9 +241,10 @@ private:
     // After last position we go to a "middle" and the first again
     bool mCanWarpAroundZero = false;
 
-    int springTimerId = 0;
+    QBasicTimer springTimer;
 
-    bool mHasSpringReturn = false;
+    bool mHasSpringReturnMin = false;
+    bool mHasSpringReturnMax = false;
     bool mIsPressed = false;
 
     int mAbsoluteMin = 0;

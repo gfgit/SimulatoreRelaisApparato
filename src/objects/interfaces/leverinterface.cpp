@@ -72,7 +72,8 @@ bool LeverInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     if(phase != LoadPhase::Creation)
         return true; // Alredy created, nothing to do
 
-    setHasSpringReturn(obj.value("spring_return").toBool());
+    setHasSpringReturnMin(obj.value("spring_return_min").toBool());
+    setHasSpringReturnMax(obj.value("spring_return_max").toBool());
 
     // Range
     int pos_min = obj.value("pos_min").toInt();
@@ -95,7 +96,8 @@ void LeverInterface::saveToJSON(QJsonObject &obj) const
 {
     AbstractObjectInterface::saveToJSON(obj);
 
-    obj["spring_return"] = hasSpringReturn();
+    obj["spring_return_min"] = hasSpringReturnMin();
+    obj["spring_return_max"] = hasSpringReturnMax();
 
     // Range
     obj["pos_min"] = mAbsoluteMin;
@@ -242,23 +244,43 @@ void LeverInterface::setPositionDesc(const EnumDesc &desc_,
     emitChanged(PosDescPropName, QVariant());
 }
 
-bool LeverInterface::hasSpringReturn() const
+bool LeverInterface::hasSpringReturnMin() const
 {
-    return mHasSpringReturn;
+    return mHasSpringReturnMin;
 }
 
-void LeverInterface::setHasSpringReturn(bool newHasSpringReturn)
+void LeverInterface::setHasSpringReturnMin(bool newHasSpringReturn)
 {
     if(!canChangeSpring())
         return;
 
-    if(mHasSpringReturn == newHasSpringReturn)
+    if(mHasSpringReturnMin == newHasSpringReturn)
         return;
 
-    mHasSpringReturn = newHasSpringReturn;
+    mHasSpringReturnMin = newHasSpringReturn;
     emit mObject->settingsChanged(mObject);
 
-    if(mHasSpringReturn && !mIsPressed)
+    if(mHasSpringReturnMin && !mIsPressed && mAngle < angleForPosition(mPositionDesc.defaultValue))
+        startSpringTimer();
+}
+
+bool LeverInterface::hasSpringReturnMax() const
+{
+    return mHasSpringReturnMax;
+}
+
+void LeverInterface::setHasSpringReturnMax(bool newHasSpringReturn)
+{
+    if(!canChangeSpring())
+        return;
+
+    if(mHasSpringReturnMax == newHasSpringReturn)
+        return;
+
+    mHasSpringReturnMax = newHasSpringReturn;
+    emit mObject->settingsChanged(mObject);
+
+    if(mHasSpringReturnMax && !mIsPressed && mAngle > angleForPosition(mPositionDesc.defaultValue))
         startSpringTimer();
 }
 
@@ -281,7 +303,12 @@ void LeverInterface::setPressed(bool newIsPressed)
         // When lever is hold, spring cannot move lever
         stopSpringTimer();
     }
-    else if(mHasSpringReturn)
+    else if(mHasSpringReturnMin && mAngle < angleForPosition(mPositionDesc.defaultValue))
+    {
+        // When released, if lever has spring, go back to Normal
+        startSpringTimer();
+    }
+    else if(mHasSpringReturnMax && mAngle > angleForPosition(mPositionDesc.defaultValue))
     {
         // When released, if lever has spring, go back to Normal
         startSpringTimer();
@@ -453,9 +480,9 @@ void LeverInterface::checkPositionValidForLock()
 
 bool LeverInterface::timerEvent(const int timerId)
 {
-    if(timerId == springTimerId && springTimerId)
+    if(timerId == springTimer.timerId())
     {
-        const int targetAngle = angleForPosition(normalPosition());
+        const int targetAngle = angleForPosition(mPositionDesc.defaultValue);
 
         if(qAbs(targetAngle - mAngle) <= SpringTimerAngleDelta)
         {
@@ -483,11 +510,7 @@ bool LeverInterface::timerEvent(const int timerId)
 
 void LeverInterface::stopSpringTimer()
 {
-    if(!springTimerId)
-        return;
-
-    mObject->killTimer(springTimerId);
-    springTimerId = 0;
+    springTimer.stop();
 }
 
 void LeverInterface::startSpringTimer()
@@ -495,7 +518,7 @@ void LeverInterface::startSpringTimer()
     stopSpringTimer();
 
     // Update every 100ms for a semi-smooth animation
-    springTimerId = mObject->startTimer(100);
+    springTimer.start(std::chrono::milliseconds(100), mObject);
 }
 
 int LeverInterface::absoluteMin() const

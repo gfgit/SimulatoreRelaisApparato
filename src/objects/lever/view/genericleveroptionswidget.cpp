@@ -39,12 +39,18 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
     QFormLayout *lay = new QFormLayout(this);
 
     // Spring return
-    mHasSpringReturn = new QCheckBox(tr("Spring return to normal"));
-    mHasSpringReturn->setChecked(mLever->hasSpringReturn());
-    mHasSpringReturn->setToolTip(tr("When released lever will return"
+    mHasSpringReturnMin = new QCheckBox(tr("Spring return to normal if before default position"));
+    mHasSpringReturnMin->setChecked(mLever->hasSpringReturnMin());
+    mHasSpringReturnMin->setToolTip(tr("When released lever will return"
                                     " to its normal position."));
-    lay->addWidget(mHasSpringReturn);
-    lay->setRowVisible(mHasSpringReturn, mLever->canChangeSpring());
+    lay->addWidget(mHasSpringReturnMin);
+    lay->setRowVisible(mHasSpringReturnMin, mLever->canChangeSpring());
+
+    mHasSpringReturnMax = new QCheckBox(tr("Spring return to normal if after default position"));
+    mHasSpringReturnMax->setChecked(mLever->hasSpringReturnMax());
+    mHasSpringReturnMax->setToolTip(mHasSpringReturnMin->toolTip());
+    lay->addWidget(mHasSpringReturnMax);
+    lay->setRowVisible(mHasSpringReturnMax, mLever->canChangeSpring());
 
     // Normal position and range
     mMinPosModel = new EnumValuesModel(this);
@@ -68,10 +74,16 @@ GenericLeverOptionsWidget::GenericLeverOptionsWidget(LeverInterface *lever,
                                    " lever will be in this position."));
     lay->addRow(tr("Normal Position:"), mNormalPosCombo);
 
-    connect(mHasSpringReturn, &QCheckBox::toggled,
+    connect(mHasSpringReturnMin, &QCheckBox::toggled,
             this, [this](bool val)
     {
-        mLever->setHasSpringReturn(val);
+        mLever->setHasSpringReturnMin(val);
+    });
+
+    connect(mHasSpringReturnMax, &QCheckBox::toggled,
+            this, [this](bool val)
+    {
+        mLever->setHasSpringReturnMax(val);
     });
 
     connect(mLever->object(), &AbstractSimulationObject::settingsChanged,
@@ -162,6 +174,10 @@ void GenericLeverOptionsWidget::updatePositionRanges()
     const int normalPosIdx = mNormalPosModel->rowForValue(mLever->normalPosition());
     if(normalPosIdx != -1 && mNormalPosCombo->currentIndex() != normalPosIdx)
         mNormalPosCombo->setCurrentIndex(normalPosIdx);
+
+    const int defaultPos = mLever->positionDesc().defaultValue;
+    mHasSpringReturnMin->setEnabled(minPos < defaultPos && defaultPos <= maxPos);
+    mHasSpringReturnMax->setEnabled(minPos <= defaultPos && defaultPos < maxPos);
 }
 
 void GenericLeverOptionsWidget::onInterfacePropertyChanged(const QString &ifaceName,

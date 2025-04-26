@@ -48,7 +48,8 @@ private slots:
 private:
     LeverInterface *mLever = nullptr;
 
-    QCheckBox *mHasSpringReturn = nullptr;
+    QCheckBox *mHasSpringReturnMin = nullptr;
+    QCheckBox *mHasSpringReturnMax = nullptr;
 
     QComboBox *mMinPosCombo = nullptr;
     QComboBox *mMaxPosCombo = nullptr;
