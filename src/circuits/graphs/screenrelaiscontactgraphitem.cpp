@@ -27,6 +27,8 @@
 
 #include "../../views/modemanager.h"
 
+#include "../../utils/enum_desc.h"
+
 #include <QPainter>
 
 ScreenRelaisContactGraphItem::ScreenRelaisContactGraphItem(ScreenRelaisContactNode *node_)
@@ -117,9 +119,13 @@ QString ScreenRelaisContactGraphItem::tooltipString() const
     if(!node()->screenRelais())
         return tr("No Screen Relay set!");
 
+    QString typeStr = ScreenRelais::getTypeDesc().name(int(node()->screenRelais()->screenType()));
+
     return tr("Contact of Screen Relay <b>%1</b><br>"
-              "%2")
+              "Type: %2<br>"
+              "%3")
             .arg(node()->screenRelais()->name(),
+                 typeStr,
                  getContactTooltip());
 }
 

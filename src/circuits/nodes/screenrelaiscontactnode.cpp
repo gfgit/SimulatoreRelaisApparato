@@ -125,8 +125,8 @@ void ScreenRelaisContactNode::setState(ContactState newState)
         return;
     mState = newState;
 
-    setContactState(mState == ContactState::Straight,
-                    mState == ContactState::Reversed);
+    setContactState(mState == ContactState::Reversed,
+                    mState == ContactState::Straight);
 }
 
 bool ScreenRelaisContactNode::isContactA() const

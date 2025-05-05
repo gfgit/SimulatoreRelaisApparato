@@ -305,15 +305,22 @@ void ScreenRelais::setScreenType(ScreenType newType)
 
 ScreenRelais::ContactState ScreenRelais::getContactStateA() const
 {
+    // Contact A: coppia 1^ Cat
+    // Centered screen positions:
+    // 0 (red) -> straight
+    // 1 (yellow) -> rev
+    // -1 (green) -> rev
+
+    // Deentered screen positions:
+    // 0 (red) -> straight
+    // 1 (yellow) -> rev
+    // 2 (green) -> rev
+
     // It's the same regardless of screen type
     // Because position range changes
-    if(mPosition > 1.6)
-        return ContactState::Straight;
-    if(mPosition > 1.4)
-        return ContactState::Middle;
-    if(mPosition > 0.6)
+    if(mPosition > 0.8)
         return ContactState::Reversed;
-    if(mPosition > 0.4)
+    if(mPosition > 0.2)
         return ContactState::Middle;
 
     return ContactState::Straight;
@@ -321,22 +328,33 @@ ScreenRelais::ContactState ScreenRelais::getContactStateA() const
 
 ScreenRelais::ContactState ScreenRelais::getContactStateB() const
 {
+    // Contact B: coppia avviso
+    // Centered screen positions:
+    // 0 (red) -> straight
+    // 1 (yellow) -> straight
+    // -1 (green) -> rev
+
+    // Deentered screen positions:
+    // 0 (red) -> straight
+    // 1 (yellow) -> straight
+    // 2 (green) -> rev
+
     switch (screenType())
     {
     case ScreenType::CenteredScreen:
     {
-        if(mPosition < -0.6)
+        if(mPosition < -0.8)
             return ContactState::Reversed;
-        if(mPosition < -0.4)
+        if(mPosition < -0.2)
             return ContactState::Middle;
 
         return ContactState::Straight;
     }
     case ScreenType::DecenteredScreen:
     {
-        if(mPosition > 1.6)
+        if(mPosition > 1.8)
             return ContactState::Reversed;
-        if(mPosition > 1.4)
+        if(mPosition > 1.2)
             return ContactState::Middle;
 
         return ContactState::Straight;
