@@ -207,7 +207,7 @@ void AbstractCircuitNode::getObjectProperties(QVector<ObjectProperty> &result) c
     Q_UNUSED(result);
 }
 
-bool AbstractCircuitNode::isSourceNode(bool onlyCurrentState) const
+bool AbstractCircuitNode::isSourceNode(bool onlyCurrentState, int nodeContact) const
 {
     Q_UNUSED(onlyCurrentState)
     return false;

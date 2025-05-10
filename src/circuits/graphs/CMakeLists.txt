@@ -57,5 +57,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/special/acesasiblevergraphitem.cpp
     circuits/graphs/special/acesasiblevergraphitem.h
 
+    circuits/graphs/transformergraphitem.cpp
+    circuits/graphs/transformergraphitem.h
+
     PARENT_SCOPE
 )

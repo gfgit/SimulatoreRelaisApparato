@@ -43,6 +43,9 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/simpleactivationnode.h
     circuits/nodes/soundcircuitnode.cpp
     circuits/nodes/soundcircuitnode.h
+    circuits/nodes/transformernode.cpp
+    circuits/nodes/transformernode.h
+
 
     PARENT_SCOPE
 )

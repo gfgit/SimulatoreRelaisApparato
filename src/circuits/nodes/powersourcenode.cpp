@@ -44,8 +44,11 @@ QString PowerSourceNode::nodeType() const
     return NodeType;
 }
 
-bool PowerSourceNode::isSourceNode(bool onlyCurrentState) const
+bool PowerSourceNode::isSourceNode(bool onlyCurrentState, int nodeContact) const
 {
+    if(nodeContact != 0 && nodeContact != NodeItem::InvalidContact)
+        return false;
+
     Q_UNUSED(onlyCurrentState)
     return true;
 }

@@ -277,8 +277,11 @@ QString RemoteCableCircuitNode::nodeType() const
     return NodeType;
 }
 
-bool RemoteCableCircuitNode::isSourceNode(bool onlyCurrentState) const
+bool RemoteCableCircuitNode::isSourceNode(bool onlyCurrentState, int nodeContact) const
 {
+    if(nodeContact != 0 && nodeContact != NodeItem::InvalidContact)
+        return false;
+
     if(!onlyCurrentState)
         return true;
 

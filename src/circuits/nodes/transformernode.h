@@ -1,9 +1,9 @@
 /**
- * src/circuits/nodes/powersourcenode.h
+ * src/circuits/nodes/transformernode.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,20 +20,27 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef POWERSOURCENODE_H
-#define POWERSOURCENODE_H
+#ifndef TRANSFORMERNODE_H
+#define TRANSFORMERNODE_H
 
 #include "abstractcircuitnode.h"
 
-class PowerSourceNode : public AbstractCircuitNode
+class TransformerNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
-    explicit PowerSourceNode(ModeManager *mgr, QObject *parent = nullptr);
+    explicit TransformerNode(ModeManager *mgr, QObject *parent = nullptr);
+
+    bool event(QEvent *e) override;
 
     ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) override;
 
-    static constexpr QLatin1String NodeType = QLatin1String("power_source");
+    void addCircuit(ElectricCircuit *circuit) override;
+    void removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items) override;
+    void partialRemoveCircuit(ElectricCircuit *circuit,
+                                      const NodeOccurences &items) override;
+
+    static constexpr QLatin1String NodeType = QLatin1String("transformer");
     QString nodeType() const override;
 
     bool isSourceNode(bool onlyCurrentState, int nodeContact = NodeItem::InvalidContact) const override;
@@ -41,11 +48,12 @@ public:
     bool isSourceEnabled() const override;
     void setSourceEnabled(bool newEnabled) override;
 
-signals:
-    void enabledChanged(bool val);
+private:
+    void updateSourceState();
 
 private:
     bool enabled = false;
+    bool reallyEnabled = false;
 };
 
-#endif // POWERSOURCENODE_H
+#endif // TRANSFORMERNODE_H

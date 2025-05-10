@@ -72,6 +72,9 @@
 #include "../graphs/remotecablecircuitgraphitem.h"
 #include "../nodes/remotecablecircuitnode.h"
 
+#include "../graphs/transformergraphitem.h"
+#include "../nodes/transformernode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -1133,6 +1136,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.shortcutLetter = 'T';
         factory.create = &addNewNodeToScene<RemoteCableCircuitGraphItem>;
         factory.edit = &defaultRemoteCableNodeEdit;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Transformer Circuit node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+        factory.nodeType = TransformerGraphItem::Node::NodeType;
+        factory.prettyName = tr("Transformer");
+        factory.create = &addNewNodeToScene<TransformerGraphItem>;
+        factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);
     }

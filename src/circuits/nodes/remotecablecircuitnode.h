@@ -68,7 +68,7 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("remove_cable_node");
     QString nodeType() const override;
 
-    bool isSourceNode(bool onlyCurrentState) const override;
+    bool isSourceNode(bool onlyCurrentState, int nodeContact = NodeItem::InvalidContact) const override;
 
     bool sourceDoNotCloseCircuits() const override;
 

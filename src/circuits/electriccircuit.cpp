@@ -407,16 +407,16 @@ ElectricCircuit *ElectricCircuit::cloneToOppositeType()
     return other;
 }
 
-void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, CircuitPole startPole)
+void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, CircuitPole startPole, int nodeContact)
 {
-    auto contact = source->getContacts().first();
+    auto contact = source->getContacts().at(nodeContact);
 
     Item firstItem;
     firstItem.isNode = true;
     firstItem.node.node = source;
     firstItem.node.fromContact = NodeItem::InvalidContact;
     firstItem.node.fromPole = startPole;
-    firstItem.node.toContact = 0; // First
+    firstItem.node.toContact = nodeContact;
     firstItem.node.toPole = startPole;
 
     if(contact.cable)
@@ -550,7 +550,7 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
         }
     }
 
-    if(node->isSourceNode(true))
+    if(node->isSourceNode(true, nodeItem.node.fromContact))
     {
         // Error, different power source connected
         return {};
@@ -1024,7 +1024,7 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
 
 void ElectricCircuit::extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const ItemVector &items)
 {
-    if(node->isSourceNode(true))
+    if(node->isSourceNode(true, nodeContact))
     {
         // Error, different power source connected
         //Q_ASSERT(false);
@@ -1056,7 +1056,7 @@ void ElectricCircuit::extendExistingCircuits_helper(AbstractCircuitNode *node, i
         // TODO: power source
 
         const Item& otherItem = otherCircuit->mItems.at(i);
-        if(!otherItem.isNode || otherItem.node.node != node)
+        if(!otherItem.isNode || otherItem.node.node != node || i == 0)
             continue;
 
         // Let's see if this circuit can diverge and go to request contact

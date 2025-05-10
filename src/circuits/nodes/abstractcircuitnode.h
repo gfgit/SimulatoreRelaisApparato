@@ -124,7 +124,7 @@ public:
     virtual void getObjectProperties(QVector<ObjectProperty> &result) const;
 
     // Source methods
-    virtual bool isSourceNode(bool onlyCurrentState) const;
+    virtual bool isSourceNode(bool onlyCurrentState, int nodeContact = NodeItem::InvalidContact) const;
     virtual bool sourceDoNotCloseCircuits() const;
     virtual bool isSourceEnabled() const;
     virtual void setSourceEnabled(bool newEnabled);

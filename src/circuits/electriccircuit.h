@@ -91,7 +91,8 @@ public:
     ElectricCircuit *cloneToOppositeType();
 
     static void createCircuitsFromPowerNode(AbstractCircuitNode *source,
-                                            CircuitPole startPole = CircuitPole::First);
+                                            CircuitPole startPole = CircuitPole::First,
+                                            int nodeContact = 0);
     static void createCircuitsFromOtherNode(AbstractCircuitNode *node);
 
     static void tryReachNextOpenCircuit(AbstractCircuitNode *goalNode,

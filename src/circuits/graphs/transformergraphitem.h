@@ -1,9 +1,9 @@
 /**
- * src/circuits/nodes/powersourcenode.h
+ * src/circuits/graphs/transformergraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,32 +20,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef POWERSOURCENODE_H
-#define POWERSOURCENODE_H
+#ifndef TRANSFORMERGRAPHITEM_H
+#define TRANSFORMERGRAPHITEM_H
 
-#include "abstractcircuitnode.h"
+#include "abstractnodegraphitem.h"
 
-class PowerSourceNode : public AbstractCircuitNode
+class TransformerNode;
+
+class TransformerGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    explicit PowerSourceNode(ModeManager *mgr, QObject *parent = nullptr);
+    typedef TransformerNode Node;
 
-    ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) override;
+    explicit TransformerGraphItem(TransformerNode *node_);
 
-    static constexpr QLatin1String NodeType = QLatin1String("power_source");
-    QString nodeType() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    bool isSourceNode(bool onlyCurrentState, int nodeContact = NodeItem::InvalidContact) const override;
+    void getConnectors(std::vector<Connector>& connectors) const final;
 
-    bool isSourceEnabled() const override;
-    void setSourceEnabled(bool newEnabled) override;
-
-signals:
-    void enabledChanged(bool val);
+    TransformerNode *node() const;
 
 private:
-    bool enabled = false;
+    static constexpr double WireLength = 13.0;
+    static constexpr double CoilRadius = 25.0;
 };
 
-#endif // POWERSOURCENODE_H
+#endif // TRANSFORMERGRAPHITEM_H
