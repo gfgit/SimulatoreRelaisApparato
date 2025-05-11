@@ -23,21 +23,40 @@
 #include "genericbuttonobject.h"
 
 #include "../interfaces/buttoninterface.h"
+#include "../interfaces/mechanicalinterface.h"
 
 #include <QTimerEvent>
 
 GenericButtonObject::GenericButtonObject(AbstractSimulationObjectModel *m)
     : AbstractSimulationObject{m}
 {
-    mButtonInterface = new ButtonInterface(this);
+    buttonIface = new ButtonInterface(this);
+    mechanicalIface = new MechanicalInterface(ButtonInterface::getStateDesc(),
+                                              this);
+    mechanicalIface->init();
+    mechanicalIface->setUserCanChangeAbsoulteRange(false);
+    mechanicalIface->setAllowedConditionTypes({MechanicalCondition::Type::RangePos,
+                                               MechanicalCondition::Type::ExactPos});
+    mechanicalIface->setLockablePositions({int(ButtonInterface::State::Pressed),
+                                           int(ButtonInterface::State::Normal),
+                                           int(ButtonInterface::State::Extracted)});
+
+    mechanicalIface->addConditionSet(ButtonInterface::getStateDesc().name(int(ButtonInterface::State::Pressed)));
+    mechanicalIface->setConditionSetRange(0,
+                                          {int(ButtonInterface::State::Normal),
+                                           int(ButtonInterface::State::Extracted)});
+    mechanicalIface->addConditionSet(ButtonInterface::getStateDesc().name(int(ButtonInterface::State::Extracted)));
+    mechanicalIface->setConditionSetRange(1,
+                                          {int(ButtonInterface::State::Pressed),
+                                           int(ButtonInterface::State::Normal)});
 }
 
 GenericButtonObject::~GenericButtonObject()
 {
     stopReturnTimer();
 
-    delete mButtonInterface;
-    mButtonInterface = nullptr;
+    delete buttonIface;
+    buttonIface = nullptr;
 }
 
 QString GenericButtonObject::getType() const
@@ -51,7 +70,7 @@ void GenericButtonObject::timerEvent(QTimerEvent *ev)
     {
         // Reset button to Normal position
         stopReturnTimer();
-        mButtonInterface->setState(ButtonInterface::State::Normal);
+        buttonIface->setState(ButtonInterface::State::Normal);
         return;
     }
 
@@ -60,12 +79,40 @@ void GenericButtonObject::timerEvent(QTimerEvent *ev)
 
 void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, const QString &propName, const QVariant &value)
 {
-    if(iface == mButtonInterface)
+    if(iface == mechanicalIface)
     {
-        if(propName == ButtonInterface::StatePropName)
+        if(propName == MechanicalInterface::LockRangePropName)
         {
-            if(mButtonInterface->mode() == ButtonInterface::Mode::ReturnNormalAfterTimeout
-                    && mButtonInterface->state() != ButtonInterface::State::Normal)
+            // Just set lock range
+            setNewLockRange();
+            return;
+        }
+        else if(propName == MechanicalInterface::PositionPropName)
+        {
+            // Mirror position
+            const int pos = mechanicalIface->position();
+            buttonIface->setState(ButtonInterface::State(pos));
+        }
+    }
+    else if(iface == buttonIface)
+    {
+        if(propName == ButtonInterface::AbsoluteRangePropName)
+        {
+            // Sync ranges
+            int minPos = int(ButtonInterface::State::Pressed);
+            if(!buttonIface->canBePressed())
+                minPos = int(ButtonInterface::State::Normal);
+            int maxPos = int(ButtonInterface::State::Extracted);
+            if(!buttonIface->canBeExtracted())
+                maxPos = int(ButtonInterface::State::Normal);
+
+            mechanicalIface->setAbsoluteRange(minPos, maxPos);
+            setNewLockRange();
+        }
+        else if(propName == ButtonInterface::StatePropName)
+        {
+            if(buttonIface->mode() == ButtonInterface::Mode::ReturnNormalAfterTimeout
+                    && buttonIface->state() != ButtonInterface::State::Normal)
             {
                 startReturnTimer();
             }
@@ -73,15 +120,17 @@ void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, con
             {
                 stopReturnTimer();
             }
+
+            mechanicalIface->setPosition(int(buttonIface->state()));
         }
         else if(propName == ButtonInterface::ModePropName)
         {
-            if(mButtonInterface->mode() != ButtonInterface::Mode::ReturnNormalAfterTimeout)
+            if(buttonIface->mode() != ButtonInterface::Mode::ReturnNormalAfterTimeout)
             {
                 if(mReturnTimerId)
                 {
                     // Timer was active, reset button
-                    mButtonInterface->setState(ButtonInterface::State::Normal);
+                    buttonIface->setState(ButtonInterface::State::Normal);
                 }
 
                 stopReturnTimer();
@@ -107,4 +156,16 @@ void GenericButtonObject::stopReturnTimer()
 
     killTimer(mReturnTimerId);
     mReturnTimerId = 0;
+}
+
+void GenericButtonObject::setNewLockRange()
+{
+    // Set new locked range
+    auto r = mechanicalIface->getCurrentLockRange();
+    buttonIface->setAllowedLockPositions({ButtonInterface::State(r.first),
+                                          ButtonInterface::State(r.second)});
+    mechanicalIface->setLockedRange(r.first, r.second);
+
+    // Check current position
+    buttonIface->checkStateValidForLock();
 }

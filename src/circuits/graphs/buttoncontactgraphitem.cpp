@@ -27,6 +27,8 @@
 #include "../../objects/interfaces/buttoninterface.h"
 #include "../../objects/button/genericbuttonobject.h"
 
+#include "../../utils/enum_desc.h"
+
 #include <QPainter>
 
 ButtonContactGraphItem::ButtonContactGraphItem(ButtonContactNode *node_)
@@ -89,22 +91,7 @@ QString ButtonContactGraphItem::tooltipString() const
     auto buttonIface = node()->buttonIface();
     if(buttonIface)
     {
-        QString butPosName;
-        switch (buttonIface->state())
-        {
-        case ButtonInterface::State::Extracted:
-            butPosName = tr("Extracted");
-            break;
-        case ButtonInterface::State::Normal:
-            butPosName = tr("Normal");
-            break;
-        case ButtonInterface::State::Pressed:
-            butPosName = tr("Pressed");
-            break;
-        default:
-            break;
-        }
-
+        QString butPosName = ButtonInterface::getStateDesc().name(int(buttonIface->state()));
         buttonState = tr("State: <b>%1</b><br>").arg(butPosName);
     }
 

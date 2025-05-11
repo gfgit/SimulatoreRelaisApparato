@@ -29,6 +29,19 @@
 
 #include <QJsonObject>
 
+static const EnumDesc button_state_desc =
+{
+    int(ButtonInterface::State::Pressed),
+    int(ButtonInterface::State::Extracted),
+    int(ButtonInterface::State::Normal),
+    "GenericButtonObject",
+    {
+        QT_TRANSLATE_NOOP("GenericButtonObject", "Pressed"),
+        QT_TRANSLATE_NOOP("GenericButtonObject", "Normal"),
+        QT_TRANSLATE_NOOP("GenericButtonObject", "Extracted")
+    }
+};
+
 static const EnumDesc button_mode_desc =
 {
     int(ButtonInterface::Mode::ReturnNormalOnRelease),
@@ -110,12 +123,11 @@ ButtonInterface::State ButtonInterface::state() const
 
 void ButtonInterface::setState(State newState)
 {
-    if(mState == newState)
+    if(newState == mState)
         return;
 
-    if(!mCanBePressed && newState == State::Pressed)
-        return;
-    if(!mCanBeExtracted && newState == State::Extracted)
+    const auto range = allowedLockPositions();
+    if(newState < range.first || newState > range.second)
         return;
 
     mState = newState;
@@ -143,6 +155,15 @@ void ButtonInterface::removeContactNode(ButtonContactNode *c)
     emit mObject->nodesChanged(mObject);
 }
 
+void ButtonInterface::checkStateValidForLock()
+{
+    const auto range = allowedLockPositions();
+    if(state() < range.first)
+        setState(range.first);
+    else if(state() > range.second)
+        setState(range.second);
+}
+
 ButtonInterface::Mode ButtonInterface::mode() const
 {
     return mMode;
@@ -156,6 +177,11 @@ void ButtonInterface::setMode(Mode newMode)
     mMode = newMode;
     emitChanged(ModePropName, QVariant());
     emit mObject->settingsChanged(mObject);
+}
+
+const EnumDesc &ButtonInterface::getStateDesc()
+{
+    return button_state_desc;
 }
 
 const EnumDesc &ButtonInterface::getModeDesc()
@@ -177,10 +203,10 @@ void ButtonInterface::setCanBePressed(bool newCanBePressed)
         return; // At least one must be on
 
     mCanBePressed = newCanBePressed;
+    emitChanged(AbsoluteRangePropName, QVariant());
     emit mObject->settingsChanged(mObject);
 
-    if(!mCanBePressed && state() == State::Pressed)
-        setState(State::Normal);
+    checkStateValidForLock();
 }
 
 bool ButtonInterface::canBeExtracted() const
@@ -197,8 +223,33 @@ void ButtonInterface::setCanBeExtracted(bool newCanBeExtracted)
         return; // At least one must be on
 
     mCanBeExtracted = newCanBeExtracted;
+    emitChanged(AbsoluteRangePropName, QVariant());
     emit mObject->settingsChanged(mObject);
 
-    if(!mCanBeExtracted && state() == State::Extracted)
-        setState(State::Normal);
+    checkStateValidForLock();
+}
+
+void ButtonInterface::setAllowedLockPositions(const std::pair<State, State> &newRange)
+{
+    if(newRange == mAllowedLockPositions)
+        return;
+
+    mAllowedLockPositions = newRange;
+    mAllowedLockPositions.second = std::max(mAllowedLockPositions.first,
+                                            mAllowedLockPositions.second);
+
+    emitChanged(LockRangePropName, QVariant());
+    emit mObject->settingsChanged(mObject);
+
+    checkStateValidForLock();
+}
+
+std::pair<ButtonInterface::State, ButtonInterface::State> ButtonInterface::allowedLockPositions() const
+{
+    auto range = mAllowedLockPositions;
+    if(!mCanBePressed)
+        range.first = std::max(State::Normal, range.first);
+    if(!mCanBeExtracted)
+        range.second = std::min(State::Normal, range.second);
+    return range;
 }

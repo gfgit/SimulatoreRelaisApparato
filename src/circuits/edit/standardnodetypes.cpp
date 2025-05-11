@@ -718,16 +718,11 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             QCheckBox *firstArr[3] = {nullptr};
             QCheckBox *secondArr[3] = {nullptr};
 
-            const QString stateNames[3] =
-            {
-                tr("Normal"),
-                tr("Pressed"),
-                tr("Extracted")
-            };
+            const auto butStateDesc = ButtonInterface::getStateDesc();
 
             for(int i = 0; i < 3; i++)
             {
-                gridLay->addWidget(new QLabel(tr("When %1:").arg(stateNames[i])), i, 0);
+                gridLay->addWidget(new QLabel(tr("When %1:").arg(butStateDesc.name(i))), i, 0);
 
                 firstArr[i] = new QCheckBox("First");
                 gridLay->addWidget(firstArr[i], i, 1);

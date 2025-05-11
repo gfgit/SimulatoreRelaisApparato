@@ -42,7 +42,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-QJsonObject convertOldFileFormat(const QJsonObject& origFile)
+QJsonObject convertFileFormatBetaToV1(const QJsonObject& origFile)
 {
 
     QJsonObject objects;
@@ -159,6 +159,115 @@ QJsonObject convertOldFileFormat(const QJsonObject& origFile)
     newFile["circuits"] = newCircuits;
 
     return newFile;
+}
+
+QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFile)
+{
+    QJsonObject circuits = origFile.value("circuits").toObject();
+    const QJsonArray scenes = circuits.value("scenes").toArray();
+
+    QJsonArray newScenes;
+    for(const QJsonValue& v : scenes)
+    {
+        QJsonObject scene = v.toObject();
+
+        QJsonArray nodes;
+        for(QJsonValueRef nodeVal : scene["nodes"].toArray())
+        {
+            QJsonObject node = nodeVal.toObject();
+            const QString nodeType = node.value("type").toString();
+            if(nodeType == "button_contact")
+            {
+                // Convert button contact positions
+                // Normal 0 -> 1, Pressed 1 -> 0
+                const QString fmt("state_%1_contact_%2");
+                bool butState[2][2] = {{false, false}, {false, false}};
+                for(qint64 i = 0; i <= 1; i++)
+                {
+                    butState[i][0] = node.value(fmt.arg(i).arg(0)).toBool();
+                    butState[i][1] = node.value(fmt.arg(i).arg(1)).toBool();
+                }
+
+                // Swap
+                std::swap(butState[0], butState[1]);
+
+                for(qint64 i = 0; i <= 1; i++)
+                {
+                    node[fmt.arg(i).arg(0)] = butState[i][0];
+                    node[fmt.arg(i).arg(1)] = butState[i][1];
+                }
+            }
+            else if(nodeType == "screen_relais_contact")
+            {
+                // Invert contact state
+                bool swapState = node.value("swap_state").toBool();
+                node["swap_state"] = !swapState;
+            }
+
+            nodes.append(node);
+        }
+        scene["nodes"] = nodes;
+
+        newScenes.append(scene);
+    }
+
+    QJsonObject objects = origFile.value("objects").toObject();
+
+    {
+        // Add MechanicalInterface to buttons
+        QJsonObject butModel = objects.value("generic_button").toObject();
+        const QJsonArray arr = butModel.value("objects").toArray();
+        QJsonArray newButtons;
+
+        for(const QJsonValue& v : arr)
+        {
+            QJsonObject buttonObj = v.toObject();
+
+            QJsonObject interfaces = buttonObj.value("interfaces").toObject();
+            const QJsonObject butIface = interfaces.value("button").toObject();
+
+            QJsonObject mechIface;
+            mechIface["pos_min"] = butIface.value("can_press").toBool(true) ? 0 : 1;
+            mechIface["pos_max"] = butIface.value("can_extract").toBool(false) ? 2 : 1;
+            interfaces["mechanical"] = mechIface;
+            buttonObj["interfaces"] = interfaces;
+
+            newButtons.append(buttonObj);
+        }
+
+        butModel["objects"] = newButtons;
+        objects["generic_button"] = butModel;
+    }
+
+    // Save new file
+    QJsonObject newFile = origFile;
+    newFile["file_version"] = ModeManager::FileVersion::V2;
+
+    QJsonObject newCircuits;
+    newCircuits["scenes"] = newScenes;
+    newFile["circuits"] = newCircuits;
+    newFile["objects"] = objects;
+
+    return newFile;
+}
+
+QJsonObject convertOldFileFormat(const QJsonObject& origFile)
+{
+    QJsonObject rootObj = origFile;
+
+    if(rootObj.value("file_version") == ModeManager::FileVersion::Beta)
+    {
+        // Old file, try to convert it to V1
+        rootObj = convertFileFormatBetaToV1(rootObj);
+    }
+
+    if(rootObj.value("file_version") == ModeManager::FileVersion::V1)
+    {
+        // V1 file, try to convert it to V2
+        rootObj = convertFileFormatV1ToV2(rootObj);
+    }
+
+    return rootObj;
 }
 
 ModeManager::ModeManager(QObject *parent)
@@ -318,7 +427,7 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
     setMode(FileMode::LoadingFile);
 
     QJsonObject rootObj = obj;
-    if(obj.value("file_version") != FileVersion::V1)
+    if(obj.value("file_version") != FileVersion::Current)
     {
         // Old file, try to convert it
         rootObj = convertOldFileFormat(obj);

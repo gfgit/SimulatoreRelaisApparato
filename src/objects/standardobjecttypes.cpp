@@ -228,6 +228,9 @@ QWidget *defaultButtonEdit(AbstractSimulationObject *item, ViewManager *mgr)
 
     lay->addRow(StandardObjectTypes::tr("Mode:"), modeCombo);
 
+    // Generic mechanical options
+    lay->addRow(defaultMechanicalEdit(item, mgr));
+
     auto updateSettings = [buttonIface, pressedCB, extractedCB, modeCombo, modeModel]()
     {
         pressedCB->setChecked(buttonIface->canBePressed());

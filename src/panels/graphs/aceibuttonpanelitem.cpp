@@ -32,6 +32,8 @@
 
 #include "../../views/modemanager.h"
 
+#include "../../utils/enum_desc.h"
+
 #include <QGraphicsSceneMouseEvent>
 
 #include <QPainter>
@@ -67,21 +69,7 @@ QString ACEIButtonPanelItem::tooltipString() const
         return tr("NO BUTTON SET!!!");
     }
 
-    QString butPosName;
-    switch (mButtonIface->state())
-    {
-    case ButtonInterface::State::Extracted:
-        butPosName = tr("Extracted");
-        break;
-    case ButtonInterface::State::Normal:
-        butPosName = tr("Normal");
-        break;
-    case ButtonInterface::State::Pressed:
-        butPosName = tr("Pressed");
-        break;
-    default:
-        break;
-    }
+    QString butPosName = ButtonInterface::getStateDesc().name(int(mButtonIface->state()));
 
     QString tipText = tr("Button <b>%1</b><br>"
                          "State: %2").arg(mButton->name(),

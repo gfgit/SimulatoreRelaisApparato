@@ -35,14 +35,16 @@ class ButtonInterface : public AbstractObjectInterface
 {
 public:
     // Property names
+    static constexpr QLatin1String AbsoluteRangePropName = QLatin1String("abs_range");
     static constexpr QLatin1String StatePropName = QLatin1String("state");
     static constexpr QLatin1String ModePropName = QLatin1String("mode");
+    static constexpr QLatin1String LockRangePropName = QLatin1String("lock_range");
 
     enum class State
     {
-        Normal = 0,
-        Pressed,
-        Extracted
+        Pressed = 0,
+        Normal = 1,
+        Extracted = 2
     };
 
     enum class Mode
@@ -74,9 +76,15 @@ public:
     bool canBeExtracted() const;
     void setCanBeExtracted(bool newCanBeExtracted);
 
+    std::pair<State, State> allowedLockPositions() const;
+    void setAllowedLockPositions(const std::pair<State, State>& newRange);
+
     Mode mode() const;
     void setMode(Mode newMode);
 
+    void checkStateValidForLock();
+
+    static const EnumDesc& getStateDesc();
     static const EnumDesc& getModeDesc();
 
 private:
@@ -85,6 +93,7 @@ private:
     void removeContactNode(ButtonContactNode *c);
 
 private:
+    std::pair<State, State> mAllowedLockPositions = {State::Pressed, State::Extracted};
     State mState = State::Normal;
     Mode mMode = Mode::ReturnNormalOnRelease;
 

@@ -26,6 +26,7 @@
 #include "../abstractsimulationobject.h"
 
 class ButtonInterface;
+class MechanicalInterface;
 
 class GenericButtonObject : public AbstractSimulationObject
 {
@@ -48,8 +49,11 @@ private:
     void startReturnTimer();
     void stopReturnTimer();
 
+    void setNewLockRange();
+
 private:
-    ButtonInterface *mButtonInterface = nullptr;
+    ButtonInterface *buttonIface = nullptr;
+    MechanicalInterface *mechanicalIface = nullptr;
 
     int mReturnTimerId = 0;
 };
