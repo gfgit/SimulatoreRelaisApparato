@@ -156,40 +156,16 @@ void ACEIButtonGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
     if(getAbstractNode()->modeMgr()->mode() != FileMode::Editing
             && mButtonIface && baseTileRect().contains(ev->pos()))
     {
-        ButtonInterface::State state = mButtonIface->state();
-
         if(ev->button() == Qt::LeftButton)
         {
             // Go down by one
-            switch (state)
-            {
-            case ButtonInterface::State::Extracted:
-                state = ButtonInterface::State::Normal;
-                break;
-            case ButtonInterface::State::Normal:
-                state = ButtonInterface::State::Pressed;
-                break;
-            default:
-                return; // Cannot go lower
-            }
+            mButtonIface->goUpDown(false);
         }
         else if(ev->button() == Qt::RightButton)
         {
             // Go down by one
-            switch (state)
-            {
-            case ButtonInterface::State::Pressed:
-                state = ButtonInterface::State::Normal;
-                break;
-            case ButtonInterface::State::Normal:
-                state = ButtonInterface::State::Extracted;
-                break;
-            default:
-                return; // Cannot go higher
-            }
+            mButtonIface->goUpDown(true);
         }
-
-        mButtonIface->setState(state);
         return;
     }
 

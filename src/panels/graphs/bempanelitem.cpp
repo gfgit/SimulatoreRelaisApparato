@@ -872,11 +872,25 @@ void BEMPanelItem::onConsLeverInterfaceChanged(const QString &ifaceName, const Q
     }
 }
 
+inline void triggerButton(ButtonInterface *butIface,
+                          QGraphicsSceneMouseEvent *ev)
+{
+    if(ev->button() == Qt::LeftButton)
+    {
+        // Go down by one
+        butIface->goUpDown(false);
+    }
+    else if(ev->button() == Qt::RightButton)
+    {
+        // Go down by one
+        butIface->goUpDown(true);
+    }
+}
+
 void BEMPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     PanelScene *s = panelScene();
-    if(s && s->modeMgr()->mode() != FileMode::Editing
-            && ev->button() == Qt::LeftButton)
+    if(s && s->modeMgr()->mode() != FileMode::Editing)
     {
         bool shouldAccept = true;
 
@@ -884,13 +898,13 @@ void BEMPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
         {
             mMouseState = MouseState::LightButton;
             if(mLightButton)
-                mLightButton->setState(ButtonInterface::State::Pressed);
+                triggerButton(mLightButton, ev);
         }
         else if(distanceLess(ev->pos() - ArtLibCenter, artificialLiberationRadius))
         {
             mMouseState = MouseState::ArtificialLibButton;
             if(mArtificialLibBut)
-                mArtificialLibBut->setState(ButtonInterface::State::Pressed);
+                triggerButton(mArtificialLibBut, ev);
         }
         else if(ev->pos().x() < (ItemWidth / 2) && distanceLess(ev->pos() - ReqLeverCenter, leverRectBaseRadius + leverLength))
         {
@@ -900,13 +914,17 @@ void BEMPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
                 // Tx Button 1
                 mMouseState = MouseState::TxButton;
                 if(mTxButton)
-                    mTxButton->setState(ButtonInterface::State::Pressed);
+                    triggerButton(mTxButton, ev);
             }
-            else
+            else if(ev->button() == Qt::LeftButton)
             {
                 mMouseState = MouseState::RequestLever;
                 if(mReqLever)
                     mReqLever->setPressed(true);
+            }
+            else
+            {
+                shouldAccept = false;
             }
         }
         else if(ev->pos().x() > (ItemWidth / 2) && distanceLess(ev->pos() - ConsLeverCenter, leverRectBaseRadius + leverLength))
@@ -917,13 +935,17 @@ void BEMPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
                 // Tx Button 2
                 mMouseState = MouseState::TxButton;
                 if(mTxButton)
-                    mTxButton->setState(ButtonInterface::State::Pressed);
+                    triggerButton(mTxButton, ev);
             }
-            else
+            else if(ev->button() == Qt::LeftButton)
             {
                 mMouseState = MouseState::ConsensusLever;
                 if(mConsLever)
                     mConsLever->setPressed(true);
+            }
+            else
+            {
+                shouldAccept = false;
             }
         }
         else

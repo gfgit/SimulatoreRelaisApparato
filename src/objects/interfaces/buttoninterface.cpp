@@ -136,6 +136,24 @@ void ButtonInterface::setState(State newState)
     emit mObject->stateChanged(mObject);
 }
 
+void ButtonInterface::goUpDown(bool up)
+{
+    if(up)
+    {
+        if(state() == State::Pressed)
+            setState(State::Normal);
+        else if(state() == State::Normal)
+            setState(State::Extracted);
+    }
+    else
+    {
+        if(state() == State::Extracted)
+            setState(State::Normal);
+        else if(state() == State::Normal)
+            setState(State::Pressed);
+    }
+}
+
 void ButtonInterface::addContactNode(ButtonContactNode *c)
 {
     Q_ASSERT(!mContactNodes.contains(c));

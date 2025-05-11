@@ -68,6 +68,8 @@ public:
     State state() const;
     void setState(State newState);
 
+    void goUpDown(bool up);
+
     // Options
     bool canBePressed() const;
     void setCanBePressed(bool newCanBePressed);

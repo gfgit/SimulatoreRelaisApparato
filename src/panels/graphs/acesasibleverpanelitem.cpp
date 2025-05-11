@@ -439,9 +439,15 @@ void ACESasibLeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             if(auto butIface = mButtons[LightPosition::Left].buttonIface)
             {
                 if(ev->button() == Qt::LeftButton)
-                    butIface->setState(ButtonInterface::State::Pressed);
+                {
+                    // Go down by one
+                    butIface->goUpDown(false);
+                }
                 else if(ev->button() == Qt::RightButton)
-                    butIface->setState(ButtonInterface::State::Extracted);
+                {
+                    // Go down by one
+                    butIface->goUpDown(true);
+                }
             }
         }
         else if(distanceLess(ev->pos() - RightButCenter, buttonBaseCircleRadius))
@@ -450,9 +456,15 @@ void ACESasibLeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             if(auto butIface = mButtons[LightPosition::Right].buttonIface)
             {
                 if(ev->button() == Qt::LeftButton)
-                    butIface->setState(ButtonInterface::State::Pressed);
+                {
+                    // Go down by one
+                    butIface->goUpDown(false);
+                }
                 else if(ev->button() == Qt::RightButton)
-                    butIface->setState(ButtonInterface::State::Extracted);
+                {
+                    // Go down by one
+                    butIface->goUpDown(true);
+                }
             }
         }
         else if(holeRect.contains(ev->pos()))
