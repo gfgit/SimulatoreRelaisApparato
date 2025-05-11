@@ -24,7 +24,7 @@
 
 #include "../nodes/electromagnetnode.h"
 
-#include "../../objects/simple_activable/abstractsimpleactivableobject.h"
+#include "../../objects/simple_activable/electromagnet.h"
 
 #include <QPainter>
 
@@ -105,14 +105,26 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     // Draw bulb circle
 
     pen.setWidthF(10.0);
+    pen.setColor(colors[int(AnyCircuitType::None)]);
+
+    ElectroMagnetObject *magnet = static_cast<ElectroMagnetObject *>(node()->object());
+    if(magnet)
+    {
+        const auto curState = magnet->state();
+        const auto electricalState = magnet->electricalState();
+
+        if(curState == electricalState)
+        {
+            if(curState == AbstractSimpleActivableObject::State::On)
+                pen.setColor(colors[int(AnyCircuitType::Closed)]);
+        }
+        else if(curState == AbstractSimpleActivableObject::State::On)
+            pen.setColor(Qt::darkYellow); // Forced up
+        else if(electricalState == AbstractSimpleActivableObject::State::On)
+            pen.setColor(Qt::blue); // Forced down
+    }
+
     painter->setPen(pen);
-
-    if(node()->object() &&
-            node()->object()->state() == AbstractSimpleActivableObject::State::On)
-        pen.setColor(colors[int(AnyCircuitType::Closed)]);
-    else
-        pen.setColor(colors[int(AnyCircuitType::None)]);
-
     painter->drawEllipse(bulbRect);
 
     // TileRotate textRotate = TileRotate::Deg90;
@@ -124,6 +136,36 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     //          textRotate);
 
     drawName(painter);
+}
+
+QString ElectroMagnetGraphItem::tooltipString() const
+{
+    ElectroMagnetObject *magnet = static_cast<ElectroMagnetObject *>(node()->object());
+    if(!magnet)
+        return SimpleActivationGraphItem::tooltipString();
+
+    const auto curState = magnet->state();
+    const auto electricalState = magnet->electricalState();
+
+    QString stateStr;
+    if(curState == electricalState)
+    {
+        if(electricalState == ElectroMagnetObject::State::On)
+            stateStr = tr("Up");
+        else
+            stateStr = tr("Down");
+    }
+    else
+    {
+        if(electricalState == ElectroMagnetObject::State::On)
+            stateStr = tr("Forced Down (On)");
+        else
+            stateStr = tr("Forced Up (Off)");
+    }
+
+    return tr("Electromagnet <b>%1</b><br>"
+              "State: <b>%2</b>")
+            .arg(magnet->name(), stateStr);
 }
 
 ElectroMagnetNode *ElectroMagnetGraphItem::node() const

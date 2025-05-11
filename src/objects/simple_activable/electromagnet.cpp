@@ -32,3 +32,41 @@ QString ElectroMagnetObject::getType() const
 {
     return Type;
 }
+
+AbstractSimpleActivableObject::State ElectroMagnetObject::electricalState() const
+{
+    return AbstractSimpleActivableObject::state();
+}
+
+AbstractSimpleActivableObject::State ElectroMagnetObject::state() const
+{
+    if(mForcedOff)
+        return State::Off;
+    if(mForcedOn)
+        return State::On;
+    return electricalState();
+}
+
+void ElectroMagnetObject::setForcedOff(bool newForcedOff)
+{
+    const State oldState = state();
+    mForcedOff = newForcedOff;
+
+    if(oldState != state())
+    {
+        onStateChangedInternal();
+        emit stateChanged(this);
+    }
+}
+
+void ElectroMagnetObject::setForcedOn(bool newForcedOn)
+{
+    const State oldState = state();
+    mForcedOn = newForcedOn;
+
+    if(oldState != state())
+    {
+        onStateChangedInternal();
+        emit stateChanged(this);
+    }
+}

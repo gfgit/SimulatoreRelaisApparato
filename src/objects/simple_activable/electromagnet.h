@@ -33,6 +33,16 @@ public:
 
     static constexpr QLatin1String Type = QLatin1String("electromagnet");
     QString getType() const override;
+
+    State state() const override;
+    State electricalState() const;
+
+    void setForcedOff(bool newForcedOff);
+    void setForcedOn(bool newForcedOn);
+
+private:
+    bool mForcedOff = false;
+    bool mForcedOn = false;
 };
 
 #endif // ELECTROMAGNET_OBJECT_H
