@@ -108,13 +108,19 @@ AbstractSimulationObject *SasibACELeverExtraInterface::getButton(Button whichBut
 
 void SasibACELeverExtraInterface::setButton(AbstractSimulationObject *newButton, Button whichBut)
 {
-    if(mLeftButton == newButton || mRightButton == newButton)
-        return;
+    if(newButton)
+    {
+        if(mLeftButton == newButton || mRightButton == newButton)
+            return;
 
-    if(newButton && !newButton->getInterface<ButtonInterface>())
-        return;
+        if(!newButton->getInterface<ButtonInterface>())
+            return;
+    }
 
     AbstractSimulationObject *&but = (whichBut == Button::Left) ? mLeftButton : mRightButton;
+    if(newButton == but)
+        return;
+
     if(but)
     {
         untrackObject(but);

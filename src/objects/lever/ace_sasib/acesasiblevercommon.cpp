@@ -237,12 +237,14 @@ void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *ifac
     {
         if(propName == SasibACELeverExtraInterface::LeftButPropName)
         {
-            updateButtonsMagnetLock();
+            if(sasibInterface->getButton(SasibACELeverExtraInterface::Button::Left))
+                updateButtonsMagnetLock();
         }
         else if(propName == SasibACELeverExtraInterface::RightButPropName)
         {
             setRightButton(sasibInterface->getButton(SasibACELeverExtraInterface::Button::Right));
-            updateButtonsMagnetLock();
+            if(sasibInterface->getButton(SasibACELeverExtraInterface::Button::Right))
+                updateButtonsMagnetLock();
         }
     }
 
