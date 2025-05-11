@@ -24,6 +24,7 @@
 
 #include "../../interfaces/mechanicalinterface.h"
 #include "../../interfaces/leverinterface.h"
+#include "../../interfaces/sasibaceleverextrainterface.h"
 
 #include "../../simple_activable/electromagnet.h"
 
@@ -92,6 +93,10 @@ static QString ACESasibLever2PosObject_getCondName(AbstractSimulationObject *obj
 ACESasibLever2PosObject::ACESasibLever2PosObject(AbstractSimulationObjectModel *m)
     : ACESasibLeverCommonObject(m, ace_sasib_2_posDesc, ace_sasib_2_angleDesc)
 {
+    // After all interfaces are constructed
+    mechanicalIface->init();
+    leverInterface->init();
+
     leverInterface->setChangeRangeAllowed(false);
     mechanicalIface->setAllowedConditionTypes({MechanicalCondition::Type::ExactPos});
     mechanicalIface->setCondNameFunc(&ACESasibLever2PosObject_getCondName);
@@ -160,4 +165,27 @@ void ACESasibLever2PosObject::addElectromagnetLock()
     }
 
     mechanicalIface->setObjectLockConstraints(magnet(), ranges);
+}
+
+void ACESasibLever2PosObject::updateButtonsMagnetLock()
+{
+    // Lock depends on current position
+    ACESasibLeverPosition2 pos = ACESasibLeverPosition2(leverInterface->position());
+
+    bool checkCircuit = (pos == ACESasibLeverPosition2::CheckCircuitNormal ||
+                         pos == ACESasibLeverPosition2::CheckCircuitReverse);
+    bool waitSwitch = (pos == ACESasibLeverPosition2::WaitSwitchNormal ||
+                       pos == ACESasibLeverPosition2::WaitSwitchReverse);
+
+    // Lock left button Tb if not check circuit
+    sasibInterface->setButtonLocked(!checkCircuit,
+                                    SasibACELeverExtraInterface::Button::Left);
+
+    // Lock right button Tf if not wait for switch feedback
+    sasibInterface->setButtonLocked(!waitSwitch,
+                                    SasibACELeverExtraInterface::Button::Right);
+
+    // Lock in down position the electromagnet if not in buttons positions
+    if(mMagnet)
+        mMagnet->setForcedOff(!checkCircuit && !waitSwitch);
 }

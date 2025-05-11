@@ -173,6 +173,8 @@ MechanicalInterface::LockRange MechanicalInterface::getCurrentLockRange() const
 {
     LockRange total = {absoluteMin(), absoluteMax()};
 
+    bool anyFound = false;
+
     for(const LockConstraint &c : mConstraints)
     {
         LockRange specific = {absoluteMax(), absoluteMin()}; // Reversed on purpose
@@ -196,6 +198,8 @@ MechanicalInterface::LockRange MechanicalInterface::getCurrentLockRange() const
         if(!found)
             continue;
 
+        anyFound = true;
+
         // Now ensure max is greater or equal to min
         // since it was reversed above
         specific.second = std::max(specific.first,
@@ -206,6 +210,35 @@ MechanicalInterface::LockRange MechanicalInterface::getCurrentLockRange() const
                                total.first);
         total.second = std::min(specific.second,
                                 total.second);
+    }
+
+    if(!anyFound)
+    {
+        total = {absoluteMin(), absoluteMax()};
+        for(const LockConstraint &c : mConstraints)
+        {
+            LockRange specific = {absoluteMax(), absoluteMin()}; // Reversed on purpose
+
+            // Do an UNION on constraint's ranges
+            for(const LockRange &r : c.ranges)
+            {
+                specific.first = std::min(specific.first,
+                                          r.first);
+                specific.second = std::max(specific.second,
+                                           r.second);
+            }
+
+            // Now ensure max is greater or equal to min
+            // since it was reversed above
+            specific.second = std::max(specific.first,
+                                       specific.second);
+
+            // Do an INTERSECTION on all constraints
+            total.first = std::max(specific.first,
+                                   total.first);
+            total.second = std::min(specific.second,
+                                    total.second);
+        }
     }
 
     // Do an INTERSECTION on unsatisfied wanted conditions

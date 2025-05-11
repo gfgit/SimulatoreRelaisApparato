@@ -53,7 +53,9 @@ public:
     QString getType() const override;
 
 protected:
-    virtual void addElectromagnetLock() override;
+    void addElectromagnetLock() override;
+
+    void updateButtonsMagnetLock() override;
 };
 
 #endif // ACE_SASIB_LEVER_5_POSITIONS_H

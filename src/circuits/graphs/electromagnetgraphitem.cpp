@@ -119,7 +119,7 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
                 pen.setColor(colors[int(AnyCircuitType::Closed)]);
         }
         else if(curState == AbstractSimpleActivableObject::State::On)
-            pen.setColor(Qt::darkYellow); // Forced up
+            pen.setColor(qRgb(242, 157, 0)); // Forced up (Orange)
         else if(electricalState == AbstractSimpleActivableObject::State::On)
             pen.setColor(Qt::blue); // Forced down
     }

@@ -56,6 +56,8 @@ public:
 
 protected:
     void addElectromagnetLock() override;
+
+    void updateButtonsMagnetLock() override;
 };
 
 #endif // ACE_SASIB_LEVER_7_POSITIONS_H

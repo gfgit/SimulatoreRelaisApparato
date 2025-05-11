@@ -62,6 +62,7 @@
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
 
 #include "../views/modemanager.h"
+#include "../views/viewmanager.h"
 
 #include "simulationobjectoptionswidget.h"
 #include "simulationobjectlineedit.h"
@@ -147,6 +148,59 @@ QWidget *defaultSasibLeverEdit(AbstractSimulationObject *item, ViewManager *mgr)
 
     magnetEdit->setObject(lever->magnet());
     lay->addRow(StandardObjectTypes::tr("Magnet"), magnetEdit);
+
+    // Buttons
+    SimulationObjectLineEdit *buttonEdits[int(SasibACELeverExtraInterface::Button::NButtons)];
+    const QString buttonNames[int(SasibACELeverExtraInterface::Button::NButtons)] = {
+            StandardObjectTypes::tr("Left button:"),
+            StandardObjectTypes::tr("Right button:")
+};
+
+    const QStringList buttonTypes = mgr->modeMgr()->objectFactory()
+            ->typesForInterface(ButtonInterface::IfaceType);
+
+    for(int i = 0; i < int(SasibACELeverExtraInterface::Button::NButtons); i++)
+    {
+        buttonEdits[i] = new SimulationObjectLineEdit(mgr, buttonTypes);
+        QObject::connect(buttonEdits[i], &SimulationObjectLineEdit::objectChanged,
+                         lever, [lever, i](AbstractSimulationObject *obj)
+        {
+            lever->getInterface<SasibACELeverExtraInterface>()->setButton(obj,
+                                                                          SasibACELeverExtraInterface::Button(i));
+        });
+
+        lay->addRow(buttonNames[i], buttonEdits[i]);
+    }
+
+    QCheckBox *rightButMagnetCB = new QCheckBox;
+    rightButMagnetCB->setText(StandardObjectTypes::tr("Right button switches magent."));
+    rightButMagnetCB->setToolTip(StandardObjectTypes::tr("Right button is mechanically connected"
+                                                         " to the electromagnet"
+                                                         " and can pull it up when pressed."));
+    lay->addRow(rightButMagnetCB);
+
+    QObject::connect(rightButMagnetCB, &QCheckBox::toggled,
+                     item, [lever](bool val)
+    {
+        lever->getInterface<SasibACELeverExtraInterface>()->setRightButtonSwitchElectroMagnet(val);
+    });
+
+    auto updateButtons = [lever, buttonEdits, rightButMagnetCB]()
+    {
+        auto sasibIface = lever->getInterface<SasibACELeverExtraInterface>();
+
+        for(int i = 0; i < int(SasibACELeverExtraInterface::Button::NButtons); i++)
+        {
+            buttonEdits[i]->setObject(
+                        sasibIface->getButton(SasibACELeverExtraInterface::Button(i)));
+        }
+
+        rightButMagnetCB->setChecked(sasibIface->rightButtonSwitchElectroMagnet());
+    };
+
+    QObject::connect(lever, &ACESasibLeverCommonObject::settingsChanged,
+                     w, updateButtons);
+    updateButtons();
 
     return w;
 }

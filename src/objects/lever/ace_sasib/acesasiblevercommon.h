@@ -49,9 +49,13 @@ public:
     ElectroMagnetObject *magnet() const;
     void setMagnet(ElectroMagnetObject *newMagnet);
 
+    void forceMagnetUp(bool val);
+
 private slots:
     void updateElectroMagnetState();
     void onElectroMagnedDestroyed();
+
+    void updateRightButtonState();
 
 protected:
     void onInterfaceChanged(AbstractObjectInterface *iface,
@@ -61,8 +65,13 @@ protected:
     virtual void addElectromagnetLock() = 0;
     void removeElectromagnetLock();
 
+
+    virtual void updateButtonsMagnetLock() = 0;
+
     void recalculateLockedRange();
     void setNewLockRange();
+
+    void setRightButton(AbstractSimulationObject *obj);
 
 protected:
     MechanicalInterface *mechanicalIface = nullptr;
@@ -70,6 +79,8 @@ protected:
     SasibACELeverExtraInterface *sasibInterface = nullptr;
 
     ElectroMagnetObject *mMagnet = nullptr;
+    AbstractSimulationObject *mRightButton = nullptr;
+    bool mForceMagnetUp = false;
 };
 
 #endif // ACE_SASIB_LEVER_COMMON_H

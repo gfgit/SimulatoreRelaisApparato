@@ -47,10 +47,6 @@ ACESasibLeverCommonObject::ACESasibLeverCommonObject(AbstractSimulationObjectMod
 
     sasibInterface = new SasibACELeverExtraInterface(this);
 
-    // After all interfaces are constructed
-    mechanicalIface->init();
-    leverInterface->init();
-
     // Lever and Mechanical interfaces are synced
     // So just set absolute range on Lever interface
     mechanicalIface->setUserCanChangeAbsoulteRange(false);
@@ -59,6 +55,7 @@ ACESasibLeverCommonObject::ACESasibLeverCommonObject(AbstractSimulationObjectMod
 ACESasibLeverCommonObject::~ACESasibLeverCommonObject()
 {
     setMagnet(nullptr);
+    setRightButton(nullptr);
 
     delete mechanicalIface;
     mechanicalIface = nullptr;
@@ -117,6 +114,10 @@ void ACESasibLeverCommonObject::setMagnet(ElectroMagnetObject *newMagnet)
         disconnect(mMagnet, &AbstractSimpleActivableObject::destroyed,
                    this, &ACESasibLeverCommonObject::onElectroMagnedDestroyed);
         removeElectromagnetLock();
+
+        mMagnet->setForcedOff(false);
+        if(mForceMagnetUp)
+            mMagnet->setForcedOn(false);
     }
 
     mMagnet = newMagnet;
@@ -130,9 +131,22 @@ void ACESasibLeverCommonObject::setMagnet(ElectroMagnetObject *newMagnet)
 
         if(mMagnet->state() == ElectroMagnetObject::State::Off)
             addElectromagnetLock();
+
+        updateButtonsMagnetLock();
+        mMagnet->setForcedOn(mForceMagnetUp);
     }
 
     emit settingsChanged(this);
+}
+
+void ACESasibLeverCommonObject::forceMagnetUp(bool val)
+{
+    if(val == mForceMagnetUp)
+        return;
+
+    mForceMagnetUp = val;
+    if(mMagnet)
+        mMagnet->setForcedOn(mForceMagnetUp);
 }
 
 void ACESasibLeverCommonObject::updateElectroMagnetState()
@@ -150,6 +164,11 @@ void ACESasibLeverCommonObject::updateElectroMagnetState()
 void ACESasibLeverCommonObject::onElectroMagnedDestroyed()
 {
     setMagnet(nullptr);
+}
+
+void ACESasibLeverCommonObject::updateRightButtonState()
+{
+    sasibInterface->updateMagnetState();
 }
 
 void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *iface, const QString &propName, const QVariant &value)
@@ -214,6 +233,18 @@ void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *ifac
             recalculateLockedRange();
         }
     }
+    else if(iface == sasibInterface)
+    {
+        if(propName == SasibACELeverExtraInterface::LeftButPropName)
+        {
+            updateButtonsMagnetLock();
+        }
+        else if(propName == SasibACELeverExtraInterface::RightButPropName)
+        {
+            setRightButton(sasibInterface->getButton(SasibACELeverExtraInterface::Button::Right));
+            updateButtonsMagnetLock();
+        }
+    }
 
     AbstractSimulationObject::onInterfaceChanged(iface, propName, value);
 }
@@ -228,6 +259,8 @@ void ACESasibLeverCommonObject::recalculateLockedRange()
     // Off magnet locks lever, On magnet frees lever
     if(mMagnet && mMagnet->state() == ElectroMagnetObject::State::Off)
         addElectromagnetLock();
+
+    updateButtonsMagnetLock();
 }
 
 void ACESasibLeverCommonObject::setNewLockRange()
@@ -239,4 +272,24 @@ void ACESasibLeverCommonObject::setNewLockRange()
 
     // Check current position
     leverInterface->checkPositionValidForLock();
+}
+
+void ACESasibLeverCommonObject::setRightButton(AbstractSimulationObject *obj)
+{
+    if(mRightButton == obj)
+        return;
+
+    if(mRightButton)
+    {
+        disconnect(mRightButton, &AbstractSimulationObject::stateChanged,
+                   this, &ACESasibLeverCommonObject::updateRightButtonState);
+    }
+
+    mRightButton = obj;
+
+    if(mRightButton)
+    {
+        connect(mRightButton, &AbstractSimulationObject::stateChanged,
+                this, &ACESasibLeverCommonObject::updateRightButtonState);
+    }
 }

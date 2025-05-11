@@ -28,12 +28,44 @@
 class SasibACELeverExtraInterface : public AbstractObjectInterface
 {
 public:
+    enum class Button
+    {
+        Left = 0,
+        Right,
+        NButtons
+    };
+
+    // Property names
+    static constexpr QLatin1String LeftButPropName = QLatin1String("left_but");
+    static constexpr QLatin1String RightButPropName = QLatin1String("right_but");
+
     SasibACELeverExtraInterface(AbstractSimulationObject *obj);
+    ~SasibACELeverExtraInterface();
 
     static constexpr QLatin1String IfaceType = QLatin1String("sasib_lever_extra");
     QString ifaceType() override;
 
-    // TODO: Tl and Tf buttons
+    bool loadFromJSON(const QJsonObject &obj, LoadPhase phase) override;
+    void saveToJSON(QJsonObject &obj) const override;
+
+    AbstractSimulationObject *getButton(Button whichBut) const;
+    void setButton(AbstractSimulationObject *newLeftButton, Button whichBut);
+
+    void setButtonLocked(bool lock, Button whichBut);
+
+    bool rightButtonSwitchElectroMagnet() const;
+    void setRightButtonSwitchElectroMagnet(bool val);
+
+    void updateMagnetState();
+
+protected:
+    void onTrackedObjectDestroyed(AbstractSimulationObject *obj) override;
+
+private:
+    AbstractSimulationObject *mLeftButton = nullptr;
+    AbstractSimulationObject *mRightButton = nullptr;
+
+    bool mRightButtonSwitchElectroMagnet = false;
 };
 
 #endif // SASIBACELEVEREXTRAINTERFACE_H

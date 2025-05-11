@@ -24,6 +24,7 @@
 
 #include "../../interfaces/mechanicalinterface.h"
 #include "../../interfaces/leverinterface.h"
+#include "../../interfaces/sasibaceleverextrainterface.h"
 
 #include "../../simple_activable/electromagnet.h"
 
@@ -179,6 +180,10 @@ static QString ACESasibLever3PosObject_getCondName(AbstractSimulationObject *obj
 ACESasibLever3PosObject::ACESasibLever3PosObject(AbstractSimulationObjectModel *m)
     : ACESasibLeverCommonObject(m, ace_sasib_3_posDesc, ace_sasib_3_angleDesc)
 {
+    // After all interfaces are constructed
+    mechanicalIface->init();
+    leverInterface->init();
+
     mechanicalIface->setAllowedConditionTypes(
                 {
                     MechanicalCondition::Type::ExactPos,
@@ -255,4 +260,27 @@ void ACESasibLever3PosObject::addElectromagnetLock()
     }
 
     mechanicalIface->setObjectLockConstraints(magnet(), ranges);
+}
+
+void ACESasibLever3PosObject::updateButtonsMagnetLock()
+{
+    // Lock depends on current position
+    ACESasibLeverPosition3 pos = ACESasibLeverPosition3(leverInterface->position());
+
+    bool waitImmobilization = (pos == ACESasibLeverPosition3::WaitImmobilizationBackwards ||
+                               pos == ACESasibLeverPosition3::WaitImmobilizationForward);
+    bool waitLiberation = (pos == ACESasibLeverPosition3::WaitLiberationBackwards ||
+                           pos == ACESasibLeverPosition3::WaitLiberationForward);
+
+    // Lock left button Tb if not waiting immobilization
+    sasibInterface->setButtonLocked(!waitImmobilization,
+                                    SasibACELeverExtraInterface::Button::Left);
+
+    // Lock right button Tl if not waiting liberation
+    sasibInterface->setButtonLocked(!waitLiberation,
+                                    SasibACELeverExtraInterface::Button::Right);
+
+    // Lock in down position the electromagnet if not in buttons positions
+    if(mMagnet)
+        mMagnet->setForcedOff(!waitImmobilization && !waitLiberation);
 }
