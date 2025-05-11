@@ -23,6 +23,7 @@
 #include "bemleverobject.h"
 
 #include "../../interfaces/leverinterface.h"
+#include "../../interfaces/mechanicalinterface.h"
 #include "../../interfaces/bemhandleinterface.h"
 
 #include "../../relais/model/abstractrelais.h"
@@ -106,11 +107,11 @@ BEMLeverObject::BEMLeverObject(AbstractSimulationObjectModel *m)
 
 BEMLeverObject::~BEMLeverObject()
 {
-    delete leverInterface;
-    leverInterface = nullptr;
-
     delete bemInterface;
     bemInterface = nullptr;
+
+    delete leverInterface;
+    leverInterface = nullptr;
 }
 
 QString BEMLeverObject::getType() const
@@ -257,6 +258,8 @@ void BEMLeverObject::recalculateLockedRange()
         }
 
         leverInterface->setLockedRange(int(lockedMin), int(lockedMax));
+
+        updateArtLibButLock();
     }
     else
     {
@@ -341,6 +344,33 @@ void BEMLeverObject::fixBothInMiddlePosition()
     otherLeverIface->setPosition(int(otherPos));
 }
 
+void BEMLeverObject::updateArtLibButLock()
+{
+    if(bemInterface->leverType() == BEMHandleInterface::LeverType::Consensus
+            && leverInterface->position() != int(BEMLeverPositionMc::Blocked))
+        setArtLibBitLocked(true);
+    else
+        setArtLibBitLocked(false);
+}
+
+void BEMLeverObject::setArtLibBitLocked(bool lock)
+{
+    constexpr MechanicalInterface::LockRange ButLock = std::make_pair(int(ButtonInterface::State::Normal),
+                                                                      int(ButtonInterface::State::Extracted));
+
+    if(!mArtificialLiberationBut)
+        return;
+
+    MechanicalInterface *mechIface = mArtificialLiberationBut->object()->getInterface<MechanicalInterface>();
+    if(!mechIface)
+        return;
+
+    if(lock)
+        mechIface->setObjectLockConstraints(this, {ButLock});
+    else
+        mechIface->setObjectLockConstraints(this, {});
+}
+
 AbstractRelais *BEMLeverObject::liberationRelay() const
 {
     return mLiberationRelay;
@@ -382,6 +412,7 @@ void BEMLeverObject::setArtificialLiberationBut(ButtonInterface *newArtificialLi
     {
         disconnect(mArtificialLiberationBut->object(), &AbstractSimulationObject::stateChanged,
                    this, &BEMLeverObject::onLiberationStateChanged);
+        setArtLibBitLocked(false);
     }
 
     mArtificialLiberationBut = newArtificialLiberationBut;
@@ -392,5 +423,6 @@ void BEMLeverObject::setArtificialLiberationBut(ButtonInterface *newArtificialLi
                 this, &BEMLeverObject::onLiberationStateChanged);
     }
 
+    updateArtLibButLock();
     onLiberationStateChanged();
 }
