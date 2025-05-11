@@ -1,5 +1,5 @@
 /**
- * src/objects/lever/ace_sasib/acesasiblever7positions.h
+ * src/objects/lever/ace_sasib/acesasiblever2positions.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,42 +20,40 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ACE_SASIB_LEVER_7_POSITIONS_H
-#define ACE_SASIB_LEVER_7_POSITIONS_H
+#ifndef ACE_SASIB_LEVER_5_POSITIONS_H
+#define ACE_SASIB_LEVER_5_POSITIONS_H
 
 #include "acesasiblevercommon.h"
 
 class MechanicalInterface;
 class ElectroMagnetObject;
 
-enum class ACESasibLeverPosition7
+enum class ACESasibLeverPosition2
 {
-    TurnedForward = 0,
+    Reverse = 0,
     Middle1,
-    WaitLiberationForward,
+    CheckCircuitReverse,
     Middle2,
-    WaitImmobilizationForward,
+    WaitSwitchReverse,
     Middle3,
-    Normal,
+    WaitSwitchNormal,
     Middle4,
-    WaitImmobilizationBackwards,
+    CheckCircuitNormal,
     Middle5,
-    WaitLiberationBackwards,
-    Middle6,
-    TurnedBackwards
+    Normal
 };
 
-class ACESasibLever7PosObject : public ACESasibLeverCommonObject
+class ACESasibLever2PosObject : public ACESasibLeverCommonObject
 {
     Q_OBJECT
 public:
-    explicit ACESasibLever7PosObject(AbstractSimulationObjectModel *m);
+    explicit ACESasibLever2PosObject(AbstractSimulationObjectModel *m);
 
-    static constexpr QLatin1String Type = QLatin1String("ace_sasib_lever_7");
+    static constexpr QLatin1String Type = QLatin1String("ace_sasib_lever_2");
     QString getType() const override;
 
 protected:
-    void addElectromagnetLock() override;
+    virtual void addElectromagnetLock() override;
 };
 
-#endif // ACE_SASIB_LEVER_7_POSITIONS_H
+#endif // ACE_SASIB_LEVER_5_POSITIONS_H

@@ -35,8 +35,8 @@
 #include "lever/acei/aceileverobject.h"
 #include "lever/view/genericleveroptionswidget.h"
 
-#include "lever/ace_sasib/acesasiblever5positions.h"
-#include "lever/ace_sasib/acesasiblever7positions.h"
+#include "lever/ace_sasib/acesasiblever2positions.h"
+#include "lever/ace_sasib/acesasiblever3positions.h"
 
 #include "lever/bem/bemleverobject.h"
 
@@ -621,34 +621,34 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     }
 
     {
-        // Sasib ACE Lever 5 positions
+        // Sasib ACE Lever 2 positions
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = nullptr;
-        item.create = &createObject<ACESasibLever5PosObject>;
-        item.objectType = ACESasibLever5PosObject::Type;
+        item.create = &createObject<ACESasibLever2PosObject>;
+        item.objectType = ACESasibLever2PosObject::Type;
         item.interfaces = {
             LeverInterface::IfaceType,
             MechanicalInterface::IfaceType,
             SasibACELeverExtraInterface::IfaceType
         };
-        item.prettyName = tr("ACE Sasib 5 Lever");
+        item.prettyName = tr("ACE Lever 2 pos");
         item.edit = &defaultSasibLeverEdit;
 
         factory->registerFactory(item);
     }
 
     {
-        // Sasib ACE Lever 7 positions
+        // Sasib ACE Lever 3 positions
         SimulationObjectFactory::FactoryItem item;
         item.customModelFunc = nullptr;
-        item.create = &createObject<ACESasibLever7PosObject>;
-        item.objectType = ACESasibLever7PosObject::Type;
+        item.create = &createObject<ACESasibLever3PosObject>;
+        item.objectType = ACESasibLever3PosObject::Type;
         item.interfaces = {
             LeverInterface::IfaceType,
             MechanicalInterface::IfaceType,
             SasibACELeverExtraInterface::IfaceType
         };
-        item.prettyName = tr("ACE Sasib 7 Lever");
+        item.prettyName = tr("ACE Lever 3 pos");
         item.edit = &defaultSasibLeverEdit;
 
         factory->registerFactory(item);

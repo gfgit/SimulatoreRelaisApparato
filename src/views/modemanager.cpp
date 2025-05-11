@@ -41,6 +41,7 @@
 
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonDocument>
 
 QJsonObject convertFileFormatBetaToV1(const QJsonObject& origFile)
 {
@@ -161,8 +162,20 @@ QJsonObject convertFileFormatBetaToV1(const QJsonObject& origFile)
     return newFile;
 }
 
-QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFile)
+QJsonObject replaceACESasibType(const QJsonObject origFile)
 {
+    QJsonDocument doc(origFile);
+    QByteArray data = doc.toJson();
+    data.replace("ace_sasib_lever_5", "ace_sasib_lever_2");
+    data.replace("ace_sasib_lever_7", "ace_sasib_lever_3");
+    doc = QJsonDocument::fromJson(data);
+    return doc.object();
+}
+
+QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFileOld)
+{
+    const QJsonObject origFile = replaceACESasibType(origFileOld);
+
     QJsonObject circuits = origFile.value("circuits").toObject();
     const QJsonArray scenes = circuits.value("scenes").toArray();
 
@@ -215,6 +228,32 @@ QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFile)
 
     {
         // Add MechanicalInterface to buttons
+        QJsonObject butModel = objects.value("generic_button").toObject();
+        const QJsonArray arr = butModel.value("objects").toArray();
+        QJsonArray newButtons;
+
+        for(const QJsonValue& v : arr)
+        {
+            QJsonObject buttonObj = v.toObject();
+
+            QJsonObject interfaces = buttonObj.value("interfaces").toObject();
+            const QJsonObject butIface = interfaces.value("button").toObject();
+
+            QJsonObject mechIface;
+            mechIface["pos_min"] = butIface.value("can_press").toBool(true) ? 0 : 1;
+            mechIface["pos_max"] = butIface.value("can_extract").toBool(false) ? 2 : 1;
+            interfaces["mechanical"] = mechIface;
+            buttonObj["interfaces"] = interfaces;
+
+            newButtons.append(buttonObj);
+        }
+
+        butModel["objects"] = newButtons;
+        objects["generic_button"] = butModel;
+    }
+
+    {
+        // Swap condition sets for ACE Sasib Lever 5
         QJsonObject butModel = objects.value("generic_button").toObject();
         const QJsonArray arr = butModel.value("objects").toArray();
         QJsonArray newButtons;
