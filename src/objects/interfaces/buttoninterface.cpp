@@ -237,10 +237,6 @@ void ButtonInterface::setAllowedLockPositions(const std::pair<State, State> &new
     mAllowedLockPositions = newRange;
     mAllowedLockPositions.second = std::max(mAllowedLockPositions.first,
                                             mAllowedLockPositions.second);
-
-    emitChanged(LockRangePropName, QVariant());
-    emit mObject->settingsChanged(mObject);
-
     checkStateValidForLock();
 }
 

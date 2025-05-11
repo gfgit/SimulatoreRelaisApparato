@@ -38,7 +38,6 @@ public:
     static constexpr QLatin1String AbsoluteRangePropName = QLatin1String("abs_range");
     static constexpr QLatin1String StatePropName = QLatin1String("state");
     static constexpr QLatin1String ModePropName = QLatin1String("mode");
-    static constexpr QLatin1String LockRangePropName = QLatin1String("lock_range");
 
     enum class State
     {
