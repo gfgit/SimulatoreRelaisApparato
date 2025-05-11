@@ -55,6 +55,12 @@ ACESasibLeverPanelItem::ACESasibLeverPanelItem()
 ACESasibLeverPanelItem::~ACESasibLeverPanelItem()
 {
     setLever(nullptr);
+
+    setButton(Left, nullptr);
+    setButton(Right, nullptr);
+
+    setLight(Left, nullptr);
+    setLight(Right, nullptr);
 }
 
 QString ACESasibLeverPanelItem::itemType() const
@@ -607,7 +613,7 @@ void ACESasibLeverPanelItem::setLever(AbstractSimulationObject *newLever)
         disconnect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
                    this, &ACESasibLeverPanelItem::onInterfacePropertyChanged);
         disconnect(mLever, &AbstractSimulationObject::settingsChanged,
-                   this, &ACESasibLeverPanelItem::triggerUpdate);
+                   this, &ACESasibLeverPanelItem::onLeverSettingsChanged);
         mLeverIface = nullptr;
     }
 
@@ -622,10 +628,12 @@ void ACESasibLeverPanelItem::setLever(AbstractSimulationObject *newLever)
         connect(mLever, &AbstractSimulationObject::interfacePropertyChanged,
                 this, &ACESasibLeverPanelItem::onInterfacePropertyChanged);
         connect(mLever, &AbstractSimulationObject::settingsChanged,
-                this, &ACESasibLeverPanelItem::triggerUpdate);
+                this, &ACESasibLeverPanelItem::onLeverSettingsChanged);
 
         mLeverIface = mLever->getInterface<LeverInterface>();
     }
+
+    onLeverSettingsChanged();
 
     PanelScene *s = panelScene();
     if(s)
@@ -646,8 +654,6 @@ void ACESasibLeverPanelItem::setButton(LightPosition pos, AbstractSimulationObje
 
     if(target)
     {
-        disconnect(target, &AbstractSimulationObject::destroyed,
-                   this, &ACESasibLeverPanelItem::onButtonDestroyed);
         disconnect(target, &AbstractSimulationObject::stateChanged,
                    this, &ACESasibLeverPanelItem::triggerUpdate);
         disconnect(target, &AbstractSimulationObject::interfacePropertyChanged,
@@ -662,8 +668,6 @@ void ACESasibLeverPanelItem::setButton(LightPosition pos, AbstractSimulationObje
 
     if(target)
     {
-        connect(target, &AbstractSimulationObject::destroyed,
-                this, &ACESasibLeverPanelItem::onButtonDestroyed);
         connect(target, &AbstractSimulationObject::stateChanged,
                 this, &ACESasibLeverPanelItem::triggerUpdate);
         connect(target, &AbstractSimulationObject::interfacePropertyChanged,
@@ -674,12 +678,7 @@ void ACESasibLeverPanelItem::setButton(LightPosition pos, AbstractSimulationObje
         mButtons[pos].buttonIface = target->getInterface<ButtonInterface>();
     }
 
-    PanelScene *s = panelScene();
-    if(s)
-        s->modeMgr()->setFileEdited();
-
     update();
-    emit buttonsChanged();
 }
 
 void ACESasibLeverPanelItem::setLight(LightPosition pos, LightBulbObject *newLight)
@@ -752,20 +751,6 @@ bool ACESasibLeverPanelItem::loadFromJSON(const QJsonObject &obj, ModeManager *m
         c = Qt::black;
     setLeverNameColor(c);
 
-    // Buttons
-    for(int i = 0; i < LightPosition::NLights; i++)
-    {
-        const QString butName = obj.value(butFmt.arg(lightKeyNames[i])).toString();
-        const QString butType = obj.value(butTypeFmt.arg(lightKeyNames[i])).toString();
-
-        auto butModel = mgr->modelForType(butType);
-        if(!butModel)
-            continue;
-
-        AbstractSimulationObject *butObj = butModel->getObjectByName(butName);
-        setButton(LightPosition(i), butObj);
-    }
-
     // Lights
     auto lightModel = mgr->modelForType(LightBulbObject::Type);
 
@@ -797,14 +782,6 @@ void ACESasibLeverPanelItem::saveToJSON(QJsonObject &obj) const
     obj["lever_type"] = mLever ? mLever->getType() : QString();
     obj["lever_name_color"] = mLeverNameColor.name(QColor::HexRgb);
 
-    // Buttons
-    for(int i = 0; i < LightPosition::NLights; i++)
-    {
-        AbstractSimulationObject *butObj = getButton(LightPosition(i));
-        obj[butFmt.arg(lightKeyNames[i])] = butObj ? butObj->name() : QString();
-        obj[butTypeFmt.arg(lightKeyNames[i])] = butObj ? butObj->getType() : QString();
-    }
-
     // Lights
     for(int i = 0; i < LightPosition::NLights; i++)
     {
@@ -824,16 +801,6 @@ void ACESasibLeverPanelItem::getObjectProperties(QVector<ObjectProperty> &result
 
     for(int i = 0; i < LightPosition::NLights; i++)
     {
-        ObjectProperty butProp;
-        butProp.name = butFmt.arg(lightKeyNames[i]);
-        butProp.prettyName = tr("Button %1").arg(i);
-        butProp.customType = butTypeFmt.arg(lightKeyNames[i]);
-        butProp.interface = ButtonInterface::IfaceType;
-        result.append(butProp);
-    }
-
-    for(int i = 0; i < LightPosition::NLights; i++)
-    {
         ObjectProperty lightProp;
         lightProp.name = lightFmt.arg(lightKeyNames[i]);
         lightProp.prettyName = tr("Light %1").arg(i);
@@ -847,15 +814,6 @@ void ACESasibLeverPanelItem::onLeverDestroyed()
     setLever(nullptr);
 }
 
-void ACESasibLeverPanelItem::onButtonDestroyed(QObject *obj)
-{
-    for(int i = 0; i < NLights; i++)
-    {
-        if(getButton(LightPosition(i)) == obj)
-            setButton(LightPosition(i), nullptr);
-    }
-}
-
 void ACESasibLeverPanelItem::onLightDestroyed(QObject *obj)
 {
     for(int i = 0; i < NLights; i++)
@@ -863,6 +821,24 @@ void ACESasibLeverPanelItem::onLightDestroyed(QObject *obj)
         if(getLight(LightPosition(i)) == obj)
             setLight(LightPosition(i), nullptr);
     }
+}
+
+void ACESasibLeverPanelItem::onLeverSettingsChanged()
+{
+    if(mLever)
+    {
+        auto sasibIface = mLever->getInterface<SasibACELeverExtraInterface>();
+        setButton(Left, sasibIface->getButton(SasibACELeverExtraInterface::Button::Left));
+        setButton(Right, sasibIface->getButton(SasibACELeverExtraInterface::Button::Right));
+    }
+    else
+    {
+        setButton(Left, nullptr);
+        setButton(Right, nullptr);
+    }
+
+    // Repaint
+    update();
 }
 
 void ACESasibLeverPanelItem::onInterfacePropertyChanged(const QString &ifaceName, const QString &propName, const QVariant &value)

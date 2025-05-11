@@ -53,8 +53,6 @@ public:
         RightButton
     };
 
-    static constexpr QLatin1String butFmt = QLatin1String("button_%1");
-    static constexpr QLatin1String butTypeFmt = QLatin1String("button_type_%1");
     static constexpr QLatin1String lightFmt = QLatin1String("light_%1");
     static constexpr QLatin1String lightColorFmt = QLatin1String("light_%1_color");
     static constexpr QLatin1String lightKeyNames[NLights] = {
@@ -115,13 +113,13 @@ public:
 
 signals:
     void leverChanged(AbstractSimulationObject *newLever);
-    void buttonsChanged();
     void lightsChanged();
 
 private slots:
     void onLeverDestroyed();
-    void onButtonDestroyed(QObject *obj);
     void onLightDestroyed(QObject *obj);
+
+    void onLeverSettingsChanged();
 
     void onInterfacePropertyChanged(const QString& ifaceName,
                                     const QString& propName,

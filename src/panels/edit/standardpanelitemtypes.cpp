@@ -527,41 +527,6 @@ void StandardPanelItemTypes::registerTypes(PanelItemFactory *factoryReg)
 
             lay->addRow(tr("Lever Color:"), leverNameColor);
 
-            // Button
-            SimulationObjectLineEdit *buttonEdits[ACESasibLeverPanelItem::NLights];
-            const QString buttonNames[ACESasibLeverPanelItem::NLights] = {
-                tr("Left button:"),
-                tr("Right button:")
-            };
-
-            const QStringList buttonTypes = viewMgr->modeMgr()->objectFactory()
-                    ->typesForInterface(ButtonInterface::IfaceType);
-
-            for(int i = 0; i < ACESasibLeverPanelItem::NLights; i++)
-            {
-                buttonEdits[i] = new SimulationObjectLineEdit(viewMgr, buttonTypes);
-                QObject::connect(buttonEdits[i], &SimulationObjectLineEdit::objectChanged,
-                                 leverItem, [leverItem, i](AbstractSimulationObject *obj)
-                {
-                    leverItem->setButton(ACESasibLeverPanelItem::LightPosition(i),
-                                         obj);
-                });
-
-                lay->addRow(buttonNames[i], buttonEdits[i]);
-            }
-
-            auto updateButtons = [leverItem, buttonEdits]()
-            {
-                for(int i = 0; i < ACESasibLeverPanelItem::NLights; i++)
-                {
-                    buttonEdits[i]->setObject(leverItem->getButton(ACESasibLeverPanelItem::LightPosition(i)));
-                }
-            };
-
-            QObject::connect(leverItem, &ACESasibLeverPanelItem::buttonsChanged,
-                             w, updateButtons);
-            updateButtons();
-
             // Lights
             SimulationObjectLineEdit *lightEdits[ACESasibLeverPanelItem::NLights];
             ColorSelectionWidget *lightColorEdits[ACESasibLeverPanelItem::NLights];
