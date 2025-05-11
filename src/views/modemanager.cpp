@@ -483,7 +483,7 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
         pool[model->getObjectType()] = modelObj;
     }
 
-    obj["file_version"] = FileVersion::V1;
+    obj["file_version"] = FileVersion::Current;
 
     obj["session_name"] = mRemoteMgr->sessionName();
 
