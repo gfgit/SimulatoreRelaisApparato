@@ -143,6 +143,12 @@ void SimulationObjectOptionsWidget::fixScrollingChildrenInScrollArea()
         combo->setFocusPolicy(Qt::StrongFocus);
         combo->installEventFilter(this);
     }
+
+    const auto tabBars = findChildren<QTabBar *>();
+    for(QTabBar *tabBar : tabBars)
+    {
+        tabBar->installEventFilter(this);
+    }
 }
 
 bool SimulationObjectOptionsWidget::eventFilter(QObject *watched, QEvent *ev)
@@ -165,6 +171,11 @@ bool SimulationObjectOptionsWidget::eventFilter(QObject *watched, QEvent *ev)
                 ev->ignore();
                 return true;
             }
+        }
+        else if(QTabBar *tabBar = qobject_cast<QTabBar *>(watched))
+        {
+            ev->ignore();
+            return true;
         }
     }
 
