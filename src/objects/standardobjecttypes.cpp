@@ -661,7 +661,8 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.create = &createObject<GenericButtonObject>;
         item.objectType = GenericButtonObject::Type;
         item.interfaces = {
-            ButtonInterface::IfaceType
+            ButtonInterface::IfaceType,
+            MechanicalInterface::IfaceType
         };
         item.prettyName = tr("Generic Button");
         item.edit = defaultButtonEdit;
