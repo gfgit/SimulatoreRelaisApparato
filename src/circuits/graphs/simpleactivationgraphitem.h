@@ -26,6 +26,7 @@
 #include "abstractnodegraphitem.h"
 
 class SimpleActivationNode;
+class AbstractSimpleActivableObject;
 
 class SimpleActivationGraphItem : public AbstractNodeGraphItem
 {
@@ -41,8 +42,13 @@ public:
 
     SimpleActivationNode *activationNode() const;
 
+private slots:
+    void setObject(AbstractSimpleActivableObject *obj);
+
 protected:
     static constexpr double circleRadius = 50 - 10/2; // Half rect - half pen width
+
+    AbstractSimpleActivableObject *mActivableObj = nullptr;
 };
 
 #endif // SIMPLEACTIVATIONGRAPHITEM_H

@@ -60,6 +60,11 @@ int AbstractSimpleActivableObject::getReferencingNodes(QVector<AbstractCircuitNo
     return nodesCount;
 }
 
+AbstractSimpleActivableObject::State AbstractSimpleActivableObject::state() const
+{
+    return mActiveNodesCount > 0 ? State::On : State::Off;
+}
+
 void AbstractSimpleActivableObject::addNode(SimpleActivationNode *node)
 {
     Q_ASSERT_X(!mNodes.contains(node),

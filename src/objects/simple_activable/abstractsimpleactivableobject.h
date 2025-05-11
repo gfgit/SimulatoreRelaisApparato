@@ -45,10 +45,7 @@ public:
 
     int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
 
-    inline State state() const
-    {
-        return mActiveNodesCount > 0 ? State::On : State::Off;
-    }
+    virtual State state() const;
 
 private:
     friend class SimpleActivationNode;

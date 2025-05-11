@@ -32,7 +32,8 @@
 SimpleActivationGraphItem::SimpleActivationGraphItem(SimpleActivationNode *node_)
     : AbstractNodeGraphItem(node_)
 {
-
+    connect(node_, &SimpleActivationNode::objectChanged,
+            this, &SimpleActivationGraphItem::setObject);
 }
 
 void SimpleActivationGraphItem::getConnectors(std::vector<Connector> &connectors) const
@@ -66,4 +67,25 @@ QString SimpleActivationGraphItem::tooltipString() const
 SimpleActivationNode *SimpleActivationGraphItem::activationNode() const
 {
     return static_cast<SimpleActivationNode *>(getAbstractNode());
+}
+
+void SimpleActivationGraphItem::setObject(AbstractSimpleActivableObject *obj)
+{
+    if(mActivableObj)
+    {
+        disconnect(mActivableObj, &AbstractSimpleActivableObject::stateChanged,
+                   this, &SimpleActivationGraphItem::triggerUpdate);
+        disconnect(mActivableObj, &AbstractSimpleActivableObject::settingsChanged,
+                   this, &SimpleActivationGraphItem::triggerUpdate);
+    }
+
+    mActivableObj = obj;
+
+    if(mActivableObj)
+    {
+        connect(mActivableObj, &AbstractSimpleActivableObject::stateChanged,
+                this, &SimpleActivationGraphItem::triggerUpdate);
+        connect(mActivableObj, &AbstractSimpleActivableObject::settingsChanged,
+                this, &SimpleActivationGraphItem::triggerUpdate);
+    }
 }
