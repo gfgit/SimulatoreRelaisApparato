@@ -253,29 +253,36 @@ QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFileOld)
     }
 
     {
-        // Swap condition sets for ACE Sasib Lever 5
-        QJsonObject butModel = objects.value("generic_button").toObject();
-        const QJsonArray arr = butModel.value("objects").toArray();
-        QJsonArray newButtons;
+        // Swap condition sets for ACE Lever 3 pos
+        QJsonObject leverModel = objects.value("ace_sasib_lever_3").toObject();
+        const QJsonArray arr = leverModel.value("objects").toArray();
+        QJsonArray newLevers;
 
         for(const QJsonValue& v : arr)
         {
-            QJsonObject buttonObj = v.toObject();
+            QJsonObject leverObj = v.toObject();
 
-            QJsonObject interfaces = buttonObj.value("interfaces").toObject();
-            const QJsonObject butIface = interfaces.value("button").toObject();
+            QJsonObject interfaces = leverObj.value("interfaces").toObject();
+            QJsonObject mechIface = interfaces.value("mechanical").toObject();
 
-            QJsonObject mechIface;
-            mechIface["pos_min"] = butIface.value("can_press").toBool(true) ? 0 : 1;
-            mechIface["pos_max"] = butIface.value("can_extract").toBool(false) ? 2 : 1;
+            QJsonArray conditions = mechIface.value("conditions").toArray();
+            if(conditions.size() == 2)
+            {
+                // Swap
+                QJsonArray newConditions;
+                newConditions.append(conditions.at(1).toObject());
+                newConditions.append(conditions.at(0).toObject());
+                mechIface["conditions"] = newConditions;
+            }
+
             interfaces["mechanical"] = mechIface;
-            buttonObj["interfaces"] = interfaces;
+            leverObj["interfaces"] = interfaces;
 
-            newButtons.append(buttonObj);
+            newLevers.append(leverObj);
         }
 
-        butModel["objects"] = newButtons;
-        objects["generic_button"] = butModel;
+        leverModel["objects"] = newLevers;
+        objects["ace_sasib_lever_3"] = leverModel;
     }
 
     // Save new file

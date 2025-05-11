@@ -196,15 +196,15 @@ ACESasibLever3PosObject::ACESasibLever3PosObject(AbstractSimulationObjectModel *
                     int(ACESasibLeverPosition3::TurnedBackwards)
                 });
 
-    mechanicalIface->addConditionSet(tr("Go Forward"));
-    mechanicalIface->setConditionSetRange(0,
-                                          {int(ACESasibLeverPosition3::Normal),
-                                           int(ACESasibLeverPosition3::TurnedBackwards)});
-
     mechanicalIface->addConditionSet(tr("Go Backwards"));
-    mechanicalIface->setConditionSetRange(1,
+    mechanicalIface->setConditionSetRange(0,
                                           {int(ACESasibLeverPosition3::TurnedForward),
                                            int(ACESasibLeverPosition3::Normal)});
+
+    mechanicalIface->addConditionSet(tr("Go Forward"));
+    mechanicalIface->setConditionSetRange(1,
+                                          {int(ACESasibLeverPosition3::Normal),
+                                           int(ACESasibLeverPosition3::TurnedBackwards)});
 }
 
 QString ACESasibLever3PosObject::getType() const
