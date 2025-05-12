@@ -67,6 +67,9 @@ public:
     static constexpr QLatin1String Type = QLatin1String("bem_lever");
     QString getType() const override;
 
+    ButtonInterface *artificialLiberationBut() const;
+    void setArtificialLiberationBut(ButtonInterface *newArtificialLiberationBut);
+
 protected:
     virtual void onInterfaceChanged(AbstractObjectInterface *iface,
                                     const QString &propName,
@@ -78,11 +81,6 @@ private slots:
 private:
     void recalculateLockedRange();
     void fixBothInMiddlePosition();
-    void updateArtLibButLock();
-    void setArtLibBitLocked(bool lock);
-
-    ButtonInterface *artificialLiberationBut() const;
-    void setArtificialLiberationBut(ButtonInterface *newArtificialLiberationBut);
 
     AbstractRelais *liberationRelay() const;
     void setLiberationRelay(AbstractRelais *newLiberationRelay);
