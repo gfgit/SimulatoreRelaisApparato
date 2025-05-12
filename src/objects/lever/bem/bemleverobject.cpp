@@ -106,11 +106,11 @@ BEMLeverObject::BEMLeverObject(AbstractSimulationObjectModel *m)
 
 BEMLeverObject::~BEMLeverObject()
 {
-    delete leverInterface;
-    leverInterface = nullptr;
-
     delete bemInterface;
     bemInterface = nullptr;
+
+    delete leverInterface;
+    leverInterface = nullptr;
 }
 
 QString BEMLeverObject::getType() const
