@@ -35,7 +35,7 @@
 #include <QTcpSocket>
 #include <QTimer>
 
-class RemoteManager;
+class RemoteSession;
 
 class PeerConnection : public QTcpSocket
 {
@@ -85,9 +85,9 @@ public:
         return hashedSessionName;
     }
 
-    inline void setRemoteMgr(RemoteManager *mgr)
+    inline void setRemoteSession(RemoteSession *session)
     {
-        remoteMgr = mgr;
+        remoteSession = session;
     }
 
     void sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode);
@@ -111,7 +111,7 @@ private:
     void processGreeting();
     void processData();
 
-    RemoteManager *remoteMgr = nullptr;
+    RemoteSession *remoteSession = nullptr;
     QCborStreamReader reader;
     QCborStreamWriter writer;
     QString greetingMessage = tr("undefined");

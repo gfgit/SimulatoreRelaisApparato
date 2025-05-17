@@ -496,7 +496,7 @@
     <name>BEMLeverObject</name>
     <message>
         <location filename="../objects/interfaces/bemhandleinterface.cpp" line="44"/>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="44"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="43"/>
         <source>Consensus</source>
         <translation>Consenso</translation>
     </message>
@@ -506,33 +506,33 @@
         <translation>Richiesta</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="40"/>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="66"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="39"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="65"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="42"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="41"/>
         <source>Blocked</source>
         <translation>Bloccato</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="68"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="67"/>
         <source>Request Consensus</source>
         <translation>Richiesta consenso</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="70"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="69"/>
         <source>Signals At Stop</source>
         <translation>Segnali a Via Impedita</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="72"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="71"/>
         <source>Activate 1° Cat Signal</source>
         <translation>Manovra Segnale 1° Categoria</translation>
     </message>
     <message>
-        <location filename="../objects/lever/bem/bemleverobject.cpp" line="74"/>
+        <location filename="../objects/lever/bem/bemleverobject.cpp" line="73"/>
         <source>Activate Both Signals</source>
         <translation>Manovra entrambi i Segnali</translation>
     </message>

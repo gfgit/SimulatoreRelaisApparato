@@ -106,6 +106,7 @@ private:
     QString mPeerNodeName;
 
     friend class RemoteManager;
+    friend class RemoteSession;
     size_t mPeerSessionId = 0;
     size_t mPeerNodeId = 0;
 

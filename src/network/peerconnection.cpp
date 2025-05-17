@@ -26,7 +26,7 @@
 
 #include "peerconnection.h"
 
-#include "remotemanager.h"
+#include "remotesession.h"
 
 #include <QTimerEvent>
 
@@ -233,14 +233,14 @@ void PeerConnection::processReadyRead()
                 if(!reader.isMap())
                     break; // protocol error
 
-                QVector<RemoteManager::BridgeListItem> list;
+                QVector<RemoteSession::BridgeListItem> list;
                 if(reader.isLengthKnown())
                     list.reserve(reader.length());
 
                 reader.enterContainer();
                 while (reader.lastError() == QCborError::NoError && reader.hasNext())
                 {
-                    RemoteManager::BridgeListItem item;
+                    RemoteSession::BridgeListItem item;
                     item.peerNodeId = reader.toUnsignedInteger();
                     reader.next();
 
@@ -267,9 +267,9 @@ void PeerConnection::processReadyRead()
                 {
                     reader.leaveContainer();
 
-                    if(remoteMgr)
+                    if(remoteSession)
                     {
-                        remoteMgr->onRemoteBridgeListReceived(this, list);
+                        remoteSession->onRemoteBridgeListReceived(this, list);
                     }
                 }
             }
@@ -280,7 +280,7 @@ void PeerConnection::processReadyRead()
 
                 reader.enterContainer();
 
-                RemoteManager::BridgeResponse msg;
+                RemoteSession::BridgeResponse msg;
 
                 {
                     if(!reader.isArray())
@@ -326,9 +326,9 @@ void PeerConnection::processReadyRead()
                 {
                     reader.leaveContainer();
 
-                    if(remoteMgr)
+                    if(remoteSession)
                     {
-                        remoteMgr->onRemoteBridgeResponseReceived(this, msg);
+                        remoteSession->onRemoteBridgeResponseReceived(this, msg);
                     }
                 }
             }
@@ -435,16 +435,15 @@ void PeerConnection::processData()
         break;
     case BridgeStatus:
     {
-        if(remoteMgr && size_t(byteBuffer.size()) >= 2 * sizeof(quint64))
+        if(remoteSession && size_t(byteBuffer.size()) >= 2 * sizeof(quint64))
         {
             const quint64 *arr = reinterpret_cast<const quint64 *>(byteBuffer.constData());
             quint64 localNodeId = arr[0];
             qint8 mode = qint8(arr[1] & 0xFF);
             qint8 pole = qint8((arr[1] >> 8) & 0xFF);
             qint8 replyToMode = qint8((arr[1] >> 16) & 0xFF);
-            remoteMgr->onRemoteBridgeModeChanged(hashedSessionName,
-                                                 localNodeId,
-                                                 mode, pole, replyToMode);
+            remoteSession->onRemoteBridgeModeChanged(localNodeId,
+                                                     mode, pole, replyToMode);
         }
         break;
     }

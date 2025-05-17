@@ -33,6 +33,8 @@ class PeerClient;
 class PeerManager;
 class PeerConnection;
 
+class RemoteSession;
+
 class RemoteCircuitBridge;
 
 class RemoteManager : public QObject
@@ -55,38 +57,20 @@ public:
 
     void refreshNetworkAddresses();
 
-    bool renameRemoteSession(const QString &fromName, const QString &toName);
-
     void addRemoteBridge(RemoteCircuitBridge *bridge, const QString& peerSession);
     void removeRemoteBridge(RemoteCircuitBridge *bridge, const QString& peerSession);
 
     void onLocalBridgeModeChanged(quint64 peerSessionId, quint64 peerNodeId,
                                   qint8 mode, qint8 pole, qint8 replyToMode);
 
-    void onRemoteBridgeModeChanged(quint64 peerSessionId, quint64 localNodeId,
-                                   qint8 mode, qint8 pole, qint8 replyToMode);
-
     inline bool isSessionReferenced(const QString& name) const
     {
         const quint64 peerConnId = qHash(name);
-        return mRemoteBridges.contains(peerConnId);
+        return mRemoteSessions.contains(peerConnId);
     }
 
-    struct BridgeListItem
-    {
-        quint64 peerNodeId;
-        QString peerNodeName;
-        QString localNodeName;
-    };
-
-    void onRemoteBridgeListReceived(PeerConnection *conn, const QVector<BridgeListItem>& list);
-
-    struct BridgeResponse
-    {
-        QVector<quint64> failedIds;
-        QHash<quint64, quint64> newMappings;
-    };
-    void onRemoteBridgeResponseReceived(PeerConnection *conn, const BridgeResponse& msg);
+    RemoteSession* addRemoteSession(const QString& sessionName);
+    void removeRemoteSession(const QString& sessionName);
 
 signals:
     void networkStateChanged();
@@ -96,15 +80,14 @@ private:
     void addConnection(PeerConnection *conn);
     void removeConnection(PeerConnection *conn);
 
-    void sendBridgesTo(PeerConnection *conn);
-    void sendBridgesStatusTo(PeerConnection *conn);
+    friend class RemoteSession;
+    bool renameRemoteSession(const QString &fromName, const QString &toName);
 
 private:
     PeerClient *mPeerClient = nullptr;
     PeerManager *mPeerManager = nullptr;
-    QHash<quint64, QVector<RemoteCircuitBridge *>> mRemoteBridges;
 
-    QHash<quint64, PeerConnection *> mConnections;
+    QHash<qint64, RemoteSession *> mRemoteSessions;
 };
 
 #endif // REMOTEMANAGER_H
