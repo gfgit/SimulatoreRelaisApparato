@@ -75,7 +75,8 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>
-#include <QComboBox>
+
+#include <QGroupBox>
 
 #include <QFileDialog>
 
@@ -494,17 +495,25 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     redTextPalette.setColor(QPalette::Text, Qt::red);
 
     // Remote session
+    QGroupBox *remoteSessionGroup = new QGroupBox(StandardObjectTypes::tr("Remote Session"));
+    lay->addRow(remoteSessionGroup);
+    QFormLayout *remoteSessionLay = new QFormLayout(remoteSessionGroup);
+
     RemoteManager *remoteMgr = mgr->modeMgr()->getRemoteManager();
     RemoteSessionsModel *remoteSessionsModel =
             remoteMgr->remoteSessionsModel();
 
-    QComboBox *peerSessionCombo = new QComboBox;
-    lay->addRow(StandardObjectTypes::tr("Peer Session:"), peerSessionCombo);
-    QObject::connect(peerSessionCombo, &QComboBox::activated,
-                     bridge, [bridge, remoteSessionsModel](int row)
+    QPushButton *clearPeerSessionBut = new QPushButton(StandardObjectTypes::tr("Clear Peer Session"));
+    remoteSessionLay->addRow(clearPeerSessionBut);
+
+    QObject::connect(clearPeerSessionBut, &QPushButton::clicked,
+                     bridge, [bridge]()
     {
-        bridge->setRemoteSession(remoteSessionsModel->getRemoteSessionAt(row));
+        bridge->setRemoteSession(nullptr);
     });
+
+    QComboBox *peerSessionCombo = new QComboBox;
+    remoteSessionLay->addRow(StandardObjectTypes::tr("Peer Session:"), peerSessionCombo);
 
     auto updatePeerSessionCombo = [bridge, remoteSessionsModel, peerSessionCombo]()
     {
@@ -516,8 +525,16 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     QObject::connect(remoteSessionsModel, &RemoteSessionsModel::modelReset,
                      peerSessionCombo, updatePeerSessionCombo);
 
+    QObject::connect(peerSessionCombo, &QComboBox::activated,
+                     bridge, [bridge, remoteSessionsModel](int row)
+    {
+        bridge->setRemoteSession(remoteSessionsModel->getRemoteSessionAt(row));
+    });
+
+    peerSessionCombo->setModel(remoteSessionsModel);
+
     QLineEdit *peerNodeCustomNameEdit = new QLineEdit;
-    lay->addRow(StandardObjectTypes::tr("Peer Node:"), peerNodeCustomNameEdit);
+    remoteSessionLay->addRow(StandardObjectTypes::tr("Peer Node:"), peerNodeCustomNameEdit);
     QObject::connect(peerNodeCustomNameEdit, &QLineEdit::editingFinished,
                      bridge, [bridge, peerNodeCustomNameEdit]()
     {
@@ -525,8 +542,13 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
             peerNodeCustomNameEdit->setText(bridge->peerNodeCustomName());
     });
 
+    // Serial Device
+    QGroupBox *serialDeviceGroup = new QGroupBox(StandardObjectTypes::tr("Serial Device"));
+    lay->addRow(serialDeviceGroup);
+    QFormLayout *serialDeviceLay = new QFormLayout(serialDeviceGroup);
+
     QLineEdit *serialDeviceEdit = new QLineEdit;
-    lay->addRow(StandardObjectTypes::tr("Device Name:"), serialDeviceEdit);
+    serialDeviceLay->addRow(StandardObjectTypes::tr("Device Name:"), serialDeviceEdit);
     QObject::connect(serialDeviceEdit, &QLineEdit::textEdited,
                      bridge, [bridge, serialDeviceEdit]()
     {
@@ -536,7 +558,7 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     QSpinBox *inputIdSpin = new QSpinBox;
     inputIdSpin->setRange(0, 255);
     inputIdSpin->setSpecialValueText(StandardObjectTypes::tr("None"));
-    lay->addRow(StandardObjectTypes::tr("Input ID:"), inputIdSpin);
+    serialDeviceLay->addRow(StandardObjectTypes::tr("Input ID:"), inputIdSpin);
     QObject::connect(inputIdSpin, &QSpinBox::editingFinished,
                      bridge, [bridge, inputIdSpin]()
     {
@@ -548,7 +570,7 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     QSpinBox *outputIdSpin = new QSpinBox;
     outputIdSpin->setRange(0, 255);
     outputIdSpin->setSpecialValueText(StandardObjectTypes::tr("None"));
-    lay->addRow(StandardObjectTypes::tr("Output ID:"), outputIdSpin);
+    serialDeviceLay->addRow(StandardObjectTypes::tr("Output ID:"), outputIdSpin);
     QObject::connect(outputIdSpin, &QSpinBox::editingFinished,
                      bridge, [bridge, outputIdSpin]()
     {
@@ -561,7 +583,7 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
             nodeDescrA, nodeDescrB,
             peerSessionCombo, peerNodeCustomNameEdit,
             serialDeviceEdit, inputIdSpin, outputIdSpin,
-            updatePeerSessionCombo]()
+            updatePeerSessionCombo, clearPeerSessionBut]()
     {
         const QString descrA = bridge->getNodeDescription(true);
         if(nodeDescrA->text() != descrA)
@@ -599,6 +621,7 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
         if(str != peerNodeCustomNameEdit->text())
             peerNodeCustomNameEdit->setText(str);
 
+        clearPeerSessionBut->setVisible(bridge->getRemoteSession());
         updatePeerSessionCombo();
     };
 

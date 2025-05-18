@@ -157,12 +157,14 @@ RemoteSessionsModel *RemoteManager::remoteSessionsModel() const
 
 RemoteSession *RemoteManager::addRemoteSession(const QString &sessionName)
 {
-    auto it = mRemoteSessions.constFind(sessionName);
+    const QString trimmedName = sessionName.trimmed();
+
+    auto it = mRemoteSessions.constFind(trimmedName);
     if(it != mRemoteSessions.constEnd())
         return it.value();
 
-    RemoteSession *remoteSession = new RemoteSession(sessionName, this);
-    mRemoteSessions.insert(sessionName, remoteSession);
+    RemoteSession *remoteSession = new RemoteSession(trimmedName, this);
+    mRemoteSessions.insert(trimmedName, remoteSession);
 
     mRemoteSessionsModel->addRemoteSession(remoteSession);
 
