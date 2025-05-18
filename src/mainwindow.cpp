@@ -286,7 +286,7 @@ void MainWindow::buildMenuBar()
         remoteMgr->refreshNetworkAddresses();
     });
 
-    QAction *showRemoteSessionList = menuNetwork->addAction(tr("Remote Sessions list"));
+    QAction *showRemoteSessionList = menuNetwork->addAction(tr("Remote Sessions"));
     connect(showRemoteSessionList, &QAction::triggered,
             mViewMgr, &ViewManager::showRemoteSessionsListView);
 

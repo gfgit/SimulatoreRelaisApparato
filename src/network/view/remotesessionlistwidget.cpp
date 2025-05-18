@@ -94,9 +94,9 @@ void RemoteSessionListWidget::addRemoteSession()
         name = QInputDialog::getText(this,
                                      tr("New Remote Session"),
                                      first ?
-                                         tr("Choose name:") :
-                                         tr("<b>%1</b> already added.\n"
-                                            "Choose another name:").arg(name),
+                                         tr("Name:") :
+                                         tr("<b>%1</b> already added.<br>"
+                                            "Set another name:").arg(name),
                                      QLineEdit::Normal,
                                      name).trimmed();
         if(name.isEmpty())
