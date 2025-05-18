@@ -51,6 +51,9 @@
 #include "circuit_bridge/remotecircuitbridge.h"
 #include "circuit_bridge/remotecircuitbridgesmodel.h"
 
+#include "../network/remotemanager.h"
+#include "../network/remotesessionsmodel.h"
+
 // TODO: extract names in separate header
 #include "interfaces/leverinterface.h"
 #include "interfaces/mechanicalinterface.h"
@@ -72,6 +75,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QComboBox>
 
 #include <QFileDialog>
 
@@ -490,38 +494,35 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     redTextPalette.setColor(QPalette::Text, Qt::red);
 
     // Remote session
-    QCheckBox *remoteCB = new QCheckBox(StandardObjectTypes::tr("To Remote Node"));
-    lay->addRow(remoteCB);
+    RemoteManager *remoteMgr = mgr->modeMgr()->getRemoteManager();
+    RemoteSessionsModel *remoteSessionsModel =
+            remoteMgr->remoteSessionsModel();
 
-    QObject::connect(remoteCB, &QCheckBox::toggled,
-                     bridge, [bridge](bool val)
+    QComboBox *peerSessionCombo = new QComboBox;
+    lay->addRow(StandardObjectTypes::tr("Peer Session:"), peerSessionCombo);
+    QObject::connect(peerSessionCombo, &QComboBox::activated,
+                     bridge, [bridge, remoteSessionsModel](int row)
     {
-        bridge->setRemote(val);
+        bridge->setRemoteSession(remoteSessionsModel->getRemoteSessionAt(row));
     });
 
-    QLineEdit *sessionEdit = new QLineEdit;
-    lay->addRow(StandardObjectTypes::tr("Peer Session:"), sessionEdit);
-    QObject::connect(sessionEdit, &QLineEdit::textEdited,
-                     bridge, [bridge, sessionEdit]()
+    auto updatePeerSessionCombo = [bridge, remoteSessionsModel, peerSessionCombo]()
     {
-        bridge->setRemoteSessionName(sessionEdit->text());
-    });
+        RemoteSession *remoteSession = bridge->getRemoteSession();
+        const int row = remoteSessionsModel->rowForRemoteSession(remoteSession);
+        peerSessionCombo->setCurrentIndex(row);
+    };
 
-    QLineEdit *peerNodeEdit = new QLineEdit;
-    lay->addRow(StandardObjectTypes::tr("Peer Node:"), peerNodeEdit);
-    QObject::connect(peerNodeEdit, &QLineEdit::textEdited,
-                     bridge, [bridge, peerNodeEdit]()
+    QObject::connect(remoteSessionsModel, &RemoteSessionsModel::modelReset,
+                     peerSessionCombo, updatePeerSessionCombo);
+
+    QLineEdit *peerNodeCustomNameEdit = new QLineEdit;
+    lay->addRow(StandardObjectTypes::tr("Peer Node:"), peerNodeCustomNameEdit);
+    QObject::connect(peerNodeCustomNameEdit, &QLineEdit::editingFinished,
+                     bridge, [bridge, peerNodeCustomNameEdit]()
     {
-        bridge->setPeerNodeName(peerNodeEdit->text());
-    });
-
-    QCheckBox *serialCB = new QCheckBox(StandardObjectTypes::tr("Use serial device"));
-    lay->addRow(serialCB);
-
-    QObject::connect(serialCB, &QCheckBox::toggled,
-                     bridge, [bridge](bool val)
-    {
-        bridge->setUseSerial(val);
+        if(!bridge->setPeerNodeCustomName(peerNodeCustomNameEdit->text()))
+            peerNodeCustomNameEdit->setText(bridge->peerNodeCustomName());
     });
 
     QLineEdit *serialDeviceEdit = new QLineEdit;
@@ -558,8 +559,9 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
 
     auto updateSettings = [bridge, normalPalette, redTextPalette,
             nodeDescrA, nodeDescrB,
-            remoteCB, sessionEdit, peerNodeEdit,
-            serialCB, serialDeviceEdit, inputIdSpin, outputIdSpin]()
+            peerSessionCombo, peerNodeCustomNameEdit,
+            serialDeviceEdit, inputIdSpin, outputIdSpin,
+            updatePeerSessionCombo]()
     {
         const QString descrA = bridge->getNodeDescription(true);
         if(nodeDescrA->text() != descrA)
@@ -579,26 +581,25 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
         nodeDescrB->setToolTip(hasNodeB ? QString()
                                         : StandardObjectTypes::tr("Node B not set!"));
 
-        remoteCB->setChecked(bridge->isRemote());
-        remoteCB->setEnabled(!hasNodeA || !hasNodeB);
+        const bool canRemote = !hasNodeA || !hasNodeB;
 
-        sessionEdit->setEnabled(remoteCB->isChecked());
-        peerNodeEdit->setEnabled(remoteCB->isChecked());
+        peerSessionCombo->setEnabled(canRemote);
+        peerNodeCustomNameEdit->setEnabled(canRemote);
 
-        serialCB->setChecked(bridge->getUseSerial());
-        serialCB->setEnabled(!hasNodeA || !hasNodeB);
+        serialDeviceEdit->setEnabled(canRemote);
+        inputIdSpin->setEnabled(canRemote);
+        outputIdSpin->setEnabled(canRemote);
 
         serialDeviceEdit->setText(bridge->getDeviceName());
         inputIdSpin->setValue(bridge->serialInputId());
         outputIdSpin->setValue(bridge->serialOutputId());
 
-        QString str = bridge->remoteSessionName();
-        if(str != sessionEdit->text())
-            sessionEdit->setText(str);
+        peerNodeCustomNameEdit->setPlaceholderText(bridge->name());
+        QString str = bridge->peerNodeCustomName();
+        if(str != peerNodeCustomNameEdit->text())
+            peerNodeCustomNameEdit->setText(str);
 
-        str = bridge->peerNodeName();
-        if(str != peerNodeEdit->text())
-            peerNodeEdit->setText(str);
+        updatePeerSessionCombo();
     };
 
     QObject::connect(bridge, &RemoteCircuitBridge::settingsChanged,

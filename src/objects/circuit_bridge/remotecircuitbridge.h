@@ -27,6 +27,8 @@
 
 class RemoteCableCircuitNode;
 
+class RemoteSession;
+
 class RemoteCircuitBridge : public AbstractSimulationObject
 {
     Q_OBJECT
@@ -51,32 +53,36 @@ public:
 
     void setNodeDescription(bool isA, const QString& newDescr);
 
-    void setRemote(bool val);
+    QString remoteSessionName() const;
 
-    inline QString remoteSessionName() const
+    inline RemoteSession *getRemoteSession() const
     {
-        return mPeerSession;
+        return mRemoteSession;
     }
 
-    void setRemoteSessionName(const QString& name);
+    bool setRemoteSession(RemoteSession *remoteSession);
 
     // TODO: use also getUseSerial() for similar use cases
-    inline bool isRemote() const { return mIsRemote; }
+    bool isRemote() const;
 
     void onRemoteSessionRenamed(const QString& toName);
 
     QString getDeviceName() const;
-    void setDeviceName(const QString &name);
+    bool setDeviceName(const QString &name);
 
     void onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode);
     void onRemoteDisconnected();
     void onRemoteStarted();
 
+    // Either local name or peer custom name
     QString peerNodeName() const;
-    void setPeerNodeName(const QString &newPeerNodeName);
 
-    bool getUseSerial() const;
-    void setUseSerial(bool newUseSerial);
+    inline QString peerNodeCustomName() const
+    {
+        return mPeerNodeCustomName;
+    }
+
+    bool setPeerNodeCustomName(const QString &newPeerNodeName);
 
 
     int serialInputId() const;
@@ -85,7 +91,12 @@ public:
     int serialOutputId() const;
     void setSerialOutputId(int newSerialOutputId);
 
+private slots:
+    void onNameChanged(const QString& newName, const QString& oldName);
+
 private:
+    void setIsRemote(bool val);
+
     friend class RemoteCableCircuitNode;
     void setNode(RemoteCableCircuitNode *newNode, bool isA);
 
@@ -98,19 +109,17 @@ private:
     RemoteCableCircuitNode *mNodeA = nullptr;
     RemoteCableCircuitNode *mNodeB = nullptr;
 
+    RemoteSession *mRemoteSession = nullptr;
+
     QString mNodeDescriptionA;
     QString mNodeDescriptionB;
 
-    bool mIsRemote = false;
     QString mPeerSession;
-    QString mPeerNodeName;
+    QString mPeerNodeCustomName;
 
     friend class RemoteManager;
     friend class RemoteSession;
-    size_t mPeerSessionId = 0;
     size_t mPeerNodeId = 0;
-
-    bool mUseSerial = false;
 
     QString mSerialName;
     qint64 mSerialNameId = 0;

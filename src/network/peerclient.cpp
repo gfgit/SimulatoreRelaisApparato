@@ -165,7 +165,7 @@ void PeerClient::removeConnection(PeerConnection *connection)
 {
     if (peers.remove(connection->uniqueId()))
     {
-        peerManager->remoteMgr()->removeConnection(connection);
+        connection->closeConnection();
         QString nick = connection->nickName();
         if (!nick.isEmpty())
             emit participantLeft(nick);

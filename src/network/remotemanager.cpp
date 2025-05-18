@@ -29,9 +29,9 @@
 #include "../objects/abstractsimulationobjectmodel.h"
 
 #include "../views/modemanager.h"
-#include "../objects/circuit_bridge/remotecircuitbridge.h"
 
 #include "remotesession.h"
+#include "remotesessionsmodel.h"
 
 #include <QCborMap>
 #include <QCborArray>
@@ -58,11 +58,17 @@ RemoteManager::RemoteManager(ModeManager *mgr)
 {
     mPeerClient = new PeerClient(this);
     mPeerManager = mPeerClient->getPeerManager();
+    mRemoteSessionsModel = new RemoteSessionsModel(this);
 }
 
 RemoteManager::~RemoteManager()
-{
+{   
     mPeerClient->setCommunicationEnabled(false);
+
+    clear();
+
+    delete mRemoteSessionsModel;
+    mRemoteSessionsModel = nullptr;
 
     delete mPeerClient;
     mPeerClient = nullptr;
@@ -83,6 +89,15 @@ void RemoteManager::setSessionName(const QString &newSessionName)
 {
     mPeerManager->setSessionName(newSessionName);
     modeMgr()->setFileEdited();
+}
+
+void RemoteManager::clear()
+{
+    setSessionName(QString());
+
+    const auto remoteSessions = mRemoteSessions;
+    for(RemoteSession *r : remoteSessions)
+        removeRemoteSession(r->getSessionName());
 }
 
 void RemoteManager::setOnline(bool val)
@@ -119,83 +134,59 @@ bool RemoteManager::renameRemoteSession(const QString &fromName, const QString &
     if(isOnline())
         return false;
 
-    const quint64 fromConnId = qHash(fromName);
-    const quint64 toConnId = qHash(toName);
-
-    if(fromConnId == toConnId)
+    if(fromName == toName)
         return false;
 
-    RemoteSession *remoteSession = mRemoteSessions.take(fromConnId);
+    RemoteSession *remoteSession = mRemoteSessions.value(fromName);
 
-    if(!remoteSession || mRemoteSessions.contains(toConnId))
+    if(!remoteSession || mRemoteSessions.contains(toName))
         return false;
 
-    mRemoteSessions.insert(toConnId, remoteSession);
+    mRemoteSessions.remove(fromName);
+    mRemoteSessions.insert(toName, remoteSession);
+
+    mRemoteSessionsModel->sortItems();
 
     return true;
 }
 
-void RemoteManager::addRemoteBridge(RemoteCircuitBridge *bridge, const QString &peerSession)
+RemoteSessionsModel *RemoteManager::remoteSessionsModel() const
 {
-    RemoteSession *remoteSession = addRemoteSession(peerSession);
-    remoteSession->addRemoteBridge(bridge);
-}
-
-void RemoteManager::removeRemoteBridge(RemoteCircuitBridge *bridge, const QString &peerSession)
-{
-    RemoteSession *remoteSession = mRemoteSessions.value(qHash(peerSession));
-    if(!remoteSession)
-        return;
-
-    remoteSession->removeRemoteBridge(bridge);
-}
-
-void RemoteManager::onLocalBridgeModeChanged(quint64 peerSessionId, quint64 peerNodeId,
-                                             qint8 mode, qint8 pole, qint8 replyToMode)
-{
-    RemoteSession *remoteSession = mRemoteSessions.value(peerSessionId);
-    if(!remoteSession)
-        return;
-
-    remoteSession->getConnection()->sendBridgeStatus(peerNodeId, mode, pole, replyToMode);
+    return mRemoteSessionsModel;
 }
 
 RemoteSession *RemoteManager::addRemoteSession(const QString &sessionName)
 {
-    const qint64 sessionId = qHash(sessionName);
-    auto it = mRemoteSessions.constFind(sessionId);
+    auto it = mRemoteSessions.constFind(sessionName);
     if(it != mRemoteSessions.constEnd())
         return it.value();
 
     RemoteSession *remoteSession = new RemoteSession(sessionName, this);
-    mRemoteSessions.insert(sessionId, remoteSession);
+    mRemoteSessions.insert(sessionName, remoteSession);
+
+    mRemoteSessionsModel->addRemoteSession(remoteSession);
+
     return remoteSession;
+}
+
+RemoteSession *RemoteManager::getRemoteSession(const QString &sessionName) const
+{
+    return mRemoteSessions.value(sessionName);
 }
 
 void RemoteManager::removeRemoteSession(const QString &sessionName)
 {
-    RemoteSession *remoteSession = mRemoteSessions.take(qHash(sessionName));
+    RemoteSession *remoteSession = mRemoteSessions.take(sessionName);
     if(remoteSession)
+    {
+        mRemoteSessionsModel->removeRemoteSession(remoteSession);
         delete remoteSession;
+    }
 }
 
 void RemoteManager::addConnection(PeerConnection *conn)
 {
-    RemoteSession *remoteSession = mRemoteSessions.value(conn->getHashedSessionName());
+    RemoteSession *remoteSession = mRemoteSessions.value(conn->sessionName());
     if(remoteSession)
         remoteSession->onConnected(conn);
-
-    if(conn->side() == PeerConnection::Side::Server)
-    {
-        remoteSession->sendBridgesTo(conn);
-    }
-}
-
-void RemoteManager::removeConnection(PeerConnection *conn)
-{
-    RemoteSession *remoteSession = mRemoteSessions.value(conn->getHashedSessionName());
-    if(!remoteSession)
-        return;
-
-    remoteSession->onDisconnected();
 }

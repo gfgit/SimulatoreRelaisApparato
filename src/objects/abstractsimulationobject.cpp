@@ -140,6 +140,7 @@ bool AbstractSimulationObject::setName(const QString &newName)
     }
 
     // Do change name
+    const QString oldName = mName;
     mName = trimmedName;
 
     for(AbstractCircuitNode *node : nodesVec)
@@ -152,7 +153,7 @@ bool AbstractSimulationObject::setName(const QString &newName)
     }
 
     emit settingsChanged(this);
-    emit nameChanged(mName);
+    emit nameChanged(mName, oldName);
 
     return isValid;
 }

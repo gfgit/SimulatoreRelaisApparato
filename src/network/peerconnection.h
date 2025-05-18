@@ -80,11 +80,6 @@ public:
     Side side() const;
     void setSide(Side newSide);
 
-    inline quint64 getHashedSessionName() const
-    {
-        return hashedSessionName;
-    }
-
     inline void setRemoteSession(RemoteSession *session)
     {
         remoteSession = session;
@@ -92,6 +87,8 @@ public:
 
     void sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode);
     void sendCustonMsg(DataType t, const QCborValue& v);
+
+    void closeConnection();
 
 signals:
     void readyForUse();
@@ -123,12 +120,10 @@ private:
     QByteArray byteBuffer;
     QByteArray localUniqueId;
     QByteArray peerUniqueId;
-    ConnectionState state = WaitingForGreeting;
+    ConnectionState mState = WaitingForGreeting;
     DataType currentDataType = Undefined;
     QBasicTimer transferTimer;
     bool isGreetingMessageSent = false;
-
-    quint64 hashedSessionName = 0;
 
     Side mSide = Side::Server;
 };

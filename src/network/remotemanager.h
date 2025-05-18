@@ -34,8 +34,7 @@ class PeerManager;
 class PeerConnection;
 
 class RemoteSession;
-
-class RemoteCircuitBridge;
+class RemoteSessionsModel;
 
 class RemoteManager : public QObject
 {
@@ -49,6 +48,8 @@ public:
     QString sessionName() const;
     void setSessionName(const QString &newSessionName);
 
+    void clear();
+
     void setOnline(bool val);
     bool isOnline() const;
 
@@ -57,20 +58,16 @@ public:
 
     void refreshNetworkAddresses();
 
-    void addRemoteBridge(RemoteCircuitBridge *bridge, const QString& peerSession);
-    void removeRemoteBridge(RemoteCircuitBridge *bridge, const QString& peerSession);
-
-    void onLocalBridgeModeChanged(quint64 peerSessionId, quint64 peerNodeId,
-                                  qint8 mode, qint8 pole, qint8 replyToMode);
-
     inline bool isSessionReferenced(const QString& name) const
     {
-        const quint64 peerConnId = qHash(name);
-        return mRemoteSessions.contains(peerConnId);
+        return mRemoteSessions.contains(name);
     }
 
     RemoteSession* addRemoteSession(const QString& sessionName);
+    RemoteSession* getRemoteSession(const QString& sessionName) const;
     void removeRemoteSession(const QString& sessionName);
+
+    RemoteSessionsModel *remoteSessionsModel() const;
 
 signals:
     void networkStateChanged();
@@ -78,7 +75,6 @@ signals:
 private:
     friend class PeerClient;
     void addConnection(PeerConnection *conn);
-    void removeConnection(PeerConnection *conn);
 
     friend class RemoteSession;
     bool renameRemoteSession(const QString &fromName, const QString &toName);
@@ -86,8 +82,9 @@ private:
 private:
     PeerClient *mPeerClient = nullptr;
     PeerManager *mPeerManager = nullptr;
+    RemoteSessionsModel *mRemoteSessionsModel;
 
-    QHash<qint64, RemoteSession *> mRemoteSessions;
+    QHash<QString, RemoteSession *> mRemoteSessions;
 };
 
 #endif // REMOTEMANAGER_H

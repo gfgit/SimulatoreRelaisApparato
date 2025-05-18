@@ -79,18 +79,23 @@ public:
     void onConnected(PeerConnection *conn);
     void onDisconnected();
 
-    void sendBridgesStatusTo(PeerConnection *conn);
-    void sendBridgesTo(PeerConnection *conn);
+    void sendBridgesStatusToPeer();
+    void sendBridgesToPeer();
+
+    bool isRemoteBridgeNameAvailable(const QString& name) const;
 
 public:
     void onRemoteBridgeResponseReceived(PeerConnection *conn,
                                         const BridgeResponse &msg);
 
+    void onRemoteBridgeListReceived(PeerConnection *conn,
+                                    const QVector<BridgeListItem> &list);
+
     void onRemoteBridgeModeChanged(quint64 localNodeId,
                                    qint8 mode, qint8 pole, qint8 replyToMode);
 
-    void onRemoteBridgeListReceived(PeerConnection *conn,
-                                    const QVector<BridgeListItem> &list);
+    void onLocalBridgeModeChanged(quint64 peerNodeId,
+                                  qint8 mode, qint8 pole, qint8 replyToMode);
 
 private:
     QString mSessionName;

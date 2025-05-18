@@ -174,6 +174,7 @@ bool SimulationObjectOptionsWidget::eventFilter(QObject *watched, QEvent *ev)
         }
         else if(QTabBar *tabBar = qobject_cast<QTabBar *>(watched))
         {
+            Q_UNUSED(tabBar);
             ev->ignore();
             return true;
         }

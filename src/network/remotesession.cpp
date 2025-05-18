@@ -25,10 +25,7 @@
 #include "remotemanager.h"
 #include "peerconnection.h"
 
-#include "../objects/abstractsimulationobjectmodel.h"
 #include "../objects/circuit_bridge/remotecircuitbridge.h"
-
-#include "../views/modemanager.h"
 
 #include <QCborMap>
 #include <QCborArray>
@@ -42,7 +39,11 @@ RemoteSession::RemoteSession(const QString &sessionName, RemoteManager *remoteMg
 
 RemoteSession::~RemoteSession()
 {
-
+    const auto bridges = mBridges;
+    for(RemoteCircuitBridge *bridge : bridges)
+    {
+        bridge->setRemoteSession(nullptr);
+    }
 }
 
 RemoteManager *RemoteSession::remoteMgr() const
@@ -86,11 +87,9 @@ void RemoteSession::onConnected(PeerConnection *conn)
     mPeerConn = conn;
     mPeerConn->setRemoteSession(this);
 
-    const qint64 remoteSessionHash = qHash(mSessionName);
-
-    for(RemoteCircuitBridge *bridge : std::as_const(mBridges))
+    if(mPeerConn->side() == PeerConnection::Side::Server)
     {
-        bridge->mPeerSessionId = remoteSessionHash;
+        sendBridgesToPeer();
     }
 }
 
@@ -104,7 +103,6 @@ void RemoteSession::onDisconnected()
     while(br != mBridges.end())
     {
         RemoteCircuitBridge *bridge = *br;
-        bridge->mPeerSessionId = 0;
         bridge->mPeerNodeId = 0;
         bridge->onRemoteDisconnected();
         if(bridge->remoteSessionName().isEmpty())
@@ -117,20 +115,26 @@ void RemoteSession::onDisconnected()
     }
 }
 
-void RemoteSession::sendBridgesStatusTo(PeerConnection *conn)
+void RemoteSession::sendBridgesStatusToPeer()
 {
+    if(!mPeerConn)
+        return;
+
     // TODO: maybe make a single big message with a list of all bridges
     for(RemoteCircuitBridge *bridge : std::as_const(mBridges))
     {
-        if(bridge->mPeerSessionId == 0 || bridge->mPeerNodeId == 0)
+        if(bridge->mPeerNodeId == 0)
             continue;
 
         bridge->onRemoteStarted();
     }
 }
 
-void RemoteSession::sendBridgesTo(PeerConnection *conn)
+void RemoteSession::sendBridgesToPeer()
 {
+    if(!mPeerConn)
+        return;
+
     QCborMap map;
 
     quint64 localId = 0;
@@ -143,11 +147,22 @@ void RemoteSession::sendBridgesTo(PeerConnection *conn)
 
         QCborArray arr;
         arr.append(bridge->name());
-        arr.append(bridge->mPeerNodeName);
+        arr.append(bridge->peerNodeName());
         map.insert(localId, arr);
     }
 
-    conn->sendCustonMsg(PeerConnection::BridgeList, map);
+    mPeerConn->sendCustonMsg(PeerConnection::BridgeList, map);
+}
+
+bool RemoteSession::isRemoteBridgeNameAvailable(const QString &name) const
+{
+    for(RemoteCircuitBridge *bridge : std::as_const(mBridges))
+    {
+        if(bridge->peerNodeName() == name)
+            return false;
+    }
+
+    return true;
 }
 
 void RemoteSession::onRemoteBridgeResponseReceived(PeerConnection *conn, const BridgeResponse &msg)
@@ -158,7 +173,6 @@ void RemoteSession::onRemoteBridgeResponseReceived(PeerConnection *conn, const B
         if(!bridge)
             continue;
 
-        bridge->mPeerSessionId = 0;
         bridge->mPeerNodeId = 0;
         bridge->onRemoteDisconnected();
     }
@@ -175,24 +189,14 @@ void RemoteSession::onRemoteBridgeResponseReceived(PeerConnection *conn, const B
     if(conn->side() == PeerConnection::Side::Client)
     {
         // Client side has finished, send bridge initial status
-        sendBridgesStatusTo(conn);
+        sendBridgesStatusToPeer();
     }
-}
-
-void RemoteSession::onRemoteBridgeModeChanged(quint64 localNodeId,
-                                              qint8 mode, qint8 pole, qint8 replyToMode)
-{
-    RemoteCircuitBridge *bridge = mBridges.at(localNodeId - 1);
-    if(bridge)
-        bridge->onRemoteNodeModeChanged(mode, pole, replyToMode);
 }
 
 void RemoteSession::onRemoteBridgeListReceived(PeerConnection *conn, const QVector<BridgeListItem> &list)
 {
     QCborArray failedIds;
     QCborMap map;
-
-    auto model = remoteMgr()->modeMgr()->modelForType(RemoteCircuitBridge::Type);
 
     for(const BridgeListItem& item : list)
     {
@@ -208,29 +212,11 @@ void RemoteSession::onRemoteBridgeListReceived(PeerConnection *conn, const QVect
 
         if(!obj)
         {
-            RemoteCircuitBridge *candidate = static_cast<RemoteCircuitBridge *>(model->getObjectByName(item.localNodeName));
-            if(candidate && candidate->isRemote()
-                    && (candidate->mPeerSessionId == 0 || candidate->mPeerSessionId == conn->getHashedSessionName()))
-            {
-                obj = candidate;
-            }
-        }
-
-        if(!obj)
-        {
             failedIds.append(qint64(item.peerNodeId));
             continue;
         }
 
         obj->mPeerNodeId = item.peerNodeId;
-        obj->mPeerNodeName = item.peerNodeName;
-
-        if(!obj->mPeerSessionId)
-        {
-            obj->mPeerSessionId = conn->getHashedSessionName();
-            map.insert(item.peerNodeId, mBridges.size());
-            addRemoteBridge(obj);
-        }
     }
 
     QCborArray msg;
@@ -240,11 +226,24 @@ void RemoteSession::onRemoteBridgeListReceived(PeerConnection *conn, const QVect
 
     if(conn->side() == PeerConnection::Side::Client)
     {
-        sendBridgesTo(conn);
+        sendBridgesToPeer();
     }
     else
     {
         // Server side has finished, send initial state
-        sendBridgesStatusTo(conn);
+        sendBridgesStatusToPeer();
     }
+}
+
+void RemoteSession::onRemoteBridgeModeChanged(quint64 localNodeId,
+                                              qint8 mode, qint8 pole, qint8 replyToMode)
+{
+    RemoteCircuitBridge *bridge = mBridges.at(localNodeId - 1);
+    if(bridge)
+        bridge->onRemoteNodeModeChanged(mode, pole, replyToMode);
+}
+
+void RemoteSession::onLocalBridgeModeChanged(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode)
+{
+    mPeerConn->sendBridgeStatus(peerNodeId, mode, pole, replyToMode);
 }

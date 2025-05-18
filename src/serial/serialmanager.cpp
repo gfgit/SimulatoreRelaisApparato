@@ -644,6 +644,19 @@ bool SerialManager::changeRemoteBridgeOutput(RemoteCircuitBridge *bridge, const 
     return true;
 }
 
+bool SerialManager::isInputOutputFree(const QString &devName, int inputOutputId, bool isInput) const
+{
+    const quint64 deviceId = qHash(devName);
+    auto dev = mDevices.find(deviceId);
+    if(dev == mDevices.end())
+        return false;
+
+    if(isInput)
+        return !dev->inputs.contains(inputOutputId);
+    else
+        return !dev->outputs.contains(inputOutputId);
+}
+
 void SerialManager::SerialDevice::reset()
 {
     for(RemoteCircuitBridge *bridge : std::as_const(inputs))

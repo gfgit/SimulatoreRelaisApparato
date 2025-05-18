@@ -139,6 +139,15 @@ void PeerConnection::sendCustonMsg(DataType t, const QCborValue &v)
     writer.endMap();
 }
 
+void PeerConnection::closeConnection()
+{
+    if(remoteSession)
+        remoteSession->onDisconnected();
+
+    if(state() != UnconnectedState && state() != ClosingState)
+        disconnectFromHost();
+}
+
 void PeerConnection::timerEvent(QTimerEvent *timerEvent)
 {
     if (timerEvent->timerId() == transferTimer.timerId())
@@ -162,13 +171,13 @@ void PeerConnection::processReadyRead()
     reader.reparse();
     while (reader.lastError() == QCborError::NoError)
     {
-        if (state == WaitingForGreeting)
+        if (mState == WaitingForGreeting)
         {
             if (!reader.isArray())
                 break;                  // protocol error
 
             reader.enterContainer();    // we'll be in this array forever
-            state = ReadingGreeting;
+            mState = ReadingGreeting;
         }
         else if (reader.containerDepth() == 1)
         {
@@ -199,15 +208,15 @@ void PeerConnection::processReadyRead()
             // Current state: read command payload
             if (currentDataType == Greeting)
             {
-                if (state == ReadingGreeting)
+                if (mState == ReadingGreeting)
                 {
                     if (!reader.isContainer() || !reader.isLengthKnown() || reader.length() != 2)
                         break; // protocol error
-                    state = ProcessingGreeting;
+                    mState = ProcessingGreeting;
                     reader.enterContainer();
                 }
 
-                if (state != ProcessingGreeting)
+                if (mState != ProcessingGreeting)
                     break; // protocol error
 
                 if (reader.isString())
@@ -225,7 +234,7 @@ void PeerConnection::processReadyRead()
                         processGreeting();
                     }
                 }
-                if (state == ProcessingGreeting)
+                if (mState == ProcessingGreeting)
                     continue;
             }
             else if (currentDataType == BridgeList)
@@ -404,8 +413,6 @@ void PeerConnection::sendGreetingMessage()
 void PeerConnection::processGreeting()
 {
     peerSessionName = buffer;
-    hashedSessionName = qHash(peerSessionName);
-
     peerNickName = peerSessionName + '@' + peerAddress().toString() + ':'
             + QString::number(peerPort());
     currentDataType = Undefined;
@@ -422,7 +429,7 @@ void PeerConnection::processGreeting()
 
     pingTimer.start();
     pongTime.start();
-    state = ReadyForUse;
+    mState = ReadyForUse;
     emit readyForUse();
 }
 

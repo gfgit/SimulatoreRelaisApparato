@@ -84,7 +84,7 @@ public:
     virtual int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const;
 
 signals:
-    void nameChanged(const QString& name);
+    void nameChanged(const QString& name, const QString& oldName);
     void descriptionChanged(const QString& name);
 
     void settingsChanged(AbstractSimulationObject *self);

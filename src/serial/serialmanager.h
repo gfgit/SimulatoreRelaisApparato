@@ -57,6 +57,8 @@ public:
     bool changeRemoteBridgeOutput(RemoteCircuitBridge *bridge, const QString &devName,
                                   int oldValue, int newValue);
 
+    bool isInputOutputFree(const QString& devName, int inputOutputId, bool isInput) const;
+
 protected:
     void timerEvent(QTimerEvent *e) override;
 

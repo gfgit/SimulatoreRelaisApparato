@@ -236,9 +236,9 @@ QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ViewManager *vi
         if(!success)
         {
             QString text;
-            if(bridge->isRemote() || bridge->getUseSerial())
+            if(bridge->isRemote())
             {
-                text = StandardNodeTypes::tr("Selected Circuit Bridge <b>%1</b> is connected to a remote session and has already one node on this session.<br>"
+                text = StandardNodeTypes::tr("Selected Circuit Bridge <b>%1</b> is connected to a remote session or serial device and has already one node on this session.<br>"
                                              "Connecting this node too will remove remote session connection.<br>"
                                              "Do you want to proceed?").arg(bridge->name());
             }

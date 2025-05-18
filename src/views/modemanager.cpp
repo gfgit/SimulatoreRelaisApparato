@@ -285,6 +285,29 @@ QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFileOld)
         objects["ace_sasib_lever_3"] = leverModel;
     }
 
+    {
+        // Custom name for RemoteCircuitBridge
+        QJsonObject bridgesModel = objects.value("circuit_bridge").toObject();
+        const QJsonArray arr = bridgesModel.value("objects").toArray();
+        QJsonArray newBridges;
+
+        for(const QJsonValue& v : arr)
+        {
+            QJsonObject bridgeObj = v.toObject();
+
+            QString remoteCustomName = bridgeObj.take("remote_node").toString();
+            if(remoteCustomName == bridgeObj.value("name").toString())
+                remoteCustomName.clear();
+
+            bridgeObj["remote_custom_node"] = remoteCustomName;
+
+            newBridges.append(bridgeObj);
+        }
+
+        bridgesModel["objects"] = newBridges;
+        objects["circuit_bridge"] = bridgesModel;
+    }
+
     // Save new file
     QJsonObject newFile = origFile;
     newFile["file_version"] = ModeManager::FileVersion::V2;
@@ -555,7 +578,7 @@ void ModeManager::clearAll()
     for(auto model : mObjectModels)
         model->clear();
 
-    mRemoteMgr->setSessionName(QString());
+    mRemoteMgr->clear();
 
     resetFileEdited();
 
