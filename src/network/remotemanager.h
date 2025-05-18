@@ -65,7 +65,7 @@ public:
 
     RemoteSession* addRemoteSession(const QString& sessionName);
     RemoteSession* getRemoteSession(const QString& sessionName) const;
-    void removeRemoteSession(const QString& sessionName);
+    void removeRemoteSession(RemoteSession *remoteSession);
 
     RemoteSessionsModel *remoteSessionsModel() const;
 

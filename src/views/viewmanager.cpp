@@ -49,6 +49,8 @@
 #include "../objects/simulationobjectoptionswidget.h"
 #include "../objects/simulationobjectlistwidget.h"
 
+#include "../network/view/remotesessionlistwidget.h"
+
 #include <kddockwidgets/DockWidget.h>
 #include <kddockwidgets/core/DockWidget.h>
 
@@ -609,6 +611,7 @@ void ViewManager::closeAll()
 
     delete mCircuitListViewDock;
     delete mPanelListViewDock;
+    delete mRemoteSessionsListViewDock;
 
     qDeleteAll(mObjectListDocks);
     mObjectListDocks.clear();
@@ -691,6 +694,25 @@ void ViewManager::showObjectListView(const QString &objType)
     // By default add to Main Window
     mainWin()->addDockWidget(dock,
                              KDDockWidgets::Location_OnLeft);
+}
+
+void ViewManager::showRemoteSessionsListView()
+{
+    if(mRemoteSessionsListViewDock)
+    {
+        mRemoteSessionsListViewDock->raise();
+        mRemoteSessionsListViewDock->activateWindow();
+        return;
+    }
+
+    RemoteSessionListWidget *remoteSessionsListView = new RemoteSessionListWidget(this);
+
+    mRemoteSessionsListViewDock = new DockWidget(QLatin1String("remote_sessions_list"),
+                                        KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    mRemoteSessionsListViewDock->setWidget(remoteSessionsListView);
+    mRemoteSessionsListViewDock->setTitle(tr("Remote Sessions"));
+
+    mainWin()->addDockWidget(mRemoteSessionsListViewDock, KDDockWidgets::Location_OnLeft);
 }
 
 bool ViewManager::batchCircuitNodeEdit(bool objectReplace)

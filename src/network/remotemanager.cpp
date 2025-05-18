@@ -97,7 +97,7 @@ void RemoteManager::clear()
 
     const auto remoteSessions = mRemoteSessions;
     for(RemoteSession *r : remoteSessions)
-        removeRemoteSession(r->getSessionName());
+        removeRemoteSession(r);
 }
 
 void RemoteManager::setOnline(bool val)
@@ -176,14 +176,14 @@ RemoteSession *RemoteManager::getRemoteSession(const QString &sessionName) const
     return mRemoteSessions.value(sessionName);
 }
 
-void RemoteManager::removeRemoteSession(const QString &sessionName)
+void RemoteManager::removeRemoteSession(RemoteSession *remoteSession)
 {
-    RemoteSession *remoteSession = mRemoteSessions.take(sessionName);
-    if(remoteSession)
-    {
-        mRemoteSessionsModel->removeRemoteSession(remoteSession);
-        delete remoteSession;
-    }
+    if(!remoteSession)
+        return;
+
+    mRemoteSessions.remove(remoteSession->getSessionName());
+    mRemoteSessionsModel->removeRemoteSession(remoteSession);
+    delete remoteSession;
 }
 
 void RemoteManager::addConnection(PeerConnection *conn)

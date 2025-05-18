@@ -1,5 +1,7 @@
 # src/network
 
+add_subdirectory(view)
+
 set(SIMULATORE_RELAIS_SOURCES
     ${SIMULATORE_RELAIS_SOURCES}
 

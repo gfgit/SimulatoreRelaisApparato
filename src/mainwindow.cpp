@@ -281,10 +281,14 @@ void MainWindow::buildMenuBar()
     actionNetworkRefresh->setToolTip(tr("Useful if network connections changed"));
     actionNetworkRefresh->setEnabled(remoteMgr->isOnline());
     connect(actionNetworkRefresh, &QAction::toggled,
-            remoteMgr, [this, remoteMgr]()
+            remoteMgr, [remoteMgr]()
     {
         remoteMgr->refreshNetworkAddresses();
     });
+
+    QAction *showRemoteSessionList = menuNetwork->addAction(tr("Remote Sessions list"));
+    connect(showRemoteSessionList, &QAction::triggered,
+            mViewMgr, &ViewManager::showRemoteSessionsListView);
 
     connect(remoteMgr, &RemoteManager::networkStateChanged,
             this, [this, remoteMgr]()

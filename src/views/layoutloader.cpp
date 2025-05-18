@@ -338,6 +338,14 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
         return viewMgr->mObjectEdits.value(obj);
     }
 
+    // Circuits
+    if(name == QLatin1String("remote_sessions_list"))
+    {
+        viewMgr->showRemoteSessionsListView();
+        setFlag(viewMgr->mRemoteSessionsListViewDock.data(), false);
+        return viewMgr->mRemoteSessionsListViewDock.data();
+    }
+
     return nullptr;
 }
 
