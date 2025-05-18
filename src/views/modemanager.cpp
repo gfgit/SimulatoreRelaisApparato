@@ -473,10 +473,16 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
     setMode(FileMode::LoadingFile);
 
     QJsonObject rootObj = obj;
-    if(obj.value("file_version") != FileVersion::Current)
+    const int fileVers = obj.value("file_version").toInt();
+    if(fileVers < FileVersion::Current)
     {
         // Old file, try to convert it
         rootObj = convertOldFileFormat(obj);
+    }
+    else if(fileVers > FileVersion::Current)
+    {
+        // File is too new, must be opened with future version
+        return false;
     }
 
     mRemoteMgr->setSessionName(obj.value("session_name").toString());

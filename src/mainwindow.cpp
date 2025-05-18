@@ -601,7 +601,17 @@ void MainWindow::loadFile(const QString& fileName)
 
     const QJsonObject rootObj = doc.object();
 
-    mModeMgr->loadFromJSON(rootObj);
+    if(!mModeMgr->loadFromJSON(rootObj))
+    {
+        // Loading error, show error to user and start new session
+        onNew();
+
+        QMessageBox::warning(this,
+                             tr("Load failed."),
+                             tr("File %1 could not be loaded.\n"
+                                "Check file version is not too new."));
+        return;
+    }
 
     mViewMgr->loadLayoutFile();
 
