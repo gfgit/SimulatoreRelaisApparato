@@ -1125,7 +1125,7 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="126"/>
-        <location filename="../mainwindow.cpp" line="727"/>
+        <location filename="../mainwindow.cpp" line="741"/>
         <source>Save Layout</source>
         <translation>Salva Layout</translation>
     </message>
@@ -1221,86 +1221,103 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
         <translation>Utile se la connessione di rete è cambiata</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="305"/>
+        <location filename="../mainwindow.cpp" line="309"/>
         <source>Circuit Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="306"/>
+        <location filename="../mainwindow.cpp" line="310"/>
         <source>Circuit Tools 2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="311"/>
+        <location filename="../mainwindow.cpp" line="315"/>
         <source>New Circuit Item</source>
         <translation>Nuovo Elemento Circuito</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="317"/>
-        <location filename="../mainwindow.cpp" line="400"/>
+        <location filename="../mainwindow.cpp" line="321"/>
+        <location filename="../mainwindow.cpp" line="404"/>
         <source>Batch Edit</source>
         <translation>Modifica Gruppo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="318"/>
-        <location filename="../mainwindow.cpp" line="401"/>
+        <location filename="../mainwindow.cpp" line="322"/>
+        <location filename="../mainwindow.cpp" line="405"/>
         <source>Object Replace</source>
         <translation>Sostituisci Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="372"/>
+        <location filename="../mainwindow.cpp" line="376"/>
         <source>&lt;b&gt;(C)&lt;/b&gt; Cable</source>
         <translation>&lt;b&gt;(C)&lt;/b&gt; Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="432"/>
+        <location filename="../mainwindow.cpp" line="436"/>
         <source>%1</source>
         <translation>%1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="707"/>
+        <location filename="../mainwindow.cpp" line="614"/>
+        <source>Load failed.</source>
+        <translation>Caricamento fallito.</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="615"/>
+        <source>File %1 could not be loaded.
+Check file version is not too new.</source>
+        <translation>Impossibile caricare il file %1.
+Controlla che la versione del file non sia troppo nuova.</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="721"/>
         <source>Open Layout</source>
         <translation>Apri Layout</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="371"/>
+        <location filename="../mainwindow.cpp" line="375"/>
         <source>Cable</source>
         <translation>Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="391"/>
+        <location filename="../mainwindow.cpp" line="289"/>
+        <source>Remote Sessions</source>
+        <translation>Sessioni Remote</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="395"/>
         <source>Panel Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="395"/>
+        <location filename="../mainwindow.cpp" line="399"/>
         <source>New Panel Item</source>
         <translation>Nuovo Elemento QL</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="503"/>
+        <location filename="../mainwindow.cpp" line="507"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="563"/>
+        <location filename="../mainwindow.cpp" line="567"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="620"/>
+        <location filename="../mainwindow.cpp" line="634"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="621"/>
+        <location filename="../mainwindow.cpp" line="635"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="686"/>
+        <location filename="../mainwindow.cpp" line="700"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>
@@ -1603,12 +1620,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>PeerConnection</name>
     <message>
-        <location filename="../network/peerconnection.h" line="117"/>
+        <location filename="../network/peerconnection.h" line="114"/>
         <source>undefined</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../network/peerconnection.h" line="118"/>
+        <location filename="../network/peerconnection.h" line="115"/>
         <source>unknown</source>
         <translation></translation>
     </message>
@@ -1712,6 +1729,62 @@ Scegli un altro nome:</translation>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="44"/>
         <source>Remote Node</source>
         <translation>Nodo Remoto</translation>
+    </message>
+</context>
+<context>
+    <name>RemoteSessionListWidget</name>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="51"/>
+        <source>Add</source>
+        <translation>Aggiungi</translation>
+    </message>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="52"/>
+        <source>Add Remote Session</source>
+        <translation>Aggiungi Sessione Remota</translation>
+    </message>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="55"/>
+        <source>Remove</source>
+        <translation>Elimina</translation>
+    </message>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="56"/>
+        <source>Remove Remote Session</source>
+        <translation>Elimina Sessione Remota</translation>
+    </message>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="95"/>
+        <source>New Remote Session</source>
+        <translation>Nuova Sessione Remota</translation>
+    </message>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="97"/>
+        <source>Name:</source>
+        <translation>Nome:</translation>
+    </message>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="98"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; already added.&lt;br&gt;Set another name:</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; già presente.&lt;br&gt;Imposta un altro nome:</translation>
+    </message>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="131"/>
+        <source>Delete Remote Session?</source>
+        <translation>Eliminare Sessione Remota?</translation>
+    </message>
+    <message>
+        <location filename="../network/view/remotesessionlistwidget.cpp" line="132"/>
+        <source>Are you sure to delete &lt;b&gt;%1&lt;/b&gt;?&lt;br&gt;This will reset all remote objects set to this session.</source>
+        <translation>Sei sicuro di voler eliminare &lt;b&gt;%1&lt;/b&gt;?&lt;br&gt;Facendolo, si resettano tutti gli oggetti agganciati a questa sessione.</translation>
+    </message>
+</context>
+<context>
+    <name>RemoteSessionsModel</name>
+    <message>
+        <location filename="../network/remotesessionsmodel.cpp" line="47"/>
+        <source>Name</source>
+        <translation>Nome</translation>
     </message>
 </context>
 <context>
@@ -2060,12 +2133,12 @@ Scegli un altro nome:</translation>
         <translation>Nodi</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectoptionswidget.cpp" line="221"/>
+        <location filename="../objects/simulationobjectoptionswidget.cpp" line="222"/>
         <source>Edit %1 (%2)</source>
         <translation>Modifica %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../objects/simulationobjectoptionswidget.cpp" line="257"/>
+        <location filename="../objects/simulationobjectoptionswidget.cpp" line="258"/>
         <source>Name already exists</source>
         <translation>Nome già esistente</translation>
     </message>
@@ -2086,11 +2159,6 @@ Scegli un altro nome:</translation>
         <location filename="../circuits/edit/standardnodetypes.cpp" line="165"/>
         <source>Has central connector</source>
         <translation>Ha il connettore centrale</translation>
-    </message>
-    <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="241"/>
-        <source>Selected Circuit Bridge &lt;b&gt;%1&lt;/b&gt; is connected to a remote session and has already one node on this session.&lt;br&gt;Connecting this node too will remove remote session connection.&lt;br&gt;Do you want to proceed?</source>
-        <translation>Il Ponte Circuito selezionato &lt;b&gt;%1&lt;/b&gt; è connesso ad una sessione remota e ha già un nodo in questa sessione.&lt;br&gt;Connettendo anche questo nodo verrà rimossa la connessione alla sessione remota.&lt;br&gt;Procedere?</translation>
     </message>
     <message>
         <location filename="../circuits/edit/standardnodetypes.cpp" line="247"/>
@@ -2279,6 +2347,11 @@ Scegli un altro nome:</translation>
         <translation>Lampadina</translation>
     </message>
     <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="241"/>
+        <source>Selected Circuit Bridge &lt;b&gt;%1&lt;/b&gt; is connected to a remote session or serial device and has already one node on this session.&lt;br&gt;Connecting this node too will remove remote session connection.&lt;br&gt;Do you want to proceed?</source>
+        <translation>Il Ponte Circuito selezionato &lt;b&gt;%1&lt;/b&gt; è connesso ad una sessione remota o dispositivo seriale e ha già un nodo in questa sessione.&lt;br&gt;Connettendo anche questo nodo verrà rimossa la connessione alla sessione remota.&lt;br&gt;Procedere?</translation>
+    </message>
+    <message>
         <location filename="../circuits/edit/standardnodetypes.cpp" line="596"/>
         <source>Selected Screen Relay &lt;b&gt;%1&lt;/b&gt; is already powered by another node.&lt;br&gt;Setting this screen relay on this node will remove it from previous powering node.&lt;br&gt;Do you want to proceed?</source>
         <translation>Il Relé Schermo selezionato &lt;b&gt;%1&lt;/b&gt; è già alimentato da un altro nodo.&lt;br&gt;Impostando il Relé Schermo su questo nodo lo rimuoverà dal precedente nodo di alimentazione.&lt;br&gt;Procedere?</translation>
@@ -2354,218 +2427,223 @@ Scegli un altro nome:</translation>
 <context>
     <name>StandardObjectTypes</name>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="150"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="155"/>
         <source>Magnet</source>
         <translation>Magnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="249"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="254"/>
         <source>Can be pressed</source>
         <translation>Può essere premuto</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="260"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="265"/>
         <source>Can be extracted</source>
         <translation>Può essere estratto</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="283"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="288"/>
         <source>Mode:</source>
         <translation>Modalità:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="311"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="316"/>
         <source>Loop sound</source>
         <translation>Audio in Loop</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="323"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="328"/>
         <source>Sound File:</source>
         <translation>File audio:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="325"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="330"/>
         <source>Browse</source>
         <translation>Esplora</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="328"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="333"/>
         <source>Apply</source>
         <translation>Applica</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="343"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="348"/>
         <source>Choose WAV Sound</source>
         <translation>Scegli Audio WAV</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="376"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="381"/>
         <source>Type:</source>
         <translation>Tipo:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="399"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="404"/>
         <source>Twin Handle:</source>
         <translation>Maniglia Gemella:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="415"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="420"/>
         <source>Liberation Relay:</source>
         <translation>Relè Liberazione:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="430"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="435"/>
         <source>Artificial Liberation Button:</source>
         <translation>Pulsante Liberazione Artificiale:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="482"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="487"/>
         <source>Description A:</source>
         <translation>Descrizione A:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="483"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="488"/>
         <source>Description B:</source>
         <translation>Descrizione B:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="486"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="491"/>
         <source>Shown on node B</source>
         <translation>Mostrato sul nodo B</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="485"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="490"/>
         <source>Shown on node A</source>
         <translation>Mostrato sul nodo A</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="155"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="160"/>
         <source>Left button:</source>
         <translation>Pulsante Sinistro:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="156"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="161"/>
         <source>Right button:</source>
         <translation>Pulsante Destro:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="176"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="181"/>
         <source>Right button switches magent.</source>
         <translation>Pulsante destro aziona il magnete.</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="177"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="182"/>
         <source>Right button is mechanically connected to the electromagnet and can pull it up when pressed.</source>
         <translation>Il pulsante destro è connesso meccanicamente all&apos;elettromagnete e può sollevarlo quando viene premuto.</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="219"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="224"/>
         <source>Left position can be security-sealed</source>
         <translation>La posizione sinistra può essere piombata</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="493"/>
-        <source>To Remote Node</source>
-        <translation>Ad un Nodo Remoto</translation>
-    </message>
-    <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="503"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="516"/>
         <source>Peer Session:</source>
         <translation>Sessione compagna:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="511"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="537"/>
         <source>Peer Node:</source>
         <translation>Nodo compagno:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="518"/>
-        <source>Use serial device</source>
-        <translation>Usa dispositivo seriale</translation>
+        <location filename="../objects/standardobjecttypes.cpp" line="498"/>
+        <source>Remote Session</source>
+        <translation>Sessione Remota</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="528"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="506"/>
+        <source>Clear Peer Session</source>
+        <translation>Togli sessione remota</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="546"/>
+        <source>Serial Device</source>
+        <translation>Dispositivo Seriale</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="551"/>
         <source>Device Name:</source>
         <translation>Nome Dispositivo:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="537"/>
-        <location filename="../objects/standardobjecttypes.cpp" line="549"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="560"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="572"/>
         <source>None</source>
         <translation>Nessuno</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="538"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="561"/>
         <source>Input ID:</source>
         <translation>ID Ingresso:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="550"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="573"/>
         <source>Output ID:</source>
         <translation>ID Uscita:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="575"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="599"/>
         <source>Node A not set!</source>
         <translation>Nodo A non impostato!</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="580"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="604"/>
         <source>Node B not set!</source>
         <translation>Nodo B non impostato!</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="621"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="645"/>
         <source>Relais</source>
         <translation>Relè</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="633"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="657"/>
         <source>Screen Relais</source>
         <translation>Relè Schermo</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="648"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="672"/>
         <source>ACEI Lever</source>
         <translation>Leva ACEI</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="660"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="684"/>
         <source>Ligth bulb</source>
         <translation>Lampada</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="672"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="696"/>
         <source>Electromagnet</source>
         <translation>Elettromagnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="688"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="712"/>
         <source>ACE Lever 2 pos</source>
         <translation>Leva ACE 2 pos</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="705"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="729"/>
         <source>ACE Lever 3 pos</source>
         <translation>Leva ACE 3 pos</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="721"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="745"/>
         <source>Generic Button</source>
         <translation>Pulsante Generico</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="733"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="757"/>
         <source>Sound Object</source>
         <translation>Oggetto Sonoro</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="749"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="773"/>
         <source>BEM Handle</source>
         <translation>Maniglia BEM</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="761"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="785"/>
         <source>Circuit Bridge</source>
         <translation>Ponte Circuito</translation>
     </message>
@@ -2869,50 +2947,55 @@ Questo layout verrà caricato all&apos;avvio.</translation>
 <context>
     <name>ViewManager</name>
     <message>
-        <location filename="../views/viewmanager.cpp" line="130"/>
-        <location filename="../views/viewmanager.cpp" line="145"/>
+        <location filename="../views/viewmanager.cpp" line="132"/>
+        <location filename="../views/viewmanager.cpp" line="147"/>
         <source>Empty</source>
         <translation>Vuoto</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="137"/>
+        <location filename="../views/viewmanager.cpp" line="139"/>
         <source>Circuit %1 (%2)</source>
         <translation>Circuito %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="152"/>
+        <location filename="../views/viewmanager.cpp" line="154"/>
         <source>Panel %1 (%2)</source>
         <translation>Pannello %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="272"/>
+        <location filename="../views/viewmanager.cpp" line="274"/>
         <source>Properties Circuit %1</source>
         <translation>Proprietà Circuito %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="481"/>
+        <location filename="../views/viewmanager.cpp" line="483"/>
         <source>Properties Panel %1</source>
         <translation>Proprietà Pannello %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="528"/>
+        <location filename="../views/viewmanager.cpp" line="530"/>
         <source>Properties %1 %2</source>
         <translation>Proprietà %1 %2</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="632"/>
+        <location filename="../views/viewmanager.cpp" line="635"/>
         <source>Circuit Sheets</source>
         <translation>Fogli Circuiti</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="652"/>
+        <location filename="../views/viewmanager.cpp" line="655"/>
         <source>Panel Sheets</source>
         <translation>Fogli Banco</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="681"/>
+        <location filename="../views/viewmanager.cpp" line="684"/>
         <source>%1 List</source>
         <translation>Lista %1</translation>
+    </message>
+    <message>
+        <location filename="../views/viewmanager.cpp" line="713"/>
+        <source>Remote Sessions</source>
+        <translation>Sessioni Remote</translation>
     </message>
 </context>
 </TS>
