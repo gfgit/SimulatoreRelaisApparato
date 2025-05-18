@@ -101,7 +101,7 @@ void RemoteCircuitBridge::saveToJSON(QJsonObject &obj) const
     obj["node_descr_A"] = mNodeDescriptionA;
     obj["node_descr_B"] = mNodeDescriptionB;
 
-    obj["remote_session"] = mPeerSession;
+    obj["remote_session"] = mRemoteSession ? mRemoteSession->getSessionName() : QString();
     obj["remote_node_custom"] = mPeerNodeCustomName;
 
     obj["device_name"] = mSerialName;
@@ -151,19 +151,15 @@ void RemoteCircuitBridge::setNodeDescription(bool isA, const QString &newDescr)
     emit settingsChanged(this);
 }
 
-void RemoteCircuitBridge::setIsRemote(bool val)
+bool RemoteCircuitBridge::isRemote() const
 {
-    if(val && !mNodeA && mNodeB)
-    {
-        // Swap nodes and descriptions
-        qSwap(mNodeDescriptionA, mNodeDescriptionB);
-        mNodeB->setIsNodeA(true);
-    }
-    else if(!val)
-    {
-        setRemoteSession(nullptr);
-        setDeviceName(QString());
-    }
+    if(mRemoteSession)
+        return true;
+
+    if(!mSerialName.isEmpty())
+        return true;
+
+    return false;
 }
 
 QString RemoteCircuitBridge::remoteSessionName() const
@@ -203,62 +199,19 @@ bool RemoteCircuitBridge::setRemoteSession(RemoteSession *remoteSession)
     return true;
 }
 
-bool RemoteCircuitBridge::isRemote() const
+void RemoteCircuitBridge::setIsRemote(bool val)
 {
-    if(mRemoteSession)
-        return true;
-
-    if(!mSerialName.isEmpty())
-        return true;
-
-    return false;
-}
-
-void RemoteCircuitBridge::onRemoteSessionRenamed(const QString &toName)
-{
-    mPeerSession = toName;
-}
-
-QString RemoteCircuitBridge::getDeviceName() const
-{
-    return mSerialName;
-}
-
-bool RemoteCircuitBridge::setDeviceName(const QString &name)
-{
-    QString str = name.simplified();
-    if(mSerialName == str)
-        return true;
-
-    SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
-
-    if(!str.isEmpty())
+    if(val && !mNodeA && mNodeB)
     {
-        if(mNodeA && mNodeB)
-            return false;
-
-        if(mSerialInputId != 0 &&
-                serialMgr->isInputOutputFree(str, mSerialInputId, true))
-            return false;
-
-        if(mSerialOutputId != 0 &&
-                serialMgr->isInputOutputFree(str, mSerialOutputId, false))
-            return false;
+        // Swap nodes and descriptions
+        qSwap(mNodeDescriptionA, mNodeDescriptionB);
+        mNodeB->setIsNodeA(true);
     }
-
-    if(!mSerialName.isEmpty())
-        serialMgr->removeRemoteBridge(this, mSerialName);
-
-    mSerialName = str;
-
-    if(!str.isEmpty())
+    else if(!val)
     {
-        serialMgr->addRemoteBridge(this, mSerialName);
-        setIsRemote(true);
+        setRemoteSession(nullptr);
+        setDeviceName(QString());
     }
-
-    emit settingsChanged(this);
-    return true;
 }
 
 void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
@@ -384,6 +337,48 @@ void RemoteCircuitBridge::onSerialInputMode(int mode)
         mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::None,
                                   CircuitPole::First);
     }
+}
+
+QString RemoteCircuitBridge::getDeviceName() const
+{
+    return mSerialName;
+}
+
+bool RemoteCircuitBridge::setDeviceName(const QString &name)
+{
+    QString str = name.simplified();
+    if(mSerialName == str)
+        return true;
+
+    SerialManager *serialMgr = model()->modeMgr()->getSerialManager();
+
+    if(!str.isEmpty())
+    {
+        if(mNodeA && mNodeB)
+            return false;
+
+        if(mSerialInputId != 0 &&
+                serialMgr->isInputOutputFree(str, mSerialInputId, true))
+            return false;
+
+        if(mSerialOutputId != 0 &&
+                serialMgr->isInputOutputFree(str, mSerialOutputId, false))
+            return false;
+    }
+
+    if(!mSerialName.isEmpty())
+        serialMgr->removeRemoteBridge(this, mSerialName);
+
+    mSerialName = str;
+
+    if(!str.isEmpty())
+    {
+        serialMgr->addRemoteBridge(this, mSerialName);
+        setIsRemote(true);
+    }
+
+    emit settingsChanged(this);
+    return true;
 }
 
 int RemoteCircuitBridge::serialInputId() const

@@ -62,12 +62,6 @@ bool RemoteSession::setSessionName(const QString &newName)
 
     mSessionName = nameTrimmed;
 
-    for(RemoteCircuitBridge *bridge : std::as_const(mBridges))
-    {
-        if(!bridge->remoteSessionName().isEmpty())
-            bridge->onRemoteSessionRenamed(mSessionName);
-    }
-
     return true;
 }
 
@@ -99,19 +93,10 @@ void RemoteSession::onDisconnected()
     mPeerConn->setRemoteSession(nullptr);
     mPeerConn = nullptr;
 
-    auto br = mBridges.begin();
-    while(br != mBridges.end())
+    for(RemoteCircuitBridge *bridge : std::as_const(mBridges))
     {
-        RemoteCircuitBridge *bridge = *br;
         bridge->mPeerNodeId = 0;
         bridge->onRemoteDisconnected();
-        if(bridge->remoteSessionName().isEmpty())
-        {
-            br = mBridges.erase(br);
-            continue;
-        }
-
-        br++;
     }
 }
 
@@ -141,9 +126,6 @@ void RemoteSession::sendBridgesToPeer()
     for(RemoteCircuitBridge *bridge : std::as_const(mBridges))
     {
         localId++;
-
-        if(bridge->remoteSessionName().isEmpty())
-            break;
 
         QCborArray arr;
         arr.append(bridge->name());

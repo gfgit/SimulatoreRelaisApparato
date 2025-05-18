@@ -53,6 +53,10 @@ public:
 
     void setNodeDescription(bool isA, const QString& newDescr);
 
+    // Connects to remote session or to serial device
+    bool isRemote() const;
+
+    // Remote Session
     QString remoteSessionName() const;
 
     inline RemoteSession *getRemoteSession() const
@@ -62,14 +66,7 @@ public:
 
     bool setRemoteSession(RemoteSession *remoteSession);
 
-    // TODO: use also getUseSerial() for similar use cases
-    bool isRemote() const;
-
-    void onRemoteSessionRenamed(const QString& toName);
-
-    QString getDeviceName() const;
-    bool setDeviceName(const QString &name);
-
+    // TODO: make private
     void onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode);
     void onRemoteDisconnected();
     void onRemoteStarted();
@@ -84,6 +81,9 @@ public:
 
     bool setPeerNodeCustomName(const QString &newPeerNodeName);
 
+    // Serial Device
+    QString getDeviceName() const;
+    bool setDeviceName(const QString &name);
 
     int serialInputId() const;
     void setSerialInputId(int newSerialInputId);
@@ -109,18 +109,18 @@ private:
     RemoteCableCircuitNode *mNodeA = nullptr;
     RemoteCableCircuitNode *mNodeB = nullptr;
 
-    RemoteSession *mRemoteSession = nullptr;
 
     QString mNodeDescriptionA;
     QString mNodeDescriptionB;
 
-    QString mPeerSession;
-    QString mPeerNodeCustomName;
-
+    // Remote Session
     friend class RemoteManager;
     friend class RemoteSession;
+    RemoteSession *mRemoteSession = nullptr;
+    QString mPeerNodeCustomName;
     size_t mPeerNodeId = 0;
 
+    // Serial Device
     QString mSerialName;
     qint64 mSerialNameId = 0;
     int mSerialInputId = 0;
