@@ -1,5 +1,5 @@
 /**
- * src/objects/lever/ace_sasib/acesasiblever5positions.cpp
+ * src/objects/lever/ace_sasib/acesasiblever2positions.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
