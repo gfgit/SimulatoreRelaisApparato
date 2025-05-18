@@ -83,7 +83,7 @@ bool RemoteCircuitBridge::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     if(!peerSessionName.isEmpty())
     {
         RemoteManager *remoteMgr = model()->modeMgr()->getRemoteManager();
-        RemoteSession *remoteSession = remoteMgr->getRemoteSession(peerSessionName);
+        RemoteSession *remoteSession = remoteMgr->addRemoteSession(peerSessionName);
         setRemoteSession(remoteSession);
     }
 
