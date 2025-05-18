@@ -25,7 +25,10 @@
 #include "remotemanager.h"
 #include "peerconnection.h"
 
+#include "../views/modemanager.h"
+
 #include "../objects/circuit_bridge/remotecircuitbridge.h"
+#include "../objects/circuit_bridge/remotecircuitbridgesmodel.h"
 
 #include <QCborMap>
 #include <QCborArray>
@@ -61,6 +64,13 @@ bool RemoteSession::setSessionName(const QString &newName)
         return false;
 
     mSessionName = nameTrimmed;
+
+    ModeManager *modeMgr = remoteMgr()->modeMgr();
+    modeMgr->setFileEdited();
+
+    RemoteCircuitBridgesModel *bridgesModel = static_cast<RemoteCircuitBridgesModel *>(
+                modeMgr->modelForType(RemoteCircuitBridge::Type));
+    bridgesModel->updateRemoteSessions();
 
     return true;
 }

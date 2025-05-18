@@ -97,3 +97,9 @@ QVariant RemoteCircuitBridgesModel::data(const QModelIndex &idx, int role) const
 
     return AbstractSimulationObjectModel::data(idx, role);
 }
+
+void RemoteCircuitBridgesModel::updateRemoteSessions()
+{
+    emit dataChanged(index(0, RemoteSession),
+                     index(rowCount() - 1, RemoteSession));
+}

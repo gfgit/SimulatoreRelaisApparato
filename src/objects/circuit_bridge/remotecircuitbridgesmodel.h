@@ -47,6 +47,8 @@ public:
 
     // Custom remote circuit bridge specific data:
     QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
+
+    void updateRemoteSessions();
 };
 
 #endif // REMOTE_CIRCUIT_BRIDGES_MODEL_H

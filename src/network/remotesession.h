@@ -103,11 +103,12 @@ private:
 
     QVector<RemoteCircuitBridge *> mBridges;
 
-    struct RemoteObject
+    struct ReplicaObject
     {
-        AbstractSimulationObject *mLocalObject;
+        AbstractSimulationObject *mLocalReplica;
         QString mRemoteCustomName;
     };
+    QVector<ReplicaObject *> mReplicas;
 };
 
 #endif // REMOTESESSION_H
