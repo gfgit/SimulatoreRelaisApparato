@@ -39,7 +39,7 @@ public:
         NCols
     };
 
-    explicit RemoteSessionsModel(RemoteManager *mgr = nullptr);
+    explicit RemoteSessionsModel(RemoteManager *mgr);
 
     RemoteManager *remoteMgr() const;
 

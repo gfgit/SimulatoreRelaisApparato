@@ -111,6 +111,25 @@ void AbstractSimulationObject::getReferencedObjects(QSet<AbstractSimulationObjec
         result.insert(it.key());
 }
 
+void AbstractSimulationObject::setReplicaMode(bool on)
+{
+    if(on == mIsRemoteReplica)
+        return;
+
+    mIsRemoteReplica = on;
+    onReplicaModeChanged(mIsRemoteReplica);
+}
+
+bool AbstractSimulationObject::setReplicaState(const QCborMap &replicaState)
+{
+
+}
+
+void AbstractSimulationObject::getReplicaState(QCborMap &replicaState) const
+{
+
+}
+
 QString AbstractSimulationObject::name() const
 {
     return mName;
@@ -257,4 +276,9 @@ void AbstractSimulationObject::onTrackedObjectDestroyed(AbstractSimulationObject
     {
         iface->onTrackedObjectDestroyed(obj);
     }
+}
+
+void AbstractSimulationObject::onReplicaModeChanged(bool on)
+{
+
 }

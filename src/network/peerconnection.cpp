@@ -31,6 +31,8 @@
 #include <QTimerEvent>
 
 #include <QCborValue>
+#include <QCborMap>
+#include <QCborArray>
 
 using namespace std::chrono_literals;
 
@@ -278,7 +280,7 @@ void PeerConnection::processReadyRead()
 
                     if(remoteSession)
                     {
-                        remoteSession->onRemoteBridgeListReceived(this, list);
+                        remoteSession->onRemoteBridgeListReceived(list);
                     }
                 }
             }
@@ -309,35 +311,67 @@ void PeerConnection::processReadyRead()
                     reader.leaveContainer();
                 }
 
-                {
-                    if(!reader.isMap())
-                        break;
-
-                    if(reader.isLengthKnown())
-                        msg.newMappings.reserve(reader.length());
-
-                    reader.enterContainer();
-
-                    while (reader.lastError() == QCborError::NoError && reader.hasNext())
-                    {
-                        quint64 localNodeId = reader.toUnsignedInteger();
-                        reader.next();
-                        quint64 peerNodeId = reader.toUnsignedInteger();
-                        reader.next();
-
-                        msg.newMappings.insert(localNodeId, peerNodeId);
-                    }
-
-                    reader.leaveContainer();
-                }
-
                 if (reader.lastError() == QCborError::NoError)
                 {
                     reader.leaveContainer();
 
                     if(remoteSession)
                     {
-                        remoteSession->onRemoteBridgeResponseReceived(this, msg);
+                        remoteSession->onRemoteBridgeResponseReceived(msg);
+                    }
+                }
+            }
+            else if (currentDataType == ReplicaList)
+            {
+                if(!reader.isArray())
+                    break; // protocol error
+
+                const QCborValue msg = QCborValue::fromCbor(reader);
+
+                if (reader.lastError() == QCborError::NoError)
+                {
+                    reader.leaveContainer();
+
+                    if(remoteSession && msg.isArray())
+                    {
+                        remoteSession->onReplicaListReceived(msg.toArray());
+                    }
+                }
+            }
+            else if (currentDataType == ReplicaResponse)
+            {
+                if(!reader.isArray())
+                    break; // protocol error
+
+                const QCborValue msg = QCborValue::fromCbor(reader);
+
+                if (reader.lastError() == QCborError::NoError)
+                {
+                    reader.leaveContainer();
+
+                    if(remoteSession && msg.isArray())
+                    {
+                        remoteSession->onReplicaResponseReceived(msg.toArray());
+                    }
+                }
+            }
+            else if (currentDataType == ReplicaStatus)
+            {
+                if(!reader.isMap())
+                    break; // protocol error
+
+                reader.enterContainer();
+                const quint64 replicaId = reader.toUnsignedInteger();
+                reader.next();
+                const QCborValue objState = QCborValue::fromCbor(reader);
+
+                if (reader.lastError() == QCborError::NoError)
+                {
+                    reader.leaveContainer();
+
+                    if(remoteSession && objState.isMap())
+                    {
+                        remoteSession->onSourceObjectStateReceived(replicaId, objState.toMap());
                     }
                 }
             }

@@ -24,6 +24,7 @@
 
 #include "remotemanager.h"
 #include "peerconnection.h"
+#include "replicaobjectmanager.h"
 
 #include "../views/modemanager.h"
 
@@ -42,6 +43,8 @@ RemoteSession::RemoteSession(const QString &sessionName, RemoteManager *remoteMg
 
 RemoteSession::~RemoteSession()
 {
+    Q_ASSERT(!mPeerConn);
+
     const auto bridges = mBridges;
     for(RemoteCircuitBridge *bridge : bridges)
     {
@@ -95,6 +98,8 @@ void RemoteSession::onConnected(PeerConnection *conn)
     {
         sendBridgesToPeer();
     }
+
+    sendReplicaList();
 }
 
 void RemoteSession::onDisconnected()
@@ -108,6 +113,16 @@ void RemoteSession::onDisconnected()
         bridge->mPeerNodeId = 0;
         bridge->onRemoteDisconnected();
     }
+
+    for(const ReplicaData& repData : std::as_const(mReplicas))
+    {
+        for(AbstractSimulationObject *replica : repData.objects)
+        {
+            replica->setReplicaMode(false);
+        }
+    }
+
+    remoteMgr()->replicaMgr()->removeSourceObjects(this);
 }
 
 void RemoteSession::sendBridgesStatusToPeer()
@@ -157,8 +172,11 @@ bool RemoteSession::isRemoteBridgeNameAvailable(const QString &name) const
     return true;
 }
 
-void RemoteSession::onRemoteBridgeResponseReceived(PeerConnection *conn, const BridgeResponse &msg)
+void RemoteSession::onRemoteBridgeResponseReceived(const BridgeResponse &msg)
 {
+    if(!mPeerConn)
+        return;
+
     for(quint64 localId : msg.failedIds)
     {
         RemoteCircuitBridge *bridge = mBridges.at(localId - 1);
@@ -169,24 +187,18 @@ void RemoteSession::onRemoteBridgeResponseReceived(PeerConnection *conn, const B
         bridge->onRemoteDisconnected();
     }
 
-    for(auto m = msg.newMappings.cbegin(), end = msg.newMappings.cend(); m != end; m++)
-    {
-        RemoteCircuitBridge *bridge = mBridges.at(m.key() - 1);
-        if(!bridge)
-            continue;
-
-        bridge->mPeerNodeId = m.value();
-    }
-
-    if(conn->side() == PeerConnection::Side::Client)
+    if(mPeerConn->side() == PeerConnection::Side::Client)
     {
         // Client side has finished, send bridge initial status
         sendBridgesStatusToPeer();
     }
 }
 
-void RemoteSession::onRemoteBridgeListReceived(PeerConnection *conn, const QVector<BridgeListItem> &list)
+void RemoteSession::onRemoteBridgeListReceived(const QVector<BridgeListItem> &list)
 {
+    if(!mPeerConn)
+        return;
+
     QCborArray failedIds;
     QCborMap map;
 
@@ -213,10 +225,9 @@ void RemoteSession::onRemoteBridgeListReceived(PeerConnection *conn, const QVect
 
     QCborArray msg;
     msg.append(failedIds);
-    msg.append(map);
-    conn->sendCustonMsg(PeerConnection::BridgeResponse, msg);
+    mPeerConn->sendCustonMsg(PeerConnection::BridgeResponse, msg);
 
-    if(conn->side() == PeerConnection::Side::Client)
+    if(mPeerConn->side() == PeerConnection::Side::Client)
     {
         sendBridgesToPeer();
     }
@@ -237,5 +248,119 @@ void RemoteSession::onRemoteBridgeModeChanged(quint64 localNodeId,
 
 void RemoteSession::onLocalBridgeModeChanged(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode)
 {
+    if(!mPeerConn)
+        return;
+
     mPeerConn->sendBridgeStatus(peerNodeId, mode, pole, replyToMode);
+}
+
+void RemoteSession::sendReplicaList()
+{
+    if(!mPeerConn)
+        return;
+
+    QCborArray msg;
+    for(const ReplicaData& repData : mReplicas)
+    {
+        QCborArray objTypePair;
+        objTypePair.append(repData.name);
+        objTypePair.append(repData.objects.first()->getType());
+        msg.append(objTypePair);
+    }
+
+    mPeerConn->sendCustonMsg(PeerConnection::ReplicaList, msg);
+}
+
+void RemoteSession::onReplicaListReceived(const QCborArray &msg)
+{
+    if(!mPeerConn)
+        return;
+
+    ModeManager *modeMgr = remoteMgr()->modeMgr();
+    ReplicaObjectManager *replicaMgr = remoteMgr()->replicaMgr();
+
+    QCborArray failedIds;
+
+    quint64 replicaId = 0;
+    for(const QCborValue& val : msg)
+    {
+        if(!val.isArray())
+        {
+            failedIds.append(qint64(replicaId++));
+            continue;
+        }
+
+        QCborArray objTypePair = val.toArray();
+        if(objTypePair.size() != 2 || !objTypePair.at(0).isString() || !objTypePair.at(1).isString())
+        {
+            failedIds.append(qint64(replicaId++));
+            continue;
+        }
+
+        const QString objType = objTypePair.at(0).toString();
+        const QString objName = objTypePair.at(1).toString();
+
+        AbstractSimulationObjectModel *objModel = modeMgr->modelForType(objType);
+        if(!objModel)
+        {
+            failedIds.append(qint64(replicaId++));
+            continue;
+        }
+
+        AbstractSimulationObject *sourceObj = objModel->getObjectByName(objName);
+        if(!sourceObj)
+        {
+            failedIds.append(qint64(replicaId++));
+            continue;
+        }
+
+        replicaMgr->addSourceObject(sourceObj, this, replicaId);
+        replicaId++;
+    }
+
+    mPeerConn->sendCustonMsg(PeerConnection::ReplicaResponse, failedIds);
+}
+
+void RemoteSession::onReplicaResponseReceived(const QCborArray &msg)
+{
+    QVector<quint64> failedIds;
+    failedIds.reserve(msg.size());
+
+    for(const QCborValue& val : msg)
+        failedIds.append(val.toInteger());
+
+    for(quint64 replicaId = 0; replicaId < quint64(mReplicas.size()); replicaId++)
+    {
+        if(failedIds.contains(replicaId))
+            continue;
+
+        const ReplicaData& repData = mReplicas.at(replicaId);
+        for(AbstractSimulationObject *replica : repData.objects)
+        {
+            replica->setReplicaMode(true);
+        }
+    }
+}
+
+void RemoteSession::sendSourceObjectState(quint64 objectId, const QCborMap &objState)
+{
+    if(!mPeerConn)
+        return;
+
+    QCborArray msg;
+    msg.append(qint64(objectId));
+    msg.append(objState);
+    mPeerConn->sendCustonMsg(PeerConnection::ReplicaStatus, msg);
+}
+
+void RemoteSession::onSourceObjectStateReceived(quint64 replicaId, const QCborMap &objState)
+{
+    if(replicaId >= quint64(mReplicas.size()))
+        return;
+
+    const ReplicaData& repData = mReplicas.at(replicaId);
+    for(AbstractSimulationObject *replica : repData.objects)
+    {
+        replica->setReplicaState(objState);
+    }
 }

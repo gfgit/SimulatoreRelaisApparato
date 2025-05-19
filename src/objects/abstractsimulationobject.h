@@ -36,6 +36,8 @@ class AbstractObjectInterface;
 class AbstractCircuitNode;
 class QJsonObject;
 
+class QCborMap;
+
 class AbstractSimulationObject : public QObject
 {
     Q_OBJECT
@@ -63,6 +65,10 @@ public:
 
     virtual void getReferencedObjects(QSet<AbstractSimulationObject *> &result);
 
+    void setReplicaMode(bool on);
+    virtual bool setReplicaState(const QCborMap& replicaState);
+    virtual void getReplicaState(QCborMap& replicaState) const;
+
     QString name() const;
     bool setName(const QString &newName);
 
@@ -82,6 +88,11 @@ public:
     // Nodes in which this object is referenced
     // If result is nullptr, it just returns number of referencing getReferencingNodes
     virtual int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const;
+
+    inline bool isRemoteReplica() const
+    {
+        return mIsRemoteReplica;
+    }
 
 signals:
     void nameChanged(const QString& name, const QString& oldName);
@@ -115,6 +126,8 @@ protected:
 
     virtual void onTrackedObjectDestroyed(AbstractSimulationObject *obj);
 
+    virtual void onReplicaModeChanged(bool on);
+
 private:
     AbstractSimulationObjectModel *mModel;
 
@@ -124,6 +137,8 @@ private:
     QVector<AbstractObjectInterface *> mInterfaces;
 
     QHash<AbstractSimulationObject *, int> mTrackedObjects;
+
+    bool mIsRemoteReplica = false;
 };
 
 #endif // ABSTRACTSIMULATIONOBJECT_H

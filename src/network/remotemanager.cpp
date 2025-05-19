@@ -32,6 +32,7 @@
 
 #include "remotesession.h"
 #include "remotesessionsmodel.h"
+#include "replicaobjectmanager.h"
 
 #include <QCborMap>
 #include <QCborArray>
@@ -59,6 +60,7 @@ RemoteManager::RemoteManager(ModeManager *mgr)
     mPeerClient = new PeerClient(this);
     mPeerManager = mPeerClient->getPeerManager();
     mRemoteSessionsModel = new RemoteSessionsModel(this);
+    mReplicaMgr = new ReplicaObjectManager(this);
 }
 
 RemoteManager::~RemoteManager()
@@ -148,6 +150,11 @@ bool RemoteManager::renameRemoteSession(const QString &fromName, const QString &
     mRemoteSessionsModel->sortItems();
 
     return true;
+}
+
+ReplicaObjectManager *RemoteManager::replicaMgr() const
+{
+    return mReplicaMgr;
 }
 
 RemoteSessionsModel *RemoteManager::remoteSessionsModel() const

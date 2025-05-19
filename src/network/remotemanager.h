@@ -36,6 +36,8 @@ class PeerConnection;
 class RemoteSession;
 class RemoteSessionsModel;
 
+class ReplicaObjectManager;
+
 class RemoteManager : public QObject
 {
     Q_OBJECT
@@ -69,6 +71,8 @@ public:
 
     RemoteSessionsModel *remoteSessionsModel() const;
 
+    ReplicaObjectManager *replicaMgr() const;
+
 signals:
     void networkStateChanged();
 
@@ -82,7 +86,8 @@ private:
 private:
     PeerClient *mPeerClient = nullptr;
     PeerManager *mPeerManager = nullptr;
-    RemoteSessionsModel *mRemoteSessionsModel;
+    RemoteSessionsModel *mRemoteSessionsModel = nullptr;
+    ReplicaObjectManager *mReplicaMgr = nullptr;
 
     QHash<QString, RemoteSession *> mRemoteSessions;
 };

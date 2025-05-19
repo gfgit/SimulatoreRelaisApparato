@@ -85,6 +85,9 @@ public:
 
     int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
 
+    bool setReplicaState(const QCborMap& replicaState) override;
+    void getReplicaState(QCborMap& replicaState) const override;
+
     static bool isStateIndependent(RelaisType t);
 
     inline bool stateIndependent() const
@@ -152,6 +155,9 @@ public:
 signals:
     void typeChanged(AbstractRelais *self, RelaisType s);
 
+protected:
+    void onReplicaModeChanged(bool on) override;
+
 private:
     friend class RelaisPowerNode;
     void addPowerNode(RelaisPowerNode *p);
@@ -206,6 +212,9 @@ private:
     QVector<RelaisContactNode *> mContactNodes;
 
     static constexpr int CodeErrorMarginMillis = 18;
+
+    static constexpr double UpPositionThreshold = 0.75;
+    static constexpr double DownPositionThreshold = 0.25;
 
     struct Encoding
     {

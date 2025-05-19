@@ -56,6 +56,9 @@ public:
         BridgeStatus,
         BridgeList,
         BridgeResponse,
+        ReplicaList,
+        ReplicaResponse,
+        ReplicaStatus,
         Undefined
     };
 

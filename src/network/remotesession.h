@@ -33,6 +33,8 @@ class RemoteCircuitBridge;
 
 class RemoteManager;
 
+class QCborMap;
+
 class RemoteSession : public QObject
 {
     Q_OBJECT
@@ -40,7 +42,6 @@ public:
     struct BridgeResponse
     {
         QVector<quint64> failedIds;
-        QHash<quint64, quint64> newMappings;
     };
 
     struct BridgeListItem
@@ -85,11 +86,9 @@ public:
     bool isRemoteBridgeNameAvailable(const QString& name) const;
 
 public:
-    void onRemoteBridgeResponseReceived(PeerConnection *conn,
-                                        const BridgeResponse &msg);
+    void onRemoteBridgeResponseReceived(const BridgeResponse &msg);
 
-    void onRemoteBridgeListReceived(PeerConnection *conn,
-                                    const QVector<BridgeListItem> &list);
+    void onRemoteBridgeListReceived(const QVector<BridgeListItem> &list);
 
     void onRemoteBridgeModeChanged(quint64 localNodeId,
                                    qint8 mode, qint8 pole, qint8 replyToMode);
@@ -97,18 +96,25 @@ public:
     void onLocalBridgeModeChanged(quint64 peerNodeId,
                                   qint8 mode, qint8 pole, qint8 replyToMode);
 
+    void sendReplicaList();
+    void onReplicaListReceived(const QCborArray &msg);
+    void onReplicaResponseReceived(const QCborArray &msg);
+
+    void sendSourceObjectState(quint64 objectId, const QCborMap& objState);
+    void onSourceObjectStateReceived(quint64 replicaId, const QCborMap& objState);
+
 private:
     QString mSessionName;
     PeerConnection *mPeerConn = nullptr;
 
     QVector<RemoteCircuitBridge *> mBridges;
 
-    struct ReplicaObject
+    struct ReplicaData
     {
-        AbstractSimulationObject *mLocalReplica;
-        QString mRemoteCustomName;
+        QString name;
+        QVector<AbstractSimulationObject *> objects;
     };
-    QVector<ReplicaObject *> mReplicas;
+    QVector<ReplicaData> mReplicas;
 };
 
 #endif // REMOTESESSION_H

@@ -28,6 +28,7 @@
 #include <QTimerEvent>
 
 #include <QJsonObject>
+#include <QCborMap>
 
 #include <QRandomGenerator>
 
@@ -105,7 +106,8 @@ bool AbstractRelais::event(QEvent *e)
 {
     if(e->type() == DelayedSetStateEvent::_Type)
     {
-        setState(static_cast<DelayedSetStateEvent *>(e)->getState());
+        if(!isRemoteReplica())
+            setState(static_cast<DelayedSetStateEvent *>(e)->getState());
         return true;
     }
 
@@ -165,6 +167,18 @@ int AbstractRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) 
     }
 
     return nodesCount;
+}
+
+bool AbstractRelais::setReplicaState(const QCborMap &replicaState)
+{
+    State newState = State(replicaState.value(QLatin1StringView("state")).toInteger(int(State::Down)));
+    setState(newState);
+    return true;
+}
+
+void AbstractRelais::getReplicaState(QCborMap &replicaState) const
+{
+    replicaState[QLatin1StringView("state")] = int(mState);
 }
 
 bool AbstractRelais::isStateIndependent(RelaisType t)
@@ -274,7 +288,9 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
                 // Go down and stop timer
                 mPositionTimer.stop();
 
-                setState(State::Down);
+                mInternalState = State::Down;
+                if(!isRemoteReplica())
+                    setState(State::Down);
                 return;
             }
 
@@ -284,10 +300,14 @@ void AbstractRelais::timerEvent(QTimerEvent *e)
             case State::Down:
             case State::GoingDown:
             case State::GoingUp:
-                setState(State::Up);
+                mInternalState = State::Up;
+                if(!isRemoteReplica())
+                    setState(State::Up);
                 break;
             case State::Up:
-                setState(State::Down);
+                mInternalState = State::Down;
+                if(!isRemoteReplica())
+                    setState(State::Down);
             default:
                 break;
             }
@@ -495,9 +515,12 @@ void AbstractRelais::setPosition(double newPosition)
 
     mPosition = newPosition;
 
-    if(mPosition < 0.1)
+    if(isRemoteReplica())
+        return;
+
+    if(mPosition < DownPositionThreshold)
         setState(State::Down);
-    else if(mPosition > 0.9)
+    else if(mPosition > UpPositionThreshold)
         setState(State::Up);
     else if(up)
         setState(State::GoingUp);
@@ -703,6 +726,7 @@ void AbstractRelais::setRelaisType(RelaisType newType)
         mEncoding.timer.invalidate();
 
         mPositionTimer.stop();
+        mInternalState = State::Down;
         setState(State::Down);
         break;
     }
@@ -718,6 +742,7 @@ void AbstractRelais::setRelaisType(RelaisType newType)
         mCustomUpMS = 1000;
         mCustomDownMS = 0;
 
+        mInternalState = State::Down;
         setState(State::Down);
         break;
     }
@@ -725,6 +750,7 @@ void AbstractRelais::setRelaisType(RelaisType newType)
     case RelaisType::Decoder:
     case RelaisType::CodeRepeater:
     {
+        mInternalState = State::Down;
         setState(State::Down);
         break;
     }
@@ -772,6 +798,33 @@ void AbstractRelais::setExpectedCode(SignalAspectCode code)
     mEncoding.expectedCode = code;
 
     emit settingsChanged(this);
+}
+
+void AbstractRelais::onReplicaModeChanged(bool on)
+{
+    if(!on)
+    {
+        // Return to local state
+        switch (relaisType())
+        {
+        case RelaisType::Blinker:
+        case RelaisType::Encoder:
+        case RelaisType::CodeRepeater:
+        {
+            setState(mInternalState);
+            break;
+        }
+        default:
+        {
+            if(mPosition < DownPositionThreshold)
+                setState(State::Down);
+            else if(mPosition > UpPositionThreshold)
+                setState(State::Up);
+            else
+                setState(State::GoingUp);
+        }
+        }
+    }
 }
 
 bool AbstractRelais::normallyUp() const
