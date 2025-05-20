@@ -330,8 +330,6 @@ void PeerConnection::processReadyRead()
 
                 if (reader.lastError() == QCborError::NoError)
                 {
-                    reader.leaveContainer();
-
                     if(remoteSession && msg.isArray())
                     {
                         remoteSession->onReplicaListReceived(msg.toArray());
@@ -347,8 +345,6 @@ void PeerConnection::processReadyRead()
 
                 if (reader.lastError() == QCborError::NoError)
                 {
-                    reader.leaveContainer();
-
                     if(remoteSession && msg.isArray())
                     {
                         remoteSession->onReplicaResponseReceived(msg.toArray());
