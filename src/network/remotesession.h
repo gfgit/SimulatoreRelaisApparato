@@ -83,7 +83,8 @@ public:
     void sendBridgesStatusToPeer();
     void sendBridgesToPeer();
 
-    bool isRemoteBridgeNameAvailable(const QString& name) const;
+    bool isRemoteBridgeNameAvailable(const QString& name,
+                                     RemoteCircuitBridge *excluded = nullptr) const;
 
 public:
     void onRemoteBridgeResponseReceived(const BridgeResponse &msg);

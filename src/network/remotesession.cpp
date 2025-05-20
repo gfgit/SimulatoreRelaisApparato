@@ -161,10 +161,14 @@ void RemoteSession::sendBridgesToPeer()
     mPeerConn->sendCustonMsg(PeerConnection::BridgeList, map);
 }
 
-bool RemoteSession::isRemoteBridgeNameAvailable(const QString &name) const
+bool RemoteSession::isRemoteBridgeNameAvailable(const QString &name,
+                                                RemoteCircuitBridge *excluded) const
 {
     for(RemoteCircuitBridge *bridge : std::as_const(mBridges))
     {
+        if(excluded && excluded == bridge)
+            continue; // Skip self
+
         if(bridge->peerNodeName() == name)
             return false;
     }

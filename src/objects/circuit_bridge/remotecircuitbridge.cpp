@@ -435,7 +435,7 @@ void RemoteCircuitBridge::onNameChanged(const QString &newName, const QString &o
     if(!mRemoteSession || oldName.isEmpty())
         return;
 
-    if(!mRemoteSession->isRemoteBridgeNameAvailable(newName))
+    if(!mRemoteSession->isRemoteBridgeNameAvailable(newName, this))
         setPeerNodeCustomName(oldName);
 }
 
