@@ -45,7 +45,7 @@ RemoteSessionListWidget::RemoteSessionListWidget(ViewManager *viewMgr, QWidget *
 
     QVBoxLayout *lay = new QVBoxLayout(this);
 
-    QHBoxLayout *butLay = new QHBoxLayout(this);
+    QHBoxLayout *butLay = new QHBoxLayout;
     lay->addLayout(butLay);
 
     addBut = new QPushButton(tr("Add"));
