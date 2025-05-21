@@ -172,7 +172,7 @@ bool AbstractSimulationObject::setName(const QString &newName)
     }
 
     emit settingsChanged(this);
-    emit nameChanged(mName, oldName);
+    emit nameChanged(this, mName, oldName);
 
     return isValid;
 }

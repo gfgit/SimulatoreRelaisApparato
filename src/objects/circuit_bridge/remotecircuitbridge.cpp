@@ -427,7 +427,8 @@ void RemoteCircuitBridge::setSerialOutputId(int newSerialOutputId)
     emit settingsChanged(this);
 }
 
-void RemoteCircuitBridge::onNameChanged(const QString &newName, const QString &oldName)
+void RemoteCircuitBridge::onNameChanged(AbstractSimulationObject *,
+                                        const QString &newName, const QString &oldName)
 {
     if(!mPeerNodeCustomName.isEmpty())
         return;

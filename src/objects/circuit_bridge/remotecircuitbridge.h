@@ -92,7 +92,8 @@ public:
     void setSerialOutputId(int newSerialOutputId);
 
 private slots:
-    void onNameChanged(const QString& newName, const QString& oldName);
+    void onNameChanged(AbstractSimulationObject *,
+                       const QString& newName, const QString& oldName);
 
 private:
     void setIsRemote(bool val);

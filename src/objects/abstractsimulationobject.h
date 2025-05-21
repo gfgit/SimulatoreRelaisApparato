@@ -95,7 +95,8 @@ public:
     }
 
 signals:
-    void nameChanged(const QString& name, const QString& oldName);
+    void nameChanged(AbstractSimulationObject *self,
+                     const QString& name, const QString& oldName);
     void descriptionChanged(const QString& name);
 
     void settingsChanged(AbstractSimulationObject *self);
