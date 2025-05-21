@@ -102,6 +102,8 @@ bool ButtonInterface::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     setCanBePressed(obj.value("can_press").toBool(true));
     setCanBeExtracted(obj.value("can_extract").toBool(false));
 
+    setTimeoutMillis(obj.value("timeout_millis").toInt(1500));
+
     setMode(Mode(obj.value("mode").toInt(int(Mode::ReturnNormalOnRelease))));
 
     return true;
@@ -114,6 +116,7 @@ void ButtonInterface::saveToJSON(QJsonObject &obj) const
     obj["can_press"] = mCanBePressed;
     obj["can_extract"] = mCanBeExtracted;
     obj["mode"] = int(mMode);
+    obj["timeout_millis"] = timeoutMillis();
 }
 
 ButtonInterface::State ButtonInterface::state() const
@@ -171,6 +174,21 @@ void ButtonInterface::removeContactNode(ButtonContactNode *c)
     mContactNodes.removeOne(c);
 
     emit mObject->nodesChanged(mObject);
+}
+
+int ButtonInterface::timeoutMillis() const
+{
+    return mTimeoutMillis;
+}
+
+void ButtonInterface::setTimeoutMillis(int newTimeoutMillis)
+{
+    if(mTimeoutMillis == newTimeoutMillis ||
+            newTimeoutMillis < 0 || newTimeoutMillis > 99999)
+        return;
+
+    mTimeoutMillis = newTimeoutMillis;
+    emit mObject->settingsChanged(mObject);
 }
 
 void ButtonInterface::checkStateValidForLock()

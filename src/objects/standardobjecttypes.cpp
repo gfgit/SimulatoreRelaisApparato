@@ -287,14 +287,26 @@ QWidget *defaultButtonEdit(AbstractSimulationObject *item, ViewManager *mgr)
 
     lay->addRow(StandardObjectTypes::tr("Mode:"), modeCombo);
 
+    QSpinBox *timeoutSpin = new QSpinBox;
+    timeoutSpin->setRange(0, 99999);
+    timeoutSpin->setSuffix(StandardObjectTypes::tr(" ms"));
+    lay->addRow(StandardObjectTypes::tr("Timeout:"), timeoutSpin);
+    QObject::connect(timeoutSpin, &QSpinBox::editingFinished,
+                     item, [buttonIface, timeoutSpin]()
+    {
+        buttonIface->setTimeoutMillis(timeoutSpin->value());
+    });
+
     // Generic mechanical options
     lay->addRow(defaultMechanicalEdit(item, mgr));
 
-    auto updateSettings = [buttonIface, pressedCB, extractedCB, modeCombo, modeModel]()
+    auto updateSettings = [buttonIface, pressedCB, extractedCB, modeCombo, modeModel, timeoutSpin]()
     {
         pressedCB->setChecked(buttonIface->canBePressed());
         extractedCB->setChecked(buttonIface->canBeExtracted());
         modeCombo->setCurrentIndex(modeModel->rowForValue(int(buttonIface->mode())));
+        timeoutSpin->setValue(buttonIface->timeoutMillis());
+        timeoutSpin->setEnabled(buttonIface->mode() == ButtonInterface::Mode::ReturnNormalAfterTimeout);
     };
 
     QObject::connect(item, &AbstractSimulationObject::settingsChanged,

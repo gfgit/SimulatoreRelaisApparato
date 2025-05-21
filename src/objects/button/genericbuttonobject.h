@@ -25,6 +25,8 @@
 
 #include "../abstractsimulationobject.h"
 
+#include <QBasicTimer>
+
 class ButtonInterface;
 class MechanicalInterface;
 
@@ -47,7 +49,6 @@ protected:
 
 private:
     void startReturnTimer();
-    void stopReturnTimer();
 
     void setNewLockRange();
 
@@ -55,6 +56,7 @@ private:
     ButtonInterface *buttonIface = nullptr;
     MechanicalInterface *mechanicalIface = nullptr;
 
+    QBasicTimer mReturnTimeout;
     int mReturnTimerId = 0;
 };
 

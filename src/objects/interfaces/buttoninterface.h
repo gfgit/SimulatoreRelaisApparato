@@ -88,6 +88,9 @@ public:
     static const EnumDesc& getStateDesc();
     static const EnumDesc& getModeDesc();
 
+    int timeoutMillis() const;
+    void setTimeoutMillis(int newTimeoutMillis);
+
 private:
     friend class ButtonContactNode;
     void addContactNode(ButtonContactNode *c);
@@ -100,6 +103,8 @@ private:
 
     bool mCanBePressed = true;
     bool mCanBeExtracted = false;
+
+    int mTimeoutMillis = 1500;
 
     QVector<ButtonContactNode *> mContactNodes;
 };

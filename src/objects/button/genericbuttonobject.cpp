@@ -53,7 +53,7 @@ GenericButtonObject::GenericButtonObject(AbstractSimulationObjectModel *m)
 
 GenericButtonObject::~GenericButtonObject()
 {
-    stopReturnTimer();
+    mReturnTimeout.stop();
 
     delete buttonIface;
     buttonIface = nullptr;
@@ -66,10 +66,10 @@ QString GenericButtonObject::getType() const
 
 void GenericButtonObject::timerEvent(QTimerEvent *ev)
 {
-    if(ev->timerId() == mReturnTimerId)
+    if(ev->timerId() == mReturnTimeout.timerId())
     {
         // Reset button to Normal position
-        stopReturnTimer();
+        mReturnTimeout.stop();
         buttonIface->setState(ButtonInterface::State::Normal);
         return;
     }
@@ -118,7 +118,7 @@ void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, con
             }
             else
             {
-                stopReturnTimer();
+                mReturnTimeout.stop();
             }
 
             mechanicalIface->setPosition(int(buttonIface->state()));
@@ -127,13 +127,13 @@ void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, con
         {
             if(buttonIface->mode() != ButtonInterface::Mode::ReturnNormalAfterTimeout)
             {
-                if(mReturnTimerId)
+                if(mReturnTimeout.isActive())
                 {
                     // Timer was active, reset button
                     buttonIface->setState(ButtonInterface::State::Normal);
                 }
 
-                stopReturnTimer();
+                mReturnTimeout.stop();
             }
         }
     }
@@ -143,19 +143,8 @@ void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, con
 
 void GenericButtonObject::startReturnTimer()
 {
-    stopReturnTimer();
-
-    // TODO: make configurable
-    mReturnTimerId = startTimer(2000, Qt::CoarseTimer);
-}
-
-void GenericButtonObject::stopReturnTimer()
-{
-    if(!mReturnTimerId)
-        return;
-
-    killTimer(mReturnTimerId);
-    mReturnTimerId = 0;
+    mReturnTimeout.start(buttonIface->timeoutMillis(),
+                         Qt::PreciseTimer, this);
 }
 
 void GenericButtonObject::setNewLockRange()
