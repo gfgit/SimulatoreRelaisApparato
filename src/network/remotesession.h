@@ -104,6 +104,9 @@ public:
     void sendSourceObjectState(quint64 objectId, const QCborMap& objState);
     void onSourceObjectStateReceived(quint64 replicaId, const QCborMap& objState);
 
+    void addReplica(AbstractSimulationObject *replicaObj, const QString& name);
+    void removeReplica(AbstractSimulationObject *replicaObj, const QString& name);
+
 private:
     QString mSessionName;
     PeerConnection *mPeerConn = nullptr;

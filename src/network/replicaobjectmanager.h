@@ -31,6 +31,8 @@ class RemoteSession;
 
 class AbstractSimulationObject;
 
+class QJsonObject;
+
 class ReplicaObjectManager : public QObject
 {
     Q_OBJECT
@@ -39,21 +41,31 @@ public:
 
     RemoteManager *remoteMgr() const;
 
+    bool addReplicaObject(AbstractSimulationObject *replicaObj);
+    bool removeReplicaObject(AbstractSimulationObject *replicaObj);
+    bool setReplicaObjectSession(AbstractSimulationObject *replicaObj,
+                                 RemoteSession *remoteSession, const QString& customName);
+
+    bool loadFromJSON(const QJsonObject& obj);
+    void saveToJSON(QJsonObject& obj);
+
 private slots:
     void onSourceObjStateChanged(AbstractSimulationObject *obj);
+    void onReplicaNameChanged(AbstractSimulationObject *replicaObj,
+                              const QString &newName, const QString &oldName);
 
 private:
     friend class RemoteSession;
     void addSourceObject(AbstractSimulationObject *obj,
                          RemoteSession *remoteSession,
-                         quint64 objectId);
+                         quint64 replicaId);
     void removeSourceObjects(RemoteSession *remoteSession);
 
 private:
     struct RemoteSessionData
     {
         RemoteSession *remoteSession = nullptr;
-        quint64 objectId = 0;
+        quint64 replicaId = 0;
     };
 
     struct SourceObjectData
@@ -62,6 +74,15 @@ private:
     };
 
     QHash<AbstractSimulationObject *, SourceObjectData> mSourceObjects;
+
+    struct ReplicaObjectData
+    {
+        AbstractSimulationObject *replicaObj = nullptr;
+        RemoteSession *remoteSession = nullptr;
+        QString customName;
+    };
+
+    QVector<ReplicaObjectData> mReplicas;
 };
 
 #endif // REPLICAOBJECTMANAGER_H

@@ -376,6 +376,8 @@ ModeManager::~ModeManager()
     // Disable network communication
     mRemoteMgr->setOnline(false);
 
+    mRemoteMgr->clear();
+
     mSerialMgr->disconnectAllDevices();
 
     // Delete circuits and factory
@@ -493,6 +495,8 @@ PanelListModel *ModeManager::panelList() const
 bool ModeManager::loadFromJSON(const QJsonObject &obj)
 {
     // Temporarily ignore modified scenes
+    clearAll();
+
     setMode(FileMode::LoadingFile);
 
     QJsonObject rootObj = obj;
@@ -534,6 +538,8 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
     QJsonObject panels = rootObj.value("panels").toObject();
     mPanelList->loadFromJSON(panels);
 
+    mRemoteMgr->loadFromJSON(rootObj.value("remote_mgr").toObject());
+
     resetFileEdited();
 
     // Turn on power sources and stuff
@@ -558,6 +564,9 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
         pool[model->getObjectType()] = modelObj;
     }
 
+    QJsonObject remoteMgrObj;
+    mRemoteMgr->saveToJSON(remoteMgrObj);
+
     obj["file_version"] = FileVersion::Current;
 
     obj["session_name"] = mRemoteMgr->sessionName();
@@ -566,19 +575,21 @@ void ModeManager::saveToJSON(QJsonObject &obj) const
 
     obj["circuits"] = circuits;
     obj["panels"] = panels;
+
+    obj["remote_mgr"] = remoteMgrObj;
 }
 
 void ModeManager::clearAll()
 {
     setMode(FileMode::LoadingFile);
 
+    mRemoteMgr->clear();
+
     mCircuitList->clear();
     mPanelList->clear();
 
     for(auto model : mObjectModels)
         model->clear();
-
-    mRemoteMgr->clear();
 
     resetFileEdited();
 

@@ -157,6 +157,16 @@ ReplicaObjectManager *RemoteManager::replicaMgr() const
     return mReplicaMgr;
 }
 
+bool RemoteManager::loadFromJSON(const QJsonObject &obj)
+{
+    return mReplicaMgr->loadFromJSON(obj);
+}
+
+void RemoteManager::saveToJSON(QJsonObject &obj)
+{
+    mReplicaMgr->saveToJSON(obj);
+}
+
 RemoteSessionsModel *RemoteManager::remoteSessionsModel() const
 {
     return mRemoteSessionsModel;

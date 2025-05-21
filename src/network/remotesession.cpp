@@ -50,6 +50,18 @@ RemoteSession::~RemoteSession()
     {
         bridge->setRemoteSession(nullptr);
     }
+    Q_ASSERT(mBridges.isEmpty());
+
+    ReplicaObjectManager *replicaMgr = remoteMgr()->replicaMgr();
+    const auto replicas = mReplicas;
+    for(const ReplicaData& repData : replicas)
+    {
+        for(AbstractSimulationObject *replica : repData.objects)
+        {
+            replicaMgr->removeReplicaObject(replica);
+        }
+    }
+    Q_ASSERT(mReplicas.isEmpty());
 }
 
 RemoteManager *RemoteSession::remoteMgr() const
@@ -301,8 +313,8 @@ void RemoteSession::onReplicaListReceived(const QCborArray &msg)
             continue;
         }
 
-        const QString objType = objTypePair.at(0).toString();
-        const QString objName = objTypePair.at(1).toString();
+        const QString objName = objTypePair.at(0).toString();
+        const QString objType = objTypePair.at(1).toString();
 
         AbstractSimulationObjectModel *objModel = modeMgr->modelForType(objType);
         if(!objModel)
@@ -367,4 +379,37 @@ void RemoteSession::onSourceObjectStateReceived(quint64 replicaId, const QCborMa
     {
         replica->setReplicaState(objState);
     }
+}
+
+void RemoteSession::addReplica(AbstractSimulationObject *replicaObj, const QString &name)
+{
+    auto replicaIt = std::find_if(mReplicas.begin(),
+                                  mReplicas.end(),
+                                  [replicaObj, name](const ReplicaData& repData) -> bool
+    {
+        return repData.name == name && replicaObj->getType() == repData.objects.first()->getType();
+    });
+
+    if(replicaIt == mReplicas.end())
+        replicaIt = mReplicas.insert(mReplicas.size(), {name, {}});
+
+    Q_ASSERT(!replicaIt->objects.contains(replicaObj));
+    replicaIt->objects.append(replicaObj);
+}
+
+void RemoteSession::removeReplica(AbstractSimulationObject *replicaObj, const QString &name)
+{
+    auto replicaIt = std::find_if(mReplicas.begin(),
+                                  mReplicas.end(),
+                                  [replicaObj, name](const ReplicaData& repData) -> bool
+    {
+        return repData.name == name && replicaObj->getType() == repData.objects.first()->getType();
+    });
+
+    Q_ASSERT(replicaIt != mReplicas.end());
+    Q_ASSERT(replicaIt->objects.contains(replicaObj));
+
+    replicaIt->objects.removeOne(replicaObj);
+    if(replicaIt->objects.isEmpty())
+        mReplicas.erase(replicaIt);
 }

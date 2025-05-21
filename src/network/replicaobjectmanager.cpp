@@ -26,9 +26,15 @@
 #include "remotesession.h"
 #include "remotesessionsmodel.h"
 
+#include "../views/modemanager.h"
+
 #include "../objects/abstractsimulationobject.h"
+#include "../objects/abstractsimulationobjectmodel.h"
 
 #include <QCborMap>
+
+#include <QJsonObject>
+#include <QJsonArray>
 
 ReplicaObjectManager::ReplicaObjectManager(RemoteManager *mgr)
     : QObject{mgr}
@@ -39,6 +45,196 @@ ReplicaObjectManager::ReplicaObjectManager(RemoteManager *mgr)
 RemoteManager *ReplicaObjectManager::remoteMgr() const
 {
     return static_cast<RemoteManager *>(parent());
+}
+
+bool ReplicaObjectManager::addReplicaObject(AbstractSimulationObject *replicaObj)
+{
+    auto replicaIt = std::find_if(mReplicas.constBegin(),
+                                  mReplicas.constEnd(),
+                                  [replicaObj](const ReplicaObjectData& repData) -> bool
+    {
+        return repData.replicaObj == replicaObj;
+    });
+
+    if(replicaIt != mReplicas.constEnd())
+        return false; // Already added
+
+    connect(replicaObj, &AbstractSimulationObject::nameChanged,
+            this, &ReplicaObjectManager::onReplicaNameChanged);
+
+    mReplicas.append({replicaObj, nullptr, QString()});
+    return true;
+}
+
+bool ReplicaObjectManager::removeReplicaObject(AbstractSimulationObject *replicaObj)
+{
+    auto replicaIt = std::find_if(mReplicas.begin(),
+                                  mReplicas.end(),
+                                  [replicaObj](const ReplicaObjectData& repData) -> bool
+    {
+        return repData.replicaObj == replicaObj;
+    });
+
+    if(replicaIt == mReplicas.end())
+        return false;
+
+    if(replicaIt->remoteSession)
+    {
+        const QString oldName = replicaIt->customName.isEmpty() ? replicaObj->name() : replicaIt->customName;
+        replicaIt->remoteSession->removeReplica(replicaObj, oldName);
+    }
+
+    disconnect(replicaObj, &AbstractSimulationObject::nameChanged,
+               this, &ReplicaObjectManager::onReplicaNameChanged);
+
+    mReplicas.erase(replicaIt);
+
+    return true;
+}
+
+bool ReplicaObjectManager::setReplicaObjectSession(AbstractSimulationObject *replicaObj,
+                                                   RemoteSession *remoteSession, const QString &customName)
+{
+    auto replicaIt = std::find_if(mReplicas.begin(),
+                                  mReplicas.end(),
+                                  [replicaObj](const ReplicaObjectData& repData) -> bool
+    {
+        return repData.replicaObj == replicaObj;
+    });
+
+    if(replicaIt == mReplicas.end())
+        return false;
+
+    if(replicaIt->remoteSession == remoteSession && replicaIt->customName == customName)
+        return true;
+
+    if(replicaIt->remoteSession)
+    {
+        const QString oldName = replicaIt->customName.isEmpty() ? replicaObj->name() : replicaIt->customName;
+        replicaIt->remoteSession->removeReplica(replicaObj, oldName);
+    }
+
+    replicaIt->remoteSession = remoteSession;
+    replicaIt->customName = customName;
+
+    if(replicaIt->remoteSession)
+    {
+        const QString newName = replicaIt->customName.isEmpty() ? replicaObj->name() : replicaIt->customName;
+        replicaIt->remoteSession->addReplica(replicaObj, newName);
+    }
+
+    return true;
+}
+
+bool ReplicaObjectManager::loadFromJSON(const QJsonObject &obj)
+{
+    const QJsonArray replicas = obj["replicas"].toArray();
+
+    ModeManager *modeMgr = remoteMgr()->modeMgr();
+
+    struct RepData
+    {
+        AbstractSimulationObject *replicaObj = nullptr;
+        QString remoteSessionName;
+        QString customName;
+    };
+
+    QVector<RepData> sortedReplicas;
+
+    for(const QJsonValue& v : replicas)
+    {
+        QJsonObject replica = v.toObject();
+        RepData repData;
+
+        const QString objName = replica.value("object").toString();
+        const QString objType = replica.value("object_type").toString();
+        if(objName.isEmpty() || objType.isEmpty())
+            continue;
+
+        auto model = modeMgr->modelForType(objType);
+        if(!model)
+            continue;
+
+        repData.replicaObj = model->getObjectByName(objName);
+        if(!repData.replicaObj)
+            continue;
+
+        repData.customName = replica.value("custom_source_name").toString();
+        repData.remoteSessionName = replica.value("remote_session").toString();
+
+        sortedReplicas.append(repData);
+    }
+
+    std::sort(sortedReplicas.begin(),
+              sortedReplicas.end(),
+              [](const RepData& lhs, const RepData& rhs) -> bool
+    {
+        const QString nameA = lhs.replicaObj->name();
+        const QString nameB = rhs.replicaObj->name();
+
+        if(nameA == nameB)
+        {
+            // Same name, order by type
+            return lhs.replicaObj->getType() < rhs.replicaObj->getType();
+        }
+
+        // Order by name
+        return nameA < nameB;
+    });
+
+    for(const RepData& val : std::as_const(sortedReplicas))
+    {
+        if(!addReplicaObject(val.replicaObj))
+            continue;
+
+        RemoteSession *remoteSession = nullptr;
+        if(!val.remoteSessionName.isEmpty())
+        {
+            remoteSession = remoteMgr()->addRemoteSession(val.remoteSessionName);
+        }
+
+        if(remoteSession)
+            setReplicaObjectSession(val.replicaObj,
+                                    remoteSession,
+                                    val.customName);
+    }
+
+    return true;
+}
+
+void ReplicaObjectManager::saveToJSON(QJsonObject &obj)
+{
+    auto sortedReplicas = mReplicas;
+    std::sort(sortedReplicas.begin(),
+              sortedReplicas.end(),
+              [](const ReplicaObjectData& lhs, const ReplicaObjectData& rhs) -> bool
+    {
+        const QString nameA = lhs.replicaObj->name();
+        const QString nameB = rhs.replicaObj->name();
+
+        if(nameA == nameB)
+        {
+            // Same name, order by type
+            return lhs.replicaObj->getType() < rhs.replicaObj->getType();
+        }
+
+        // Order by name
+        return nameA < nameB;
+    });
+
+    QJsonArray replicas;
+
+    for(const ReplicaObjectData& repData : std::as_const(sortedReplicas))
+    {
+        QJsonObject replica;
+        replica["object"] = repData.replicaObj->name();
+        replica["object_type"] = repData.replicaObj->getType();
+        replica["remote_session"] = repData.remoteSession ? repData.remoteSession->getSessionName() : QString();
+        replica["custom_source_name"] = repData.customName;
+        replicas.append(replica);
+    }
+
+    obj["replicas"] = replicas;
 }
 
 void ReplicaObjectManager::onSourceObjStateChanged(AbstractSimulationObject *obj)
@@ -53,14 +249,41 @@ void ReplicaObjectManager::onSourceObjStateChanged(AbstractSimulationObject *obj
 
     for(const RemoteSessionData& sessionData : it.value().sessions)
     {
-        sessionData.remoteSession->sendSourceObjectState(sessionData.objectId,
+        sessionData.remoteSession->sendSourceObjectState(sessionData.replicaId,
                                                          objState);
+    }
+}
+
+void ReplicaObjectManager::onReplicaNameChanged(AbstractSimulationObject *replicaObj,
+                                                const QString &newName, const QString &oldName)
+{
+    auto replicaIt = std::find_if(mReplicas.begin(),
+                                  mReplicas.end(),
+                                  [replicaObj](const ReplicaObjectData& repData) -> bool
+    {
+        return repData.replicaObj == replicaObj;
+    });
+
+    if(replicaIt == mReplicas.end())
+        return;
+
+    if(!replicaIt->remoteSession || !replicaIt->customName.isEmpty())
+        return;
+
+    if(replicaIt->remoteSession)
+    {
+        replicaIt->remoteSession->removeReplica(replicaObj, oldName);
+    }
+
+    if(replicaIt->remoteSession)
+    {
+        replicaIt->remoteSession->addReplica(replicaObj, newName);
     }
 }
 
 void ReplicaObjectManager::addSourceObject(AbstractSimulationObject *obj,
                                            RemoteSession *remoteSession,
-                                           quint64 objectId)
+                                           quint64 replicaId)
 {
     auto it = mSourceObjects.find(obj);
     if(it == mSourceObjects.end())
@@ -70,11 +293,11 @@ void ReplicaObjectManager::addSourceObject(AbstractSimulationObject *obj,
                 this, &ReplicaObjectManager::onSourceObjStateChanged);
     }
 
-    it.value().sessions.append({remoteSession, objectId});
+    it.value().sessions.append({remoteSession, replicaId});
 
     QCborMap objState;
     obj->getReplicaState(objState);
-    remoteSession->sendSourceObjectState(objectId, objState);
+    remoteSession->sendSourceObjectState(replicaId, objState);
 }
 
 void ReplicaObjectManager::removeSourceObjects(RemoteSession *remoteSession)
@@ -84,8 +307,8 @@ void ReplicaObjectManager::removeSourceObjects(RemoteSession *remoteSession)
     {
         SourceObjectData& objData = objIt.value();
         auto sessionIt = std::find_if(objData.sessions.begin(),
-                                  objData.sessions.end(),
-                                  [remoteSession](const RemoteSessionData& remoteData) -> bool
+                                      objData.sessions.end(),
+                                      [remoteSession](const RemoteSessionData& remoteData) -> bool
         {
             return remoteData.remoteSession == remoteSession;
         });

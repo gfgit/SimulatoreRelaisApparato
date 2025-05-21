@@ -38,6 +38,8 @@ class RemoteSessionsModel;
 
 class ReplicaObjectManager;
 
+class QJsonObject;
+
 class RemoteManager : public QObject
 {
     Q_OBJECT
@@ -72,6 +74,9 @@ public:
     RemoteSessionsModel *remoteSessionsModel() const;
 
     ReplicaObjectManager *replicaMgr() const;
+
+    bool loadFromJSON(const QJsonObject& obj);
+    void saveToJSON(QJsonObject& obj);
 
 signals:
     void networkStateChanged();
