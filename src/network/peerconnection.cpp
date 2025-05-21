@@ -353,7 +353,7 @@ void PeerConnection::processReadyRead()
             }
             else if (currentDataType == ReplicaStatus)
             {
-                if(!reader.isMap())
+                if(!reader.isArray())
                     break; // protocol error
 
                 reader.enterContainer();
