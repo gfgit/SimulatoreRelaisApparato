@@ -82,6 +82,9 @@ public:
     bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject& obj) const override;
 
+    bool setReplicaState(const QCborMap& replicaState) override;
+    void getReplicaState(QCborMap& replicaState) const override;
+
     int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
 
     void timerEvent(QTimerEvent *e) override;
@@ -117,6 +120,9 @@ public:
 
 signals:
     void typeChanged(ScreenRelais *self, ScreenType s);
+
+protected:
+    void onReplicaModeChanged(bool on) override;
 
 private:
     friend class ScreenRelaisPowerNode;

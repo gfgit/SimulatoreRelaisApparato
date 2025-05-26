@@ -33,6 +33,7 @@
 #include "../../../views/modemanager.h"
 
 #include <QJsonObject>
+#include <QCborMap>
 
 ACESasibLeverCommonObject::ACESasibLeverCommonObject(AbstractSimulationObjectModel *m,
                                                      const EnumDesc &positionDesc,
@@ -95,6 +96,19 @@ void ACESasibLeverCommonObject::saveToJSON(QJsonObject &obj) const
     AbstractSimulationObject::saveToJSON(obj);
 
     obj["electromagnet"] = mMagnet ? mMagnet->name() : QString();
+}
+
+bool ACESasibLeverCommonObject::setReplicaState(const QCborMap &replicaState)
+{
+    leverInterface->setAngle(replicaState.value("angle").toInteger());
+    leverInterface->setPosition(replicaState.value("pos").toInteger());
+    return true;
+}
+
+void ACESasibLeverCommonObject::getReplicaState(QCborMap &replicaState) const
+{
+    replicaState[QLatin1StringView("pos")] = leverInterface->position();
+    replicaState[QLatin1StringView("angle")] = leverInterface->angle();
 }
 
 ElectroMagnetObject *ACESasibLeverCommonObject::magnet() const

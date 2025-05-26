@@ -655,6 +655,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &createEditWidget<AbstractRelais, AbstractRelayOptionsWidget>;
         item.objectType = AbstractRelais::Type;
         item.prettyName = tr("Relais");
+        item.canBeReplica = true;
 
         factory->registerFactory(item);
     }
@@ -667,6 +668,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &createEditWidget<ScreenRelais, ScreenRelaisOptionsWidget>;
         item.objectType = ScreenRelais::Type;
         item.prettyName = tr("Screen Relais");
+        item.canBeReplica = true;
 
         factory->registerFactory(item);
     }
@@ -682,6 +684,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
             LeverInterface::IfaceType
         };
         item.prettyName = tr("ACEI Lever");
+        item.canBeReplica = true;
 
         factory->registerFactory(item);
     }
@@ -723,6 +726,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         };
         item.prettyName = tr("ACE Lever 2 pos");
         item.edit = &defaultSasibLeverEdit;
+        item.canBeReplica = true;
 
         factory->registerFactory(item);
     }
@@ -740,6 +744,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         };
         item.prettyName = tr("ACE Lever 3 pos");
         item.edit = &defaultSasibLeverEdit;
+        item.canBeReplica = true;
 
         factory->registerFactory(item);
     }
@@ -756,6 +761,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         };
         item.prettyName = tr("Generic Button");
         item.edit = defaultButtonEdit;
+        item.canBeReplica = true;
 
         factory->registerFactory(item);
     }

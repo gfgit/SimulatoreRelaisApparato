@@ -30,6 +30,7 @@
 #include <QTimerEvent>
 
 #include <QJsonObject>
+#include <QCborMap>
 
 #include <QRandomGenerator>
 
@@ -96,6 +97,15 @@ void ScreenRelais::setColorAt(int idx, GlassColor newColor)
     emit typeChanged(this, mType);
 }
 
+void ScreenRelais::onReplicaModeChanged(bool on)
+{
+    if(!on)
+    {
+        // Return to local target position
+        mTimer.start(std::chrono::milliseconds(50), this);
+    }
+}
+
 ScreenRelais::ScreenRelais(AbstractSimulationObjectModel *m)
     : AbstractSimulationObject{m}
 {
@@ -151,6 +161,17 @@ void ScreenRelais::saveToJSON(QJsonObject &obj) const
     obj["color_2"] = int(getColorAt(2));
 }
 
+bool ScreenRelais::setReplicaState(const QCborMap &replicaState)
+{
+    setPosition(replicaState.value(QLatin1StringView("pos")).toDouble());
+    return true;
+}
+
+void ScreenRelais::getReplicaState(QCborMap &replicaState) const
+{
+    replicaState[QLatin1StringView("pos")] = getPosition();
+}
+
 int ScreenRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
     int nodesCount = AbstractSimulationObject::getReferencingNodes(result);
@@ -177,7 +198,7 @@ void ScreenRelais::timerEvent(QTimerEvent *e)
 {
     if(e->id() == mTimer.id())
     {
-        if(qFuzzyCompare(mTargetPosition, mPosition))
+        if(isRemoteReplica() || qFuzzyCompare(mTargetPosition, mPosition))
         {
             mTimer.stop();
         }

@@ -40,12 +40,17 @@ public:
     static constexpr QLatin1String Type = QLatin1String("generic_button");
     QString getType() const override;
 
+    bool setReplicaState(const QCborMap& replicaState) override;
+    void getReplicaState(QCborMap& replicaState) const override;
+
 protected:
     void timerEvent(QTimerEvent *ev) override;
 
     void onInterfaceChanged(AbstractObjectInterface *iface,
                             const QString &propName,
                             const QVariant &value) override;
+
+    void onReplicaModeChanged(bool on) override;
 
 private:
     void startReturnTimer();

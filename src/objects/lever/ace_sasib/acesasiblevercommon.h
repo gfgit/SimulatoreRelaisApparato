@@ -46,6 +46,9 @@ public:
     bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject& obj) const override;
 
+    bool setReplicaState(const QCborMap& replicaState) override;
+    void getReplicaState(QCborMap& replicaState) const override;
+
     ElectroMagnetObject *magnet() const;
     void setMagnet(ElectroMagnetObject *newMagnet);
 

@@ -50,11 +50,17 @@ public:
     bool loadFromJSON(const QJsonObject& obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject& obj) const override;
 
+    bool setReplicaState(const QCborMap& replicaState) override;
+    void getReplicaState(QCborMap& replicaState) const override;
+
     bool canSealLeftPosition() const;
     void setCanSealLeftPosition(bool newCanSealLeftPosition);
 
     bool isLeftPositionSealed() const;
     void setIsLeftPositionSealed(bool newIsLeftPositionSealed);
+
+protected:
+    void onReplicaModeChanged(bool on) override;
 
 private:
     LeverInterface *leverInterface = nullptr;

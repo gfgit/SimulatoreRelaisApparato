@@ -27,6 +27,8 @@
 
 #include <QTimerEvent>
 
+#include <QCborMap>
+
 GenericButtonObject::GenericButtonObject(AbstractSimulationObjectModel *m)
     : AbstractSimulationObject{m}
 {
@@ -62,6 +64,17 @@ GenericButtonObject::~GenericButtonObject()
 QString GenericButtonObject::getType() const
 {
     return Type;
+}
+
+bool GenericButtonObject::setReplicaState(const QCborMap &replicaState)
+{
+    buttonIface->setState(ButtonInterface::State(replicaState.value(QLatin1StringView("state")).toInteger()));
+    return true;
+}
+
+void GenericButtonObject::getReplicaState(QCborMap &replicaState) const
+{
+    replicaState[QLatin1StringView("state")] = int(buttonIface->state());
 }
 
 void GenericButtonObject::timerEvent(QTimerEvent *ev)
@@ -139,6 +152,24 @@ void GenericButtonObject::onInterfaceChanged(AbstractObjectInterface *iface, con
     }
 
     AbstractSimulationObject::onInterfaceChanged(iface, propName, value);
+}
+
+void GenericButtonObject::onReplicaModeChanged(bool on)
+{
+    if(!on)
+    {
+        switch(buttonIface->mode())
+        {
+        case ButtonInterface::Mode::ReturnNormalAfterTimeout:
+        case ButtonInterface::Mode::ReturnNormalOnRelease:
+        {
+            // Reset button
+            buttonIface->setState(ButtonInterface::State::Normal);
+        }
+        default:
+            break;
+        }
+    }
 }
 
 void GenericButtonObject::startReturnTimer()

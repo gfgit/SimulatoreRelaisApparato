@@ -25,6 +25,7 @@
 #include "../../interfaces/leverinterface.h"
 
 #include <QJsonObject>
+#include <QCborMap>
 
 static const EnumDesc acei_lever_posDesc =
 {
@@ -93,6 +94,30 @@ void ACEILeverObject::saveToJSON(QJsonObject &obj) const
     obj["seal_left_pos"] = canSealLeftPosition();
 }
 
+bool ACEILeverObject::setReplicaState(const QCborMap &replicaState)
+{
+    const auto left_seal = replicaState.value("left_seal");
+    if(left_seal.isBool() && left_seal.toBool() == false)
+        setIsLeftPositionSealed(false); // Remove seal before set position
+
+    leverInterface->setAngle(replicaState.value("angle").toInteger());
+    leverInterface->setPosition(replicaState.value("pos").toInteger());
+
+    if(left_seal.isBool() && left_seal.toBool() == true)
+        setIsLeftPositionSealed(true); // Apply seal after set position
+
+    return true;
+}
+
+void ACEILeverObject::getReplicaState(QCborMap &replicaState) const
+{
+    replicaState[QLatin1StringView("pos")] = leverInterface->position();
+    replicaState[QLatin1StringView("angle")] = leverInterface->angle();
+
+    if(canSealLeftPosition())
+        replicaState[QLatin1StringView("left_seal")] = isLeftPositionSealed();
+}
+
 bool ACEILeverObject::canSealLeftPosition() const
 {
     return mCanSealLeftPosition;
@@ -137,4 +162,16 @@ void ACEILeverObject::setIsLeftPositionSealed(bool newIsLeftPositionSealed)
     }
 
     emit stateChanged(this);
+}
+
+void ACEILeverObject::onReplicaModeChanged(bool on)
+{
+    if(!on)
+    {
+        if(canSealLeftPosition())
+        {
+            // Seal again
+            setIsLeftPositionSealed(true);
+        }
+    }
 }
