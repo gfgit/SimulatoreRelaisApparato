@@ -30,6 +30,7 @@ class RemoteManager;
 class RemoteSession;
 
 class AbstractSimulationObject;
+class ReplicasModel;
 
 class QJsonObject;
 
@@ -38,6 +39,7 @@ class ReplicaObjectManager : public QObject
     Q_OBJECT
 public:
     explicit ReplicaObjectManager(RemoteManager *mgr);
+    ~ReplicaObjectManager();
 
     RemoteManager *remoteMgr() const;
 
@@ -48,9 +50,13 @@ public:
 
     bool loadFromJSON(const QJsonObject& obj);
     void saveToJSON(QJsonObject& obj);
+    void clear();
+
+    ReplicasModel *replicasModel() const;
 
 private slots:
     void onSourceObjStateChanged(AbstractSimulationObject *obj);
+    void onReplicaDestroyed(QObject *obj);
     void onReplicaNameChanged(AbstractSimulationObject *replicaObj,
                               const QString &newName, const QString &oldName);
 
@@ -62,6 +68,9 @@ private:
     void removeSourceObjects(RemoteSession *remoteSession);
 
 private:
+    friend class ReplicasModel;
+    ReplicasModel *mReplicasModel = nullptr;
+
     struct RemoteSessionData
     {
         RemoteSession *remoteSession = nullptr;

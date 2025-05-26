@@ -100,6 +100,17 @@ QStringList SimulationObjectFactory::typesForInterface(const QString &ifaceName)
     return result;
 }
 
+QStringList SimulationObjectFactory::replicaTypes() const
+{
+    QStringList result;
+    for(const FactoryItem& item : std::as_const(mItems))
+    {
+        if(item.canBeReplica)
+            result.append(item.objectType);
+    }
+    return result;
+}
+
 QString SimulationObjectFactory::prettyName(const QString &objType) const
 {
     const FactoryItem *factory = getItemForType(objType);

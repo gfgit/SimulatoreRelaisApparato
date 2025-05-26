@@ -21,6 +21,8 @@ set(SIMULATORE_RELAIS_SOURCES
     network/remotesessionsmodel.h
     network/replicaobjectmanager.cpp
     network/replicaobjectmanager.h
+    network/replicasmodel.cpp
+    network/replicasmodel.h
 
     PARENT_SCOPE
 )

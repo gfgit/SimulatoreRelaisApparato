@@ -100,6 +100,8 @@ void RemoteManager::clear()
     const auto remoteSessions = mRemoteSessions;
     for(RemoteSession *r : remoteSessions)
         removeRemoteSession(r);
+
+    mReplicaMgr->clear();
 }
 
 void RemoteManager::setOnline(bool val)

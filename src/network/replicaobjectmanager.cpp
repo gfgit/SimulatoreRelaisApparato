@@ -25,6 +25,7 @@
 #include "remotemanager.h"
 #include "remotesession.h"
 #include "remotesessionsmodel.h"
+#include "replicasmodel.h"
 
 #include "../views/modemanager.h"
 
@@ -39,7 +40,15 @@
 ReplicaObjectManager::ReplicaObjectManager(RemoteManager *mgr)
     : QObject{mgr}
 {
+    mReplicasModel = new ReplicasModel(this);
+}
 
+ReplicaObjectManager::~ReplicaObjectManager()
+{
+    clear();
+
+    delete mReplicasModel;
+    mReplicasModel = nullptr;
 }
 
 RemoteManager *ReplicaObjectManager::remoteMgr() const
@@ -61,8 +70,12 @@ bool ReplicaObjectManager::addReplicaObject(AbstractSimulationObject *replicaObj
 
     connect(replicaObj, &AbstractSimulationObject::nameChanged,
             this, &ReplicaObjectManager::onReplicaNameChanged);
+    connect(replicaObj, &AbstractSimulationObject::destroyed,
+            this, &ReplicaObjectManager::onReplicaDestroyed);
 
+    mReplicasModel->addItemAt(mReplicas.size(), true);
     mReplicas.append({replicaObj, nullptr, QString()});
+    mReplicasModel->addItemAt(0, false);
     return true;
 }
 
@@ -86,8 +99,12 @@ bool ReplicaObjectManager::removeReplicaObject(AbstractSimulationObject *replica
 
     disconnect(replicaObj, &AbstractSimulationObject::nameChanged,
                this, &ReplicaObjectManager::onReplicaNameChanged);
+    disconnect(replicaObj, &AbstractSimulationObject::destroyed,
+               this, &ReplicaObjectManager::onReplicaDestroyed);
 
+    mReplicasModel->removeItemAt(std::distance(mReplicas.begin(), replicaIt), true);
     mReplicas.erase(replicaIt);
+    mReplicasModel->removeItemAt(0, false);
 
     return true;
 }
@@ -122,6 +139,10 @@ bool ReplicaObjectManager::setReplicaObjectSession(AbstractSimulationObject *rep
         const QString newName = replicaIt->customName.isEmpty() ? replicaObj->name() : replicaIt->customName;
         replicaIt->remoteSession->addReplica(replicaObj, newName);
     }
+
+    const QModelIndex idx = mReplicasModel->index(std::distance(mReplicas.begin(), replicaIt),
+                                                  ReplicasModel::SessionDeviceCol);
+    emit mReplicasModel->dataChanged(idx, idx);
 
     return true;
 }
@@ -237,6 +258,13 @@ void ReplicaObjectManager::saveToJSON(QJsonObject &obj)
     obj["replicas"] = replicas;
 }
 
+void ReplicaObjectManager::clear()
+{
+    const auto replicas = mReplicas;
+    for(const ReplicaObjectData& repData : replicas)
+        removeReplicaObject(repData.replicaObj);
+}
+
 void ReplicaObjectManager::onSourceObjStateChanged(AbstractSimulationObject *obj)
 {
     auto it = mSourceObjects.constFind(obj);
@@ -252,6 +280,11 @@ void ReplicaObjectManager::onSourceObjStateChanged(AbstractSimulationObject *obj
         sessionData.remoteSession->sendSourceObjectState(sessionData.replicaId,
                                                          objState);
     }
+}
+
+void ReplicaObjectManager::onReplicaDestroyed(QObject *obj)
+{
+    removeReplicaObject(static_cast<AbstractSimulationObject *>(obj));
 }
 
 void ReplicaObjectManager::onReplicaNameChanged(AbstractSimulationObject *replicaObj,
@@ -279,6 +312,10 @@ void ReplicaObjectManager::onReplicaNameChanged(AbstractSimulationObject *replic
     {
         replicaIt->remoteSession->addReplica(replicaObj, newName);
     }
+
+    const QModelIndex idx = mReplicasModel->index(std::distance(mReplicas.begin(), replicaIt),
+                                                  ReplicasModel::SessionDeviceCol);
+    emit mReplicasModel->dataChanged(idx, idx);
 }
 
 void ReplicaObjectManager::addSourceObject(AbstractSimulationObject *obj,
@@ -327,6 +364,11 @@ void ReplicaObjectManager::removeSourceObjects(RemoteSession *remoteSession)
             objIt++;
         }
     }
+}
+
+ReplicasModel *ReplicaObjectManager::replicasModel() const
+{
+    return mReplicasModel;
 }
 
 

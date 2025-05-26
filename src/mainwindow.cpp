@@ -290,6 +290,10 @@ void MainWindow::buildMenuBar()
     connect(showRemoteSessionList, &QAction::triggered,
             mViewMgr, &ViewManager::showRemoteSessionsListView);
 
+    QAction *showReplicaList = menuNetwork->addAction(tr("Replica Objects"));
+    connect(showReplicaList, &QAction::triggered,
+            mViewMgr, &ViewManager::showReplicaListView);
+
     connect(remoteMgr, &RemoteManager::networkStateChanged,
             this, [this, remoteMgr]()
     {

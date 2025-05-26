@@ -50,6 +50,7 @@
 #include "../objects/simulationobjectlistwidget.h"
 
 #include "../network/view/remotesessionlistwidget.h"
+#include "../network/view/replicaslistwidget.h"
 
 #include <kddockwidgets/DockWidget.h>
 #include <kddockwidgets/core/DockWidget.h>
@@ -612,6 +613,7 @@ void ViewManager::closeAll()
     delete mCircuitListViewDock;
     delete mPanelListViewDock;
     delete mRemoteSessionsListViewDock;
+    delete mReplicaListViewDock;
 
     qDeleteAll(mObjectListDocks);
     mObjectListDocks.clear();
@@ -713,6 +715,25 @@ void ViewManager::showRemoteSessionsListView()
     mRemoteSessionsListViewDock->setTitle(tr("Remote Sessions"));
 
     mainWin()->addDockWidget(mRemoteSessionsListViewDock, KDDockWidgets::Location_OnLeft);
+}
+
+void ViewManager::showReplicaListView()
+{
+    if(mReplicaListViewDock)
+    {
+        mReplicaListViewDock->raise();
+        mReplicaListViewDock->activateWindow();
+        return;
+    }
+
+    ReplicasListWidget *replicaListView = new ReplicasListWidget(this);
+
+    mReplicaListViewDock = new DockWidget(QLatin1String("replica_list"),
+                                        KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    mReplicaListViewDock->setWidget(replicaListView);
+    mReplicaListViewDock->setTitle(tr("Replica Objects"));
+
+    mainWin()->addDockWidget(mReplicaListViewDock, KDDockWidgets::Location_OnLeft);
 }
 
 bool ViewManager::batchCircuitNodeEdit(bool objectReplace)

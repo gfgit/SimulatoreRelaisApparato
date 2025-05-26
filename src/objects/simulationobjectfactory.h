@@ -54,6 +54,7 @@ public:
         EditFunc edit = nullptr;
 
         QVector<QString> interfaces;
+        bool canBeReplica = false;
     };
 
     AbstractSimulationObjectModel *createModel(ModeManager *mgr, const QString& objType) const;
@@ -67,6 +68,7 @@ public:
     // Info
     QStringList getRegisteredTypes() const;
     QStringList typesForInterface(const QString& ifaceName) const;
+    QStringList replicaTypes() const;
 
     QString prettyName(const QString& objType) const;
 

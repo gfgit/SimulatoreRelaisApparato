@@ -118,6 +118,7 @@ public slots:
     void showPanelListView();
     void showObjectListView(const QString &objType);
     void showRemoteSessionsListView();
+    void showReplicaListView();
 
     bool batchCircuitNodeEdit(bool objectReplace);
     bool batchPanelItemEdit(bool objectReplace);
@@ -174,6 +175,7 @@ private:
     QPointer<DockWidget> mPanelListViewDock;
 
     QPointer<DockWidget> mRemoteSessionsListViewDock;
+    QPointer<DockWidget> mReplicaListViewDock;
 
     ViewType mCurrentViewType = ViewType::Circuit;
 };
