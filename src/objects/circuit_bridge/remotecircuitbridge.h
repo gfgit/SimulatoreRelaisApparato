@@ -28,6 +28,7 @@
 class RemoteCableCircuitNode;
 
 class RemoteSession;
+class SerialDevice;
 
 class RemoteCircuitBridge : public AbstractSimulationObject
 {
@@ -82,8 +83,14 @@ public:
     bool setPeerNodeCustomName(const QString &newPeerNodeName);
 
     // Serial Device
-    QString getDeviceName() const;
-    bool setDeviceName(const QString &name);
+    QString getSerialDeviceName() const;
+
+    inline SerialDevice *getSerialDevice() const
+    {
+        return mSerialDevice;
+    }
+
+    bool setSerialDevice(SerialDevice *serialDevice);
 
     int serialInputId() const;
     void setSerialInputId(int newSerialInputId);
@@ -104,6 +111,7 @@ private:
     void onLocalNodeModeChanged(RemoteCableCircuitNode *node);
 
     friend class SerialManager;
+    friend class SerialDevice;
     void onSerialInputMode(int mode);
 
 private:
@@ -122,7 +130,7 @@ private:
     size_t mPeerNodeId = 0;
 
     // Serial Device
-    QString mSerialName;
+    SerialDevice *mSerialDevice = nullptr;
     qint64 mSerialNameId = 0;
     int mSerialInputId = 0;
     int mSerialOutputId = 0;

@@ -36,28 +36,47 @@ class RemoteCircuitBridge;
 
 class ModeManager;
 
+class SerialDevice;
+class SerialDevicesModel;
+
 class SerialManager : public QObject
 {
     Q_OBJECT
 public:
+    enum SerialCommands
+    {
+        NameRequest  = 0x04,
+        NameResponse = 0x05,
+        OutputChange = 0x06,
+        InputChange  = 0x07,
+        PauseExecution  = 0x08,
+        ResumeExecution = 0x09,
+        // 0x10 is escape character
+        Ping = 0x11,
+        PingResponse = 0x12
+    };
+
     explicit SerialManager(ModeManager *mgr);
     ~SerialManager();
 
     void rescanPorts();
 
+    void clear();
     void disconnectAllDevices();
 
-    void onOutputChanged(qint64 deviceId, int outputId, int mode);
+    SerialDevice *getDevice(const QString& devName) const;
+    SerialDevice *addDevice(const QString& devName);
+    void removeDevice(SerialDevice *serialDev);
 
-    void addRemoteBridge(RemoteCircuitBridge *bridge, const QString &devName);
-    void removeRemoteBridge(RemoteCircuitBridge *bridge, const QString &devName);
+    inline ModeManager *modeMgr() const
+    {
+        return mModeMgr;
+    }
 
-    bool changeRemoteBridgeInput(RemoteCircuitBridge *bridge, const QString &devName,
-                                  int oldValue, int newValue);
-    bool changeRemoteBridgeOutput(RemoteCircuitBridge *bridge, const QString &devName,
-                                  int oldValue, int newValue);
+    SerialDevicesModel *devicesModel() const;
 
-    bool isInputOutputFree(const QString& devName, int inputOutputId, bool isInput) const;
+signals:
+    void serialDeviceRemoved(SerialDevice *dev);
 
 protected:
     void timerEvent(QTimerEvent *e) override;
@@ -69,31 +88,18 @@ private slots:
 private:
     bool checkSerialValid(QSerialPort *serialPort);
 
-    void processMessage(qint64 deviceId, const QByteArray& msg);
-
     void scheduleRescan();
+
+    friend class SerialDevice;
+    static void writeMessageFlush(QSerialPort *dev, const quint8 *data, int size);
+
+    bool renameDevice(const QString &fromName, const QString &toName);
 
 private:
     ModeManager *mModeMgr = nullptr;
+    SerialDevicesModel *mDevicesModel = nullptr;
 
-    struct SerialDevice
-    {
-        void reset();
-
-        void closeSerial();
-
-        void start(QSerialPort *serial);
-
-        inline bool isConnected() const { return serialPort != nullptr; }
-
-        QSerialPort *serialPort = nullptr;
-
-        QHash<int, RemoteCircuitBridge *> inputs;
-        QHash<int, RemoteCircuitBridge *> outputs;
-        QTime lastPingReply;
-    };
-
-    QHash<qint64, SerialDevice> mDevices;
+    QHash<QString, SerialDevice *> mDevices;
 
     struct PendingPort
     {

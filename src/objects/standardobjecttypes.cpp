@@ -54,6 +54,9 @@
 #include "../network/remotemanager.h"
 #include "../network/remotesessionsmodel.h"
 
+#include "../serial/serialmanager.h"
+#include "../serial/serialdevicesmodel.h"
+
 // TODO: extract names in separate header
 #include "interfaces/leverinterface.h"
 #include "interfaces/mechanicalinterface.h"
@@ -559,13 +562,39 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     lay->addRow(serialDeviceGroup);
     QFormLayout *serialDeviceLay = new QFormLayout(serialDeviceGroup);
 
-    QLineEdit *serialDeviceEdit = new QLineEdit;
-    serialDeviceLay->addRow(StandardObjectTypes::tr("Device Name:"), serialDeviceEdit);
-    QObject::connect(serialDeviceEdit, &QLineEdit::textEdited,
-                     bridge, [bridge, serialDeviceEdit]()
+    SerialManager *serialMgr = mgr->modeMgr()->getSerialManager();
+    SerialDevicesModel *serialDevicesModel = serialMgr->devicesModel();
+
+    QPushButton *clearDevBut = new QPushButton(StandardObjectTypes::tr("Clear Serial Device"));
+    serialDeviceLay->addRow(clearDevBut);
+
+    QObject::connect(clearDevBut, &QPushButton::clicked,
+                     bridge, [bridge]()
     {
-        bridge->setDeviceName(serialDeviceEdit->text());
+        bridge->setSerialDevice(nullptr);
     });
+
+
+    QComboBox *serialDevCombo = new QComboBox;
+    serialDeviceLay->addRow(StandardObjectTypes::tr("Device:"), serialDevCombo);
+
+    auto updateSerialDevCombo = [bridge, serialDevicesModel, serialDevCombo]()
+    {
+        SerialDevice *serialDev = bridge->getSerialDevice();
+        const int row = serialDevicesModel->rowForSerialDevice(serialDev);
+        serialDevCombo->setCurrentIndex(row);
+    };
+
+    QObject::connect(serialDevicesModel, &SerialDevicesModel::modelReset,
+                     serialDevCombo, updateSerialDevCombo);
+
+    QObject::connect(serialDevCombo, &QComboBox::activated,
+                     bridge, [bridge, serialDevicesModel](int row)
+    {
+        bridge->setSerialDevice(serialDevicesModel->getSerialDeviceAt(row));
+    });
+
+    serialDevCombo->setModel(serialDevicesModel);
 
     QSpinBox *inputIdSpin = new QSpinBox;
     inputIdSpin->setRange(0, 255);
@@ -594,8 +623,9 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     auto updateSettings = [bridge, normalPalette, redTextPalette,
             nodeDescrA, nodeDescrB,
             peerSessionCombo, peerNodeCustomNameEdit,
-            serialDeviceEdit, inputIdSpin, outputIdSpin,
-            updatePeerSessionCombo, clearPeerSessionBut]()
+            serialDevCombo, inputIdSpin, outputIdSpin,
+            updatePeerSessionCombo, clearPeerSessionBut,
+            updateSerialDevCombo, clearDevBut]()
     {
         const QString descrA = bridge->getNodeDescription(true);
         if(nodeDescrA->text() != descrA)
@@ -620,11 +650,10 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
         peerSessionCombo->setEnabled(canRemote);
         peerNodeCustomNameEdit->setEnabled(canRemote);
 
-        serialDeviceEdit->setEnabled(canRemote);
+        serialDevCombo->setEnabled(canRemote);
         inputIdSpin->setEnabled(canRemote);
         outputIdSpin->setEnabled(canRemote);
 
-        serialDeviceEdit->setText(bridge->getDeviceName());
         inputIdSpin->setValue(bridge->serialInputId());
         outputIdSpin->setValue(bridge->serialOutputId());
 
@@ -635,6 +664,9 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
 
         clearPeerSessionBut->setVisible(bridge->getRemoteSession());
         updatePeerSessionCombo();
+
+        clearDevBut->setVisible(bridge->getSerialDevice());
+        updateSerialDevCombo();
     };
 
     QObject::connect(bridge, &RemoteCircuitBridge::settingsChanged,

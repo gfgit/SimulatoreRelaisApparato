@@ -294,6 +294,10 @@ void MainWindow::buildMenuBar()
     connect(showReplicaList, &QAction::triggered,
             mViewMgr, &ViewManager::showReplicaListView);
 
+    QAction *showSerialDevicesList = menuNetwork->addAction(tr("Serial Devices"));
+    connect(showSerialDevicesList, &QAction::triggered,
+            mViewMgr, &ViewManager::showSerialDeviceListView);
+
     connect(remoteMgr, &RemoteManager::networkStateChanged,
             this, [this, remoteMgr]()
     {

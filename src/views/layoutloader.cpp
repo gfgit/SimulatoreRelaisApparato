@@ -353,6 +353,13 @@ KDDockWidgets::QtWidgets::DockWidget *LayoutLoader::createDockWidget(const QStri
         return viewMgr->mReplicaListViewDock.data();
     }
 
+    if(name == QLatin1String("serial_devices_list"))
+    {
+        viewMgr->showSerialDeviceListView();
+        setFlag(viewMgr->mSerialDevicesListViewDock.data(), false);
+        return viewMgr->mSerialDevicesListViewDock.data();
+    }
+
     return nullptr;
 }
 
@@ -413,6 +420,7 @@ void LayoutLoader::setDeleteOnClose(bool value)
     // Views
     setFlag(viewMgr->mRemoteSessionsListViewDock, value);
     setFlag(viewMgr->mReplicaListViewDock, value);
+    setFlag(viewMgr->mSerialDevicesListViewDock, value);
 }
 
 void LayoutLoader::registerLoader()

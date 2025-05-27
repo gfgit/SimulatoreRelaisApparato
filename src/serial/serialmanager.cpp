@@ -21,6 +21,8 @@
  */
 
 #include "serialmanager.h"
+#include "serialdevice.h"
+#include "serialdevicesmodel.h"
 
 #include "../objects/circuit_bridge/remotecircuitbridge.h"
 
@@ -134,28 +136,38 @@ void writeMessage(QIODevice *dev, const quint8 *data, int size)
     dev->write(reinterpret_cast<const char *>(buf), bufPos);
 }
 
-void writeMessageFlush(QSerialPort *dev, const quint8 *data, int size)
+void SerialManager::writeMessageFlush(QSerialPort *dev, const quint8 *data, int size)
 {
-    writeMessage(dev, data, size);
+    ::writeMessage(dev, data, size);
     dev->flush();
 }
 
-enum SerialCommands
+bool SerialManager::renameDevice(const QString &fromName, const QString &toName)
 {
-    NameRequest  = 0x04,
-    NameResponse = 0x05,
-    OutputChange = 0x06,
-    InputChange  = 0x07,
-    PauseExecution  = 0x08,
-    ResumeExecution = 0x09,
-    // 0x10 is escape character
-    Ping = 0x11,
-    PingResponse = 0x12
-};
+    if(fromName == toName)
+        return false;
+
+    SerialDevice *serialDev = mDevices.value(fromName);
+
+    if(!serialDev || serialDev->isConnected() || mDevices.contains(toName))
+        return false;
+
+    mDevices.remove(fromName);
+    mDevices.insert(toName, serialDev);
+
+    mDevicesModel->sortItems();
+
+    return true;
+}
+
+SerialDevicesModel *SerialManager::devicesModel() const
+{
+    return mDevicesModel;
+}
 
 static constexpr const quint8 handShakeReq[] =
 {
-    SerialCommands::NameRequest,
+    SerialManager::SerialCommands::NameRequest,
     's', 'i', 'm', 'r'
 };
 
@@ -164,20 +176,23 @@ SerialManager::SerialManager(ModeManager *mgr)
     : QObject{mgr}
     , mModeMgr(mgr)
 {
-
+    mDevicesModel = new SerialDevicesModel(this);
 }
 
 SerialManager::~SerialManager()
 {
-    disconnectAllDevices();
+    clear();
+
+    delete mDevicesModel;
+    mDevicesModel = nullptr;
 }
 
 void SerialManager::rescanPorts()
 {
     bool needsRescan = false;
-    for(const SerialDevice& dev : mDevices)
+    for(const SerialDevice* dev : mDevices)
     {
-        if(!dev.isConnected())
+        if(!dev->isConnected())
         {
             needsRescan = true;
             break;
@@ -209,9 +224,9 @@ void SerialManager::rescanPorts()
 
         if(!alreadyActive)
         {
-            for(const SerialDevice& dev : mDevices)
+            for(const SerialDevice* dev : mDevices)
             {
-                if(dev.serialPort && dev.serialPort->portName() == info.portName())
+                if(dev->serialPort && dev->serialPort->portName() == info.portName())
                 {
                     alreadyActive = true;
                     break;
@@ -261,12 +276,23 @@ void SerialManager::rescanPorts()
     scheduleRescan();
 }
 
+void SerialManager::clear()
+{
+    disconnectAllDevices();
+
+    const auto devicesCopy = mDevices;
+    for(SerialDevice *dev : devicesCopy)
+        removeDevice(dev);
+
+    Q_ASSERT(mDevices.isEmpty());
+}
+
 void SerialManager::disconnectAllDevices()
 {
-    for(SerialDevice& dev : mDevices)
+    for(SerialDevice* dev : mDevices)
     {
-        dev.reset();
-        dev.closeSerial();
+        dev->reset();
+        dev->closeSerial();
     }
 
     for(PendingPort &p : mPendingNamePorts)
@@ -282,27 +308,6 @@ void SerialManager::disconnectAllDevices()
     mPingTimer.stop();
 
     mRescanTimer.stop();
-}
-
-void SerialManager::onOutputChanged(qint64 deviceId, int outputId, int mode)
-{
-    //qDebug() << "SERIAL OUTPUT: dev=" << deviceId << "id:" << outputId << "mode:" << mode;
-
-    auto dev = mDevices.find(deviceId);
-    if(dev == mDevices.end())
-        return;
-
-    if(!dev->isConnected())
-        return;
-
-    quint8 msg[] =
-    {
-        SerialCommands::OutputChange,
-        quint8(outputId),
-        quint8(mode)
-    };
-
-    writeMessageFlush(dev->serialPort, msg, sizeof(msg));
 }
 
 void SerialManager::timerEvent(QTimerEvent *e)
@@ -340,17 +345,17 @@ void SerialManager::timerEvent(QTimerEvent *e)
         bool hasOpenPorts = false;
 
         const QTime now = QTime::currentTime();
-        for(SerialDevice &dev : mDevices)
+        for(SerialDevice *dev : mDevices)
         {
-            if(!dev.isConnected())
+            if(!dev->isConnected())
                 continue;
 
-            if(dev.lastPingReply.msecsTo(now) > 1000)
+            if(dev->lastPingReply.msecsTo(now) > 1000)
             {
-                qDebug() << "Serial device timeout:" << dev.serialPort->portName() << dev.serialPort->objectName();
+                qDebug() << "Serial device timeout:" << dev->serialPort->portName() << dev->serialPort->objectName();
 
-                dev.reset();
-                dev.closeSerial();
+                dev->reset();
+                dev->closeSerial();
 
                 scheduleRescan();
                 continue;
@@ -360,7 +365,7 @@ void SerialManager::timerEvent(QTimerEvent *e)
             hasOpenPorts = true;
 
             const quint8 msg = SerialCommands::Ping;
-            writeMessageFlush(dev.serialPort, &msg, 1);
+            writeMessageFlush(dev->serialPort, &msg, 1);
         }
 
         if(!hasOpenPorts)
@@ -389,7 +394,7 @@ void SerialManager::onSerialRead()
             return;
     }
 
-    const qint64 deviceId = qHash(serialPort->objectName());
+    SerialDevice *dev = getDevice(serialPort->objectName());
 
     while(serialPort->bytesAvailable() != 0)
     {
@@ -398,8 +403,8 @@ void SerialManager::onSerialRead()
         if(reachedEnd)
             break;
 
-        if(!msg.isEmpty())
-            processMessage(deviceId, msg);
+        if(dev && !msg.isEmpty())
+            dev->processMessage(msg);
     }
 }
 
@@ -433,8 +438,8 @@ void SerialManager::onSerialDisconnected()
         return;
     }
 
-    auto dev = mDevices.find(qHash(serialPort->objectName()));
-    Q_ASSERT(dev != mDevices.end());
+    SerialDevice *dev = mDevices.value(serialPort->objectName(), nullptr);
+    Q_ASSERT(dev);
 
     dev->reset();
     dev->closeSerial();
@@ -442,9 +447,9 @@ void SerialManager::onSerialDisconnected()
     scheduleRescan();
 
     bool hasOpenPorts = false;
-    for(const SerialDevice& otherDev : mDevices)
+    for(const SerialDevice* otherDev : mDevices)
     {
-        if(otherDev.isConnected())
+        if(otherDev->isConnected())
         {
             hasOpenPorts = true;
             break;
@@ -479,8 +484,8 @@ bool SerialManager::checkSerialValid(QSerialPort *serialPort)
     if(mPendingNamePorts.isEmpty())
         mPendingTimer.stop();
 
-    auto dev = mDevices.find(qHash(name));
-    if(dev != mDevices.end() && !dev->isConnected())
+    SerialDevice *dev = mDevices.value(name, nullptr);
+    if(dev && !dev->isConnected())
     {
         qDebug() << "Serial device paired:" << serialPort->portName() << name;
 
@@ -501,207 +506,41 @@ bool SerialManager::checkSerialValid(QSerialPort *serialPort)
     return false;
 }
 
-void SerialManager::processMessage(qint64 deviceId, const QByteArray &msg)
-{
-    auto dev = mDevices.find(deviceId);
-    if(dev == mDevices.end())
-        return;
-
-    const quint8 *data = reinterpret_cast<const quint8 *>(msg.constData());
-
-    switch (data[0])
-    {
-    case SerialCommands::NameResponse:
-    {
-        // Ignore
-        break;
-    }
-    case SerialCommands::PingResponse:
-    {
-        dev->lastPingReply = QTime::currentTime();
-        break;
-    }
-    case SerialCommands::Ping:
-    {
-        // Send Ping response
-        const quint8 c = SerialCommands::PingResponse;
-        writeMessageFlush(dev->serialPort, &c, 1);
-        break;
-    }
-    case SerialCommands::InputChange:
-    {
-        if(msg.size() < 3)
-            return;
-
-        const quint8 inputId = data[1];
-        const quint8 mode = data[2];
-
-        RemoteCircuitBridge *bridge = dev->inputs.value(inputId, nullptr);
-        if(!bridge)
-            return;
-
-        bridge->onSerialInputMode(mode);
-        break;
-    }
-    default:
-    {
-        qWarning() << "SERIAL: recv ivalid command:" << data[0] << "dev:" << dev->serialPort->objectName();
-
-        // TODO: reset device?
-        break;
-    }
-    }
-}
-
 void SerialManager::scheduleRescan()
 {
     if(!mRescanTimer.isActive())
         mRescanTimer.start(2000, this);
 }
 
-void SerialManager::addRemoteBridge(RemoteCircuitBridge *bridge, const QString &devName)
+SerialDevice *SerialManager::getDevice(const QString &devName) const
 {
-    const quint64 deviceId = qHash(devName);
-
-    auto dev = mDevices.find(deviceId);
-    if(dev == mDevices.end())
-        dev = mDevices.insert(deviceId, {});
-
-    if(bridge->mSerialInputId)
-        dev->inputs.insert(bridge->mSerialInputId, bridge);
-
-    if(bridge->mSerialOutputId)
-        dev->outputs.insert(bridge->mSerialOutputId, bridge);
+    return mDevices.value(devName, nullptr);
 }
 
-void SerialManager::removeRemoteBridge(RemoteCircuitBridge *bridge, const QString &devName)
+SerialDevice *SerialManager::addDevice(const QString &devName)
 {
-    const quint64 deviceId = qHash(devName);
+    const QString trimmedName = devName.simplified();
 
-    auto dev = mDevices.find(deviceId);
-    Q_ASSERT(dev != mDevices.end());
+    auto it = mDevices.constFind(trimmedName);
+    if(it != mDevices.constEnd())
+        return it.value();
 
-    dev->inputs.remove(bridge->mSerialInputId);
-    dev->outputs.remove(bridge->mSerialOutputId);
+    SerialDevice *serialDev = new SerialDevice(trimmedName);
+    mDevices.insert(trimmedName, serialDev);
 
-    if(dev->inputs.isEmpty() && dev->outputs.isEmpty())
-    {
-        mDevices.erase(dev);
-    }
+    mDevicesModel->addSerialDevice(serialDev);
+
+    return serialDev;
 }
 
-bool SerialManager::changeRemoteBridgeInput(RemoteCircuitBridge *bridge, const QString &devName,
-                                            int oldValue, int newValue)
+void SerialManager::removeDevice(SerialDevice *serialDev)
 {
-    if(oldValue == newValue)
-        return true;
-
-    const quint64 deviceId = qHash(devName);
-
-    auto dev = mDevices.find(deviceId);
-    Q_ASSERT(dev != mDevices.end());
-
-    if(newValue && dev->inputs.contains(newValue))
-        return false;
-
-    if(oldValue)
-    {
-        auto it = dev->inputs.constFind(oldValue);
-        Q_ASSERT(it != dev->inputs.cend() && it.value() == bridge);
-        dev->inputs.erase(it);
-    }
-
-    if(newValue)
-        dev->inputs.insert(newValue, bridge);
-
-    return true;
-}
-
-bool SerialManager::changeRemoteBridgeOutput(RemoteCircuitBridge *bridge, const QString &devName,
-                                             int oldValue, int newValue)
-{
-    if(oldValue == newValue)
-        return true;
-
-    const quint64 deviceId = qHash(devName);
-
-    auto dev = mDevices.find(deviceId);
-    Q_ASSERT(dev != mDevices.end());
-
-    if(newValue && dev->outputs.contains(newValue))
-        return false;
-
-    if(oldValue)
-    {
-        auto it = dev->outputs.constFind(oldValue);
-        Q_ASSERT(it != dev->outputs.cend() && it.value() == bridge);
-        dev->outputs.erase(it);
-    }
-
-    if(newValue)
-        dev->outputs.insert(newValue, bridge);
-
-    return true;
-}
-
-bool SerialManager::isInputOutputFree(const QString &devName, int inputOutputId, bool isInput) const
-{
-    const quint64 deviceId = qHash(devName);
-    auto dev = mDevices.find(deviceId);
-    if(dev == mDevices.end())
-        return false;
-
-    if(isInput)
-        return !dev->inputs.contains(inputOutputId);
-    else
-        return !dev->outputs.contains(inputOutputId);
-}
-
-void SerialManager::SerialDevice::reset()
-{
-    for(RemoteCircuitBridge *bridge : std::as_const(inputs))
-    {
-        bridge->mSerialNameId = 0;
-        bridge->onRemoteDisconnected();
-    }
-
-    for(RemoteCircuitBridge *bridge : std::as_const(outputs))
-    {
-        bridge->mSerialNameId = 0;
-        bridge->onRemoteDisconnected();
-    }
-}
-
-void SerialManager::SerialDevice::closeSerial()
-{
-    if(!serialPort)
+    if(!serialDev)
         return;
 
-    serialPort->setObjectName(QString());
-    serialPort->close();
-    delete serialPort;
-    serialPort = nullptr;
-}
+    mDevices.remove(serialDev->getName());
+    mDevicesModel->removeSerialDevice(serialDev);
+    emit serialDeviceRemoved(serialDev);
 
-void SerialManager::SerialDevice::start(QSerialPort *serial)
-{
-    Q_ASSERT(serialPort == nullptr);
-    serialPort = serial;
-
-    // Reset time
-    lastPingReply = QTime::currentTime();
-
-    const quint64 deviceId = qHash(serialPort->objectName());
-
-    for(RemoteCircuitBridge *bridge : std::as_const(inputs))
-    {
-        bridge->mSerialNameId = deviceId;
-        bridge->onRemoteStarted();
-    }
-
-    for(RemoteCircuitBridge *bridge : std::as_const(outputs))
-    {
-        bridge->mSerialNameId = deviceId;
-        bridge->onRemoteStarted();
-    }
+    delete serialDev;
 }

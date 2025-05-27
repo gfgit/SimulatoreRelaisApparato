@@ -38,7 +38,7 @@ QVariant RemoteCircuitBridgesModel::headerData(int section, Qt::Orientation orie
     {
         switch (section)
         {
-        case RemoteSession:
+        case RemoteSessionCol:
             return tr("Remote Session");
         case RemoteNode:
             return tr("Remote Node");
@@ -86,7 +86,7 @@ QVariant RemoteCircuitBridgesModel::data(const QModelIndex &idx, int role) const
         return nodesCountData(bridge, role,
                               count, wrongCount);
     }
-    else if(idx.column() == RemoteSession && role == Qt::DisplayRole)
+    else if(idx.column() == RemoteSessionCol && role == Qt::DisplayRole)
     {
         return bridge->remoteSessionName();
     }
@@ -94,12 +94,36 @@ QVariant RemoteCircuitBridgesModel::data(const QModelIndex &idx, int role) const
     {
         return bridge->peerNodeName();
     }
+    else if(idx.column() == SerialDeviceCol && role == Qt::DisplayRole)
+    {
+        return bridge->getSerialDeviceName();
+    }
+    else if(idx.column() == SerialInputIdCol && role == Qt::DisplayRole)
+    {
+        int val = bridge->serialInputId();
+        if(val)
+            return val;
+        return QVariant();
+    }
+    else if(idx.column() == SerialOutputIdCol && role == Qt::DisplayRole)
+    {
+        int val = bridge->serialOutputId();
+        if(val)
+            return val;
+        return QVariant();
+    }
 
     return AbstractSimulationObjectModel::data(idx, role);
 }
 
 void RemoteCircuitBridgesModel::updateRemoteSessions()
 {
-    emit dataChanged(index(0, RemoteSession),
-                     index(rowCount() - 1, RemoteSession));
+    emit dataChanged(index(0, RemoteSessionCol),
+                     index(rowCount() - 1, RemoteSessionCol));
+}
+
+void RemoteCircuitBridgesModel::updateSerialCols()
+{
+    emit dataChanged(index(0, SerialDeviceCol),
+                     index(rowCount() - 1, SerialOutputIdCol));
 }

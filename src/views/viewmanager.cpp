@@ -52,6 +52,8 @@
 #include "../network/view/remotesessionlistwidget.h"
 #include "../network/view/replicaslistwidget.h"
 
+#include "../serial/view/serialdevicelistwidget.h"
+
 #include <kddockwidgets/DockWidget.h>
 #include <kddockwidgets/core/DockWidget.h>
 
@@ -612,6 +614,7 @@ void ViewManager::closeAll()
 
     delete mReplicaListViewDock;
     delete mRemoteSessionsListViewDock;
+    delete mSerialDevicesListViewDock;
     delete mCircuitListViewDock;
     delete mPanelListViewDock;
 
@@ -734,6 +737,25 @@ void ViewManager::showReplicaListView()
     mReplicaListViewDock->setTitle(tr("Replica Objects"));
 
     mainWin()->addDockWidget(mReplicaListViewDock, KDDockWidgets::Location_OnLeft);
+}
+
+void ViewManager::showSerialDeviceListView()
+{
+    if(mSerialDevicesListViewDock)
+    {
+        mSerialDevicesListViewDock->raise();
+        mSerialDevicesListViewDock->activateWindow();
+        return;
+    }
+
+    SerialDeviceListWidget *serialDevicesListView = new SerialDeviceListWidget(this);
+
+    mSerialDevicesListViewDock = new DockWidget(QLatin1String("serial_devices_list"),
+                                        KDDockWidgets::DockWidgetOption_DeleteOnClose);
+    mSerialDevicesListViewDock->setWidget(serialDevicesListView);
+    mSerialDevicesListViewDock->setTitle(tr("Serial Devices"));
+
+    mainWin()->addDockWidget(mSerialDevicesListViewDock, KDDockWidgets::Location_OnLeft);
 }
 
 bool ViewManager::batchCircuitNodeEdit(bool objectReplace)

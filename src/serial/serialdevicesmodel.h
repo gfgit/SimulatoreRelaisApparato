@@ -1,5 +1,5 @@
 /**
- * src/objects/circuit_bridge/remotecircuitbridgesmodel.h
+ * src/serial/serialdevicesmodel.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,39 +20,61 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef REMOTE_CIRCUIT_BRIDGES_MODEL_H
-#define REMOTE_CIRCUIT_BRIDGES_MODEL_H
+#ifndef SERIALDEVICESMODEL_H
+#define SERIALDEVICESMODEL_H
 
-#include "../abstractsimulationobjectmodel.h"
+#include <QAbstractTableModel>
 
-class RemoteCircuitBridgesModel : public AbstractSimulationObjectModel
+class SerialManager;
+class SerialDevice;
+
+class SerialDevicesModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    enum ExtraColumns
+    enum Columns
     {
-        RemoteSessionCol = Columns::NCols,
-        RemoteNode,
-        SerialDeviceCol,
-        SerialInputIdCol,
-        SerialOutputIdCol,
-        NColsExtra
+        NameCol = 0,
+        NCols
     };
 
-    RemoteCircuitBridgesModel(ModeManager *mgr, QObject *parent = nullptr);
+    explicit SerialDevicesModel(SerialManager *mgr);
+
+    SerialManager *serialMgr() const;
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     // Basic functionality:
+    int rowCount(const QModelIndex &p = QModelIndex()) const override;
     int columnCount(const QModelIndex &p = QModelIndex()) const override;
 
-    // Custom remote circuit bridge specific data:
     QVariant data(const QModelIndex &idx, int role = Qt::DisplayRole) const override;
+    bool setData(const QModelIndex &idx, const QVariant &value, int role) override;
 
-    void updateRemoteSessions();
-    void updateSerialCols();
+    Qt::ItemFlags flags(const QModelIndex &idx) const override;
+
+    inline SerialDevice *getSerialDeviceAt(int row) const
+    {
+        return mSerialDevices.value(row, nullptr);
+    }
+
+    inline int rowForSerialDevice(SerialDevice *serialDevice) const
+    {
+        return mSerialDevices.indexOf(serialDevice);
+    }
+
+private:
+    friend class SerialManager;
+    void sortItems();
+    void clear();
+
+    void addSerialDevice(SerialDevice *serialDevice);
+    void removeSerialDevice(SerialDevice *serialDevice);
+
+private:
+    QVector<SerialDevice *> mSerialDevices;
 };
 
-#endif // REMOTE_CIRCUIT_BRIDGES_MODEL_H
+#endif // SERIALDEVICESMODEL_H

@@ -1125,7 +1125,7 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="126"/>
-        <location filename="../mainwindow.cpp" line="745"/>
+        <location filename="../mainwindow.cpp" line="749"/>
         <source>Save Layout</source>
         <translation>Salva Layout</translation>
     </message>
@@ -1226,61 +1226,66 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
         <translation>Oggetti Replica</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="313"/>
+        <location filename="../mainwindow.cpp" line="297"/>
+        <source>Serial Devices</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="317"/>
         <source>Circuit Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="314"/>
+        <location filename="../mainwindow.cpp" line="318"/>
         <source>Circuit Tools 2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="319"/>
+        <location filename="../mainwindow.cpp" line="323"/>
         <source>New Circuit Item</source>
         <translation>Nuovo Elemento Circuito</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="325"/>
-        <location filename="../mainwindow.cpp" line="408"/>
+        <location filename="../mainwindow.cpp" line="329"/>
+        <location filename="../mainwindow.cpp" line="412"/>
         <source>Batch Edit</source>
         <translation>Modifica Gruppo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="326"/>
-        <location filename="../mainwindow.cpp" line="409"/>
+        <location filename="../mainwindow.cpp" line="330"/>
+        <location filename="../mainwindow.cpp" line="413"/>
         <source>Object Replace</source>
         <translation>Sostituisci Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="380"/>
+        <location filename="../mainwindow.cpp" line="384"/>
         <source>&lt;b&gt;(C)&lt;/b&gt; Cable</source>
         <translation>&lt;b&gt;(C)&lt;/b&gt; Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="440"/>
+        <location filename="../mainwindow.cpp" line="444"/>
         <source>%1</source>
         <translation>%1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="618"/>
+        <location filename="../mainwindow.cpp" line="622"/>
         <source>Load failed.</source>
         <translation>Caricamento fallito.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="619"/>
+        <location filename="../mainwindow.cpp" line="623"/>
         <source>File %1 could not be loaded.
 Check file version is not too new.</source>
         <translation>Impossibile caricare il file %1.
 Controlla che la versione del file non sia troppo nuova.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="725"/>
+        <location filename="../mainwindow.cpp" line="729"/>
         <source>Open Layout</source>
         <translation>Apri Layout</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="379"/>
+        <location filename="../mainwindow.cpp" line="383"/>
         <source>Cable</source>
         <translation>Cavo</translation>
     </message>
@@ -1290,39 +1295,39 @@ Controlla che la versione del file non sia troppo nuova.</translation>
         <translation>Sessioni Remote</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="399"/>
+        <location filename="../mainwindow.cpp" line="403"/>
         <source>Panel Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="403"/>
+        <location filename="../mainwindow.cpp" line="407"/>
         <source>New Panel Item</source>
         <translation>Nuovo Elemento QL</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="511"/>
+        <location filename="../mainwindow.cpp" line="515"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="571"/>
+        <location filename="../mainwindow.cpp" line="575"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="638"/>
+        <location filename="../mainwindow.cpp" line="642"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="639"/>
+        <location filename="../mainwindow.cpp" line="643"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="704"/>
+        <location filename="../mainwindow.cpp" line="708"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>
@@ -1997,6 +2002,62 @@ Scegli un altro nome:</translation>
     </message>
 </context>
 <context>
+    <name>SerialDeviceListWidget</name>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="51"/>
+        <source>Add</source>
+        <translation type="unfinished">Aggiungi</translation>
+    </message>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="52"/>
+        <source>Add Remote Session</source>
+        <translation type="unfinished">Aggiungi Sessione Remota</translation>
+    </message>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="55"/>
+        <source>Remove</source>
+        <translation type="unfinished">Elimina</translation>
+    </message>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="56"/>
+        <source>Remove Remote Session</source>
+        <translation type="unfinished">Elimina Sessione Remota</translation>
+    </message>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="95"/>
+        <source>New Serial Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="97"/>
+        <source>Name:</source>
+        <translation type="unfinished">Nome:</translation>
+    </message>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="98"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; already added.&lt;br&gt;Set another name:</source>
+        <translation type="unfinished">&lt;b&gt;%1&lt;/b&gt; già presente.&lt;br&gt;Imposta un altro nome:</translation>
+    </message>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="131"/>
+        <source>Delete Serial Device?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../serial/view/serialdevicelistwidget.cpp" line="132"/>
+        <source>Are you sure to delete &lt;b&gt;%1&lt;/b&gt;?&lt;br&gt;This will reset all remote objects set to this device.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SerialDevicesModel</name>
+    <message>
+        <location filename="../serial/serialdevicesmodel.cpp" line="47"/>
+        <source>Name</source>
+        <translation type="unfinished">Nome</translation>
+    </message>
+</context>
+<context>
     <name>SignalAspectCodeTranslation</name>
     <message>
         <location filename="../enums/signalaspectcodes.cpp" line="39"/>
@@ -2503,233 +2564,242 @@ Scegli un altro nome:</translation>
 <context>
     <name>StandardObjectTypes</name>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="155"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="158"/>
         <source>Magnet</source>
         <translation>Magnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="254"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="257"/>
         <source>Can be pressed</source>
         <translation>Può essere premuto</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="265"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="268"/>
         <source>Can be extracted</source>
         <translation>Può essere estratto</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="288"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="291"/>
         <source>Mode:</source>
         <translation>Modalità:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="328"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="331"/>
         <source>Loop sound</source>
         <translation>Audio in Loop</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="340"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="343"/>
         <source>Sound File:</source>
         <translation>File audio:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="342"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="345"/>
         <source>Browse</source>
         <translation>Esplora</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="345"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="348"/>
         <source>Apply</source>
         <translation>Applica</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="360"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="363"/>
         <source>Choose WAV Sound</source>
         <translation>Scegli Audio WAV</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="393"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="396"/>
         <source>Type:</source>
         <translation>Tipo:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="416"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="419"/>
         <source>Twin Handle:</source>
         <translation>Maniglia Gemella:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="432"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="435"/>
         <source>Liberation Relay:</source>
         <translation>Relè Liberazione:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="447"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="450"/>
         <source>Artificial Liberation Button:</source>
         <translation>Pulsante Liberazione Artificiale:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="499"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="502"/>
         <source>Description A:</source>
         <translation>Descrizione A:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="500"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="503"/>
         <source>Description B:</source>
         <translation>Descrizione B:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="503"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="506"/>
         <source>Shown on node B</source>
         <translation>Mostrato sul nodo B</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="502"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="568"/>
+        <source>Clear Serial Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="579"/>
+        <source>Device:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="505"/>
         <source>Shown on node A</source>
         <translation>Mostrato sul nodo A</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="160"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="163"/>
         <source>Left button:</source>
         <translation>Pulsante Sinistro:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="161"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="164"/>
         <source>Right button:</source>
         <translation>Pulsante Destro:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="181"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="184"/>
         <source>Right button switches magent.</source>
         <translation>Pulsante destro aziona il magnete.</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="182"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="185"/>
         <source>Right button is mechanically connected to the electromagnet and can pull it up when pressed.</source>
         <translation>Il pulsante destro è connesso meccanicamente all&apos;elettromagnete e può sollevarlo quando viene premuto.</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="224"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="227"/>
         <source>Left position can be security-sealed</source>
         <translation>La posizione sinistra può essere piombata</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="528"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="531"/>
         <source>Peer Session:</source>
         <translation>Sessione compagna:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="549"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="552"/>
         <source>Peer Node:</source>
         <translation>Nodo compagno:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="510"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="513"/>
         <source>Remote Session</source>
         <translation>Sessione Remota</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="292"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="295"/>
         <source> ms</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="293"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="296"/>
         <source>Timeout:</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="518"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="521"/>
         <source>Clear Peer Session</source>
         <translation>Togli sessione remota</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="558"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="561"/>
         <source>Serial Device</source>
         <translation>Dispositivo Seriale</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="563"/>
         <source>Device Name:</source>
-        <translation>Nome Dispositivo:</translation>
+        <translation type="vanished">Nome Dispositivo:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="572"/>
-        <location filename="../objects/standardobjecttypes.cpp" line="584"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="601"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="613"/>
         <source>None</source>
         <translation>Nessuno</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="573"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="602"/>
         <source>Input ID:</source>
         <translation>ID Ingresso:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="585"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="614"/>
         <source>Output ID:</source>
         <translation>ID Uscita:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="611"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="641"/>
         <source>Node A not set!</source>
         <translation>Nodo A non impostato!</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="616"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="646"/>
         <source>Node B not set!</source>
         <translation>Nodo B non impostato!</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="657"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="689"/>
         <source>Relais</source>
         <translation>Relè</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="670"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="702"/>
         <source>Screen Relais</source>
         <translation>Relè Schermo</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="686"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="718"/>
         <source>ACEI Lever</source>
         <translation>Leva ACEI</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="699"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="731"/>
         <source>Ligth bulb</source>
         <translation>Lampada</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="712"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="744"/>
         <source>Electromagnet</source>
         <translation>Elettromagnete</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="728"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="760"/>
         <source>ACE Lever 2 pos</source>
         <translation>Leva ACE 2 pos</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="746"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="778"/>
         <source>ACE Lever 3 pos</source>
         <translation>Leva ACE 3 pos</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="763"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="795"/>
         <source>Generic Button</source>
         <translation>Pulsante Generico</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="776"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="808"/>
         <source>Sound Object</source>
         <translation>Oggetto Sonoro</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="792"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="824"/>
         <source>BEM Handle</source>
         <translation>Maniglia BEM</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="804"/>
+        <location filename="../objects/standardobjecttypes.cpp" line="836"/>
         <source>Circuit Bridge</source>
         <translation>Ponte Circuito</translation>
     </message>
@@ -3033,60 +3103,65 @@ Questo layout verrà caricato all&apos;avvio.</translation>
 <context>
     <name>ViewManager</name>
     <message>
-        <location filename="../views/viewmanager.cpp" line="133"/>
-        <location filename="../views/viewmanager.cpp" line="148"/>
+        <location filename="../views/viewmanager.cpp" line="135"/>
+        <location filename="../views/viewmanager.cpp" line="150"/>
         <source>Empty</source>
         <translation>Vuoto</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="140"/>
+        <location filename="../views/viewmanager.cpp" line="142"/>
         <source>Circuit %1 (%2)</source>
         <translation>Circuito %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="155"/>
+        <location filename="../views/viewmanager.cpp" line="157"/>
         <source>Panel %1 (%2)</source>
         <translation>Pannello %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="275"/>
+        <location filename="../views/viewmanager.cpp" line="277"/>
         <source>Properties Circuit %1</source>
         <translation>Proprietà Circuito %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="484"/>
+        <location filename="../views/viewmanager.cpp" line="486"/>
         <source>Properties Panel %1</source>
         <translation>Proprietà Pannello %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="531"/>
+        <location filename="../views/viewmanager.cpp" line="533"/>
         <source>Properties %1 %2</source>
         <translation>Proprietà %1 %2</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="637"/>
+        <location filename="../views/viewmanager.cpp" line="640"/>
         <source>Circuit Sheets</source>
         <translation>Fogli Circuiti</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="657"/>
+        <location filename="../views/viewmanager.cpp" line="660"/>
         <source>Panel Sheets</source>
         <translation>Fogli Banco</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="686"/>
+        <location filename="../views/viewmanager.cpp" line="689"/>
         <source>%1 List</source>
         <translation>Lista %1</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="715"/>
+        <location filename="../views/viewmanager.cpp" line="718"/>
         <source>Remote Sessions</source>
         <translation>Sessioni Remote</translation>
     </message>
     <message>
-        <location filename="../views/viewmanager.cpp" line="734"/>
+        <location filename="../views/viewmanager.cpp" line="737"/>
         <source>Replica Objects</source>
         <translation>Oggetti Replica</translation>
+    </message>
+    <message>
+        <location filename="../views/viewmanager.cpp" line="756"/>
+        <source>Serial Devices</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
