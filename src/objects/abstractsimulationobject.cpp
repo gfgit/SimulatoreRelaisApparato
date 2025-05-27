@@ -122,12 +122,13 @@ void AbstractSimulationObject::setReplicaMode(bool on)
 
 bool AbstractSimulationObject::setReplicaState(const QCborMap &replicaState)
 {
-
+    Q_UNUSED(replicaState);
+    return false;
 }
 
 void AbstractSimulationObject::getReplicaState(QCborMap &replicaState) const
 {
-
+    Q_UNUSED(replicaState);
 }
 
 QString AbstractSimulationObject::name() const
