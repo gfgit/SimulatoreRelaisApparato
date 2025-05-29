@@ -96,15 +96,25 @@ void ACEILeverObject::saveToJSON(QJsonObject &obj) const
 
 bool ACEILeverObject::setReplicaState(const QCborMap &replicaState)
 {
-    const auto left_seal = replicaState.value("left_seal");
-    if(left_seal.isBool() && left_seal.toBool() == false)
-        setIsLeftPositionSealed(false); // Remove seal before set position
+    const int pos = replicaState.value(QLatin1StringView("pos")).toInteger();
+    const auto seal = replicaState.value(QLatin1StringView("left_seal"));
 
-    leverInterface->setAngle(replicaState.value("angle").toInteger());
-    leverInterface->setPosition(replicaState.value("pos").toInteger());
+    if(canSealLeftPosition())
+    {
+        // Auto apply if position is before vertical
+        if(pos < int(ACEILeverPosition::Vertical) || (seal.isBool() && seal.toBool() == false))
+            setIsLeftPositionSealed(false); // Remove seal before set position
+    }
 
-    if(left_seal.isBool() && left_seal.toBool() == true)
-        setIsLeftPositionSealed(true); // Apply seal after set position
+    leverInterface->setAngle(replicaState.value(QLatin1StringView("angle")).toInteger());
+    leverInterface->setPosition(pos);
+
+    if(canSealLeftPosition())
+    {
+        // Auto apply if source object does not say explicitly
+        if(pos >= int(ACEILeverPosition::Vertical) && (!seal.isBool() || seal.toBool() == true))
+            setIsLeftPositionSealed(true); // Apply seal after set position
+    }
 
     return true;
 }
