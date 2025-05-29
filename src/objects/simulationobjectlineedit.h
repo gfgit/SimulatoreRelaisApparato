@@ -60,6 +60,9 @@ public:
         return mObjectEditAllowed;
     }
 
+    void setDefaultType(const QString& typeName);
+    QString getDefaultType() const;
+
 public slots:
     void setObject(AbstractSimulationObject *newObject);
 

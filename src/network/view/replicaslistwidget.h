@@ -32,6 +32,7 @@ class QTableView;
 
 class ViewManager;
 class ReplicasModel;
+class RemoteSession;
 
 class ReplicasListWidget : public QWidget
 {
@@ -46,6 +47,8 @@ private slots:
     void addReplica();
     void removeReplica();
 
+    void onRemoteSessionRemoved(RemoteSession *remoteSession);
+
 private:
     ViewManager *mViewMgr;
 
@@ -54,6 +57,10 @@ private:
     QPushButton *remBut;
 
     ReplicasModel *mModel;
+
+    RemoteSession *mLastSession = nullptr;
+    QString mLastObjType;
+    bool mUseRemoteSession = false;
 };
 
 #endif // REPLICAS_LIST_WIDGET_H

@@ -80,6 +80,7 @@ public:
 
 signals:
     void networkStateChanged();
+    void remoteSessionRemoved(RemoteSession *s);
 
 private:
     friend class PeerClient;

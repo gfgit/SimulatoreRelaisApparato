@@ -202,6 +202,8 @@ void RemoteManager::removeRemoteSession(RemoteSession *remoteSession)
 
     mRemoteSessions.remove(remoteSession->getSessionName());
     mRemoteSessionsModel->removeRemoteSession(remoteSession);
+    emit remoteSessionRemoved(remoteSession);
+
     delete remoteSession;
 }
 

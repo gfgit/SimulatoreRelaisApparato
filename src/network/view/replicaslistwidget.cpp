@@ -26,6 +26,7 @@
 #include "../../views/modemanager.h"
 
 #include "../remotemanager.h"
+#include "../remotesessionsmodel.h"
 #include "../replicaobjectmanager.h"
 
 #include "../replicasmodel.h"
@@ -36,6 +37,8 @@
 
 #include <QTableView>
 #include <QPushButton>
+#include <QCheckBox>
+#include <QComboBox>
 
 #include <QPointer>
 #include <QDialog>
@@ -49,7 +52,11 @@ ReplicasListWidget::ReplicasListWidget(ViewManager *viewMgr, QWidget *parent)
     : QWidget{parent}
     , mViewMgr(viewMgr)
 {
-    ReplicaObjectManager *replicaMgr = mViewMgr->modeMgr()->getRemoteManager()->replicaMgr();
+    RemoteManager *remoteMgr = mViewMgr->modeMgr()->getRemoteManager();
+    connect(remoteMgr, &RemoteManager::remoteSessionRemoved,
+            this, &ReplicasListWidget::onRemoteSessionRemoved);
+
+    ReplicaObjectManager *replicaMgr = remoteMgr->replicaMgr();
     mModel = replicaMgr->replicasModel();
 
     QVBoxLayout *lay = new QVBoxLayout(this);
@@ -107,7 +114,28 @@ void ReplicasListWidget::addReplica()
 
     SimulationObjectLineEdit *objEdit = new SimulationObjectLineEdit(mViewMgr,
                                                                      replicaTypes);
+    objEdit->setDefaultType(mLastObjType);
     lay->addRow(tr("Replica:"), objEdit);
+
+    QCheckBox *sessionCheck = new QCheckBox(tr("Use Remote Session"));
+    sessionCheck->setChecked(mUseRemoteSession);
+
+    RemoteSessionsModel *sessionsModel = mViewMgr->modeMgr()->getRemoteManager()->remoteSessionsModel();
+    QComboBox *sessionCombo = new QComboBox;
+    sessionCombo->setModel(sessionsModel);
+    lay->addRow(sessionCheck, sessionCombo);
+
+    if(mLastSession)
+        sessionCombo->setCurrentIndex(sessionsModel->rowForRemoteSession(mLastSession));
+
+    auto updSession = [sessionCombo, sessionCheck]()
+    {
+        sessionCombo->setEnabled(sessionCheck->isChecked());
+    };
+
+    connect(sessionCheck, &QCheckBox::toggled,
+            sessionCombo, updSession);
+    updSession();
 
     QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     lay->addRow(box);
@@ -130,7 +158,22 @@ void ReplicasListWidget::addReplica()
             continue;
         }
 
-        break; // Success
+        RemoteSession *newSession = sessionsModel->getRemoteSessionAt(sessionCombo->currentIndex());
+        if(sessionCheck->isChecked())
+        {
+            if(!replicaMgr->setReplicaObjectSession(replicaObj, newSession, QString()))
+            {
+                QMessageBox::warning(this, tr("Remote Session"),
+                                     tr("Could not set selected remote session."));
+            }
+        }
+
+        // Success
+        mLastObjType = objEdit->getDefaultType();
+        mUseRemoteSession = sessionCheck->isChecked();
+        mLastSession = newSession;
+
+        break;
     }
 
     delete dlg;
@@ -146,4 +189,10 @@ void ReplicasListWidget::removeReplica()
         return;
 
     mModel->removeAt(idx.row());
+}
+
+void ReplicasListWidget::onRemoteSessionRemoved(RemoteSession *remoteSession)
+{
+    if(mLastSession == remoteSession)
+        mLastSession = nullptr;
 }

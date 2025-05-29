@@ -167,6 +167,22 @@ void SimulationObjectLineEdit::setObjectEditAllowed(bool allow)
     mNewObjectBut->setVisible(mObjectEditAllowed && !mObject);
 }
 
+void SimulationObjectLineEdit::setDefaultType(const QString &typeName)
+{
+    int typeIdx = mTypes.indexOf(typeName);
+    if(typeIdx < 0)
+        typeIdx = 0; // Default to Auto
+
+    setType(typeIdx);
+}
+
+QString SimulationObjectLineEdit::getDefaultType() const
+{
+    if(mModel)
+        return mModel->getObjectType();
+    return QString(); // Default to Auto
+}
+
 void SimulationObjectLineEdit::setObject(AbstractSimulationObject *newObject)
 {
     mObjectIsDirty = false;
@@ -215,7 +231,7 @@ void SimulationObjectLineEdit::editCurrentObject()
 
 void SimulationObjectLineEdit::setType(int idx)
 {
-    if(idx < 0)
+    if(idx < 0 || idx >= mTypes.size())
         idx = 0; // Default to Auto
 
     const QString type = mTypes.at(idx);
