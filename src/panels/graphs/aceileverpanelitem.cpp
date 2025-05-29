@@ -332,7 +332,7 @@ void ACEILeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     PanelScene *s = panelScene();
     if(s && s->modeMgr()->mode() != FileMode::Editing
-            && mLeverIface)
+            && mLeverIface && !mLever->isRemoteReplica())
     {
         if(ev->button() == Qt::LeftButton)
         {

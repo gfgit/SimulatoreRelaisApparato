@@ -219,7 +219,7 @@ void ACEIButtonPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 {
     PanelScene *s = panelScene();
     if(s && s->modeMgr()->mode() != FileMode::Editing
-            && mButtonIface
+            && mButtonIface && !mButton->isRemoteReplica()
             && boundingRect().contains(ev->pos()))
     {
         ButtonInterface::State state = mButtonIface->state();

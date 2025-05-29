@@ -435,44 +435,45 @@ void ACESasibLeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 
         if(distanceLess(ev->pos() - LeftButCenter, buttonBaseCircleRadius))
         {
-            mMouseState = MouseState::LeftButton;
-            if(auto butIface = mButtons[LightPosition::Left].buttonIface)
+            auto leftBut = mButtons[LightPosition::Right];
+            if(leftBut.button && !leftBut.button->isRemoteReplica() && leftBut.buttonIface)
             {
+                mMouseState = MouseState::LeftButton;
                 if(ev->button() == Qt::LeftButton)
                 {
                     // Go down by one
-                    butIface->goUpDown(false);
+                    leftBut.buttonIface->goUpDown(false);
                 }
                 else if(ev->button() == Qt::RightButton)
                 {
                     // Go down by one
-                    butIface->goUpDown(true);
+                    leftBut.buttonIface->goUpDown(true);
                 }
             }
         }
         else if(distanceLess(ev->pos() - RightButCenter, buttonBaseCircleRadius))
         {
-            mMouseState = MouseState::RightButton;
-            if(auto butIface = mButtons[LightPosition::Right].buttonIface)
+            auto rightBut = mButtons[LightPosition::Right];
+            if(rightBut.button && !rightBut.button->isRemoteReplica() && rightBut.buttonIface)
             {
+                mMouseState = MouseState::RightButton;
                 if(ev->button() == Qt::LeftButton)
                 {
                     // Go down by one
-                    butIface->goUpDown(false);
+                    rightBut.buttonIface->goUpDown(false);
                 }
                 else if(ev->button() == Qt::RightButton)
                 {
                     // Go down by one
-                    butIface->goUpDown(true);
+                    rightBut.buttonIface->goUpDown(true);
                 }
             }
         }
-        else if(holeRect.contains(ev->pos()))
+        else if(holeRect.contains(ev->pos()) && mLever && !mLever->isRemoteReplica())
         {
             // Lever
             mMouseState = MouseState::Lever;
-            if(mLeverIface)
-                mLeverIface->setPressed(true);
+            mLeverIface->setPressed(true);
         }
         else
         {
