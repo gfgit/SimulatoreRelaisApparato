@@ -218,7 +218,14 @@ void AbstractSimulationObjectModel::saveToJSON(QJsonObject &modelObj) const
 {
     QJsonArray arr;
 
-    for(AbstractSimulationObject *item : std::as_const(mObjects))
+    QVector<AbstractSimulationObject *> sortedObjects = mObjects;
+    std::sort(sortedObjects.begin(), sortedObjects.end(),
+              [](const AbstractSimulationObject *a, const AbstractSimulationObject *b) -> bool
+    {
+        return a->name() < b->name();
+    });
+
+    for(AbstractSimulationObject *item : std::as_const(sortedObjects))
     {
         QJsonObject obj;
         item->saveToJSON(obj);
