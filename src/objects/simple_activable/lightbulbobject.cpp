@@ -22,6 +22,8 @@
 
 #include "lightbulbobject.h"
 
+#include <QCborMap>
+
 LightBulbObject::LightBulbObject(AbstractSimulationObjectModel *m)
     : AbstractSimpleActivableObject{m}
 {
@@ -31,4 +33,35 @@ LightBulbObject::LightBulbObject(AbstractSimulationObjectModel *m)
 QString LightBulbObject::getType() const
 {
     return Type;
+}
+
+bool LightBulbObject::setReplicaState(const QCborMap &replicaState)
+{
+    State newState = State(replicaState.value(QLatin1StringView("state")).toInteger());
+    if(newState != mReplicaState)
+    {
+        mReplicaState = newState;
+        emit stateChanged(this);
+    }
+
+    return true;
+}
+
+void LightBulbObject::getReplicaState(QCborMap &replicaState) const
+{
+    replicaState[QLatin1StringView("state")] = int(state());
+}
+
+void LightBulbObject::onReplicaModeChanged(bool on)
+{
+    if(!on)
+        mReplicaState = State::Off;
+    emit stateChanged(this);
+}
+
+AbstractSimpleActivableObject::State LightBulbObject::state() const
+{
+    if(isRemoteReplica())
+        return mReplicaState;
+    return AbstractSimpleActivableObject::state();
 }

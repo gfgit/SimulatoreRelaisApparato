@@ -33,6 +33,17 @@ public:
 
     static constexpr QLatin1String Type = QLatin1String("light_bulb");
     QString getType() const override;
+
+    bool setReplicaState(const QCborMap& replicaState) override;
+    void getReplicaState(QCborMap& replicaState) const override;
+
+    State state() const override;
+
+protected:
+    void onReplicaModeChanged(bool on) override;
+
+private:
+    State mReplicaState = State::Off;
 };
 
 #endif // LIGHTBULBOBJECT_H

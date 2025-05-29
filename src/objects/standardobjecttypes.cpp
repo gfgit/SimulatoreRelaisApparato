@@ -697,6 +697,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = nullptr;
         item.objectType = LightBulbObject::Type;
         item.prettyName = tr("Ligth bulb");
+        item.canBeReplica = true;
 
         factory->registerFactory(item);
     }
