@@ -223,7 +223,7 @@ void RemoteSession::onRemoteBridgeListReceived(const QVector<BridgeListItem> &li
         RemoteCircuitBridge *obj = nullptr;
         for(RemoteCircuitBridge *bridge : mBridges)
         {
-            if(bridge->name() == item.localNodeName)
+            if(bridge->peerNodeName() == item.localNodeName)
             {
                 obj = bridge;
                 break;
