@@ -102,7 +102,7 @@ void RemoteCircuitBridge::saveToJSON(QJsonObject &obj) const
     obj["node_descr_B"] = mNodeDescriptionB;
 
     obj["remote_session"] = mRemoteSession ? mRemoteSession->getSessionName() : QString();
-    obj["remote_node_custom"] = mPeerNodeCustomName;
+    obj["remote_custom_node"] = mPeerNodeCustomName;
 
     obj["device_name"] = mSerialName;
     obj["device_input_id"] = mSerialInputId;
