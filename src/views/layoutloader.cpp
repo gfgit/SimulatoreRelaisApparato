@@ -409,6 +409,10 @@ void LayoutLoader::setDeleteOnClose(bool value)
     {
         setFlag(dock, value);
     }
+
+    // Views
+    setFlag(viewMgr->mRemoteSessionsListViewDock, value);
+    setFlag(viewMgr->mReplicaListViewDock, value);
 }
 
 void LayoutLoader::registerLoader()
