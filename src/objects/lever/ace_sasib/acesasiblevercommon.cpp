@@ -177,7 +177,9 @@ void ACESasibLeverCommonObject::updateElectroMagnetState()
 
 void ACESasibLeverCommonObject::onElectroMagnedDestroyed()
 {
-    setMagnet(nullptr);
+    // NOTE: do not access magnet
+    removeElectromagnetLock();
+    mMagnet = nullptr;
 }
 
 void ACESasibLeverCommonObject::updateRightButtonState()
