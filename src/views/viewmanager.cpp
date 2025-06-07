@@ -610,10 +610,10 @@ void ViewManager::closeAll()
 {
     closeAllFileSpecificDocks();
 
+    delete mReplicaListViewDock;
+    delete mRemoteSessionsListViewDock;
     delete mCircuitListViewDock;
     delete mPanelListViewDock;
-    delete mRemoteSessionsListViewDock;
-    delete mReplicaListViewDock;
 
     qDeleteAll(mObjectListDocks);
     mObjectListDocks.clear();
