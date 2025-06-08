@@ -394,6 +394,22 @@ AbstractCircuitNode *ElectricCircuit::getEnd() const
     return item.node.node;
 }
 
+bool ElectricCircuit::isDifferentPoleStartEnd() const
+{
+    // We allow Open circuits to close on same pole of source node
+    // They are needed as a base circuit for other circuit tree branches
+    // They cannot be converted to closed circuits
+    if(mItems.size() < 3) // Start + cable + End
+        return false;
+
+    const Item& start = mItems.first();
+    const Item& end = mItems.last();
+    if(!start.isNode || !end.isNode)
+        return false;
+
+    return start.node.toPole != end.node.fromPole;
+}
+
 ElectricCircuit *ElectricCircuit::cloneToOppositeType()
 {
     ElectricCircuit *other = new ElectricCircuit;

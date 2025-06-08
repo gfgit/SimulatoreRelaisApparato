@@ -104,6 +104,7 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
 
     if(circuit->type() == CircuitType::Open &&
             circuit->getSource() == this && circuit->getEnd() == this
+            && circuit->isDifferentPoleStartEnd()
             && !getCircuits(CircuitType::Open).contains(circuit))
     {
         mFakeClosedCircuitsCount++;
@@ -228,7 +229,8 @@ void RemoteCableCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, cons
     AbstractCircuitNode::partialRemoveCircuit(circuit, items);
 
     if(circuit->type() == CircuitType::Open &&
-            circuit->getSource() == this && circuit->getEnd() == this)
+            circuit->getSource() == this && circuit->getEnd() == this
+            && circuit->isDifferentPoleStartEnd())
     {
         Q_ASSERT(mFakeClosedCircuitsCount > 0);
         mFakeClosedCircuitsCount--;
@@ -411,7 +413,8 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
         // Search all fake closed circuits
         for(ElectricCircuit *open : openCopy)
         {
-            if(open->getSource() != this || open->getEnd() != this)
+            if(open->getSource() != this || open->getEnd() != this
+                    || !open->isDifferentPoleStartEnd())
                 continue;
 
             // This open circuit closes on receive side
@@ -434,7 +437,8 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
         const CircuitList openCopy2 = getCircuits(CircuitType::Open);
         for(ElectricCircuit *open : openCopy2)
         {
-            if(open->getSource() != this || open->getEnd() != this)
+            if(open->getSource() != this || open->getEnd() != this
+                    || !open->isDifferentPoleStartEnd())
                 continue;
 
             open->terminateHere(open->getSource(), dummyList);

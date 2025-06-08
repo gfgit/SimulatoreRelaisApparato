@@ -87,6 +87,7 @@ public:
 
     AbstractCircuitNode *getSource() const;
     AbstractCircuitNode *getEnd() const;
+    bool isDifferentPoleStartEnd() const;
 
     ElectricCircuit *cloneToOppositeType();
 
