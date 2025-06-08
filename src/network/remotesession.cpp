@@ -403,7 +403,9 @@ void RemoteSession::removeReplica(AbstractSimulationObject *replicaObj, const QS
                                   mReplicas.end(),
                                   [replicaObj, name](const ReplicaData& repData) -> bool
     {
-        return repData.name == name && replicaObj->getType() == repData.objects.first()->getType();
+        // NOTE: we cannot access getType() if replicaObj is being destroyed
+        // So use contains instead
+        return repData.name == name && repData.objects.contains(replicaObj);
     });
 
     Q_ASSERT(replicaIt != mReplicas.end());
