@@ -62,7 +62,7 @@ struct LeverAngleDesc
 class LeverInterface : public AbstractObjectInterface
 {
 private:
-    static constexpr int MaxSnapAngleDelta = 20;
+    static constexpr int MaxSnapAngleDelta = 40;
     static constexpr int SpringTimerAngleDelta = 15;
 
 public:
