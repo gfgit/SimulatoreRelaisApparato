@@ -36,14 +36,41 @@ QVariant RemoteCircuitBridgesModel::headerData(int section, Qt::Orientation orie
 {
     if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
-        switch (section)
+        if(role == Qt::DisplayRole)
         {
-        case RemoteSessionCol:
-            return tr("Remote Session");
-        case RemoteNode:
-            return tr("Remote Node");
-        default:
-            break;
+            switch (section)
+            {
+            case RemoteSessionCol:
+                return tr("Session");
+            case RemoteNode:
+                return tr("Node");
+            case SerialDeviceCol:
+                return tr("Device");
+            case SerialInputIdCol:
+                return tr("In");
+            case SerialOutputIdCol:
+                return tr("Out");
+            default:
+                break;
+            }
+        }
+        else if(role == Qt::ToolTipRole)
+        {
+            switch (section)
+            {
+            case RemoteSessionCol:
+                return tr("Remote Session");
+            case RemoteNode:
+                return tr("Remote Node");
+            case SerialDeviceCol:
+                return tr("Serial Device");
+            case SerialInputIdCol:
+                return tr("Input ID");
+            case SerialOutputIdCol:
+                return tr("Output ID");
+            default:
+                break;
+            }
         }
     }
 
