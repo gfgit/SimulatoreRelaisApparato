@@ -266,11 +266,13 @@ void ACEIButtonPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
     PanelScene *s = panelScene();
     if(s && s->modeMgr()->mode() != FileMode::Editing
-            && mButtonIface)
+            && mButtonIface
+            && ev->button() == Qt::LeftButton)
     {
-        // We don't care about mouse button
-        // Also sometimes there are already no buttons
-        if(mButtonIface->mode() == ButtonInterface::Mode::ReturnNormalOnRelease)
+        // Do not trigger spring return if shift is hold during mouse release
+        const bool holdSpring = ev->modifiers().testFlag(Qt::ShiftModifier);
+
+        if(!holdSpring && mButtonIface->mode() == ButtonInterface::Mode::ReturnNormalOnRelease)
             mButtonIface->setState(ButtonInterface::State::Normal);
         return;
     }

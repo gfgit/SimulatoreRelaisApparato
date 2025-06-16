@@ -1228,7 +1228,7 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
     <message>
         <location filename="../mainwindow.cpp" line="297"/>
         <source>Serial Devices</source>
-        <translation type="unfinished"></translation>
+        <translation>Dispositivi Seriali</translation>
     </message>
     <message>
         <location filename="../mainwindow.cpp" line="317"/>
@@ -1718,12 +1718,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RemoteCableCircuitNode</name>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="634"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="638"/>
         <source>BRIDGE!!!</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="639"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="643"/>
         <source>EMPTY!!!</source>
         <translation></translation>
     </message>
@@ -1731,14 +1731,54 @@ Scegli un altro nome:</translation>
 <context>
     <name>RemoteCircuitBridgesModel</name>
     <message>
-        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="42"/>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="62"/>
         <source>Remote Session</source>
         <translation>Sessione Remota</translation>
     </message>
     <message>
-        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="44"/>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="64"/>
         <source>Remote Node</source>
         <translation>Nodo Remoto</translation>
+    </message>
+    <message>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="48"/>
+        <source>Device</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="44"/>
+        <source>Session</source>
+        <translation type="unfinished">Sessione</translation>
+    </message>
+    <message>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="46"/>
+        <source>Node</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="50"/>
+        <source>In</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="52"/>
+        <source>Out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="66"/>
+        <source>Serial Device</source>
+        <translation type="unfinished">Dispositivo Seriale</translation>
+    </message>
+    <message>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="68"/>
+        <source>Input ID</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="70"/>
+        <source>Output ID</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2006,47 +2046,47 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="51"/>
         <source>Add</source>
-        <translation type="unfinished">Aggiungi</translation>
+        <translation>Aggiungi</translation>
     </message>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="52"/>
         <source>Add Remote Session</source>
-        <translation type="unfinished">Aggiungi Sessione Remota</translation>
+        <translation>Aggiungi Sessione Remota</translation>
     </message>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="55"/>
         <source>Remove</source>
-        <translation type="unfinished">Elimina</translation>
+        <translation>Elimina</translation>
     </message>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="56"/>
         <source>Remove Remote Session</source>
-        <translation type="unfinished">Elimina Sessione Remota</translation>
+        <translation>Elimina Sessione Remota</translation>
     </message>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="95"/>
         <source>New Serial Device</source>
-        <translation type="unfinished"></translation>
+        <translation>Nuovo Dispositivo Seriale</translation>
     </message>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="97"/>
         <source>Name:</source>
-        <translation type="unfinished">Nome:</translation>
+        <translation>Nome:</translation>
     </message>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="98"/>
         <source>&lt;b&gt;%1&lt;/b&gt; already added.&lt;br&gt;Set another name:</source>
-        <translation type="unfinished">&lt;b&gt;%1&lt;/b&gt; già presente.&lt;br&gt;Imposta un altro nome:</translation>
+        <translation>&lt;b&gt;%1&lt;/b&gt; già presente.&lt;br&gt;Imposta un altro nome:</translation>
     </message>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="131"/>
         <source>Delete Serial Device?</source>
-        <translation type="unfinished"></translation>
+        <translation>Rimuovere Dispositivo Seriale?</translation>
     </message>
     <message>
         <location filename="../serial/view/serialdevicelistwidget.cpp" line="132"/>
         <source>Are you sure to delete &lt;b&gt;%1&lt;/b&gt;?&lt;br&gt;This will reset all remote objects set to this device.</source>
-        <translation type="unfinished"></translation>
+        <translation>Sei sicuro di voler eliminare &lt;b&gt;%1&lt;/b&gt;?&lt;br&gt;Facendolo, si resettano tutti gli oggetti agganciati a questo dispositivo.</translation>
     </message>
 </context>
 <context>
@@ -2054,7 +2094,7 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../serial/serialdevicesmodel.cpp" line="47"/>
         <source>Name</source>
-        <translation type="unfinished">Nome</translation>
+        <translation>Nome</translation>
     </message>
 </context>
 <context>
@@ -2646,12 +2686,12 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../objects/standardobjecttypes.cpp" line="568"/>
         <source>Clear Serial Device</source>
-        <translation type="unfinished"></translation>
+        <translation>Togli Dispositivo Seriale</translation>
     </message>
     <message>
         <location filename="../objects/standardobjecttypes.cpp" line="579"/>
         <source>Device:</source>
-        <translation type="unfinished"></translation>
+        <translation>Dispositivo:</translation>
     </message>
     <message>
         <location filename="../objects/standardobjecttypes.cpp" line="505"/>
@@ -3161,7 +3201,7 @@ Questo layout verrà caricato all&apos;avvio.</translation>
     <message>
         <location filename="../views/viewmanager.cpp" line="756"/>
         <source>Serial Devices</source>
-        <translation type="unfinished"></translation>
+        <translation>Dispositivi Seriali</translation>
     </message>
 </context>
 </TS>

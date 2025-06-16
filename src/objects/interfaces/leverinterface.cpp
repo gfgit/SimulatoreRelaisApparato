@@ -289,7 +289,7 @@ bool LeverInterface::isPressed() const
     return mIsPressed;
 }
 
-void LeverInterface::setPressed(bool newIsPressed)
+void LeverInterface::setPressed(bool newIsPressed, bool holdSpring)
 {
     if(mIsPressed == newIsPressed)
         return;
@@ -303,12 +303,12 @@ void LeverInterface::setPressed(bool newIsPressed)
         // When lever is hold, spring cannot move lever
         stopSpringTimer();
     }
-    else if(mHasSpringReturnMin && mAngle < angleForPosition(mPositionDesc.defaultValue))
+    else if(mHasSpringReturnMin && mAngle < angleForPosition(mPositionDesc.defaultValue) && !holdSpring)
     {
         // When released, if lever has spring, go back to Normal
         startSpringTimer();
     }
-    else if(mHasSpringReturnMax && mAngle > angleForPosition(mPositionDesc.defaultValue))
+    else if(mHasSpringReturnMax && mAngle > angleForPosition(mPositionDesc.defaultValue) && !holdSpring)
     {
         // When released, if lever has spring, go back to Normal
         startSpringTimer();

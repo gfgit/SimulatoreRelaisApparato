@@ -408,12 +408,14 @@ void ACEILeverPanelItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
 void ACEILeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
     PanelScene *s = panelScene();
-    if(s && s->modeMgr()->mode() != FileMode::Editing)
+    if(s && s->modeMgr()->mode() != FileMode::Editing &&
+            ev->button() == Qt::LeftButton)
     {
-        // We don't care about button
-        // Also sometimes there are already no buttons
+        // Do not trigger spring return if shift is hold during mouse release
+        const bool holdSpring = ev->modifiers().testFlag(Qt::ShiftModifier);
+
         if(mLeverIface)
-            mLeverIface->setPressed(false);
+            mLeverIface->setPressed(false, holdSpring);
     }
 
     SnappablePanelItem::mouseReleaseEvent(ev);

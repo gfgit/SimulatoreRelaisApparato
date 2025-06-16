@@ -106,7 +106,7 @@ public:
                          const LeverAngleDesc& angleDesc_);
 
     bool isPressed() const;
-    void setPressed(bool newIsPressed);
+    void setPressed(bool newIsPressed, bool holdSpring = false);
 
     int lockedMin() const;
     int lockedMax() const;
