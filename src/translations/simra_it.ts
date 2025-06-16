@@ -1743,42 +1743,42 @@ Scegli un altro nome:</translation>
     <message>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="48"/>
         <source>Device</source>
-        <translation type="unfinished"></translation>
+        <translation>Dispositivo</translation>
     </message>
     <message>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="44"/>
         <source>Session</source>
-        <translation type="unfinished">Sessione</translation>
+        <translation>Sessione</translation>
     </message>
     <message>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="46"/>
         <source>Node</source>
-        <translation type="unfinished"></translation>
+        <translation>Nodo</translation>
     </message>
     <message>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="50"/>
         <source>In</source>
-        <translation type="unfinished"></translation>
+        <translation>In</translation>
     </message>
     <message>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="52"/>
         <source>Out</source>
-        <translation type="unfinished"></translation>
+        <translation>Out</translation>
     </message>
     <message>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="66"/>
         <source>Serial Device</source>
-        <translation type="unfinished">Dispositivo Seriale</translation>
+        <translation>Dispositivo Seriale</translation>
     </message>
     <message>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="68"/>
         <source>Input ID</source>
-        <translation type="unfinished"></translation>
+        <translation>ID Input</translation>
     </message>
     <message>
         <location filename="../objects/circuit_bridge/remotecircuitbridgesmodel.cpp" line="70"/>
         <source>Output ID</source>
-        <translation type="unfinished"></translation>
+        <translation>ID Output</translation>
     </message>
 </context>
 <context>
@@ -3128,12 +3128,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>UILayoutsModel</name>
     <message>
-        <location filename="../views/uilayoutsmodel.cpp" line="61"/>
+        <location filename="../views/uilayoutsmodel.cpp" line="64"/>
         <source>Name</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../views/uilayoutsmodel.cpp" line="101"/>
+        <location filename="../views/uilayoutsmodel.cpp" line="104"/>
         <source>%1
 This layout will be loaded on start.</source>
         <translation>%1
