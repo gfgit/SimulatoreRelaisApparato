@@ -423,20 +423,25 @@ void ModeManager::setMode(FileMode newMode)
         setEditingSubMode(EditingSubMode::Default);
     }
 
+    mMode = newMode;
+    emit modeChanged(mMode, oldMode);
+
     if(newMode != FileMode::Simulation)
     {
         // Stop network connections if not in Simulation mode
+        const bool wasOnline = mRemoteMgr->isOnline();
         mRemoteMgr->setOnline(false);
+        mRemoteMgr->setOnlineByDefault(wasOnline);
 
         mSerialMgr->disconnectAllDevices();
     }
     else if(oldMode != FileMode::Simulation)
     {
         mSerialMgr->rescanPorts();
-    }
 
-    mMode = newMode;
-    emit modeChanged(mMode, oldMode);
+        if(mRemoteMgr->onlineByDefault())
+            mRemoteMgr->setOnline(true);
+    }
 
     // Let widgets receive mode change first, then update all other scenes
     mCircuitList->setMode(mMode, oldMode);

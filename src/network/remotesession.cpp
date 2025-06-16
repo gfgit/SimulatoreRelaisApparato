@@ -135,6 +135,9 @@ void RemoteSession::onDisconnected()
     }
 
     remoteMgr()->replicaMgr()->removeSourceObjects(this);
+
+    // If a session disconnects, ensure we are discoverable again
+    remoteMgr()->setDiscoveryEnabled(true);
 }
 
 void RemoteSession::sendBridgesStatusToPeer()

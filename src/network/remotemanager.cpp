@@ -107,8 +107,10 @@ void RemoteManager::clear()
 void RemoteManager::setOnline(bool val)
 {
     mPeerClient->setCommunicationEnabled(val);
-    if(val)
+    if(val && mRemoteSessions.count() > 0)
         setDiscoveryEnabled(true);
+
+    mOnlineByDefault = val;
 }
 
 bool RemoteManager::isOnline() const
@@ -152,6 +154,16 @@ bool RemoteManager::renameRemoteSession(const QString &fromName, const QString &
     mRemoteSessionsModel->sortItems();
 
     return true;
+}
+
+bool RemoteManager::onlineByDefault() const
+{
+    return mOnlineByDefault;
+}
+
+void RemoteManager::setOnlineByDefault(bool newOnlineByDefault)
+{
+    mOnlineByDefault = newOnlineByDefault;
 }
 
 ReplicaObjectManager *RemoteManager::replicaMgr() const
@@ -212,4 +224,18 @@ void RemoteManager::addConnection(PeerConnection *conn)
     RemoteSession *remoteSession = mRemoteSessions.value(conn->sessionName());
     if(remoteSession)
         remoteSession->onConnected(conn);
+
+    // If all session are connected, stop discovery
+    bool hasUnconnectedSession = false;
+    for(const RemoteSession *sess : std::as_const(mRemoteSessions))
+    {
+        if(!sess->getConnection())
+        {
+            hasUnconnectedSession = true;
+            break;
+        }
+    }
+
+    if(!hasUnconnectedSession)
+        setDiscoveryEnabled(false);
 }

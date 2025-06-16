@@ -78,6 +78,9 @@ public:
     bool loadFromJSON(const QJsonObject& obj);
     void saveToJSON(QJsonObject& obj);
 
+    bool onlineByDefault() const;
+    void setOnlineByDefault(bool newOnlineByDefault);
+
 signals:
     void networkStateChanged();
     void remoteSessionRemoved(RemoteSession *s);
@@ -94,6 +97,7 @@ private:
     PeerManager *mPeerManager = nullptr;
     RemoteSessionsModel *mRemoteSessionsModel = nullptr;
     ReplicaObjectManager *mReplicaMgr = nullptr;
+    bool mOnlineByDefault = false;
 
     QHash<QString, RemoteSession *> mRemoteSessions;
 };

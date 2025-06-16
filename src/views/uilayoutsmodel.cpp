@@ -24,6 +24,7 @@
 
 #include "viewmanager.h"
 #include "modemanager.h"
+#include "../network/remotemanager.h"
 
 #include "layoutloader.h"
 
@@ -42,6 +43,8 @@ static constexpr const QLatin1String LayoutArrayKey("layouts");
 static constexpr const QLatin1String LayoutNameKey("name");
 static constexpr const QLatin1String LayoutDataKey("data");
 static constexpr const QLatin1String LayoutConfigKey("config");
+
+static constexpr const QLatin1String OnlineByDefaultKey("default_online");
 
 UILayoutsModel::UILayoutsModel(ViewManager *viewMgr, QObject *parent)
     : QAbstractTableModel(parent)
@@ -153,6 +156,11 @@ void UILayoutsModel::loadFromLayoutFile()
         return;
     }
 
+    RemoteManager *remoteMgr = mViewMgr->modeMgr()->getRemoteManager();
+    remoteMgr->setOnlineByDefault(rootObj.value(OnlineByDefaultKey).toBool(false));
+    if(remoteMgr->onlineByDefault())
+        remoteMgr->setOnline(true);
+
     setLayoutToLoadAtStart(rootObj.value(StartLayoutKey).toString().trimmed());
 
     const QJsonArray layoutArr = rootObj.value(LayoutArrayKey).toArray();
@@ -255,6 +263,7 @@ bool UILayoutsModel::saveLayout(const QString &layoutName) const
 
     rootObj[LayoutArrayKey] = layoutArr;
     rootObj[StartLayoutKey] = mLayoutToLoadAtStart;
+    rootObj[OnlineByDefaultKey] = mViewMgr->modeMgr()->getRemoteManager()->onlineByDefault();
 
     saveLayoutFileRoot(rootObj);
     return true;
