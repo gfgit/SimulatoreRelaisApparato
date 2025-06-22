@@ -104,7 +104,7 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
     const bool isActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
 
-    const bool combinator = (relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+    const bool combinator = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
 
     if(isActiveFirst && !wasActiveFirst)
     {
@@ -136,7 +136,7 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
     const bool isActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
 
-    const bool combinator = (relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+    const bool combinator = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
 
     if(!isActiveFirst && wasActiveFirst)
     {
@@ -281,6 +281,7 @@ void RelaisPowerNode::setDelayUpSeconds(int newDelayUpSeconds)
 
     mDelayUpSeconds = newDelayUpSeconds;
     emit delaysChanged();
+    emit shapeChanged();
     modeMgr()->setFileEdited();
 }
 
@@ -296,6 +297,7 @@ void RelaisPowerNode::setDelayDownSeconds(int newDelayDownSeconds)
 
     mDelayDownSeconds = newDelayDownSeconds;
     emit delaysChanged();
+    emit shapeChanged();
     modeMgr()->setFileEdited();
 }
 
