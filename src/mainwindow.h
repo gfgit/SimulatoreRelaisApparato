@@ -69,6 +69,8 @@ private slots:
     bool onSave();
     bool onSaveAs();
 
+    void onAbout();
+
     void loadLayout();
     void saveLayout();
 

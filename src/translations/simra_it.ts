@@ -1059,275 +1059,291 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../mainwindow.cpp" line="54"/>
+        <location filename="../mainwindow.cpp" line="56"/>
         <source>All Files (*.*)</source>
         <translation>Tutti i File (*.*)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="56"/>
+        <location filename="../mainwindow.cpp" line="58"/>
         <source>JSON Files (*.json)</source>
         <translation>File JSON (*.json)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="58"/>
+        <location filename="../mainwindow.cpp" line="60"/>
         <source>Simulatore Relais Circuits (*.simrelaisc)</source>
         <translation>Circuiti Simulatore Relè (*.simrelaisc)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="60"/>
+        <location filename="../mainwindow.cpp" line="62"/>
         <source>Simulatore Relais Circuits Layout (*.simrelayout)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="111"/>
+        <location filename="../mainwindow.cpp" line="113"/>
         <source>File</source>
         <translation>File</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="113"/>
+        <location filename="../mainwindow.cpp" line="115"/>
         <source>&amp;New</source>
         <translation>&amp;Nuovo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="114"/>
+        <location filename="../mainwindow.cpp" line="116"/>
         <source>&amp;Open</source>
         <translation>&amp;Apri</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="115"/>
+        <location filename="../mainwindow.cpp" line="117"/>
         <source>Open &amp;Recent</source>
         <translation>Apri &amp;Recente</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="117"/>
+        <location filename="../mainwindow.cpp" line="119"/>
         <source>&amp;Save</source>
         <translation>&amp;Salva</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="118"/>
+        <location filename="../mainwindow.cpp" line="120"/>
         <source>Ctrl+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="120"/>
+        <location filename="../mainwindow.cpp" line="122"/>
         <source>Sa&amp;ve As</source>
         <translation>Sa&amp;lva Come</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="121"/>
+        <location filename="../mainwindow.cpp" line="123"/>
         <source>Ctrl+Shift+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="125"/>
+        <location filename="../mainwindow.cpp" line="127"/>
         <source>Load Layout</source>
         <translation>Carica Layout</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="126"/>
-        <location filename="../mainwindow.cpp" line="749"/>
+        <location filename="../mainwindow.cpp" line="128"/>
+        <location filename="../mainwindow.cpp" line="764"/>
         <source>Save Layout</source>
         <translation>Salva Layout</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="153"/>
+        <location filename="../mainwindow.cpp" line="155"/>
         <source>View</source>
         <translation>Visualizza</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="155"/>
+        <location filename="../mainwindow.cpp" line="157"/>
         <source>Circuit list</source>
         <translation>Lista Circuiti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="159"/>
+        <location filename="../mainwindow.cpp" line="161"/>
         <source>Panel list</source>
         <translation>Lista Banchi</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="163"/>
+        <location filename="../mainwindow.cpp" line="165"/>
         <source>Object List</source>
         <translation>Lista Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="179"/>
+        <location filename="../mainwindow.cpp" line="181"/>
         <source>Edit mode</source>
         <translation>Modalità Modifica</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="200"/>
+        <location filename="../mainwindow.cpp" line="202"/>
         <source>Close Properties Dialogs</source>
         <translation>Chiudi finestre Proprietà</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="206"/>
+        <location filename="../mainwindow.cpp" line="208"/>
         <source>UI Layouts</source>
         <translation>Layout UI</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="211"/>
+        <location filename="../mainwindow.cpp" line="213"/>
         <source>Network</source>
         <translation>Rete</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="215"/>
+        <location filename="../mainwindow.cpp" line="217"/>
         <source>Change Session Name</source>
         <translation>Modifica Nome Sessione</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="224"/>
-        <location filename="../mainwindow.cpp" line="237"/>
+        <location filename="../mainwindow.cpp" line="226"/>
+        <location filename="../mainwindow.cpp" line="239"/>
         <source>Session Name</source>
         <translation>Nome Sessione</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="225"/>
+        <location filename="../mainwindow.cpp" line="227"/>
         <source>Name:</source>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="238"/>
+        <location filename="../mainwindow.cpp" line="240"/>
         <source>Session Name cannot be empty!</source>
         <translation>Il Nome della Sessione non può essre vuoto!</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="247"/>
+        <location filename="../mainwindow.cpp" line="249"/>
         <source>Online</source>
         <translation>Online</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="262"/>
+        <location filename="../mainwindow.cpp" line="264"/>
         <source>Empty Session Name</source>
         <translation>Nome Sessione Vuoto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="263"/>
+        <location filename="../mainwindow.cpp" line="265"/>
         <source>Please set Session Name first.</source>
         <translation>Per favore imposta prima il Nome della Sessione.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="268"/>
+        <location filename="../mainwindow.cpp" line="270"/>
         <source>Discoverable</source>
         <translation>Raggiungibile</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="280"/>
+        <location filename="../mainwindow.cpp" line="282"/>
         <source>Refresh Addresses</source>
         <translation>Aggiorna Indirizzi</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="281"/>
+        <location filename="../mainwindow.cpp" line="283"/>
         <source>Useful if network connections changed</source>
         <translation>Utile se la connessione di rete è cambiata</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="293"/>
+        <location filename="../mainwindow.cpp" line="295"/>
         <source>Replica Objects</source>
         <translation>Oggetti Replica</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="297"/>
+        <location filename="../mainwindow.cpp" line="299"/>
         <source>Serial Devices</source>
         <translation>Dispositivi Seriali</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="317"/>
+        <location filename="../mainwindow.cpp" line="313"/>
+        <source>Help</source>
+        <translation>Aiuto</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="315"/>
+        <location filename="../mainwindow.cpp" line="732"/>
+        <source>About</source>
+        <translation>Informazioni su</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="324"/>
         <source>Circuit Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="318"/>
+        <location filename="../mainwindow.cpp" line="325"/>
         <source>Circuit Tools 2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="323"/>
+        <location filename="../mainwindow.cpp" line="330"/>
         <source>New Circuit Item</source>
         <translation>Nuovo Elemento Circuito</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="329"/>
-        <location filename="../mainwindow.cpp" line="412"/>
+        <location filename="../mainwindow.cpp" line="336"/>
+        <location filename="../mainwindow.cpp" line="419"/>
         <source>Batch Edit</source>
         <translation>Modifica Gruppo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="330"/>
-        <location filename="../mainwindow.cpp" line="413"/>
+        <location filename="../mainwindow.cpp" line="337"/>
+        <location filename="../mainwindow.cpp" line="420"/>
         <source>Object Replace</source>
         <translation>Sostituisci Oggetti</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="384"/>
+        <location filename="../mainwindow.cpp" line="391"/>
         <source>&lt;b&gt;(C)&lt;/b&gt; Cable</source>
         <translation>&lt;b&gt;(C)&lt;/b&gt; Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="444"/>
+        <location filename="../mainwindow.cpp" line="451"/>
         <source>%1</source>
         <translation>%1</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="622"/>
+        <location filename="../mainwindow.cpp" line="629"/>
         <source>Load failed.</source>
         <translation>Caricamento fallito.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="623"/>
+        <location filename="../mainwindow.cpp" line="630"/>
         <source>File %1 could not be loaded.
 Check file version is not too new.</source>
         <translation>Impossibile caricare il file %1.
 Controlla che la versione del file non sia troppo nuova.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="729"/>
+        <location filename="../mainwindow.cpp" line="733"/>
+        <source>Relais Simulator version &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Visit &lt;a href=&quot;%2&quot;&gt;Project GitHub page&lt;/a&gt;</source>
+        <translation>Simulatore Relé versione &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Visita &lt;a href=&quot;%2&quot;&gt;Pagina GitHub del progetto&lt;/a&gt;</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.cpp" line="744"/>
         <source>Open Layout</source>
         <translation>Apri Layout</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="383"/>
+        <location filename="../mainwindow.cpp" line="390"/>
         <source>Cable</source>
         <translation>Cavo</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="289"/>
+        <location filename="../mainwindow.cpp" line="291"/>
         <source>Remote Sessions</source>
         <translation>Sessioni Remote</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="403"/>
+        <location filename="../mainwindow.cpp" line="410"/>
         <source>Panel Tools 1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="407"/>
+        <location filename="../mainwindow.cpp" line="414"/>
         <source>New Panel Item</source>
         <translation>Nuovo Elemento QL</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="515"/>
+        <location filename="../mainwindow.cpp" line="522"/>
         <source>&amp;%1 %2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="575"/>
+        <location filename="../mainwindow.cpp" line="582"/>
         <source>Open Circuit</source>
         <translation>Circuito Aperto</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="642"/>
+        <location filename="../mainwindow.cpp" line="649"/>
         <source>Save Changes?</source>
         <translation>Salvare Modifiche?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="643"/>
+        <location filename="../mainwindow.cpp" line="650"/>
         <source>Current file has unsaved changes.
 Do you want to save them now?</source>
         <translation>Il file attuale ha delle modifiche non salvate.
 Vuoi salvarle ora?</translation>
     </message>
     <message>
-        <location filename="../mainwindow.cpp" line="708"/>
+        <location filename="../mainwindow.cpp" line="715"/>
         <source>Save Circuit</source>
         <translation>Salva Circuito</translation>
     </message>

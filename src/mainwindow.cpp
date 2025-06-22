@@ -50,6 +50,8 @@
 #include "views/layoutloader.h"
 #include "views/uilayoutdialog.h"
 
+#include "info.h"
+
 static constexpr const char *allFiles =
         QT_TRANSLATE_NOOP("MainWindow", "All Files (*.*)");
 static constexpr const char *jsonFiles =
@@ -306,6 +308,11 @@ void MainWindow::buildMenuBar()
         actionNetworkDiscovery->setEnabled(remoteMgr->isOnline());
         actionNetworkRefresh->setEnabled(remoteMgr->isOnline());
     });
+
+    // Menu Help
+    QMenu *menuHelp = menuBar()->addMenu(tr("Help"));
+
+    menuHelp->addAction(tr("About"), this, &MainWindow::onAbout);
 }
 
 void MainWindow::buildEditToolBar()
@@ -718,6 +725,14 @@ bool MainWindow::onSaveAs()
     setWindowFilePath(fileName);
     mModeMgr->setFilePath(fileName, true);
     return true;
+}
+
+void MainWindow::onAbout()
+{
+    QMessageBox::information(this, tr("About"),
+                             tr("Relais Simulator version <b>%1</b><br>"
+                                "Visit <a href=\"%2\">Project GitHub page</a>")
+                             .arg(AppVersion, AppProjectWebSite));
 }
 
 void MainWindow::loadLayout()
