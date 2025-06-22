@@ -2759,10 +2759,6 @@ Scegli un altro nome:</translation>
         <translation>Dispositivo Seriale</translation>
     </message>
     <message>
-        <source>Device Name:</source>
-        <translation type="vanished">Nome Dispositivo:</translation>
-    </message>
-    <message>
         <location filename="../objects/standardobjecttypes.cpp" line="601"/>
         <location filename="../objects/standardobjecttypes.cpp" line="613"/>
         <source>None</source>
