@@ -269,6 +269,7 @@ void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *ifac
 
 void ACESasibLeverCommonObject::removeElectromagnetLock()
 {
+    Q_ASSERT(mMagnet);
     mechanicalIface->setObjectLockConstraints(mMagnet, {});
 }
 

@@ -27,6 +27,8 @@
 
 #include "../../views/modemanager.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
@@ -76,11 +78,11 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
             switch (node()->relais()->state())
             {
             case AbstractRelais::State::Up:
-                color = Qt::red;
+                color = CircuitColors::Closed; // Red
                 break;
             case AbstractRelais::State::GoingUp:
             case AbstractRelais::State::GoingDown:
-                color.setRgb(120, 210, 255); // Light blue
+                color = CircuitColors::Open; // Light blue
                 break;
             case AbstractRelais::State::Down:
             default:

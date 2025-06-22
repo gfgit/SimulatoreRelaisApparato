@@ -24,6 +24,8 @@
 
 #include "../nodes/simplecircuitnode.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 SimpleNodeGraphItem::SimpleNodeGraphItem(SimpleCircuitNode *node_)
@@ -73,9 +75,9 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
 
     const QColor colors[3] =
     {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
     };
 
     const int startIdx = toRotateInt(rotate());

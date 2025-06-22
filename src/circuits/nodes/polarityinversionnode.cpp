@@ -38,7 +38,7 @@ AbstractCircuitNode::ConnectionsRes PolarityInversionNode::getActiveConnections(
     const int otherContactIdx = source.nodeContact == 0 ? 1 : 0;
 
     // Invert polarity
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(otherContactIdx).cable;
     dest.cable.side = mContacts.at(otherContactIdx).cableSide;
     dest.nodeContact = otherContactIdx;

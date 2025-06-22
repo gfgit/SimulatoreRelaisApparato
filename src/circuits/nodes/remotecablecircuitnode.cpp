@@ -88,7 +88,7 @@ AbstractCircuitNode::ConnectionsRes RemoteCableCircuitNode::getActiveConnections
         return {}; // Leave circuit open
 
     // Close the circuit
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(source.nodeContact).cable;
     dest.cable.side = mContacts.at(source.nodeContact).cableSide;
     dest.nodeContact = source.nodeContact;
@@ -123,7 +123,7 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
             if(before == AnyCircuitType::None && after == AnyCircuitType::Open)
             {
                 const auto items = circuit->getNode(this);
-                mSendPole = items.first().fromPole;
+                mSendPole = items.first().fromPole();
 
                 setMode(Mode::SendCurrentOpen);
             }

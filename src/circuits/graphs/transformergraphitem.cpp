@@ -25,6 +25,8 @@
 #include "../nodes/transformernode.h"
 #include "../circuitscene.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 
@@ -99,9 +101,9 @@ void TransformerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     const QColor colors[3] =
     {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
     };
 
     // Draw wires

@@ -29,6 +29,8 @@
 
 #include "../../views/modemanager.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 #include <QJsonObject>
@@ -132,9 +134,9 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     const QColor colors[3] =
     {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
     };
 
     // Draw common contact (0)

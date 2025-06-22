@@ -42,7 +42,11 @@ ElectricCircuit::~ElectricCircuit()
     allCircuitsCount--;
 }
 
-void ElectricCircuit::enableCircuit()
+/**
+ * @brief ElectricCircuit::enableCircuit
+ * @return false if circuit is deleted
+ */
+bool ElectricCircuit::enableCircuit(QVector<ElectricCircuit *> *deletedCircuits)
 {
     Q_ASSERT(!enabled);
     Q_ASSERT(!mItems.isEmpty());
@@ -58,7 +62,7 @@ void ElectricCircuit::enableCircuit()
             // We are a duplicate
             //qDebug() << "DUPLICATE CIRCUIT OF TYPE:" << (type() == CircuitType::Closed ? "closed" : "open");
             delete this;
-            return;
+            return false;
         }
     }
 
@@ -75,6 +79,23 @@ void ElectricCircuit::enableCircuit()
     //     }
     // }
 
+    if(checkShuntedByOtherCircuit())
+        return false;
+
+    if(type() == CircuitType::Closed)
+        checkOtherShuntedByMe(deletedCircuits);
+
+    CircuitFlags newFlags = CircuitFlags::None;
+    for(int i = 0; i < mItems.size(); i += 2)
+    {
+        const Item& item = mItems[i];
+        Q_ASSERT(item.isNode);
+
+        newFlags = newFlags | item.node.flags();
+    }
+
+    setFlags(newFlags);
+
     for(int i = 0; i < mItems.size(); i++)
     {
         const Item& item = mItems[i];
@@ -89,6 +110,7 @@ void ElectricCircuit::enableCircuit()
     }
 
     enabled = true;
+    return true;
 }
 
 bool ElectricCircuit::tryReachOpen(AbstractCircuitNode *goalNode)
@@ -97,7 +119,7 @@ bool ElectricCircuit::tryReachOpen(AbstractCircuitNode *goalNode)
     Q_ASSERT(!enabled);
 
     // Trasform this circuit in an open circuit
-    mType = CircuitType::Open;
+    setType(CircuitType::Open);
 
     if(mItems.isEmpty())
         return false;
@@ -130,7 +152,7 @@ bool ElectricCircuit::tryReachOpen(AbstractCircuitNode *goalNode)
                 if(conn.nodeContact != item.node.toContact)
                     continue;
 
-                if(conn.cable.pole != item.node.toPole)
+                if(conn.cable.pole != item.node.toPole())
                     continue;
 
                 found = true;
@@ -407,7 +429,7 @@ bool ElectricCircuit::isDifferentPoleStartEnd() const
     if(!start.isNode || !end.isNode)
         return false;
 
-    return start.node.toPole != end.node.fromPole;
+    return start.node.toPole() != end.node.fromPole();
 }
 
 ElectricCircuit *ElectricCircuit::cloneToOppositeType()
@@ -415,10 +437,10 @@ ElectricCircuit *ElectricCircuit::cloneToOppositeType()
     ElectricCircuit *other = new ElectricCircuit;
     other->mItems = mItems;
 
-    if(mType == CircuitType::Closed)
-        other->mType = CircuitType::Open;
+    if(type() == CircuitType::Closed)
+        other->setType(CircuitType::Open);
     else
-        other->mType = CircuitType::Closed;
+        other->setType(CircuitType::Closed);
 
     return other;
 }
@@ -431,18 +453,15 @@ void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, C
     firstItem.isNode = true;
     firstItem.node.node = source;
     firstItem.node.fromContact = NodeItem::InvalidContact;
-    firstItem.node.fromPole = startPole;
     firstItem.node.toContact = nodeContact;
-    firstItem.node.toPole = startPole;
+    firstItem.node.setPoles(startPole, startPole);
 
     if(contact.cable)
     {
         Item nextCable;
         nextCable.cable.cable = contact.cable;
         nextCable.cable.side = contact.cableSide;
-        nextCable.cable.pole = firstItem.node.toPole;
-
-
+        nextCable.cable.pole = firstItem.node.toPole();
 
         CableSide otherSide = ~contact.cableSide;
         CableEnd cableEnd = contact.cable->getNode(otherSide);
@@ -454,7 +473,8 @@ void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, C
             items.append(nextCable);
 
             // Depth 1 because we already passed power source node
-            passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 1);
+            QVector<ElectricCircuit *> deletedCircuits;
+            passCircuitNode(cableEnd.node, cableEnd.nodeContact, items, 1, deletedCircuits);
         }
         else
         {
@@ -462,7 +482,7 @@ void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, C
             // And then go to next cable
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = {firstItem, nextCable};
-            circuit->mType = CircuitType::Open;
+            circuit->setType(CircuitType::Open);
             circuit->enableCircuit();
             return;
         }
@@ -472,7 +492,7 @@ void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, C
         // Register an open circuit which passes through node
         ElectricCircuit *circuit = new ElectricCircuit();
         circuit->mItems.append(firstItem);
-        circuit->mType = CircuitType::Open;
+        circuit->setType(CircuitType::Open);
         circuit->enableCircuit();
     }
 
@@ -493,10 +513,10 @@ bool containsNode(const ElectricCircuit::ItemVector &items, AbstractCircuitNode 
         if(item.node.node != node)
             continue;
 
-        if(item.node.fromContact == nodeContact && item.node.fromPole == pole)
+        if(item.node.fromContact == nodeContact && item.node.fromPole() == pole)
             return true;
 
-        if(item.node.toContact == nodeContact && item.node.toPole == pole)
+        if(item.node.toContact == nodeContact && item.node.toPole() == pole)
             return true;
     }
 
@@ -505,6 +525,7 @@ bool containsNode(const ElectricCircuit::ItemVector &items, AbstractCircuitNode 
 
 ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuitNode *node, int nodeContact,
                                                                  ItemVector &items, int depth,
+                                                                 QVector<ElectricCircuit *>& deletedCircuits,
                                                                  PassMode mode)
 {
     // Returns true if circuit goes to next node
@@ -517,12 +538,12 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
     nodeItem.isNode = true;
     nodeItem.node.node = node;
     nodeItem.node.fromContact = nodeContact;
-    nodeItem.node.fromPole = lastCable.pole;
+    nodeItem.node.setFromPole(lastCable.pole);
     nodeItem.node.toContact = NodeItem::InvalidContact;
 
     if(node == items.first().node.node)
     {
-        if(nodeItem.node.fromPole == ~items.first().node.toPole)
+        if(nodeItem.node.fromPole() == ~items.first().node.toPole())
         {
             // We returned to same source, on opposite pole
             // The circuits is closed
@@ -538,11 +559,11 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             circuit->mItems.append(nodeItem);
 
             if(circuit->getSource()->sourceDoNotCloseCircuits())
-                circuit->mType = CircuitType::Open;
+                circuit->setType(CircuitType::Open);
             else
-                circuit->mType = CircuitType::Closed;
+                circuit->setType(CircuitType::Closed);
 
-            circuit->enableCircuit();
+            circuit->enableCircuit(&deletedCircuits);
             return {0, 1};
         }
         else
@@ -559,9 +580,9 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = {items.begin(), items.end()};
             circuit->mItems.append(nodeItem);
-            circuit->mType = CircuitType::Open;
+            circuit->setType(CircuitType::Open);
 
-            circuit->enableCircuit();
+            circuit->enableCircuit(&deletedCircuits);
             return {1, 0};
         }
     }
@@ -590,7 +611,9 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
         items.resize(oldVectorSize);
 
         nodeItem.node.toContact = conn.nodeContact;
-        nodeItem.node.toPole = conn.cable.pole;
+        nodeItem.node.setToPole(conn.cable.pole);
+        nodeItem.node.setFlags(conn.flags);
+
 
         Item nextCable;
         nextCable.cable = conn.cable;
@@ -608,8 +631,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = {items.begin(), items.end()};
             circuit->mItems.append(nodeItem);
-            circuit->mType = CircuitType::Open;
-            circuit->enableCircuit();
+            circuit->setType(CircuitType::Open);
+            circuit->enableCircuit(&deletedCircuits);
 
             // Circuit will pass to opposite node connector
             circuitEndsHere = false;
@@ -635,8 +658,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             circuit->mItems = {items.begin(), items.end()};
             circuit->mItems.append(nodeItem);
             circuit->mItems.append(nextCable);
-            circuit->mType = CircuitType::Open;
-            circuit->enableCircuit();
+            circuit->setType(CircuitType::Open);
+            circuit->enableCircuit(&deletedCircuits);
 
             // Circuit will pass to opposite node connector
             circuitEndsHere = false;
@@ -706,7 +729,7 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
             nextResult = passCircuitNode(cableEnd.node, cableEnd.nodeContact,
                                          items, depth + 1,
-                                         skipLoads);
+                                         deletedCircuits, skipLoads);
         }
 
         if(nextResult.closedCircuits == 0 && !newMode.testFlag(PassModes::SkipLoads))
@@ -719,7 +742,7 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
             nextResult += passCircuitNode(cableEnd.node, cableEnd.nodeContact,
                                           items, depth + 1,
-                                          newMode);
+                                          deletedCircuits, newMode);
         }
 
         result += nextResult;
@@ -736,8 +759,8 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = {items.begin(), items.end()};
             circuit->mItems.append(nodeItem);
-            circuit->mType = CircuitType::Open;
-            circuit->enableCircuit();
+            circuit->setType(CircuitType::Open);
+            circuit->enableCircuit(&deletedCircuits);
         }
 
         // Do not count this as result
@@ -750,14 +773,23 @@ ElectricCircuit::PassNodeResult ElectricCircuit::passCircuitNode(AbstractCircuit
 
 void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 {
-    const QVector<ElectricCircuit *> openCircuitsCopy = node->getCircuits(CircuitType::Open);
+    QVector<ElectricCircuit *> openCircuitsCopy = node->getCircuits(CircuitType::Open);
+    std::sort(openCircuitsCopy.begin(), openCircuitsCopy.end(),
+              [](ElectricCircuit *a, ElectricCircuit *b) -> bool
+    {
+        return a->mItems.size() < b->mItems.size();
+    });
 
     // Search which node contacts do not have any circuit.
     // We look for new circuits on these nodes
     // and ignore the others.
+    QVector<ElectricCircuit *> deletedCircuits;
 
     for(ElectricCircuit *origCircuit : openCircuitsCopy)
     {
+        if(deletedCircuits.contains(origCircuit))
+            continue;
+
         // Try to continue circuit
         Q_ASSERT(origCircuit->mItems.size() >= 3); // PowerSource + cable + Our Node
         Q_ASSERT(origCircuit->mItems.last().isNode);
@@ -771,7 +803,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
         bool loadPassed = false;
 
-        for(int i = 0; i < origCircuit->mItems.size(); i++)
+        for(int i = 0;
+            !deletedCircuits.contains(origCircuit) && i < origCircuit->mItems.size();
+            i++)
         {
             const Item& otherItem = origCircuit->mItems.at(i);
             if(!otherItem.isNode)
@@ -810,7 +844,9 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 Item nodeItem = otherItem;
                 nodeItem.node.toContact = conn.nodeContact;
-                nodeItem.node.toPole = conn.cable.pole;
+                nodeItem.node.setToPole(conn.cable.pole);
+                nodeItem.node.setFlags(conn.flags);
+
 
                 Item nextCable;
                 nextCable.cable = conn.cable;
@@ -825,8 +861,8 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
                     ElectricCircuit *circuit = new ElectricCircuit();
                     circuit->mItems = {items.begin(), items.end()};
                     circuit->mItems.append(nodeItem);
-                    circuit->mType = CircuitType::Open;
-                    circuit->enableCircuit();
+                    circuit->setType(CircuitType::Open);
+                    circuit->enableCircuit(&deletedCircuits);
 
                     // Circuit will pass to opposite node connector
                     circuitEndsHere = false;
@@ -848,8 +884,8 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
                     circuit->mItems = {items.begin(), items.end()};
                     circuit->mItems.append(nodeItem);
                     circuit->mItems.append(nextCable);
-                    circuit->mType = CircuitType::Open;
-                    circuit->enableCircuit();
+                    circuit->setType(CircuitType::Open);
+                    circuit->enableCircuit(&deletedCircuits);
 
                     // Circuit will pass to opposite node connector
                     circuitEndsHere = false;
@@ -883,7 +919,7 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
                 passCircuitNode(cableEnd.node, cableEnd.nodeContact,
                                 items, 1,
-                                mode);
+                                deletedCircuits, mode);
             }
 
             if(i == origCircuit->mItems.size() - 1 && !circuitEndsHere)
@@ -895,7 +931,7 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
             }
         }
 
-        if(removeOriginalCircuit)
+        if(removeOriginalCircuit && !deletedCircuits.contains(origCircuit))
         {
             // Circuit went ahead, delete old open circuit
             QVector<ElectricCircuit *> dummy;
@@ -917,7 +953,7 @@ void ElectricCircuit::tryReachNextOpenCircuit(AbstractCircuitNode *goalNode, int
     nodeItem.node.node = goalNode;
     nodeItem.node.fromContact = nodeContact; // Backwards
     nodeItem.node.toContact = NodeItem::InvalidContact;
-    nodeItem.node.toPole = pole;
+    nodeItem.node.setToPole(pole);
 
     const auto& contact = goalNode->getContacts().at(nodeContact);
 
@@ -926,7 +962,7 @@ void ElectricCircuit::tryReachNextOpenCircuit(AbstractCircuitNode *goalNode, int
 
     Item item;
     item.cable.cable = contact.cable;
-    item.cable.pole = nodeItem.node.toPole;
+    item.cable.pole = nodeItem.node.toPole();
     item.cable.side = ~contact.cableSide; // Opposite side
 
     // Get opposite side node
@@ -965,6 +1001,16 @@ void ElectricCircuit::defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode)
     }
 }
 
+void ElectricCircuit::setType(CircuitType type)
+{
+    mFlagsAndType = withType(mFlagsAndType, type);
+}
+
+void ElectricCircuit::setFlags(CircuitFlags f)
+{
+    mFlagsAndType = withType(f, type());
+}
+
 void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, ItemVector &items, int depth)
 {
     if(depth > 1000)
@@ -976,10 +1022,10 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
     nodeItem.isNode = true;
     nodeItem.node.node = node;
     nodeItem.node.toContact = nodeContact; // Backwards
-    nodeItem.node.toPole = lastCable.pole;
+    nodeItem.node.setToPole(lastCable.pole);
 
     if(node->hasAnyEntranceCircuitOnPole(nodeItem.node.toContact,
-                                         nodeItem.node.toPole) == AnyCircuitType::Closed)
+                                         nodeItem.node.toPole()) == AnyCircuitType::Closed)
     {
         // We are going out were another circuits goes in
         // This is not possible
@@ -1006,7 +1052,8 @@ void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int 
     for(const auto& conn : connections)
     {
         nodeItem.node.fromContact = conn.nodeContact;
-        nodeItem.node.fromPole = conn.cable.pole;
+        nodeItem.node.setFromPole(conn.cable.pole);
+        nodeItem.node.setFlags(conn.flags);
 
         if(!conn.cable.cable)
             continue;
@@ -1100,7 +1147,8 @@ void ElectricCircuit::extendExistingCircuits_helper(AbstractCircuitNode *node, i
             // Custom pass node to join with existing circuit
             Item customNodeItem = otherItem;
             customNodeItem.node.toContact = nodeContact;
-            customNodeItem.node.toPole = lastCable.pole;
+            customNodeItem.node.setToPole(lastCable.pole);
+            customNodeItem.node.setFlags(conn.flags);
 
             newItems.append(customNodeItem);
 
@@ -1111,7 +1159,7 @@ void ElectricCircuit::extendExistingCircuits_helper(AbstractCircuitNode *node, i
             // Register new Open circuit
             ElectricCircuit *circuit = new ElectricCircuit();
             circuit->mItems = newItems;
-            circuit->mType = CircuitType::Open;
+            circuit->setType(CircuitType::Open);
             circuit->enableCircuit();
         }
     }
@@ -1142,7 +1190,7 @@ void ElectricCircuit::checkReverseVoltageSiblings()
 
         if(item.node.fromContact != NodeItem::InvalidContact &&
                 item.node.node->hasExitCircuitOnPole(item.node.fromContact,
-                                                     item.node.fromPole,
+                                                     item.node.fromPole(),
                                                      CircuitType::Open))
         {
             needsFix = true;
@@ -1150,7 +1198,7 @@ void ElectricCircuit::checkReverseVoltageSiblings()
 
         if(item.node.toContact != NodeItem::InvalidContact &&
                 item.node.node->hasEntranceCircuitOnPole(item.node.toContact,
-                                                         item.node.toPole,
+                                                         item.node.toPole(),
                                                          CircuitType::Open))
         {
             needsFix = true;
@@ -1165,8 +1213,8 @@ void ElectricCircuit::checkReverseVoltageSiblings()
             const auto items = openCircuit->getNode(item.node.node);
             for(const NodeItem& openItem : items)
             {
-                if((openItem.fromContact == item.node.toContact && openItem.fromPole == item.node.toPole)
-                        || (openItem.toContact == item.node.fromContact && openItem.toPole == item.node.fromPole))
+                if((openItem.fromContact == item.node.toContact && openItem.fromPole() == item.node.toPole())
+                        || (openItem.toContact == item.node.fromContact && openItem.toPole() == item.node.fromPole()))
                 {
                     // This open circuit is going in opposite direction
                     // Remove it
@@ -1174,5 +1222,167 @@ void ElectricCircuit::checkReverseVoltageSiblings()
                 }
             }
         }
+    }
+}
+
+bool ElectricCircuit::checkShuntedByOtherCircuit()
+{
+    for(int i = 0; i < mItems.size(); i += 2)
+    {
+        const Item& item = mItems[i];
+        Q_ASSERT(item.isNode);
+
+        if(!item.node.node->isElectricLoadNode())
+            continue;
+
+        // We found a load in our path
+        // Check if other paths get after this node from same source but without loads
+
+        for(int afterIdx = i + 2; afterIdx < mItems.size(); afterIdx += 2)
+        {
+            const Item& after = mItems[afterIdx];
+            Q_ASSERT(after.isNode);
+
+            if(after.node.toContact != NodeItem::InvalidContact &&
+                    after.node.node->hasExitCircuitOnPole(after.node.toContact,
+                                                          after.node.toPole()))
+            {
+                const auto afterCircuits = after.node.node->getCircuits(CircuitType::Closed);
+                for(ElectricCircuit *other : afterCircuits)
+                {
+                    if(other == this || other->getSource() != this->getSource())
+                        break;
+
+                    const int togheterMax = qMin(other->mItems.size() - 1, afterIdx);
+                    int x = 0;
+                    for(; x <= togheterMax; x += 2)
+                    {
+                        const Item& otherItem = other->mItems[x];
+                        Q_ASSERT(otherItem.isNode);
+
+                        if(otherItem.node == mItems[x].node)
+                            continue;
+
+                        break;
+                    }
+
+                    if(x >= togheterMax)
+                        continue; // This circuit follow same path, skip it
+
+                    for(; x < other->mItems.size(); x += 2)
+                    {
+                        const Item& otherItem = other->mItems[x];
+                        Q_ASSERT(otherItem.isNode);
+
+                        if(otherItem.node.node == after.node.node &&
+                                otherItem.node.toContact == after.node.toContact &&
+                                otherItem.node.toPole() == after.node.toPole())
+                        {
+                            // We get shunted by this other circuit
+                            delete this;
+                            return true;
+                        }
+
+                        if(otherItem.node.node->isElectricLoadNode())
+                        {
+                            // We hit a load on other circuit, it cannot shunt us
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+void ElectricCircuit::checkOtherShuntedByMe(QVector<ElectricCircuit *> *deletedCircuits)
+{
+    int prevLoadIdx = 0;
+
+    for(int i = 0; i < mItems.size(); i += 2)
+    {
+        const Item& item = mItems[i];
+        Q_ASSERT(item.isNode);
+
+        if(!item.node.node->isElectricLoadNode())
+            continue;
+
+        int lastBeforeLoadIdx = i - 2;
+        if(lastBeforeLoadIdx > prevLoadIdx + 2)
+        {
+            const Item& before = mItems[lastBeforeLoadIdx];
+
+            // Check if other paths get to this node from same source but with loads
+            auto beforeCircuits = before.node.node->getCircuits(CircuitType::Closed);
+            beforeCircuits.append(before.node.node->getCircuits(CircuitType::Open));
+
+            QVector<ElectricCircuit *> dummyList;
+
+            for(ElectricCircuit *other : beforeCircuits)
+            {
+                if(other == this || other->getSource() != this->getSource())
+                    break;
+
+                const int togheterMax = qMin(other->mItems.size() - 1, lastBeforeLoadIdx);
+                if(togheterMax <= prevLoadIdx)
+                    continue;
+
+                int x = 0;
+                for(; x <= togheterMax; x += 2)
+                {
+                    const Item& otherItem = other->mItems[x];
+                    Q_ASSERT(otherItem.isNode);
+
+                    if(otherItem.node == mItems[x].node)
+                        continue;
+
+                    break;
+                }
+
+                if(x >= togheterMax)
+                    continue; // This circuit follow same path, skip it
+
+                if(x < prevLoadIdx)
+                    continue;
+
+                bool loadFound = false;
+                for(; x < other->mItems.size(); x += 2)
+                {
+                    const Item& otherItem = other->mItems[x];
+                    Q_ASSERT(otherItem.isNode);
+
+                    if(otherItem.node.node == before.node.node &&
+                            otherItem.node.toContact == before.node.toContact &&
+                            otherItem.node.toPole() == before.node.toPole())
+                    {
+                        // We reached joining point
+                        break;
+                    }
+
+                    if(otherItem.node.node->isElectricLoadNode())
+                    {
+                        // We hit a load on other circuit, it will be shunted by us
+                        loadFound = true;
+                        break;
+                    }
+                }
+
+                if(loadFound)
+                {
+                    // Shunt other circuit (it also deletes circuit)
+                    if(other->type() == CircuitType::Closed)
+                        other->disableOrTerminate(other->getSource());
+                    else
+                        other->terminateHere(other->getSource(), dummyList);
+
+                    if(deletedCircuits)
+                        deletedCircuits->append(other);
+                }
+            }
+        }
+
+        prevLoadIdx = i;
     }
 }

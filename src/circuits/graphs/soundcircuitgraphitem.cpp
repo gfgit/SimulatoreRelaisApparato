@@ -26,6 +26,8 @@
 
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 SoundCircuitGraphItem::SoundCircuitGraphItem(SoundCircuitNode *node_)
@@ -98,9 +100,9 @@ void SoundCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
 
     const QColor colors[3] =
     {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
     };
 
     // Draw common contact (0)

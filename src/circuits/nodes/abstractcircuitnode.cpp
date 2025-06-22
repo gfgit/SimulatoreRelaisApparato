@@ -68,7 +68,7 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
         if(item.fromContact != NodeItem::InvalidContact)
         {
             uint16_t &fromCount = mContacts[item.fromContact].entranceCount(circuit->type(),
-                                                                            item.fromPole);
+                                                                            item.fromPole());
             fromCount++;
             if(fromCount == 1)
                 updateNeeded = true;
@@ -77,7 +77,7 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
         if(item.toContact != NodeItem::InvalidContact)
         {
             uint16_t &toCount = mContacts[item.toContact].exitCount(circuit->type(),
-                                                                    item.toPole);
+                                                                    item.toPole());
             toCount++;
             if(toCount == 1)
                 updateNeeded = true;
@@ -111,7 +111,7 @@ void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const N
         if(item.fromContact != NodeItem::InvalidContact)
         {
             uint16_t &fromCount = mContacts[item.fromContact].entranceCount(circuit->type(),
-                                                                            item.fromPole);
+                                                                            item.fromPole());
             Q_ASSERT(fromCount > 0);
 
             fromCount--;
@@ -122,7 +122,7 @@ void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const N
         if(item.toContact != NodeItem::InvalidContact)
         {
             uint16_t &toCount = mContacts[item.toContact].exitCount(circuit->type(),
-                                                                    item.toPole);
+                                                                    item.toPole());
             Q_ASSERT(toCount > 0);
 
             toCount--;
@@ -329,7 +329,7 @@ void AbstractCircuitNode::unregisterOpenCircuitExit(ElectricCircuit *circuit)
         // We enabled exit contact only for circuit passing through
         // Open circuits which end here (last node) do not enable toCount
         uint16_t &toCount = mContacts[item.toContact].exitCount(circuit->type(),
-                                                                item.toPole);
+                                                                item.toPole());
         Q_ASSERT(toCount > 0);
 
         toCount--;

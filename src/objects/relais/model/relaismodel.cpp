@@ -26,6 +26,8 @@
 
 #include "../../../views/modemanager.h"
 
+#include "../../../circuits/graphs/circuitcolors.h"
+
 #include <QColor>
 
 #include <QJsonObject>
@@ -76,11 +78,11 @@ QVariant RelaisModel::data(const QModelIndex &idx, int role) const
         switch (relay->state())
         {
         case AbstractRelais::State::Up:
-            color = Qt::red;
+            color = CircuitColors::Closed; // Red
             break;
         case AbstractRelais::State::GoingUp:
         case AbstractRelais::State::GoingDown:
-            color.setRgb(120, 210, 255); // Light blue
+            color = CircuitColors::Open; // Light blue
             break;
         case AbstractRelais::State::Down:
         default:

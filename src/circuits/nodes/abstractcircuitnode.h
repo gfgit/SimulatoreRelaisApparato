@@ -104,7 +104,7 @@ public:
     };
 
     typedef QVarLengthArray<NodeContact, 4> NodeContacts;
-    typedef QVarLengthArray<CableItem, 4> ConnectionsRes;
+    typedef QVarLengthArray<CableItemFlags, 4> ConnectionsRes;
 
     explicit AbstractCircuitNode(ModeManager *mgr, bool isLoad = false, QObject *parent = nullptr);
     ~AbstractCircuitNode();

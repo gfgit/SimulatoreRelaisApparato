@@ -142,7 +142,7 @@ AbstractCircuitNode::ConnectionsRes TransformerNode::getActiveConnections(CableI
     }
 
     // Close the primary circuit
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(0).cable;
     dest.cable.side = mContacts.at(0).cableSide;
     dest.nodeContact = 0;

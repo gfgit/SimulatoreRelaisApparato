@@ -88,7 +88,7 @@ AbstractDeviatorNode::ConnectionsRes AbstractDeviatorNode::getActiveConnections(
     if(otherContactIdx != -1)
     {
         const NodeContact& otherContact = mContacts.at(otherContactIdx);
-        CableItem other;
+        CableItemFlags other;
         other.cable.cable = otherContact.cable;
         other.cable.side = otherContact.cableSide;
         other.cable.pole = source.cable.pole;
@@ -100,7 +100,7 @@ AbstractDeviatorNode::ConnectionsRes AbstractDeviatorNode::getActiveConnections(
     if(otherContactIdx2 != -1)
     {
         const NodeContact& otherContact = mContacts.at(otherContactIdx2);
-        CableItem other;
+        CableItemFlags other;
         other.cable.cable = otherContact.cable;
         other.cable.side = otherContact.cableSide;
         other.cable.pole = source.cable.pole;

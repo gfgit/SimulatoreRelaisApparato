@@ -43,7 +43,7 @@ AbstractCircuitNode::ConnectionsRes BifilarizatorNode::getActiveConnections(Cabl
             return {};
 
         // Connect to central positive
-        CableItem centralPositive;
+        CableItemFlags centralPositive;
         centralPositive.cable.cable = mContacts.at(CentralContact).cable;
         centralPositive.cable.side = mContacts.at(CentralContact).cableSide;
         centralPositive.nodeContact = CentralContact;
@@ -59,7 +59,7 @@ AbstractCircuitNode::ConnectionsRes BifilarizatorNode::getActiveConnections(Cabl
                                      SecondPoleContact);
 
         // Connect to first pole of out cable
-        CableItem dest;
+        CableItemFlags dest;
         dest.cable.cable = mContacts.at(destContact).cable;
         dest.cable.side = mContacts.at(destContact).cableSide;
         dest.nodeContact = destContact;
@@ -73,7 +73,7 @@ AbstractCircuitNode::ConnectionsRes BifilarizatorNode::getActiveConnections(Cabl
             return {};
 
         // Connect to central negative
-        CableItem centralNegative;
+        CableItemFlags centralNegative;
         centralNegative.cable.cable = mContacts.at(CentralContact).cable;
         centralNegative.cable.side = mContacts.at(CentralContact).cableSide;
         centralNegative.nodeContact = CentralContact;

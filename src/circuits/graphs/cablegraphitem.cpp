@@ -27,6 +27,7 @@
 
 #include "../circuitscene.h"
 #include "../../views/modemanager.h"
+#include "circuitcolors.h"
 
 #include <QPainterPathStroker>
 #include <QPainter>
@@ -418,14 +419,23 @@ void CableGraphItem::updatePen()
     const auto power = mCable->powered();
     const auto powerPole = toCablePowerPole(power);
     const auto powerType = toCircuitType(power);
+    const auto circuitFlags = mCable->getFlags();
 
-    QColor color = Qt::black;
+    QColor color = CircuitColors::None;
     if(powerPole != CablePowerPole::None)
     {
         if(powerType == CircuitType::Closed)
-            color = Qt::red;
+            color = CircuitColors::Closed;
         else
-            color.setRgb(120, 210, 255); // Light blue
+            color = CircuitColors::Open;
+    }
+
+    if(hasResistor(circuitFlags))
+    {
+        if(powerType == CircuitType::Closed)
+            color = CircuitColors::ClosedResistor;
+        else if(powerType == CircuitType::Open)
+            color = CircuitColors::OpenResistor;
     }
 
     Qt::PenStyle style = Qt::SolidLine;

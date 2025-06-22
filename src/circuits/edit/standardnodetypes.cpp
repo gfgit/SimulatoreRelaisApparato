@@ -75,6 +75,9 @@
 #include "../graphs/transformergraphitem.h"
 #include "../nodes/transformernode.h"
 
+#include "../graphs/resistorgraphitem.h"
+#include "../nodes/resistornode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -1142,6 +1145,18 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.nodeType = TransformerGraphItem::Node::NodeType;
         factory.prettyName = tr("Transformer");
         factory.create = &addNewNodeToScene<TransformerGraphItem>;
+        factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Resistor Circuit node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+        factory.nodeType = ResistorGraphItem::Node::NodeType;
+        factory.prettyName = tr("Resistor");
+        factory.create = &addNewNodeToScene<ResistorGraphItem>;
         factory.edit = nullptr;
 
         factoryReg->registerFactory(factory);

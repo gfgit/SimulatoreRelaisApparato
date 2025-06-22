@@ -50,7 +50,7 @@ AbstractCircuitNode::ConnectionsRes ScreenRelaisPowerNode::getActiveConnections(
         return{};
 
     // Close the circuit
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(source.nodeContact).cable;
     dest.cable.side = mContacts.at(source.nodeContact).cableSide;
     dest.nodeContact = source.nodeContact;

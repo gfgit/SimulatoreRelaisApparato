@@ -45,6 +45,7 @@ CircuitCable::~CircuitCable()
                          CircuitPole::First).isEmpty());
     Q_ASSERT(getCircuits(CircuitType::Open,
                          CircuitPole::Second).isEmpty());
+    Q_ASSERT(mCircuitsWithFlags == 0);
 
     // Detach all nodes
     if(mNodeA.node)
@@ -114,6 +115,13 @@ void CircuitCable::addCircuit(ElectricCircuit *circuit, CircuitPole pole)
         return; // A circuit may pass 2 times on same item
     circuitList.append(circuit);
 
+    if(circuit->flags() != getFlags(circuit->type(), pole))
+        updateCircuitFlags(circuit->type(), pole);
+
+    if(circuit->flags() != CircuitFlags::None)
+        mCircuitsWithFlags++;
+
+
     const CablePower newPower = powered();
     if(oldPower != newPower)
         emit powerChanged(newPower);
@@ -131,12 +139,47 @@ void CircuitCable::removeCircuit(ElectricCircuit *circuit)
     Q_ASSERT(circuitList1.contains(circuit) ||
              circuitList2.contains(circuit));
 
-    circuitList1.removeOne(circuit);
-    circuitList2.removeOne(circuit);
+    bool isFirst = circuitList1.removeOne(circuit);
+    bool isSecond = circuitList2.removeOne(circuit);
+
+    if(mCircuitsWithFlags > 0)
+    {
+        if(isFirst)
+            updateCircuitFlags(circuit->type(), CircuitPole::First);
+        if(isSecond)
+            updateCircuitFlags(circuit->type(), CircuitPole::Second);
+    }
+
+    if(circuit->flags() != CircuitFlags::None)
+    {
+        mCircuitsWithFlags--;
+        if(isFirst && isSecond)
+            mCircuitsWithFlags--;
+    }
+    Q_ASSERT(mCircuitsWithFlags >= 0);
 
     const CablePower newPower = powered();
     if(oldPower != newPower)
         emit powerChanged(newPower);
+}
+
+void CircuitCable::updateCircuitFlags(CircuitType type, CircuitPole pole)
+{
+    CircuitFlags newFlags = CircuitFlags::None;
+
+    const CircuitList& circuitList = getCircuits(type, pole);
+    if(!circuitList.isEmpty())
+        newFlags = circuitList.first()->flags();
+
+    for(ElectricCircuit *circuit : circuitList)
+        newFlags = newFlags & circuit->flags();
+
+    CircuitFlags &curFlags = getFlags(type, pole);
+    if(newFlags != curFlags)
+    {
+        curFlags = newFlags;
+        emit powerChanged(powered());
+    }
 }
 
 void CircuitCable::setNode(CableSide s, CableEnd node)
@@ -157,7 +200,7 @@ void CircuitCable::setNode(CableSide s, CableEnd node)
     emit nodesChanged();
 }
 
-CablePower CircuitCable::powered()
+CablePower CircuitCable::powered() const
 {
     // Cable is powered if there are
     // closed circuits passing on it
@@ -195,4 +238,41 @@ CablePower CircuitCable::powered()
     }
 
     return CablePowerPole::None | CircuitType::Open;
+}
+
+CircuitFlags CircuitCable::getFlags() const
+{
+    const bool firstOn = !getCircuits(CircuitType::Closed,
+                                      CircuitPole::First).isEmpty();
+    const bool secondOn = !getCircuits(CircuitType::Closed,
+                                       CircuitPole::Second).isEmpty();
+
+    if(firstOn)
+    {
+        if(secondOn)
+            return mFlagsFirstClosed & mFlagsSecondClosed;
+        return mFlagsFirstClosed;
+    }
+    else if(secondOn)
+    {
+        return mFlagsSecondClosed;
+    }
+
+    const bool firstOpenOn = !getCircuits(CircuitType::Open,
+                                          CircuitPole::First).isEmpty();
+    const bool secondOpenOn = !getCircuits(CircuitType::Open,
+                                           CircuitPole::Second).isEmpty();
+
+    if(firstOpenOn)
+    {
+        if(secondOpenOn)
+            return mFlagsFirstOpen & mFlagsSecondOpen;
+        return mFlagsFirstOpen;
+    }
+    else if(secondOpenOn)
+    {
+        return mFlagsSecondOpen;
+    }
+
+    return CircuitFlags::None;
 }

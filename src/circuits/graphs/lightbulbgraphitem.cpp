@@ -26,6 +26,8 @@
 
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 LightBulbGraphItem::LightBulbGraphItem(LightBulbNode *node_)
@@ -92,9 +94,9 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     const QColor colors[3] =
     {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
     };
 
     // Draw common contact (0)

@@ -43,6 +43,9 @@ qt_add_executable(${SIMULATORE_RELAIS_TARGET} WIN32
     ${SIMULATORE_RELAIS_SOURCES}
     #${SIMULATORE_RELAIS_UI_FILES}
     ${SIMULATORE_RELAIS_RESOURCES}
+    circuits/nodes/resistornode.h circuits/nodes/resistornode.cpp
+    circuits/graphs/resistorgraphitem.h circuits/graphs/resistorgraphitem.cpp
+    circuits/graphs/circuitcolors.h
 )
 
 if (WIN32)

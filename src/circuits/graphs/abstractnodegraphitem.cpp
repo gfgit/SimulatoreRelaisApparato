@@ -28,6 +28,8 @@
 
 #include "../../views/modemanager.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 #include <QFont>
 
@@ -420,13 +422,13 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, Til
         break;
     }
 
-    QColor color = Qt::black;
+    QColor color = CircuitColors::None;
     if(getAbstractNode()->hasCircuit(nodeContact,
                                      CircuitType::Closed))
-        color = Qt::red;
+        color = CircuitColors::Closed;
     else if(getAbstractNode()->hasCircuit(nodeContact,
                                      CircuitType::Open))
-        color.setRgb(120, 210, 255); // Light blue
+        color = CircuitColors::Open;
 
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);

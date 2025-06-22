@@ -47,7 +47,7 @@ AbstractCircuitNode::ConnectionsRes SimpleActivationNode::getActiveConnections(C
         return {};
 
     // Close the circuit
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(0).cable;
     dest.cable.side = mContacts.at(0).cableSide;
     dest.nodeContact = 0;

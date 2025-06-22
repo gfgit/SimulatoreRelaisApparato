@@ -57,7 +57,7 @@ AbstractCircuitNode::ConnectionsRes SimpleCircuitNode::getActiveConnections(Cabl
         if(!isContactEnabled(i))
             continue;
 
-        CableItem dest;
+        CableItemFlags dest;
         dest.cable.cable = mContacts.at(i).cable;
         dest.cable.side = mContacts.at(i).cableSide;
         dest.nodeContact = i;

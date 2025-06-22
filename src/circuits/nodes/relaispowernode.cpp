@@ -75,7 +75,7 @@ AbstractCircuitNode::ConnectionsRes RelaisPowerNode::getActiveConnections(CableI
 
         // Close the circuit between 2 connectors
         const int otherContact = source.nodeContact == 1 ? 0 : 1;
-        CableItem comb;
+        CableItemFlags comb;
         comb.cable.cable = mContacts.at(otherContact).cable;
         comb.cable.side = mContacts.at(otherContact).cableSide;
         comb.nodeContact = otherContact;
@@ -84,7 +84,7 @@ AbstractCircuitNode::ConnectionsRes RelaisPowerNode::getActiveConnections(CableI
     }
 
     // Close the circuit
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(source.nodeContact).cable;
     dest.cable.side = mContacts.at(source.nodeContact).cableSide;
     dest.nodeContact = source.nodeContact;

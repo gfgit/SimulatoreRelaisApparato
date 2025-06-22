@@ -50,7 +50,7 @@ AbstractCircuitNode::ConnectionsRes OnOffSwitchNode::getActiveConnections(CableI
 
     const NodeContact& otherContact = mContacts.at(source.nodeContact == 0 ? 1 : 0);
 
-    CableItem other;
+    CableItemFlags other;
     other.cable.cable = otherContact.cable;
     other.cable.side = otherContact.cableSide;
     other.nodeContact = source.nodeContact == 0 ? 1 : 0;

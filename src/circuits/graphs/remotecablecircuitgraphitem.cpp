@@ -23,6 +23,8 @@
 #include "remotecablecircuitgraphitem.h"
 #include "../nodes/remotecablecircuitnode.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 RemoteCableCircuitGraphItem::RemoteCableCircuitGraphItem(RemoteCableCircuitNode *node_)
@@ -74,9 +76,9 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
 
     const QColor colors[3] =
     {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
     };
 
     // Draw wires
