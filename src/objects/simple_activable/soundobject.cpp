@@ -237,7 +237,13 @@ QString SoundObject::getSoundFile() const
 void SoundObject::setSoundFile(const QString &fileName)
 {
     QFileInfo info(fileName);
-    mSound->setSource(QUrl::fromLocalFile(info.canonicalFilePath()));
+    QString canonicalFile = info.canonicalFilePath();
+    if(getSoundFile() == canonicalFile)
+        return;
+
+    mSound->setSource(QUrl::fromLocalFile(canonicalFile));
+
+    emit settingsChanged(this);
 }
 
 bool SoundObject::loopEnabled() const
