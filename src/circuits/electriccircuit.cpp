@@ -1335,7 +1335,8 @@ bool ElectricCircuit::checkShuntedByOtherCircuit()
         // We found a load in our path
         // Check if other paths get after this node from same source but without loads
 
-        for(int afterIdx = i + 2; afterIdx < mItems.size(); afterIdx += 2)
+        const int loadNodeIdx = i;
+        for(int afterIdx = loadNodeIdx + 2; afterIdx < mItems.size(); afterIdx += 2)
         {
             const Item& after = mItems[afterIdx];
             Q_ASSERT(after.isNode);
@@ -1365,6 +1366,10 @@ bool ElectricCircuit::checkShuntedByOtherCircuit()
 
                     if(x >= togheterMax)
                         continue; // This circuit follow same path, skip it
+
+                    // This circuit diverges after load node, so it does not shunt us
+                    if(x > loadNodeIdx && mItems[loadNodeIdx] == other->mItems[loadNodeIdx])
+                        continue;
 
                     for(; x < other->mItems.size(); x += 2)
                     {
