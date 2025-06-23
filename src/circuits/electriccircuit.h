@@ -120,7 +120,7 @@ private:
     static void extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const ItemVector &items);
 
     static void extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const ItemVector &items,
-                                              const CableContact& lastCable, ElectricCircuit *otherCircuit);
+                                              const CableContact& lastCable, ElectricCircuit *otherCircuit, QVector<ElectricCircuit *> deletedCircuits);
 
     void checkReverseVoltageSiblings();
 
