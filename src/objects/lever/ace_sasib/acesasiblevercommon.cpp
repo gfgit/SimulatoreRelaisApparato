@@ -177,7 +177,15 @@ void ACESasibLeverCommonObject::updateElectroMagnetState()
 
 void ACESasibLeverCommonObject::onElectroMagnedDestroyed()
 {
-    // NOTE: do not access magnet
+    // NOTE: do not access magnet members
+    if(!mMagnet)
+        return;
+
+    disconnect(mMagnet, &AbstractSimpleActivableObject::stateChanged,
+               this, &ACESasibLeverCommonObject::updateElectroMagnetState);
+    disconnect(mMagnet, &AbstractSimpleActivableObject::destroyed,
+               this, &ACESasibLeverCommonObject::onElectroMagnedDestroyed);
+
     removeElectromagnetLock();
     mMagnet = nullptr;
 }
