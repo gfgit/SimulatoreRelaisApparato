@@ -98,6 +98,7 @@ AbstractCircuitNode::ConnectionsRes RemoteCableCircuitNode::getActiveConnections
 
 void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
 {
+    const bool oldStateDirty = mStateDirty;
     mStateDirty = false;
 
     const AnyCircuitType before = hasAnyCircuit(0);
@@ -131,7 +132,9 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
         }
         case Mode::SendCurrentWaitClosed:
         {
-            if(before == AnyCircuitType::Open && after == AnyCircuitType::Closed)
+            // In case of shunted circuit, state before is briefly None
+            // instead of Open while refresh was scheduled
+            if((before == AnyCircuitType::Open || oldStateDirty) && after == AnyCircuitType::Closed)
             {
                 setMode(Mode::SendCurrentClosed);
             }
