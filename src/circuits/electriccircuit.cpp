@@ -1416,7 +1416,7 @@ bool ElectricCircuit::checkShuntedByOtherCircuit()
                 for(ElectricCircuit *other : afterCircuits)
                 {
                     if(other == this || other->isDisabling || other->getSource() != this->getSource())
-                        break;
+                        continue;
 
                     const int togheterMax = qMin(other->mItems.size() - 1, afterIdx);
                     int x = 0;
