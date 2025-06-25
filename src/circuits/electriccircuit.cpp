@@ -1123,7 +1123,7 @@ void ElectricCircuit::extendExistingCircuits(AbstractCircuitNode *node, int node
 
 void ElectricCircuit::extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const ItemVector &items,
                                                     const CableContact& lastCable, ElectricCircuit *otherCircuit,
-                                                    QVector<ElectricCircuit *> deletedCircuits)
+                                                    QVector<ElectricCircuit *>& deletedCircuits)
 {
     bool loadPassed = false;
 
