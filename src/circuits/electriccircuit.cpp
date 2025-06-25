@@ -1297,88 +1297,10 @@ void ElectricCircuit::extendExistingCircuits_helper(AbstractCircuitNode *node, i
 
         for(const auto& conn : connections)
         {
-            if(conn.cable.pole != lastCable.pole)
-                continue;
-
-            // But it could have been shunted by a now removed circuit
-            // Check if it needs to be travelled again
-            if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
-                                             conn.cable.pole) == AnyCircuitType::None)
-            {
-                // Copy until cable before node
-                ItemVector newItems(otherCircuit->mItems.begin(),
-                                    otherCircuit->mItems.begin() + i);
-
-                // Custom pass node to join with existing circuit
-                Item customNodeItem = otherItem;
-                customNodeItem.node.toContact = conn.nodeContact;
-                customNodeItem.node.setToPole(lastCable.pole);
-                customNodeItem.node.setFlags(conn.flags);
-
-                Item nextCable;
-                nextCable.cable = conn.cable;
-
-                if(!conn.cable.cable)
-                {
-                    if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
-                                                     conn.cable.pole) != AnyCircuitType::None)
-                        continue; // Already has voltage
-
-                    // Register an open circuit which passes through node
-                    ElectricCircuit *circuit = new ElectricCircuit();
-                    circuit->mItems = {items.begin(), items.end()};
-                    circuit->mItems.append(customNodeItem);
-                    circuit->setType(CircuitType::Open);
-                    circuit->enableCircuit(&deletedCircuits);
-
-                    // Circuit will pass to opposite node connector
-                    continue;
-                }
-
-                // Get opposite side
-                CableEnd cableEnd = conn.cable.cable->getNode(~conn.cable.side);
-
-                if(!cableEnd.node)
-                {
-                    if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
-                                                     conn.cable.pole) != AnyCircuitType::None)
-                        continue; // Already has voltage
-
-                    // Register an open circuit which passes through node
-                    // And then go to next cable
-                    ElectricCircuit *circuit = new ElectricCircuit();
-                    circuit->mItems = {items.begin(), items.end()};
-                    circuit->mItems.append(customNodeItem);
-                    circuit->mItems.append(nextCable);
-                    circuit->setType(CircuitType::Open);
-                    circuit->enableCircuit(&deletedCircuits);
-
-                    // Circuit will pass to opposite node connector
-                    continue;
-                }
-
-                if(cableEnd.node == node && cableEnd.nodeContact == nodeSourceCable.nodeContact)
-                {
-                    continue;
-                }
-
-                if(containsNode(items, node, nodeSourceCable.nodeContact, lastCable.pole))
-                    continue;
-
-                newItems.append(customNodeItem);
-                newItems.append(nextCable);
-
-                PassMode mode = PassModes::None;
-                if(loadPassed || cableEnd.node->isElectricLoad)
-                    mode.setFlag(PassModes::LoadPassed, true);
-
-                passCircuitNode(cableEnd.node, cableEnd.nodeContact,
-                                newItems, otherCircuit->mItems.count(),
-                                deletedCircuits);
-                continue;
-            }
-
             if(conn.nodeContact != nodeContact)
+                continue;
+
+            if(conn.cable.pole != lastCable.pole)
                 continue;
 
             // This circuit can reach our node!
