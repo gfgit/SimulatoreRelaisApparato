@@ -292,10 +292,6 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
 
                     if(!conn.cable.cable)
                     {
-                        if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
-                                                         conn.cable.pole) != AnyCircuitType::None)
-                            continue; // Already has voltage
-
                         // Register an open circuit which passes through node
                         ElectricCircuit *circuit = new ElectricCircuit();
                         circuit->mItems = {mItems.begin(),
@@ -313,10 +309,6 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
 
                     if(!cableEnd.node)
                     {
-                        if(node->hasAnyExitCircuitOnPole(conn.nodeContact,
-                                                         conn.cable.pole) != AnyCircuitType::None)
-                            continue; // Already has voltage
-
                         // Register an open circuit which passes through node
                         // And then go to next cable
                         ElectricCircuit *circuit = new ElectricCircuit();
