@@ -121,8 +121,8 @@ bool ElectricCircuit::enableCircuit(QVector<ElectricCircuit *> *deletedCircuits)
     //     }
     // }
 
-    if(checkShuntedByOtherCircuit())
-        return false;
+    //if(checkShuntedByOtherCircuit())
+    //    return false;
 
     CircuitFlags newFlags = CircuitFlags::None;
     for(int i = 0; i < mItems.size(); i += 2)
@@ -150,8 +150,8 @@ bool ElectricCircuit::enableCircuit(QVector<ElectricCircuit *> *deletedCircuits)
 
     enabled = true;
 
-    if(type() == CircuitType::Closed)
-        checkOtherShuntedByMe(deletedCircuits);
+    //if(type() == CircuitType::Closed)
+    //    checkOtherShuntedByMe(deletedCircuits);
 
     return true;
 }
