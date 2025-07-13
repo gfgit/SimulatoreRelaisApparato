@@ -43,12 +43,19 @@ QWidget *LeverConditionsItemDelegate::createEditor(QWidget *parent,
                                                    const QStyleOptionViewItem &options,
                                                    const QModelIndex &index) const
 {
-    QComboBox *combo = new QComboBox(parent);
-
-    if(index.column() == LeverContactConditionsModel::TypeCol)
-        combo->setModel(const_cast<QStringListModel *>(&conditionsTypeModel));
-    else
+    switch (index.column())
     {
+    case LeverContactConditionsModel::TypeCol:
+    {
+        QComboBox *combo = new QComboBox(parent);
+        combo->setModel(const_cast<QStringListModel *>(&conditionsTypeModel));
+        return combo;
+    }
+    case LeverContactConditionsModel::FromCol:
+    case LeverContactConditionsModel::ToCol:
+    {
+        QComboBox *combo = new QComboBox(parent);
+
         // Get min max range
         const LeverContactConditionsModel *sourceModel =
                 static_cast<const LeverContactConditionsModel *>(index.model());
@@ -59,45 +66,75 @@ QWidget *LeverConditionsItemDelegate::createEditor(QWidget *parent,
         positionModel->setEnumDescRange(sourceModel->positionDesc(), true,
                                         range.first, range.second);
         combo->setModel(positionModel);
+        return combo;
+    }
+    default:
+        break;
     }
 
-    return combo;
+    return QStyledItemDelegate::createEditor(parent, options, index);
 }
 
 void LeverConditionsItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    QComboBox *combo = static_cast<QComboBox *>(editor);
-    const int value = index.data(Qt::EditRole).toInt();
-
-    if(index.column() == LeverContactConditionsModel::TypeCol)
-        combo->setCurrentIndex(value);
-    else
+    switch (index.column())
     {
-        EnumValuesModel *positionModel =
-                static_cast<EnumValuesModel *>(combo->model());
-        combo->setCurrentIndex(positionModel->rowForValue(value));
+    case LeverContactConditionsModel::TypeCol:
+    case LeverContactConditionsModel::FromCol:
+    case LeverContactConditionsModel::ToCol:
+    {
+        QComboBox *combo = static_cast<QComboBox *>(editor);
+        const int value = index.data(Qt::EditRole).toInt();
+
+        if(index.column() == LeverContactConditionsModel::TypeCol)
+            combo->setCurrentIndex(value);
+        else
+        {
+            EnumValuesModel *positionModel =
+                    static_cast<EnumValuesModel *>(combo->model());
+            combo->setCurrentIndex(positionModel->rowForValue(value));
+        }
+
+        // connect(combo, &QComboBox::activated,
+        //         this, &LeverConditionsItemDelegate::onItemClicked,
+        //         Qt::UniqueConnection);
+
+        //combo->showPopup();
+
+        return;
+    }
+    default:
+        break;
     }
 
-    // connect(combo, &QComboBox::activated,
-    //         this, &LeverConditionsItemDelegate::onItemClicked,
-    //         Qt::UniqueConnection);
-
-    //combo->showPopup();
+    QStyledItemDelegate::setEditorData(editor, index);
 }
 
 void LeverConditionsItemDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    QComboBox *combo = static_cast<QComboBox *>(editor);
-    int value = combo->currentIndex();
-
-    if(index.column() != LeverContactConditionsModel::TypeCol)
+    switch (index.column())
     {
-        EnumValuesModel *positionModel =
-                static_cast<EnumValuesModel *>(combo->model());
-        value = positionModel->valueAt(value);
+    case LeverContactConditionsModel::TypeCol:
+    case LeverContactConditionsModel::FromCol:
+    case LeverContactConditionsModel::ToCol:
+    {
+        QComboBox *combo = static_cast<QComboBox *>(editor);
+        int value = combo->currentIndex();
+
+        if(index.column() != LeverContactConditionsModel::TypeCol)
+        {
+            EnumValuesModel *positionModel =
+                    static_cast<EnumValuesModel *>(combo->model());
+            value = positionModel->valueAt(value);
+        }
+
+        model->setData(index, value, Qt::EditRole);
+    }
+    default:
+        break;
     }
 
-    model->setData(index, value, Qt::EditRole);
+    QStyledItemDelegate::setModelData(editor, model, index);
 }
 
 // void LeverConditionsItemDelegate::onItemClicked()

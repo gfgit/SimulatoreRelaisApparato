@@ -53,7 +53,9 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
         // draw contact with lever in its normal state
         const int leverNormalPos = leverIface->normalPosition();
 
-        auto state = node()->stateForPosition(leverNormalPos);
+        bool unusedSpecial = false;
+        auto state = node()->stateForPosition(leverNormalPos, unusedSpecial);
+        Q_UNUSED(unusedSpecial);
 
         contactUpOn = state == LeverContactNode::State::Up;
         contactDownOn = state == LeverContactNode::State::Down;
@@ -118,6 +120,42 @@ QString LeverContactGraphItem::tooltipString() const
 LeverContactNode *LeverContactGraphItem::node() const
 {
     return static_cast<LeverContactNode *>(getAbstractNode());
+}
+
+inline int getNextPrevPos(const int curPos, const LeverInterface *leverIface, bool next)
+{
+    const auto& leverPosDesc = leverIface->positionDesc();
+    if(next)
+    {
+        for(int endPos = curPos + 1; endPos <= leverPosDesc.maxValue; endPos++)
+        {
+            if(!leverIface->isPositionMiddle(endPos))
+                return endPos;
+        }
+
+        if(leverIface->canWarpAroundZero())
+        {
+            if(!leverIface->isPositionMiddle(leverPosDesc.minValue))
+                return leverPosDesc.minValue;
+        }
+    }
+    else
+    {
+        for(int startPos = curPos - 1; startPos >= leverPosDesc.minValue; startPos--)
+        {
+            if(!leverIface->isPositionMiddle(startPos))
+                return startPos;
+        }
+
+        if(leverIface->canWarpAroundZero())
+        {
+            if(!leverIface->isPositionMiddle(leverPosDesc.maxValue))
+                return leverPosDesc.maxValue;
+        }
+    }
+
+    // No other position found
+    return curPos;
 }
 
 void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
@@ -205,6 +243,13 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
                    QSizeF(leverLength * 2, leverLength * 2));
     arcRect.moveCenter(leverCenter);
 
+    const auto& leverPosDesc = leverIface->positionDesc();
+    const double minAngle = leverIface->angleForPosition(leverPosDesc.minValue, true);
+    const double maxAngle = leverIface->angleForPosition(leverPosDesc.maxValue, true);
+
+    const double startRadiants = -qDegreesToRadians(minAngle);
+    const double endRadiants = -qDegreesToRadians(maxAngle);
+
     for(const LeverPositionCondition& item : conditions)
     {
         const double fromAngle = leverIface->angleForPosition(item.positionFrom, true);
@@ -213,11 +258,45 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
         // Also returned angle must be inverted to be clockwise
         const double fromRadiants = -qDegreesToRadians(fromAngle);
 
-        endPt = QPointF(qSin(fromRadiants), qCos(fromRadiants));
-        endPt *= -leverLength; // Negative to go upwards
-        endPt += leverCenter;
+        if(item.specialContact && item.type == LeverPositionConditionType::FromTo)
+        {
+            // Start from min position
+            endPt = QPointF(qSin(startRadiants), qCos(startRadiants));
+            endPt *= -leverLength; // Negative to go upwards
+            endPt += leverCenter;
 
-        painter->drawLine(leverCenter, endPt);
+            painter->drawLine(leverCenter, endPt);
+
+            const int switchStartPos = getNextPrevPos(item.positionFrom, leverIface, false);
+
+            if(item.positionFrom != switchStartPos)
+            {
+                double switchFromAngle = leverIface->angleForPosition(switchStartPos, true);
+                double switchToAngle = fromAngle;
+
+                if(switchFromAngle > switchToAngle)
+                    std::swap(switchFromAngle, switchToAngle);
+
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(Qt::black);
+
+                // Draw switch sector in black. In this sector both contacts are briefly connected.
+                painter->drawPie(arcRect, (90 - switchFromAngle) * 16,
+                                 (switchFromAngle - switchToAngle) * 16);
+
+                painter->setPen(pen);
+                painter->setBrush(Qt::NoBrush);
+            }
+        }
+        else
+        {
+            // Start at From position
+            endPt = QPointF(qSin(fromRadiants), qCos(fromRadiants));
+            endPt *= -leverLength; // Negative to go upwards
+            endPt += leverCenter;
+
+            painter->drawLine(leverCenter, endPt);
+        }
 
         if(item.type == LeverPositionConditionType::FromTo)
         {
@@ -229,17 +308,57 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
 
             const double toRadiants = -qDegreesToRadians(toAngle);
 
-            endPt = QPointF(qSin(toRadiants), qCos(toRadiants));
-            endPt *= -leverLength; // Negative to go upwards
-            endPt += leverCenter;
+            if(item.specialContact)
+            {
+                // End in max position
+                endPt = QPointF(qSin(endRadiants), qCos(endRadiants));
+                endPt *= -leverLength; // Negative to go upwards
+                endPt += leverCenter;
 
-            painter->drawLine(leverCenter, endPt);
+                painter->drawLine(leverCenter, endPt);
 
-            // drawArc wants degrees multiplied by 16
-            // Counter-clockwise and starting from 3 o'clock
-            // so +90 and inverted sign
-            painter->drawArc(arcRect, (90 - fromAngle) * 16,
-                             (fromAngle - toAngle) * 16);
+                // drawArc wants degrees multiplied by 16
+                // Counter-clockwise and starting from 3 o'clock
+                // so +90 and inverted sign
+                painter->drawArc(arcRect, (90 - minAngle) * 16,
+                                 (minAngle - maxAngle) * 16);
+
+                const int switchEndPos = getNextPrevPos(item.positionTo, leverIface, true);
+
+                if(item.positionTo != switchEndPos)
+                {
+                    double switchFromAngle = toAngle;
+                    double switchToAngle = leverIface->angleForPosition(switchEndPos, true);
+
+                    if(switchFromAngle > switchToAngle)
+                        std::swap(switchFromAngle, switchToAngle);
+
+                    painter->setPen(Qt::NoPen);
+                    painter->setBrush(Qt::black);
+
+                    // Draw switch sector in black. In this sector both contacts are briefly connected.
+                    painter->drawPie(arcRect, (90 - switchFromAngle) * 16,
+                                     (switchFromAngle - switchToAngle) * 16);
+
+                    painter->setPen(pen);
+                    painter->setBrush(Qt::NoBrush);
+                }
+            }
+            else
+            {
+                // End in To position
+                endPt = QPointF(qSin(toRadiants), qCos(toRadiants));
+                endPt *= -leverLength; // Negative to go upwards
+                endPt += leverCenter;
+
+                painter->drawLine(leverCenter, endPt);
+
+                // drawArc wants degrees multiplied by 16
+                // Counter-clockwise and starting from 3 o'clock
+                // so +90 and inverted sign
+                painter->drawArc(arcRect, (90 - fromAngle) * 16,
+                                 (fromAngle - toAngle) * 16);
+            }
         }
     }
 

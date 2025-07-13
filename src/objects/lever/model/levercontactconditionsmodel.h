@@ -38,6 +38,7 @@ public:
         TypeCol = 0,
         FromCol,
         ToCol,
+        SpecialCol,
         NCols
     };
 

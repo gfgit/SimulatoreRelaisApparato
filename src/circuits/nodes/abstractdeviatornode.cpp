@@ -209,7 +209,13 @@ void AbstractDeviatorNode::setHasCentralConnector(bool newHasCentralConnector)
     }
 }
 
-void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
+/*!
+ * \brief AbstractDeviatorNode::setContactState
+ * \param valUp
+ * \param valDown
+ * \param specialContact if true new connections are made before removing existing ones
+ */
+void AbstractDeviatorNode::setContactState(bool valUp, bool valDown, bool specialContact)
 {
     if(mSwapContactState)
     {
@@ -228,6 +234,12 @@ void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
     // Set new state
     mContactOnArr[0] = valUp;
     mContactOnArr[1] = valDown;
+
+    if(hasNewConnections && specialContact)
+    {
+        // Scan for new circuits before removing existing ones
+        ElectricCircuit::createCircuitsFromOtherNode(this);
+    }
 
     // Remove existing circuits if no more connected
     // regardless of previous contact state
@@ -278,9 +290,9 @@ void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
         }
     }
 
-    if(hasNewConnections)
+    if(hasNewConnections && !specialContact)
     {
-        // Scan for new circuits
+        // Scan for new circuits after removing existing ones
         ElectricCircuit::createCircuitsFromOtherNode(this);
     }
 

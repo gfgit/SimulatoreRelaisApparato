@@ -1050,8 +1050,6 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                 conditionsModel->setConditions(leverIface->positionDesc(),
                                                conditions,
                                                leverIface->canWarpAroundZero());
-                conditionsModel->setPositionRange(leverIface->absoluteMin(),
-                                                  leverIface->absoluteMax());
             }
 
             conditionsView->setVisible(node->lever());

@@ -58,12 +58,13 @@ public:
     LeverInterface *leverIface() const;
 
     State state() const;
-    void setState(State newState);
+    void setState(State newState, bool specialContact);
 
     LeverPositionConditionSet conditionSet() const;
     void setConditionSet(const LeverPositionConditionSet &newConditionSet);
 
-    State stateForPosition(int pos) const;
+    State stateForPosition(int pos,
+                           bool &specialContact) const;
 
 signals:
     void leverChanged(AbstractSimulationObject *l);
@@ -82,6 +83,7 @@ private:
     LeverPositionConditionSet mConditionSet;
 
     State mState = State::Middle;
+    bool mIsSpecialContact = false;
 };
 
 #endif // LEVERCONTACTNODE_H

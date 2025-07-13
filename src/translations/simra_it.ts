@@ -930,19 +930,46 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
 <context>
     <name>LeverContactConditionsModel</name>
     <message>
-        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="37"/>
+        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="39"/>
         <source>Type</source>
         <translation>Tipo</translation>
     </message>
     <message>
-        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="39"/>
+        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="41"/>
         <source>From</source>
         <translation>Da</translation>
     </message>
     <message>
-        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="41"/>
+        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="43"/>
         <source>To</source>
         <translation>A</translation>
+    </message>
+    <message>
+        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="45"/>
+        <source>Special</source>
+        <translation>Speciale</translation>
+    </message>
+    <message>
+        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="55"/>
+        <source>Contact Type</source>
+        <translation>Tipo contatto</translation>
+    </message>
+    <message>
+        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="57"/>
+        <source>From position</source>
+        <translation>Dalla posizione</translation>
+    </message>
+    <message>
+        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="59"/>
+        <source>To position</source>
+        <translation>Alla posizione</translation>
+    </message>
+    <message>
+        <location filename="../objects/lever/model/levercontactconditionsmodel.cpp" line="61"/>
+        <source>Special contacts briefly connect both sides.
+So output always has current during lever switch.</source>
+        <translation>I contatti speciali brevemente connettono entrambi i rami.
+Quindi l&apos;uscita ha sempre corrente durante la manovra della leva.</translation>
     </message>
 </context>
 <context>
@@ -961,22 +988,22 @@ Altrimenti, viene creato clonando quello vecchio.</translation>
 <context>
     <name>LeverContactGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="86"/>
+        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="88"/>
         <source>Null</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="100"/>
+        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="102"/>
         <source>No Lever set!</source>
         <translation>Nessuna Leva impostata!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="107"/>
+        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="109"/>
         <source>Position: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
         <translation>Posizione: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="110"/>
+        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="112"/>
         <source>Contact of lever &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2%3</source>
         <translation>Contatto della leva &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2%3</translation>
     </message>
@@ -2510,34 +2537,34 @@ Scegli un altro nome:</translation>
         <translation>Pulsante ACEI</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1103"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1106"/>
         <source>Sound Node</source>
         <translation>Suoneria</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1109"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1112"/>
         <source>Sound Object</source>
         <translation>Oggetto Sonoro</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1120"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1123"/>
         <source>Diode</source>
         <translation>Diodo</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1133"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1136"/>
         <source>Remote Connection</source>
         <translation>Connessione Remota</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1146"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1149"/>
         <source>Transformer</source>
         <translation>Trasformatore</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1158"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1161"/>
         <source>Resistor</source>
-        <translation type="unfinished"></translation>
+        <translation>Resistenza</translation>
     </message>
     <message>
         <location filename="../circuits/edit/standardnodetypes.cpp" line="781"/>
@@ -2612,12 +2639,12 @@ Scegli un altro nome:</translation>
         <translation>Condizioni</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1077"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1080"/>
         <source>Polarity Inversion</source>
         <translation>Inversione Polarità</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1090"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1093"/>
         <source>BiFiLar1zaT0R</source>
         <translation></translation>
     </message>

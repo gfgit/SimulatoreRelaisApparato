@@ -77,7 +77,7 @@ signals:
     void deviatorStateChanged();
 
 protected:
-    void setContactState(bool valUp, bool valDown);
+    void setContactState(bool valUp, bool valDown, bool specialContact = false);
     void setAllowSwap(bool newAllowSwap);
     void setCanChangeCentralConnector(bool newCanChangeCentralConnector);
     void setBothCanBeActive(bool value);

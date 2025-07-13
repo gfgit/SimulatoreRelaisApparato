@@ -31,16 +31,38 @@ QVariant LeverContactConditionsModel::headerData(int section, Qt::Orientation or
 {
     if(orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
-        switch (section)
+        if(role == Qt::DisplayRole)
         {
-        case TypeCol:
-            return tr("Type");
-        case FromCol:
-            return tr("From");
-        case ToCol:
-            return tr("To");
-        default:
-            break;
+            switch (section)
+            {
+            case TypeCol:
+                return tr("Type");
+            case FromCol:
+                return tr("From");
+            case ToCol:
+                return tr("To");
+            case SpecialCol:
+                return tr("Special");
+            default:
+                break;
+            }
+        }
+        else if(role == Qt::ToolTipRole)
+        {
+            switch (section)
+            {
+            case TypeCol:
+                return tr("Contact Type");
+            case FromCol:
+                return tr("From position");
+            case ToCol:
+                return tr("To position");
+            case SpecialCol:
+                return tr("Special contacts briefly connect both sides.\n"
+                          "So output always has current during lever switch.");
+            default:
+                break;
+            }
         }
     }
 
@@ -94,6 +116,21 @@ QVariant LeverContactConditionsModel::data(const QModelIndex &idx, int role) con
             return item.positionFrom;
         case ToCol:
             return item.positionTo;
+        case SpecialCol:
+            return item.specialContact;
+        default:
+            break;
+        }
+        break;
+    }
+    case Qt::CheckStateRole:
+    {
+        switch (idx.column())
+        {
+        case SpecialCol:
+            return item.specialContact ?
+                        Qt::CheckState::Checked :
+                        Qt::CheckState::Unchecked;
         default:
             break;
         }
@@ -154,6 +191,21 @@ bool LeverContactConditionsModel::setData(const QModelIndex &idx, const QVariant
         }
         break;
     }
+    case Qt::CheckStateRole:
+    {
+        switch (idx.column())
+        {
+        case SpecialCol:
+        {
+            Qt::CheckState cs = value.value<Qt::CheckState>();
+            item.specialContact = cs == Qt::CheckState::Checked;
+            break;
+        }
+        default:
+            return false;
+        }
+        break;
+    }
     default:
         return false;
     }
@@ -199,6 +251,9 @@ Qt::ItemFlags LeverContactConditionsModel::flags(const QModelIndex &idx) const
     const LeverPositionCondition& item = mConditions.at(idx.row());
     if(idx.column() != ToCol || item.type == LeverPositionConditionType::FromTo)
         f.setFlag(Qt::ItemIsEditable);
+
+    if(idx.column() == SpecialCol)
+        f.setFlag(Qt::ItemIsUserCheckable);
 
     return f;
 }

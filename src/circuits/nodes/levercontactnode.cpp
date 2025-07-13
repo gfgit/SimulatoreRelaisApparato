@@ -118,6 +118,9 @@ void LeverContactNode::setLever(AbstractSimulationObject *newLever)
 
         mLeverIface = mLever->getInterface<LeverInterface>();
         mLeverIface->addContactNode(this);
+
+        // Re-sanitize conditions based on new lever range
+        setConditionSet(mConditionSet);
     }
 
     // TODO: sanitize conditions based on new lever type
@@ -145,18 +148,20 @@ void LeverContactNode::refreshContactState()
 {
     State s = State::Middle;
 
+    bool isSpecialContact = false;
     if(mLever)
     {
-        s = stateForPosition(mLeverIface->position());
+        s = stateForPosition(mLeverIface->position(), isSpecialContact);
     }
 
-    setState(s);
+    setState(s, isSpecialContact);
 
     // Refresh at every lever position change
     emit deviatorStateChanged();
 }
 
-LeverContactNode::State LeverContactNode::stateForPosition(int pos) const
+LeverContactNode::State LeverContactNode::stateForPosition(int pos,
+                                                           bool &specialContact) const
 {
     // When conditions match, we are in Down state
     for(const LeverPositionCondition& item : std::as_const(mConditionSet))
@@ -164,7 +169,10 @@ LeverContactNode::State LeverContactNode::stateForPosition(int pos) const
         if(item.type == LeverPositionConditionType::Exact)
         {
             if(item.positionFrom == pos)
+            {
+                specialContact = item.specialContact;
                 return State::Down;
+            }
             continue;
         }
 
@@ -172,13 +180,20 @@ LeverContactNode::State LeverContactNode::stateForPosition(int pos) const
         if(item.warpsAroundZero)
         {
             if(pos >= item.positionFrom || pos <= item.positionTo)
+            {
+                specialContact = item.specialContact;
                 return State::Down;
+            }
         }
 
         if(item.positionFrom <= pos && pos <= item.positionTo)
+        {
+            specialContact = item.specialContact;
             return State::Down;
+        }
     }
 
+    specialContact = false;
     return State::Up;
 }
 
@@ -187,14 +202,18 @@ LeverContactNode::State LeverContactNode::state() const
     return mState;
 }
 
-void LeverContactNode::setState(State newState)
+void LeverContactNode::setState(State newState, bool specialContact)
 {
     if (mState == newState)
         return;
     mState = newState;
 
+    const bool wasSpecial = mIsSpecialContact;
+    mIsSpecialContact = specialContact;
+
     setContactState(mState == State::Up,
-                    mState == State::Down);
+                    mState == State::Down,
+                    (wasSpecial || mIsSpecialContact));
 }
 
 LeverPositionConditionSet LeverContactNode::conditionSet() const
@@ -205,6 +224,18 @@ LeverPositionConditionSet LeverContactNode::conditionSet() const
 void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newConditionSet)
 {
     mConditionSet = newConditionSet;
+
+    if(mLeverIface)
+    {
+        const auto posDesc = mLeverIface->positionDesc();
+
+        // Sanitize conditions
+        for(auto it = mConditionSet.begin(); it != mConditionSet.end(); it++)
+        {
+            it->positionFrom = std::clamp(it->positionFrom, posDesc.minValue, posDesc.maxValue);
+            it->positionTo = std::clamp(it->positionTo, posDesc.minValue, posDesc.maxValue);
+        }
+    }
 
     // Sanitize conditions
     for(auto it = mConditionSet.begin(); it != mConditionSet.end(); it++)
