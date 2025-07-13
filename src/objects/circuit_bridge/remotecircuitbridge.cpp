@@ -277,7 +277,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
         // because it triggers circuit add/remove from inside
         // another circuit add/remove.
         // So use delayed event posting
-        other->delayedPeerModeChanged(currMode, currSendPole);
+        other->delayedPeerModeChanged(currMode, currSendPole, replyToMode);
     }
     else if(mRemoteSession && mPeerNodeId)
     {
@@ -295,13 +295,15 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
             {
                 // Fake close circuit
                 node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
-                                             currSendPole);
+                                             currSendPole,
+                                             RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed);
             }
             else if(currMode == RemoteCableCircuitNode::Mode::SendCurrentClosed)
             {
                 // Fake close circuit
                 node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
-                                             currSendPole);
+                                             currSendPole,
+                                             RemoteCableCircuitNode::Mode::ReceiveCurrentClosed);
 
                 int mode = currSendPole == CircuitPole::First ? 1 : 2;
                 mSerialDevice->onOutputChanged(mSerialOutputId, mode);
@@ -314,13 +316,15 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
 
             // Fake reset circuit
             node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::None,
-                                         currSendPole);
+                                         currSendPole,
+                                         RemoteCableCircuitNode::Mode::None);
         }
         else if(currMode == RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed && mSerialInputId)
         {
             // Fake close remote circuit
             node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::SendCurrentClosed,
-                                         node->mRecvPole);
+                                         node->mRecvPole,
+                                         RemoteCableCircuitNode::Mode::SendCurrentClosed);
         }
     }
 }

@@ -40,17 +40,21 @@ class RemoteCableDelayedPeerMode : public QEvent
 public:
     static const QEvent::Type _Type = QEvent::Type(QEvent::User + 2);
 
-    RemoteCableDelayedPeerMode(RemoteCableCircuitNode::Mode peerMode, CircuitPole peerSendPole)
+    RemoteCableDelayedPeerMode(RemoteCableCircuitNode::Mode peerMode, CircuitPole peerSendPole,
+                               RemoteCableCircuitNode::Mode replyMode)
         : QEvent(_Type)
         , mPeerMode(peerMode)
+        , mReplyToMode(replyMode)
         , mPeerSendPole(peerSendPole)
     {};
 
     inline RemoteCableCircuitNode::Mode peerMode() const { return mPeerMode; }
+    inline RemoteCableCircuitNode::Mode replyToMode() const { return mReplyToMode; }
     inline CircuitPole peerSendPole() const { return mPeerSendPole; }
 
 private:
     RemoteCableCircuitNode::Mode mPeerMode;
+    RemoteCableCircuitNode::Mode mReplyToMode;
     CircuitPole mPeerSendPole;
 };
 
@@ -71,6 +75,15 @@ bool RemoteCableCircuitNode::event(QEvent *e)
     if(e->type() == RemoteCableDelayedPeerMode::_Type)
     {
         RemoteCableDelayedPeerMode *ev = static_cast<RemoteCableDelayedPeerMode *>(e);
+
+        // NOTE: If 2 requests are quickly sent on after another,
+        // we might get response to first one after we already sent the second one
+        // so here we ignore old replies by comparing which mode generated them with
+        // our current state
+        if(mode() != ev->replyToMode() &&
+                RemoteCableCircuitNode::isReceiveMode(ev->peerMode()))
+            return true;
+
         onPeerModeChanged(ev->peerMode(), ev->peerSendPole());
         return true;
     }
@@ -559,9 +572,9 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
     }
 }
 
-void RemoteCableCircuitNode::delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole)
+void RemoteCableCircuitNode::delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole, Mode replyToMode)
 {
-    QCoreApplication::postEvent(this, new RemoteCableDelayedPeerMode(peerMode, peerSendPole));
+    QCoreApplication::postEvent(this, new RemoteCableDelayedPeerMode(peerMode, peerSendPole, replyToMode));
 }
 
 void RemoteCableCircuitNode::scheduleStateRefresh()

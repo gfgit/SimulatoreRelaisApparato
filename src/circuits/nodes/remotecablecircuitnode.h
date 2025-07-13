@@ -144,7 +144,7 @@ signals:
 private:
     friend class RemoteCircuitBridge;
     void onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole);
-    void delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole);
+    void delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole, Mode replyToMode);
 
     void scheduleStateRefresh();
     void refreshState();
