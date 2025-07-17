@@ -66,13 +66,7 @@ void ButtonContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     painter->setPen(color);
 
-    TileRotate nameRotate = rotate();
-    if(node()->flipContact())
-        nameRotate += TileRotate::Deg180;
-
-    drawName(painter,
-             node()->button() ? node()->button()->name() : tr("NULL"),
-             nameRotate);
+    drawName(painter);
 }
 
 QString ButtonContactGraphItem::displayString() const
