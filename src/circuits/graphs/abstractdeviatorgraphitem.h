@@ -50,6 +50,8 @@ public:
     const QString getContactTooltip() const;
 
 protected:
+    void recalculateTextPosition() override;
+
     // Contacts must be already swapped
     void drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn);
 

@@ -73,6 +73,9 @@ AbstractDeviatorGraphItem::AbstractDeviatorGraphItem(AbstractDeviatorNode *node_
 {
     connect(deviatorNode(), &AbstractDeviatorNode::deviatorStateChanged,
             this, &AbstractDeviatorGraphItem::triggerUpdate);
+
+    // Default text position to arc side
+    setTextRotate(calculateArcSide());
 }
 
 void AbstractDeviatorGraphItem::getConnectors(std::vector<Connector> &connectors) const
@@ -174,6 +177,63 @@ const QString AbstractDeviatorGraphItem::getContactTooltip() const
     {
         return tr("Contact: <b>%1</b>")
                 .arg(contact1On ? onStr : offStr);
+    }
+}
+
+void AbstractDeviatorGraphItem::recalculateTextPosition()
+{
+    // NOTE: same as base class but we prefer text on arc side
+
+    // Recalculate text label position
+    std::vector<Connector> conns;
+    getConnectors(conns);
+
+    if(!conns.empty())
+    {
+        Connector::Direction PreferredDir[4] =
+        {
+            Connector::Direction::South,
+            Connector::Direction::North,
+            Connector::Direction::East,
+            Connector::Direction::West
+        };
+
+        const Connector::Direction arcSide = calculateArcSide();
+        for(int i = 1; i < 4; i++)
+        {
+            if(PreferredDir[i] == arcSide)
+            {
+                // Make arc side the first preferred
+                std::swap(PreferredDir[0], PreferredDir[i]);
+                break;
+            }
+        }
+
+        // Try to keep current position
+        Connector::Direction possibleTextDir = textRotate();
+
+        for(int i = 0; i < 5; i++)
+        {
+            bool conflict = false;
+
+            for(const Connector& c : conns)
+            {
+                if(c.direction == possibleTextDir)
+                {
+                    conflict = true;
+                    break;
+                }
+            }
+
+            if(!conflict)
+            {
+                setTextRotate(possibleTextDir);
+                break;
+            }
+
+            // Try next
+            possibleTextDir = PreferredDir[i % 4];
+        }
     }
 }
 
