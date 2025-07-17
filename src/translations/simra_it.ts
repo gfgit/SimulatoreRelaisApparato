@@ -319,22 +319,22 @@
 <context>
     <name>AbstractDeviatorGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="60"/>
+        <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="165"/>
         <source>On</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="61"/>
+        <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="166"/>
         <source>Off</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="65"/>
+        <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="170"/>
         <source>Contacts:&lt;br&gt;Straight: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Central:  &lt;b&gt;%2&lt;/b&gt;</source>
         <translation>Contatti:&lt;br&gt;Dritto: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Centrale:  &lt;b&gt;%2&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="73"/>
+        <location filename="../circuits/graphs/abstractdeviatorgraphitem.cpp" line="178"/>
         <source>Contact: &lt;b&gt;%1&lt;/b&gt;</source>
         <translation>Contatto: &lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
@@ -343,7 +343,7 @@
     <name>AbstractRelais</name>
     <message>
         <location filename="../objects/relais/model/abstractrelais.cpp" line="55"/>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="888"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="919"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
@@ -393,37 +393,37 @@
         <translation>Trasmetti Codice</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="886"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="917"/>
         <source>Reverse</source>
         <translation>Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="890"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="921"/>
         <source>Going reverse</source>
         <translation>Andando in Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="892"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="923"/>
         <source>Going normal</source>
         <translation>Andando in Normale</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="902"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="933"/>
         <source>Up</source>
         <translation>Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="904"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="935"/>
         <source>Down</source>
         <translation>Basso</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="906"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="937"/>
         <source>Going up</source>
         <translation>Andando Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="908"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="939"/>
         <source>Going down</source>
         <translation>Andando Basso</translation>
     </message>
@@ -598,22 +598,17 @@
 <context>
     <name>ButtonContactGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/buttoncontactgraphitem.cpp" line="74"/>
-        <source>NULL</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../circuits/graphs/buttoncontactgraphitem.cpp" line="88"/>
+        <location filename="../circuits/graphs/buttoncontactgraphitem.cpp" line="82"/>
         <source>No Button set!</source>
         <translation>Nessuno Pulsante impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/buttoncontactgraphitem.cpp" line="95"/>
+        <location filename="../circuits/graphs/buttoncontactgraphitem.cpp" line="89"/>
         <source>State: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
         <translation>Stato: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/buttoncontactgraphitem.cpp" line="98"/>
+        <location filename="../circuits/graphs/buttoncontactgraphitem.cpp" line="92"/>
         <source>Contact of button &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2%3</source>
         <translation>Contatto del pulsante &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2%3</translation>
     </message>
@@ -988,22 +983,17 @@ Quindi l&apos;uscita ha sempre corrente durante la manovra della leva.</translat
 <context>
     <name>LeverContactGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="88"/>
-        <source>Null</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="102"/>
+        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="98"/>
         <source>No Lever set!</source>
         <translation>Nessuna Leva impostata!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="109"/>
+        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="105"/>
         <source>Position: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
         <translation>Posizione: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="112"/>
+        <location filename="../circuits/graphs/levercontactgraphitem.cpp" line="108"/>
         <source>Contact of lever &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2%3</source>
         <translation>Contatto della leva &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2%3</translation>
     </message>
@@ -1686,17 +1676,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RelaisContactGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="101"/>
-        <source>REL!</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="119"/>
+        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="230"/>
         <source>No Relay set!</source>
         <translation>Nessun Relè impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="121"/>
+        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="232"/>
         <source>Contact of relay &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;State: &lt;b&gt;%2&lt;/b&gt;&lt;br&gt;%3</source>
         <translation>Contatto del Relè &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;State: &lt;b&gt;%2&lt;/b&gt;&lt;br&gt;%3</translation>
     </message>
@@ -1759,15 +1744,73 @@ Scegli un altro nome:</translation>
     </message>
 </context>
 <context>
-    <name>RemoteCableCircuitNode</name>
+    <name>RemoteCableCircuitGraphItem</name>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="638"/>
-        <source>BRIDGE!!!</source>
-        <translation></translation>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="121"/>
+        <source>No remote bridge set!</source>
+        <translation>Nessun ponte remoto impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="643"/>
-        <source>EMPTY!!!</source>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="130"/>
+        <source>To session &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Peer node: &lt;b&gt;&lt;i&gt;%2&lt;/i&gt;&lt;/b&gt;</source>
+        <translation>Alla sessione &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Nodo compagno: &lt;b&gt;&lt;i&gt;%2&lt;/i&gt;&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="140"/>
+        <source>None</source>
+        <translation>Nessuno</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="147"/>
+        <source>To device &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Input: %2&lt;br&gt;Output: %3&lt;br&gt;</source>
+        <translation>Al dispositivo &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Input: %2&lt;br&gt;Output: %3&lt;br&gt;</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="157"/>
+        <source>Connected</source>
+        <translation>Connesso</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="157"/>
+        <source>Disconnected</source>
+        <translation>Disconnesso</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="158"/>
+        <source>Bridge &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2&lt;br&gt;&lt;br&gt;Status: %3</source>
+        <translation>Ponte circuito &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2&lt;br&gt;&lt;br&gt;Stato: %3</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="166"/>
+        <source>Local Bridge &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Not connected to other node!</source>
+        <translation>Ponte circuito locale &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Non connesso ad un altro nodo!</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="183"/>
+        <source>To other node in this sheet</source>
+        <translation>Ad un altro nodo in questo foglio</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="187"/>
+        <source>To other node in:&lt;br&gt;&lt;b&gt;%1&lt;br&gt;%2&lt;/b&gt;</source>
+        <translation>Ad un altro nodo in:&lt;br&gt;&lt;b&gt;%1&lt;br&gt;%2&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="196"/>
+        <source>Error: could not find peer scene</source>
+        <translation>Errore: impossibile trovare la scena compagna</translation>
+    </message>
+    <message>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="199"/>
+        <source>Local Bridge &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
+        <translation>Ponte locacale &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
+    </message>
+</context>
+<context>
+    <name>RemoteCableCircuitNode</name>
+    <message>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="651"/>
+        <source>BRIDGE!!!</source>
         <translation></translation>
     </message>
 </context>
@@ -1997,17 +2040,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>ScreenRelaisContactGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/screenrelaiscontactgraphitem.cpp" line="59"/>
-        <source>REL!</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../circuits/graphs/screenrelaiscontactgraphitem.cpp" line="120"/>
+        <location filename="../circuits/graphs/screenrelaiscontactgraphitem.cpp" line="87"/>
         <source>No Screen Relay set!</source>
         <translation>Nessuno Relè Schermo impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/screenrelaiscontactgraphitem.cpp" line="124"/>
+        <location filename="../circuits/graphs/screenrelaiscontactgraphitem.cpp" line="91"/>
         <source>Contact of Screen Relay &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Type: %2&lt;br&gt;%3</source>
         <translation>Contatto del Relè Schermo &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Tipo: %2&lt;br&gt;%3</translation>
     </message>
@@ -2537,32 +2575,32 @@ Scegli un altro nome:</translation>
         <translation>Pulsante ACEI</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1106"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1099"/>
         <source>Sound Node</source>
         <translation>Suoneria</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1112"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1105"/>
         <source>Sound Object</source>
         <translation>Oggetto Sonoro</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1123"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1116"/>
         <source>Diode</source>
         <translation>Diodo</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1136"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1129"/>
         <source>Remote Connection</source>
         <translation>Connessione Remota</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1149"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1142"/>
         <source>Transformer</source>
         <translation>Trasformatore</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1161"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1154"/>
         <source>Resistor</source>
         <translation>Resistenza</translation>
     </message>
@@ -2639,12 +2677,12 @@ Scegli un altro nome:</translation>
         <translation>Condizioni</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1080"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1073"/>
         <source>Polarity Inversion</source>
         <translation>Inversione Polarità</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="1093"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="1086"/>
         <source>BiFiLar1zaT0R</source>
         <translation></translation>
     </message>
@@ -2727,9 +2765,8 @@ Scegli un altro nome:</translation>
         <translation>Descrizione B:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="506"/>
         <source>Shown on node B</source>
-        <translation>Mostrato sul nodo B</translation>
+        <translation type="vanished">Mostrato sul nodo B</translation>
     </message>
     <message>
         <location filename="../objects/standardobjecttypes.cpp" line="568"/>
@@ -2742,9 +2779,8 @@ Scegli un altro nome:</translation>
         <translation>Dispositivo:</translation>
     </message>
     <message>
-        <location filename="../objects/standardobjecttypes.cpp" line="505"/>
         <source>Shown on node A</source>
-        <translation>Mostrato sul nodo A</translation>
+        <translation type="vanished">Mostrato sul nodo A</translation>
     </message>
     <message>
         <location filename="../objects/standardobjecttypes.cpp" line="163"/>
@@ -2795,6 +2831,16 @@ Scegli un altro nome:</translation>
         <location filename="../objects/standardobjecttypes.cpp" line="296"/>
         <source>Timeout:</source>
         <translation></translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="505"/>
+        <source>Shown on node A (Bridge name if empty)</source>
+        <translation>Mostrato su nodo A (Se vuoto, nome ponte)</translation>
+    </message>
+    <message>
+        <location filename="../objects/standardobjecttypes.cpp" line="506"/>
+        <source>Shown on node B (Bridge name if empty)</source>
+        <translation>Mostrato su nodo B (Se vuoto, nome ponte)</translation>
     </message>
     <message>
         <location filename="../objects/standardobjecttypes.cpp" line="521"/>
