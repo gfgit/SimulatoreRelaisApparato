@@ -257,6 +257,9 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
                                        item.positionTo);
             }
         }
+
+        if(item.type != LeverPositionConditionType::FromTo)
+            item.specialContact = false;
     }
 
     // Sort conditions

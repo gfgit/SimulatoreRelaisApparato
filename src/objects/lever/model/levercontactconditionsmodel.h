@@ -67,7 +67,7 @@ public:
     void instertConditionAt(int row);
     void removeConditionAt(int row);
 
-    void setPositionRange(int min, int max);
+    void validateConditions();
 
     std::pair<int, int> positionRangeFor(const QModelIndex& idx) const;
 

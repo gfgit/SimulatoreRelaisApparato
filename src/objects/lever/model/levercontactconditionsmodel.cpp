@@ -197,9 +197,13 @@ bool LeverContactConditionsModel::setData(const QModelIndex &idx, const QVariant
         {
         case SpecialCol:
         {
-            Qt::CheckState cs = value.value<Qt::CheckState>();
-            item.specialContact = cs == Qt::CheckState::Checked;
-            break;
+            if(item.type == LeverPositionConditionType::FromTo)
+            {
+                Qt::CheckState cs = value.value<Qt::CheckState>();
+                item.specialContact = cs == Qt::CheckState::Checked;
+                break;
+            }
+            return false;
         }
         default:
             return false;
@@ -231,6 +235,9 @@ bool LeverContactConditionsModel::setData(const QModelIndex &idx, const QVariant
     if(item.positionFrom == item.positionTo)
         item.type = LeverPositionConditionType::Exact;
 
+    if(item.type != LeverPositionConditionType::FromTo)
+        item.specialContact = false;
+
     // Check if it warps
     item.warpsAroundZero = (item.positionFrom > item.positionTo);
 
@@ -252,7 +259,7 @@ Qt::ItemFlags LeverContactConditionsModel::flags(const QModelIndex &idx) const
     if(idx.column() != ToCol || item.type == LeverPositionConditionType::FromTo)
         f.setFlag(Qt::ItemIsEditable);
 
-    if(idx.column() == SpecialCol)
+    if(idx.column() == SpecialCol && item.type == LeverPositionConditionType::FromTo)
         f.setFlag(Qt::ItemIsUserCheckable);
 
     return f;
@@ -273,8 +280,8 @@ void LeverContactConditionsModel::setConditions(const EnumDesc& desc,
     mConditions = newConditions;
     mCanWarpAroundZero = canWarp;
 
-    // Resets range
-    setPositionRange(mPositionDesc.minValue, mPositionDesc.maxValue);
+    // Remove invalid conditions
+    validateConditions();
 
     endResetModel();
 }
@@ -301,25 +308,25 @@ void LeverContactConditionsModel::removeConditionAt(int row)
     emit changed();
 }
 
-void LeverContactConditionsModel::setPositionRange(int min, int max)
+void LeverContactConditionsModel::validateConditions()
 {
     if(mCanWarpAroundZero)
     {
         // Continuous rotation levers always use full range
         mPositionMin = mPositionDesc.minValue;
         mPositionMax = mPositionDesc.maxValue;
+
+        for(LeverPositionCondition& item : mConditions)
+        {
+            if(item.type != LeverPositionConditionType::FromTo)
+                item.specialContact = false;
+        }
+
         return;
     }
 
-    min = qBound(mPositionDesc.minValue,
-                 min,
-                 mPositionDesc.maxValue);
-    max = qBound(min,
-                 max,
-                 mPositionDesc.maxValue);
-
-    mPositionMin = min;
-    mPositionMax = max;
+    mPositionMin = mPositionDesc.minValue;
+    mPositionMax = mPositionDesc.maxValue;
 
     for(LeverPositionCondition& item : mConditions)
     {
@@ -334,6 +341,9 @@ void LeverContactConditionsModel::setPositionRange(int min, int max)
         // Reset to Exact if positions are equal
         if(item.positionFrom == item.positionTo)
             item.type = LeverPositionConditionType::Exact;
+
+        if(item.type != LeverPositionConditionType::FromTo)
+            item.specialContact = false;
     }
 
     emit changed();
