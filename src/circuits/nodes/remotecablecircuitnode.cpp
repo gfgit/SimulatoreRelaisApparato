@@ -653,7 +653,7 @@ QString RemoteCableCircuitNode::getDescription() const
     // We show description of our local node
     QString str = mRemote->getNodeDescription(mIsNodeA);
     if(str.isEmpty())
-        return tr("EMPTY!!!");
+        return mRemote->name(); // Fallback to bridge name
 
     return str;
 }

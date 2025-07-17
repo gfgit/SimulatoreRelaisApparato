@@ -78,8 +78,13 @@ bool RemoteCircuitBridge::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     if(phase != LoadPhase::Creation)
         return true;
 
-    mNodeDescriptionA = obj.value("node_descr_A").toString();
-    mNodeDescriptionB = obj.value("node_descr_B").toString();
+    mNodeDescriptionA = obj.value("node_descr_A").toString().trimmed();
+    if(mNodeDescriptionA == name())
+        mNodeDescriptionA.clear();
+
+    mNodeDescriptionB = obj.value("node_descr_B").toString().trimmed();
+    if(mNodeDescriptionB == name())
+        mNodeDescriptionB.clear();
 
     setPeerNodeCustomName(obj.value("remote_custom_node").toString());
     const QString peerSessionName = obj.value("remote_session").toString().trimmed();
@@ -108,8 +113,8 @@ void RemoteCircuitBridge::saveToJSON(QJsonObject &obj) const
 {
     AbstractSimulationObject::saveToJSON(obj);
 
-    obj["node_descr_A"] = mNodeDescriptionA;
-    obj["node_descr_B"] = mNodeDescriptionB;
+    obj["node_descr_A"] = mNodeDescriptionA != name() ? mNodeDescriptionA : QString();
+    obj["node_descr_B"] = mNodeDescriptionB != name() ? mNodeDescriptionB : QString();
 
     obj["remote_session"] = mRemoteSession ? mRemoteSession->getSessionName() : QString();
     obj["remote_custom_node"] = mPeerNodeCustomName;
