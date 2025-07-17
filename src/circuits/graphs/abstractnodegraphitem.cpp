@@ -171,15 +171,16 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             {
                 if(ev->modifiers() == Qt::ControlModifier)
                 {
-                    // Ctrl + right click, try flip node
+                    // Only Ctrl + right click, try flip node
                     if(getAbstractNode()->tryFlipNode(true))
                     {
                         ev->accept();
                         return;
                     }
                 }
-                else if(ev->modifiers() == Qt::AltModifier)
+                else if(ev->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier))
                 {
+                    // Ctrl + Shift
                     // Rotate text clockwise 90 degrees
 
                     Connector::Direction currTextPos = mTextDirection;

@@ -53,7 +53,7 @@ You can:
 - Add/delete nodes in circuits.
 - Rotate nodes (`Right click` clockwise or `Shift + Right click` counterclockwise).
 - Flip nodes (`Ctrl + Right click` for deviator contact nodes, simple nodes and combinator relay power nodes).
-- Rotate node label position (`Alt + Right click`).
+- Rotate node label position (`Ctrl + Shift + Right click`).
 - Add/Remove cables.
 
 You can move only one node at a time by dragging it. You cannot move cables.
