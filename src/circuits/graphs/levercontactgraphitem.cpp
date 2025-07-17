@@ -65,27 +65,23 @@ void LeverContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsI
 
     drawDeviator(painter, contactUpOn, contactDownOn);
 
-    TileRotate nameRotate = rotate();
-    if(node()->flipContact())
-        nameRotate += TileRotate::Deg180;
-
     // Draw name and lever conditions
     if(node()->lever())
     {
         // Draw lever conditions
-        drawLeverConditions(painter, nameRotate);
+        drawLeverConditions(painter);
 
         // Draw lever name
         QColor color = Qt::black;
         painter->setPen(color);
-        drawName(painter, node()->lever()->name(), nameRotate);
+        drawName(painter);
     }
     else
     {
         // Draw lever name
         QColor color = Qt::red;
         painter->setPen(color);
-        drawName(painter, tr("Null"), nameRotate);
+        drawName(painter);
     }
 }
 
@@ -115,6 +111,133 @@ QString LeverContactGraphItem::tooltipString() const
             .arg(node()->lever()->name(),
                  leverState,
                  getContactTooltip());
+}
+
+QRectF LeverContactGraphItem::textDisplayRect() const
+{
+    // Put text higher in East/West so we can draw conditions below
+    const Connector::Direction arcSide = calculateArcSide();
+
+    const QRectF conditionsRect = leverConditionsRect();
+
+    const double textDisplayHeight = textDisplayFontSize() * 1.2;
+    QRectF textRect;
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+        textRect.setTop(- TextDisplayMarginSmall - textDisplayHeight);
+        textRect.setBottom(0);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+
+        if(arcSide != textRotate())
+            textRect.moveTop(textRect.top() + TileLocation::HalfSize / 2.0);
+
+        if(conditionsRect.top() < TileLocation::HalfSize)
+            textRect.moveBottom(qMin(textRect.bottom(), conditionsRect.top()));
+
+        break;
+    case Connector::Direction::South:
+        textRect.setTop(TileLocation::Size);
+        textRect.setBottom(TileLocation::Size + TextDisplayMarginSmall + textDisplayHeight);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+
+        if(arcSide != textRotate())
+            textRect.moveTop(textRect.top() - TileLocation::HalfSize / 2.0);
+
+        if(conditionsRect.bottom() > TileLocation::HalfSize)
+            textRect.moveTop(qMax(textRect.top(), conditionsRect.bottom()));
+        break;
+    case Connector::Direction::East:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::HalfSize);
+        textRect.setLeft(TileLocation::Size);
+        textRect.setRight(TileLocation::Size + TextDisplayMarginSmall + mTextWidth);
+
+        if(arcSide != textRotate())
+            textRect.moveLeft(textRect.left() - TileLocation::HalfSize / 2.0);
+
+        if(deviatorNode()->hasCentralConnector())
+            textRect.moveLeft(textRect.left() + 2);
+        break;
+    case Connector::Direction::West:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::HalfSize);
+        textRect.setLeft(- TextDisplayMarginSmall - mTextWidth);
+        textRect.setRight(0);
+
+        if(arcSide != textRotate())
+            textRect.moveLeft(textRect.left() + TileLocation::HalfSize / 2.0);
+
+        if(deviatorNode()->hasCentralConnector())
+            textRect.moveLeft(textRect.left() - 2);
+        break;
+    default:
+        break;
+    }
+
+    return textRect;
+}
+
+QRectF LeverContactGraphItem::leverConditionsRect() const
+{
+    const double LeverConditionsWidth = 44.0;
+    const double CircleMargin = 4.0;
+    const Connector::Direction arcSide = calculateArcSide();
+
+    QRectF conditionsRect;
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+    {
+        conditionsRect.setTop(- LeverConditionsWidth + CircleMargin);
+        conditionsRect.setBottom(CircleMargin);
+        conditionsRect.setLeft(TileLocation::HalfSize - LeverConditionsWidth / 2.0);
+        conditionsRect.setRight(TileLocation::HalfSize + LeverConditionsWidth / 2.0);
+
+        if(arcSide != textRotate())
+            conditionsRect.moveTop(conditionsRect.top() + TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::South:
+    {
+        conditionsRect.setTop(TileLocation::Size - CircleMargin);
+        conditionsRect.setBottom(TileLocation::Size + LeverConditionsWidth - CircleMargin);
+        conditionsRect.setLeft(TileLocation::HalfSize - LeverConditionsWidth / 2.0);
+        conditionsRect.setRight(TileLocation::HalfSize + LeverConditionsWidth / 2.0);
+
+        if(arcSide != textRotate())
+            conditionsRect.moveTop(conditionsRect.top() - TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::East:
+    {
+        conditionsRect.setTop(TileLocation::HalfSize);
+        conditionsRect.setBottom(TileLocation::Size);
+        conditionsRect.setLeft(TileLocation::Size);
+        conditionsRect.setRight(TileLocation::Size + LeverConditionsWidth);
+
+        if(arcSide != textRotate())
+            conditionsRect.moveLeft(conditionsRect.left() - TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::West:
+    {
+        conditionsRect.setTop(TileLocation::HalfSize);
+        conditionsRect.setBottom(TileLocation::Size);
+        conditionsRect.setLeft(- LeverConditionsWidth);
+        conditionsRect.setRight(0);
+
+        if(arcSide != textRotate())
+            conditionsRect.moveLeft(conditionsRect.left() + TileLocation::HalfSize / 2.0);
+        break;
+    }
+    default:
+        break;
+    }
+
+    return conditionsRect;
 }
 
 LeverContactNode *LeverContactGraphItem::node() const
@@ -158,67 +281,33 @@ inline int getNextPrevPos(const int curPos, const LeverInterface *leverIface, bo
     return curPos;
 }
 
-void LeverContactGraphItem::drawLeverConditions(QPainter *painter, TileRotate r)
+QRectF LeverContactGraphItem::boundingRect() const
+{
+    const double extraMargin = TileLocation::HalfSize;
+    QRectF base(-extraMargin, -extraMargin,
+                TileLocation::Size + 2 * extraMargin, TileLocation::Size + 2 * extraMargin);
+
+    if(mTextWidth == 0)
+        return base;
+
+    // Override to take extra space for relay arrow
+    // We cannot override textDisplayRect() because otherwise text is centered
+    // also on arrow space.
+    const QRectF textRect = textDisplayRect();
+    return base.united(textRect)
+        .united(leverConditionsRect());
+}
+
+void LeverContactGraphItem::drawLeverConditions(QPainter *painter)
 {
     // Draw lever conditions
     // Positioning is similar to text but opposite side
-    QRectF conditionsRect;
-
-    switch (toConnectorDirection(r - TileRotate::Deg90))
-    {
-    case Connector::Direction::North:
-        // We go south, right/left (flipped)
-        if(node()->flipContact())
-        {
-            conditionsRect.setLeft(5.0);
-            conditionsRect.setRight(TileLocation::HalfSize - 22);
-        }
-        else
-        {
-            conditionsRect.setLeft(TileLocation::HalfSize + 22);
-            conditionsRect.setRight(TileLocation::Size - 5.0);
-        }
-        conditionsRect.setTop(TileLocation::HalfSize + 10.0);
-        conditionsRect.setBottom(TileLocation::Size - 15.0);
-        break;
-
-    case Connector::Direction::South:
-        // We go north left/right (flipped)
-        if(node()->flipContact())
-        {
-            conditionsRect.setLeft(TileLocation::HalfSize + 22);
-            conditionsRect.setRight(TileLocation::Size - 5.0);
-        }
-        else
-        {
-            conditionsRect.setLeft(5.0);
-            conditionsRect.setRight(TileLocation::HalfSize - 22);
-        }
-        conditionsRect.setBottom(TileLocation::HalfSize - 10.0);
-        conditionsRect.setTop(15.0);
-        break;
-
-    case Connector::Direction::East:
-        conditionsRect.setLeft(TileLocation::HalfSize + 3.0);
-        conditionsRect.setRight(TileLocation::Size - 5.0);
-        conditionsRect.setTop(TileLocation::HalfSize);
-        conditionsRect.setBottom(TileLocation::Size - 23.0);
-        break;
-
-    case Connector::Direction::West:
-        conditionsRect.setLeft(3.0);
-        conditionsRect.setRight(TileLocation::HalfSize - 5.0);
-        conditionsRect.setTop(TileLocation::HalfSize);
-        conditionsRect.setBottom(TileLocation::Size - 23.0);
-        break;
-    default:
-        break;
-    }
+    QRectF conditionsRect = leverConditionsRect();
 
     const QPointF leverCenter = conditionsRect.center();
 
-    constexpr double circleRadius = 4;
-    constexpr double leverLength = 12;
+    constexpr double circleRadius = 6;
+    constexpr double leverLength = 21;
 
     QRectF circle;
     circle.setSize(QSizeF(circleRadius * 2,
