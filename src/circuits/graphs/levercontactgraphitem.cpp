@@ -317,7 +317,7 @@ void LeverContactGraphItem::drawLeverConditions(QPainter *painter)
     QPen pen;
     pen.setCapStyle(Qt::SquareCap);
     pen.setColor(Qt::black);
-    pen.setWidthF(2.5);
+    pen.setWidthF(3);
 
     // Draw condition lines
     painter->setPen(pen);
