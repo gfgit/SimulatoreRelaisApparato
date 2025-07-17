@@ -269,7 +269,7 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
         break;
     }
 
-    int angleIncrement = 35;
+    int angleIncrement = 40;
     if(deviatorNode()->flipContact())
     {
         startAngle -= 90;
