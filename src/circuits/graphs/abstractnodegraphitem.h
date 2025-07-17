@@ -78,7 +78,7 @@ public:
     TileRotate rotate() const;
     void setRotate(TileRotate newRotate);
 
-    inline Connector::Direction textRotate() const { return mTextDirection; };
+    inline Connector::Direction textRotate() const { return mTextDirection; }
     void setTextRotate(Connector::Direction newTextRotate);
 
     void postInit();

@@ -442,6 +442,11 @@ QString RemoteCircuitBridge::getSerialDeviceName() const
     return mSerialDevice ? mSerialDevice->getName() : QString();
 }
 
+bool RemoteCircuitBridge::isRemoteSessionConnected() const
+{
+    return mRemoteSession && mRemoteSession->getConnection();
+}
+
 bool RemoteCircuitBridge::setSerialDevice(SerialDevice *serialDevice)
 {
     if(mSerialDevice == serialDevice)

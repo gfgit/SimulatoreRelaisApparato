@@ -90,6 +90,13 @@ public:
         return mSerialDevice;
     }
 
+    bool isSerialDeviceConnected() const
+    {
+        return mSerialDevice && mSerialNameId != 0;
+    }
+
+    bool isRemoteSessionConnected() const;
+
     bool setSerialDevice(SerialDevice *serialDevice);
 
     int serialInputId() const;

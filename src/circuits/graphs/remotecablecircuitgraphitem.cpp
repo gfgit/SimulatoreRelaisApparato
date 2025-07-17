@@ -23,6 +23,11 @@
 #include "remotecablecircuitgraphitem.h"
 #include "../nodes/remotecablecircuitnode.h"
 
+#include "../../objects/circuit_bridge/remotecircuitbridge.h"
+
+#include "../circuitscene.h"
+#include "../view/circuitlistmodel.h"
+
 #include "circuitcolors.h"
 
 #include <QPainter>
@@ -75,11 +80,11 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
     }
 
     const QColor colors[3] =
-    {
-        CircuitColors::Open,
-        CircuitColors::Closed,
-        CircuitColors::None
-    };
+        {
+            CircuitColors::Open,
+            CircuitColors::Closed,
+            CircuitColors::None
+        };
 
     // Draw wires
     painter->setBrush(Qt::NoBrush);
@@ -93,22 +98,145 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
-    // Draw description below cable
-    // unless cable is in Center-South direction
-    TileRotate textRotate = TileRotate::Deg90;
-    if(rotate() == TileRotate::Deg0)
-        textRotate = TileRotate::Deg270; // Description above
-
     painter->setPen(Qt::black);
     painter->setBrush(Qt::NoBrush);
-    drawName(painter,
-             node()->getDescription(),
-             textRotate);
+
+    drawName(painter);
 }
 
 void RemoteCableCircuitGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
     connectors.emplace_back(location(), rotate(), 0);
+}
+
+QString RemoteCableCircuitGraphItem::displayString() const
+{
+    return node()->getDescription();
+}
+
+QString RemoteCableCircuitGraphItem::tooltipString() const
+{
+    const RemoteCircuitBridge *bridge = node()->remote();
+    if(!bridge)
+        return tr("No remote bridge set!");
+
+    if(bridge->isRemote())
+    {
+        QString remoteStr;
+        bool isConnected = false;
+        if(bridge->getRemoteSession() &&
+            (bridge->isRemoteSessionConnected() || !bridge->isSerialDeviceConnected()))
+        {
+            remoteStr = tr("To session <b>%1</b><br>"
+                           "Peer node: <b><i>%2</i></b>")
+                            .arg(bridge->remoteSessionName(), bridge->peerNodeName());
+
+            isConnected = bridge->isRemoteSessionConnected();
+
+        }
+        else if(bridge->getSerialDevice())
+        {
+            QString inputId, outputId;
+            inputId = outputId = tr("None");
+
+            if(bridge->serialInputId() != 0)
+                inputId = QString::number(bridge->serialInputId());
+            if(bridge->serialOutputId() != 0)
+                outputId = QString::number(bridge->serialOutputId());
+
+            remoteStr = tr("To device <b>%1</b><br>"
+                           "Input: %2<br>"
+                           "Output: %3<br>")
+                            .arg(bridge->getSerialDeviceName(), inputId, outputId);
+
+            isConnected = bridge->isSerialDeviceConnected();
+        }
+
+        QString statusStr = QLatin1String("<span style=\"color: %1;\">%2</span>")
+                                .arg(isConnected ? QLatin1String("green") : QLatin1String("red"),
+                                     isConnected ? tr("Connected") : tr("Disconnected"));
+        return tr("Bridge <b>%1</b><br>"
+                  "%2<br><br>"
+                  "Status: %3")
+            .arg(bridge->name(), remoteStr, statusStr);
+    }
+
+    RemoteCableCircuitNode *otherNode = bridge->getNode(!node()->isNodeA());
+    if(!otherNode)
+        return tr("Local Bridge <b>%1</b><br>"
+                  "Not connected to other node!")
+            .arg(bridge->name());
+
+    QString sceneDescr;
+
+    AbstractNodeGraphItem *otherGraph = nullptr;
+    if(circuitScene())
+    {
+        otherGraph = circuitScene()->circuitsModel()->getGraphForNode(otherNode);
+    }
+
+    if(otherGraph && otherGraph->circuitScene())
+    {
+        CircuitScene *otherScene = otherGraph->circuitScene();
+        if(otherScene == circuitScene())
+        {
+            sceneDescr = tr("To other node in this sheet");
+        }
+        else
+        {
+            sceneDescr = tr("To other node in:<br>"
+                            "<b>%1<br>"
+                            "%2</b>")
+                             .arg(otherScene->circuitSheetName(),
+                                  otherScene->circuitSheetLongName());
+        }
+    }
+    else
+    {
+        sceneDescr = tr("Error: could not find peer scene");
+    }
+
+    return tr("Local Bridge <b>%1</b><br>"
+              "%2")
+        .arg(bridge->name(), sceneDescr);
+}
+
+QRectF RemoteCableCircuitGraphItem::textDisplayRect() const
+{
+    // Since cable occupies only half of the tile rect
+    // we override to make text nearer to cable by using other half of tile rect.
+    QRectF textRect;
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+        textRect.setTop(TileLocation::HalfSize - 2 * TextDisplayMargin - TextDisplayHeight);
+        textRect.setBottom(TileLocation::HalfSize - TextDisplayMargin);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        break;
+    case Connector::Direction::South:
+        textRect.setTop(TileLocation::HalfSize + TextDisplayMargin);
+        textRect.setBottom(TileLocation::HalfSize + 2 * TextDisplayMargin + TextDisplayHeight);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        break;
+    case Connector::Direction::East:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::Size);
+        textRect.setLeft(TileLocation::HalfSize + TextDisplayMargin);
+        textRect.setRight(TileLocation::HalfSize + 2 * TextDisplayMargin + mTextWidth);
+        break;
+    case Connector::Direction::West:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::Size);
+        textRect.setLeft(TileLocation::HalfSize - 2 * TextDisplayMargin - mTextWidth);
+        textRect.setRight(TileLocation::HalfSize - TextDisplayMargin);
+        break;
+    default:
+        break;
+    }
+
+    return textRect;
 }
 
 RemoteCableCircuitNode *RemoteCableCircuitGraphItem::node() const
