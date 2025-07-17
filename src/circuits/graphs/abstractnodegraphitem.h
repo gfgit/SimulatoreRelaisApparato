@@ -36,8 +36,6 @@ class AbstractNodeGraphItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
-    static constexpr double TextDisplayFontSize = 28;
-    static constexpr double TextDisplayHeight = TextDisplayFontSize * 1.5;
     static constexpr double TextDisplayMargin = 10;
 
     AbstractNodeGraphItem(AbstractCircuitNode *node_);
@@ -52,6 +50,8 @@ public:
     virtual QString displayString() const;
 
     virtual QString tooltipString() const;
+
+    virtual double textDisplayFontSize() const;
 
     virtual QRectF textDisplayRect() const;
 
@@ -106,7 +106,9 @@ protected:
                   TileRotate r,
                   QRectF *br = nullptr);
 
-    void drawName(QPainter *painter);
+    void drawName(QPainter *painter,
+                  QRectF *br = nullptr);
+
     void drawUnpairedConnectors(QPainter *painter);
 
     void invalidateConnections(bool tryReconnectImmediately = true);

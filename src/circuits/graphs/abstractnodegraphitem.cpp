@@ -97,20 +97,26 @@ QString AbstractNodeGraphItem::tooltipString() const
     return displayString();
 }
 
+double AbstractNodeGraphItem::textDisplayFontSize() const
+{
+    return 28.0; // pt, big enought for object names
+}
+
 QRectF AbstractNodeGraphItem::textDisplayRect() const
 {
+    const double textDisplayHeight = textDisplayFontSize() * 1.5;
     QRectF textRect;
     switch (mTextDirection)
     {
     case Connector::Direction::North:
-        textRect.setTop(- 2 * TextDisplayMargin - TextDisplayHeight);
+        textRect.setTop(- 2 * TextDisplayMargin - textDisplayHeight);
         textRect.setBottom(-TextDisplayMargin);
         textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
         textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
         break;
     case Connector::Direction::South:
         textRect.setTop(TileLocation::Size + TextDisplayMargin);
-        textRect.setBottom(TileLocation::Size + 2 * TextDisplayMargin + TextDisplayHeight);
+        textRect.setBottom(TileLocation::Size + 2 * TextDisplayMargin + textDisplayHeight);
         textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
         textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
         break;
@@ -527,7 +533,7 @@ void AbstractNodeGraphItem::drawName(QPainter *painter,
     }
 }
 
-void AbstractNodeGraphItem::drawName(QPainter *painter)
+void AbstractNodeGraphItem::drawName(QPainter *painter, QRectF *br)
 {
     const QString str = displayString();
     if(str.isEmpty())
@@ -536,12 +542,29 @@ void AbstractNodeGraphItem::drawName(QPainter *painter)
     const QRectF textRect = textDisplayRect();
 
     QFont f;
-    f.setPointSizeF(TextDisplayFontSize);
+    f.setPointSizeF(textDisplayFontSize());
     f.setBold(true);
     painter->setFont(f);
 
-    int flags = Qt::AlignCenter;
-    painter->drawText(textRect, flags, str);
+    int flags = Qt::AlignVCenter;
+
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+    case Connector::Direction::South:
+        flags |= Qt::AlignHCenter;
+        break;
+    case Connector::Direction::East:
+        flags |= Qt::AlignLeft;
+        break;
+    case Connector::Direction::West:
+        flags |= Qt::AlignRight;
+        break;
+    default:
+        break;
+    }
+
+    painter->drawText(textRect, flags, str, br);
 }
 
 void AbstractNodeGraphItem::drawUnpairedConnectors(QPainter *painter)
@@ -608,7 +631,7 @@ void AbstractNodeGraphItem::recalculateTextWidth()
     }
 
     QFont f;
-    f.setPointSizeF(TextDisplayFontSize);
+    f.setPointSizeF(textDisplayFontSize());
     f.setBold(true);
 
     QFontMetrics fm(f);

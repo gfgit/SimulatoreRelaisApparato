@@ -28,6 +28,46 @@
 
 #include <QPainter>
 
+Connector::Direction AbstractDeviatorGraphItem::calculateArcSide() const
+{
+    Connector::Direction arcSide = Connector::Direction::North;
+
+    switch (toConnectorDirection(rotate()))
+    {
+    case Connector::Direction::North:
+        if(deviatorNode()->flipContact())
+            arcSide = Connector::Direction::West;
+        else
+            arcSide = Connector::Direction::East;
+        break;
+
+    case Connector::Direction::South:
+        if(deviatorNode()->flipContact())
+            arcSide = Connector::Direction::East;
+        else
+            arcSide = Connector::Direction::West;
+        break;
+
+    case Connector::Direction::East:
+        if(deviatorNode()->flipContact())
+            arcSide = Connector::Direction::North;
+        else
+            arcSide = Connector::Direction::South;
+        break;
+
+    case Connector::Direction::West:
+        if(deviatorNode()->flipContact())
+            arcSide = Connector::Direction::South;
+        else
+            arcSide = Connector::Direction::North;
+        break;
+    default:
+        break;
+    }
+
+    return arcSide;
+}
+
 AbstractDeviatorGraphItem::AbstractDeviatorGraphItem(AbstractDeviatorNode *node_)
     : AbstractNodeGraphItem{node_}
 {
@@ -45,6 +85,68 @@ void AbstractDeviatorGraphItem::getConnectors(std::vector<Connector> &connectors
     connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 2); // Down
     if(deviatorNode()->hasCentralConnector())
         connectors.emplace_back(location(), rotate() + centralConnectorRotate, 1);  // Up
+}
+
+double AbstractDeviatorGraphItem::textDisplayFontSize() const
+{
+    return 20.0; // pt, a bit smaller than relay power nodes
+}
+
+QRectF AbstractDeviatorGraphItem::textDisplayRect() const
+{
+    const Connector::Direction arcSide = calculateArcSide();
+
+    const double textDisplayHeight = textDisplayFontSize() * 1.2;
+    QRectF textRect;
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+        textRect.setTop(- TextDisplayMarginSmall - textDisplayHeight);
+        textRect.setBottom(0);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+
+        if(arcSide != textRotate())
+            textRect.moveTop(textRect.top() + TileLocation::HalfSize / 2.0);
+        break;
+    case Connector::Direction::South:
+        textRect.setTop(TileLocation::Size);
+        textRect.setBottom(TileLocation::Size + TextDisplayMarginSmall + textDisplayHeight);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+
+        if(arcSide != textRotate())
+            textRect.moveTop(textRect.top() - TileLocation::HalfSize / 2.0);
+        break;
+    case Connector::Direction::East:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::Size);
+        textRect.setLeft(TileLocation::Size);
+        textRect.setRight(TileLocation::Size + TextDisplayMarginSmall + mTextWidth);
+
+        if(arcSide != textRotate())
+            textRect.moveLeft(textRect.left() - TileLocation::HalfSize / 2.0);
+
+        if(deviatorNode()->hasCentralConnector())
+            textRect.moveLeft(textRect.left() + 2);
+        break;
+    case Connector::Direction::West:
+        textRect.setTop(0);
+        textRect.setBottom(TileLocation::Size);
+        textRect.setLeft(- TextDisplayMarginSmall - mTextWidth);
+        textRect.setRight(0);
+
+        if(arcSide != textRotate())
+            textRect.moveLeft(textRect.left() + TileLocation::HalfSize / 2.0);
+
+        if(deviatorNode()->hasCentralConnector())
+            textRect.moveLeft(textRect.left() - 2);
+        break;
+    default:
+        break;
+    }
+
+    return textRect;
 }
 
 AbstractDeviatorNode *AbstractDeviatorGraphItem::deviatorNode() const

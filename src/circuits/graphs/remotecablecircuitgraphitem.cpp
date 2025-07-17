@@ -205,18 +205,21 @@ QRectF RemoteCableCircuitGraphItem::textDisplayRect() const
 {
     // Since cable occupies only half of the tile rect
     // we override to make text nearer to cable by using other half of tile rect.
+
+    const double textDisplayHeight = textDisplayFontSize() * 1.5;
+
     QRectF textRect;
     switch (textRotate())
     {
     case Connector::Direction::North:
-        textRect.setTop(TileLocation::HalfSize - 2 * TextDisplayMargin - TextDisplayHeight);
+        textRect.setTop(TileLocation::HalfSize - 2 * TextDisplayMargin - textDisplayHeight);
         textRect.setBottom(TileLocation::HalfSize - TextDisplayMargin);
         textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
         textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
         break;
     case Connector::Direction::South:
         textRect.setTop(TileLocation::HalfSize + TextDisplayMargin);
-        textRect.setBottom(TileLocation::HalfSize + 2 * TextDisplayMargin + TextDisplayHeight);
+        textRect.setBottom(TileLocation::HalfSize + 2 * TextDisplayMargin + textDisplayHeight);
         textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
         textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
         break;

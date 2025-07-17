@@ -38,6 +38,8 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
+    QRectF boundingRect() const override;
+
     QString displayString() const override;
 
     QString tooltipString() const override;
@@ -45,7 +47,9 @@ public:
     RelaisContactNode *node() const;
 
 private:
-    void drawRelayArrow(QPainter *painter, TileRotate r, const QRectF &textBr);
+    QRectF calculateArrowRect(Connector::Direction r, const QRectF &textBr) const;
+
+    void drawRelayArrow(QPainter *painter, Connector::Direction r, const QRectF &textBr);
 };
 
 #endif // RELAISCONTACTGRAPHITEM_H

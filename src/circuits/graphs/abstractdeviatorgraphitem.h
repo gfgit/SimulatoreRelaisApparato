@@ -31,6 +31,8 @@ class AbstractDeviatorGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
+    static constexpr double TextDisplayMarginSmall = 3;
+
     static constexpr double morsettiOffset = 10;
     static constexpr double arcRadius = 30;
 
@@ -39,6 +41,10 @@ public:
 
     void getConnectors(std::vector<Connector>& connectors) const final;
 
+    double textDisplayFontSize() const override;
+
+    QRectF textDisplayRect() const override;
+
     AbstractDeviatorNode *deviatorNode() const;
 
     const QString getContactTooltip() const;
@@ -46,6 +52,8 @@ public:
 protected:
     // Contacts must be already swapped
     void drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn);
+
+    Connector::Direction calculateArcSide() const;
 };
 
 #endif // ABSTRACTDEVIATORGRAPHITEM_H
