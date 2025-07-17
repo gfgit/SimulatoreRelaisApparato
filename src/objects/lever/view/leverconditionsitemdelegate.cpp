@@ -129,6 +129,7 @@ void LeverConditionsItemDelegate::setModelData(QWidget *editor, QAbstractItemMod
         }
 
         model->setData(index, value, Qt::EditRole);
+        return;
     }
     default:
         break;
