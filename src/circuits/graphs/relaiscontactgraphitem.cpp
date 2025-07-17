@@ -102,6 +102,7 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
 QRectF RelaisContactGraphItem::calculateArrowRect(Connector::Direction r, const QRectF& textBr) const
 {
+    const double halfHeight = 20.0;
     const Connector::Direction arcSide = calculateArcSide();
 
     QRectF arrowRect;
@@ -131,37 +132,37 @@ QRectF RelaisContactGraphItem::calculateArrowRect(Connector::Direction r, const 
     case Connector::Direction::North:
     {
         arrowRect.setLeft(textBr.right() + 5.0);
-        arrowRect.setWidth(18.0);
+        arrowRect.setWidth(21.0);
 
-        arrowRect.setTop(arrowCenterY - 15.0);
-        arrowRect.setBottom(arrowCenterY + 15.0);
+        arrowRect.setTop(arrowCenterY - halfHeight);
+        arrowRect.setBottom(arrowCenterY + halfHeight);
         break;
     }
     case Connector::Direction::South:
     {
         arrowRect.setLeft(textBr.right() + 5.0);
-        arrowRect.setWidth(18.0);
+        arrowRect.setWidth(21.0);
 
-        arrowRect.setTop(arrowCenterY - 15.0);
-        arrowRect.setBottom(arrowCenterY + 15.0);
+        arrowRect.setTop(arrowCenterY - halfHeight);
+        arrowRect.setBottom(arrowCenterY + halfHeight);
         break;
     }
     case Connector::Direction::East:
     {
         if(node()->hasCentralConnector())
         {
-            arrowRect.setWidth(18.0);
-            arrowRect.moveRight(textBr.left() - 3.0);
+            arrowRect.setWidth(21.0);
+            arrowRect.moveRight(textBr.left() - 2.0);
 
-            arrowRect.setTop(arrowCenterY - 15.0);
-            arrowRect.setBottom(arrowCenterY + 15.0);
+            arrowRect.setTop(arrowCenterY - halfHeight);
+            arrowRect.setBottom(arrowCenterY + halfHeight);
         }
         else
         {
             arrowRect.setLeft(TileLocation::HalfSize + 8.0);
             arrowRect.setRight(TileLocation::Size - 10.0);
-            arrowRect.setTop(TileLocation::HalfSize - 15.0);
-            arrowRect.setBottom(TileLocation::HalfSize + 15.0);
+            arrowRect.setTop(TileLocation::HalfSize - halfHeight);
+            arrowRect.setBottom(TileLocation::HalfSize + halfHeight);
 
             if(arcSide == arrowRotate)
                 arrowRect.moveLeft(arrowRect.left() + arcRadius);
@@ -173,8 +174,8 @@ QRectF RelaisContactGraphItem::calculateArrowRect(Connector::Direction r, const 
     {
         if(node()->hasCentralConnector())
         {
-            arrowRect.setWidth(18.0);
-            arrowRect.moveLeft(textBr.right() + 3.0);
+            arrowRect.setWidth(21.0);
+            arrowRect.moveLeft(textBr.right() + 2.0);
 
             arrowRect.setTop(arrowCenterY - 15.0);
             arrowRect.setBottom(arrowCenterY + 15.0);
@@ -251,7 +252,8 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
         return; // Do not draw arrow for transitory states
 
     // Draw arrow up/down for normally up/down relays
-    const QRectF arrowRect = calculateArrowRect(r, textBr);
+    const QRectF fullRect = calculateArrowRect(r, textBr);
+    const QRectF arrowRect = fullRect.adjusted(0, 3, 0, -3);
 
     QLineF line;
     QPointF triangle[3];
@@ -317,9 +319,28 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
 
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
-    pen.setWidthF(5);
     pen.setColor(color);
+    pen.setWidthF(2);
+    painter->setPen(pen);
 
+    // Draw lines above/below arrow if relay is delayed
+    if(node()->relais()->isDelayed(AbstractRelais::State::Up))
+    {
+        painter->drawLine(centerX - triangleSemiWidth,
+                          fullRect.top() + 1,
+                          centerX + triangleSemiWidth,
+                          fullRect.top() + 1);
+    }
+
+    if(node()->relais()->isDelayed(AbstractRelais::State::Down))
+    {
+        painter->drawLine(centerX - triangleSemiWidth,
+                          fullRect.bottom() - 1,
+                          centerX + triangleSemiWidth,
+                          fullRect.bottom() - 1);
+    }
+
+    pen.setWidthF(5);
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
     painter->drawLine(line);

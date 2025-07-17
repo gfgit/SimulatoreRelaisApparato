@@ -152,6 +152,8 @@ public:
         return mContactNodes.size();
     }
 
+    bool isDelayed(State dir) const;
+
 signals:
     void typeChanged(AbstractRelais *self, RelaisType s);
 
@@ -191,6 +193,8 @@ private:
     }
 
     static SignalAspectCode codeForMillis(qint64 millis);
+
+    void redrawContactNodes();
 
 private:
     RelaisType mType = RelaisType::Normal;

@@ -282,6 +282,10 @@ void RelaisPowerNode::setDelayUpSeconds(int newDelayUpSeconds)
     mDelayUpSeconds = newDelayUpSeconds;
     emit delaysChanged();
     emit shapeChanged();
+
+    if(mRelais)
+        mRelais->redrawContactNodes(); // Update arrows
+
     modeMgr()->setFileEdited();
 }
 
@@ -298,6 +302,10 @@ void RelaisPowerNode::setDelayDownSeconds(int newDelayDownSeconds)
     mDelayDownSeconds = newDelayDownSeconds;
     emit delaysChanged();
     emit shapeChanged();
+
+    if(mRelais)
+        mRelais->redrawContactNodes(); // Update arrows
+
     modeMgr()->setFileEdited();
 }
 

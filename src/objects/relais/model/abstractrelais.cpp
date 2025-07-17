@@ -695,6 +695,14 @@ SignalAspectCode AbstractRelais::codeForMillis(qint64 millis)
     return SignalAspectCode::CodeAbsent;
 }
 
+void AbstractRelais::redrawContactNodes()
+{
+    for(RelaisContactNode *c : mContactNodes)
+    {
+        emit c->shapeChanged();
+    }
+}
+
 AbstractRelais::RelaisType AbstractRelais::relaisType() const
 {
     return mType;
@@ -800,6 +808,32 @@ void AbstractRelais::setExpectedCode(SignalAspectCode code)
     emit settingsChanged(this);
 }
 
+bool AbstractRelais::isDelayed(State dir) const
+{
+    switch (relaisType())
+    {
+    case RelaisType::Combinator:
+    case RelaisType::Blinker:
+    case RelaisType::Encoder:
+    case RelaisType::Decoder:
+    case RelaisType::CodeRepeater:
+        return false;
+    default:
+        break;
+    }
+
+    for(RelaisPowerNode *node : mPowerNodes)
+    {
+        if(dir == State::Up && node->delayUpSeconds() > 0)
+            return true;
+
+        if(dir == State::Down && node->delayDownSeconds() > 0)
+            return true;
+    }
+
+    return false;
+}
+
 void AbstractRelais::onReplicaModeChanged(bool on)
 {
     if(!on)
@@ -856,10 +890,7 @@ void AbstractRelais::setNormallyUp(bool newNormallyUp)
         emit p->shapeChanged();
     }
 
-    for(RelaisContactNode *c : mContactNodes)
-    {
-        emit c->shapeChanged();
-    }
+    redrawContactNodes();
 }
 
 AbstractRelais::State AbstractRelais::state() const
