@@ -177,15 +177,15 @@ QRectF RelaisContactGraphItem::calculateArrowRect(Connector::Direction r, const 
             arrowRect.setWidth(21.0);
             arrowRect.moveLeft(textBr.right() + 2.0);
 
-            arrowRect.setTop(arrowCenterY - 15.0);
-            arrowRect.setBottom(arrowCenterY + 15.0);
+            arrowRect.setTop(arrowCenterY - halfHeight);
+            arrowRect.setBottom(arrowCenterY + halfHeight);
         }
         else
         {
             arrowRect.setLeft(10.0);
             arrowRect.setRight(TileLocation::HalfSize - 8.0);
-            arrowRect.setTop(TileLocation::HalfSize - 15.0);
-            arrowRect.setBottom(TileLocation::HalfSize + 15.0);
+            arrowRect.setTop(TileLocation::HalfSize - halfHeight);
+            arrowRect.setBottom(TileLocation::HalfSize + halfHeight);
 
             if(arcSide == arrowRotate)
                 arrowRect.moveLeft(arrowRect.left() - arcRadius);
