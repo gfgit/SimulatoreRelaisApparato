@@ -339,6 +339,18 @@ QJsonObject convertOldFileFormat(const QJsonObject& origFile)
     return rootObj;
 }
 
+static constexpr inline int timeoutMillisForCode(SignalAspectCode code)
+{
+    int pulsePerMinute = codeToNumber(code);
+    if (pulsePerMinute == 0)
+        return 0;
+
+    // Code is number of interruptions per minute
+    // But interruption is a full cyle
+    // We want state change 2 times per cycle so return half time
+    return (30 * 1000) / pulsePerMinute;
+}
+
 ModeManager::ModeManager(QObject *parent)
     : QObject{parent}
 {
@@ -369,6 +381,14 @@ ModeManager::ModeManager(QObject *parent)
 
     mRemoteMgr = new RemoteManager(this);
     mSerialMgr = new SerialManager(this);
+
+    for(int i = 0; i < 4; i++)
+    {
+        const SignalAspectCode code = SignalAspectCode(i + 1);
+        mCodeTimers[i].timer.start(timeoutMillisForCode(code),
+                                   Qt::PreciseTimer,
+                                   this);
+    }
 }
 
 ModeManager::~ModeManager()
@@ -408,6 +428,11 @@ ModeManager::~ModeManager()
     // Delete object factory as last
     delete mObjectFactory;
     mObjectFactory = nullptr;
+
+    for(int i = 0; i < 4; i++)
+    {
+        mCodeTimers[i].timer.stop();
+    }
 }
 
 void ModeManager::setMode(FileMode newMode)
@@ -639,4 +664,21 @@ void ModeManager::setFilePath(const QString &newFilePath, bool newFile)
     mFilePath = newFilePath;
 
     emit fileChanged(mFilePath, newFile ? QString() : oldFile);
+}
+
+void ModeManager::timerEvent(QTimerEvent *ev)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        if(ev->timerId() == mCodeTimers[i].timer.timerId())
+        {
+            mCodeTimers[i].state = !mCodeTimers[i].state;
+            mCircuitList->updateCodeStatus();
+            emit codeTimerChanged();
+
+            return;
+        }
+    }
+
+    QObject::timerEvent(ev);
 }

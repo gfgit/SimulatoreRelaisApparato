@@ -293,6 +293,14 @@ AbstractNodeGraphItem *CircuitListModel::getGraphForNode(AbstractCircuitNode *no
     return nullptr;
 }
 
+void CircuitListModel::updateCodeStatus()
+{
+    for(CircuitScene *scene : std::as_const(mCircuitScenes))
+    {
+        scene->updateCodeStatus();
+    }
+}
+
 void CircuitListModel::onSceneNameChanged(const QString &, CircuitScene *scene)
 {
     int row = mCircuitScenes.indexOf(scene);

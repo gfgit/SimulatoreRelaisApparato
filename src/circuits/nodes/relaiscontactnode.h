@@ -66,6 +66,8 @@ public:
 signals:
     void relayChanged(AbstractRelais *r);
 
+    void relayCodeChanged();
+
 private slots:
     void onRelaisStateChanged();
 

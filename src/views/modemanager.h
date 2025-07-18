@@ -24,10 +24,13 @@
 #define MODEMANAGER_H
 
 #include <QObject>
+#include <QBasicTimer>
 
 #include <QHash>
 
 #include "../enums/filemodes.h"
+
+#include "../enums/signalaspectcodes.h"
 
 class NodeEditFactory;
 class CircuitListModel;
@@ -106,6 +109,15 @@ public:
         return mSerialMgr;
     }
 
+    inline bool getCodePhase(SignalAspectCode code) const
+    {
+        const int idx = int(code) - 1;
+        if(idx < 0 || idx >= 4)
+            return false;
+
+        return mCodeTimers[idx].state;
+    }
+
 signals:
     void fileChanged(const QString& newFile, const QString& oldFile);
 
@@ -113,6 +125,11 @@ signals:
     void fileEdited(bool val);
 
     void editingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode);
+
+    void codeTimerChanged();
+
+protected:
+    void timerEvent(QTimerEvent *ev) override;
 
 private:
     FileMode mMode = FileMode::Editing;
@@ -134,6 +151,14 @@ private:
     bool mFileWasEdited = false;
 
     QString mFilePath;
+
+    struct CodeTimer
+    {
+        QBasicTimer timer;
+        bool state = false;
+    };
+
+    CodeTimer mCodeTimers[4];
 };
 
 #endif // MODEMANAGER_H

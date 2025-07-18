@@ -105,12 +105,18 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
             hasCircuit(1, CircuitType::Closed);
 
     const bool combinator = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+    const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
+    const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
 
     if(isActiveFirst && !wasActiveFirst)
     {
         if(combinator)
         {
             activateRelay(mCombinatorSecondCoil ? 0 : 1);
+        }
+        else if(decoder || repeater)
+        {
+            updateDecoderState();
         }
         else
         {
@@ -137,12 +143,18 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
             hasCircuit(1, CircuitType::Closed);
 
     const bool combinator = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+    const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
+    const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
 
     if(!isActiveFirst && wasActiveFirst)
     {
         if(combinator)
         {
             deactivateRelay(mCombinatorSecondCoil ? 0 : 1);
+        }
+        else if(decoder || repeater)
+        {
+            updateDecoderState();
         }
         else
         {
@@ -347,6 +359,11 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
     AbstractCircuitNode::timerEvent(e);
 }
 
+void RelaisPowerNode::onCircuitFlagsChanged()
+{
+    updateDecoderState();
+}
+
 void RelaisPowerNode::activateRelay(int contact)
 {
     Q_ASSERT(contact == 0 || contact == 1);
@@ -443,6 +460,15 @@ void RelaisPowerNode::stopTimeoutPercentTimer()
 
     // Update visual drawing
     emit circuitsChanged();
+}
+
+void RelaisPowerNode::updateDecoderState()
+{
+    CircuitFlags code = getCircuitFlags(0);
+    if(hasCircuit(0, CircuitType::Closed))
+        code = CircuitFlags::None;
+
+    relais()->setDecodedResult(codeFromFlag(code));
 }
 
 bool RelaisPowerNode::combinatorSecondCoil() const

@@ -46,10 +46,15 @@ public:
 
     RelaisContactNode *node() const;
 
+private slots:
+    void onRelayCodeChanged();
+
 private:
     QRectF calculateArrowRect(Connector::Direction r, const QRectF &textBr) const;
 
-    void drawRelayArrow(QPainter *painter, Connector::Direction r, const QRectF &textBr);
+    void drawRelayArrow(QPainter *painter,
+                        Connector::Direction r,
+                        const QRectF &textBr, int relState);
 };
 
 #endif // RELAISCONTACTGRAPHITEM_H

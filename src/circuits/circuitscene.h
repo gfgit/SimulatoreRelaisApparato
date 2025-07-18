@@ -133,6 +133,8 @@ public:
 
     QVector<AbstractNodeGraphItem *> getSelectedNodes();
 
+    void updateCodeStatus();
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);

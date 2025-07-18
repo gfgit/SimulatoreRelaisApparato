@@ -152,9 +152,13 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     //     painter->drawLine(secondLine);
     // }
 
+    AbstractRelais::State relayState = AbstractRelais::State::Down;
+
     QColor color = colors[int(AnyCircuitType::None)]; // Black
     if(node()->relais() && node()->modeMgr()->mode() == FileMode::Simulation)
     {
+        relayState = node()->relais()->state();
+
         // Draw relay color only during simulation
         if(isCombinatorRelay)
         {
@@ -172,7 +176,35 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         }
         else
         {
-            switch (node()->relais()->state())
+            if(relayState == AbstractRelais::State::Up)
+            {
+                SignalAspectCode code = SignalAspectCode::CodeAbsent;
+
+                bool forceUp = false;
+                switch (node()->relais()->relaisType())
+                {
+                case AbstractRelais::RelaisType::Encoder:
+                {
+                    code = node()->relais()->getExpectedCode();
+                }
+                case AbstractRelais::RelaisType::CodeRepeater:
+                {
+                    code = node()->relais()->getDetectedCode();
+                    if(code == SignalAspectCode::CodeAbsent)
+                        forceUp = true;
+                }
+                default:
+                    break;
+                }
+
+                // Fake relay pulsing at code frequency
+                if(node()->modeMgr()->getCodePhase(code) || forceUp)
+                    relayState = AbstractRelais::State::Up;
+                else
+                    relayState = AbstractRelais::State::Down;
+            }
+
+            switch (relayState)
             {
             case AbstractRelais::State::Up:
                 color = colors[int(AnyCircuitType::Closed)]; // Red
@@ -365,7 +397,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     }
 
     // Draw name and state arrow
-    drawRelayArrow(painter);
+    drawRelayArrow(painter, int(relayState));
 
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
@@ -646,7 +678,7 @@ QRectF RelaisPowerGraphItem::arrowDisplayRect() const
     return arrowRect;
 }
 
-void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter)
+void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter, int relState)
 {
     if(!node()->relais())
         return;
@@ -654,8 +686,10 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter)
     if(mRelay->relaisType() == AbstractRelais::RelaisType::Combinator)
         return; // Combinator relais don't need arrow
 
-    if(node()->relais()->state() == AbstractRelais::State::GoingUp
-            || node()->relais()->state() == AbstractRelais::State::GoingDown)
+    AbstractRelais::State relayState = AbstractRelais::State(relState);
+
+    if(relayState == AbstractRelais::State::GoingUp
+            || relayState == AbstractRelais::State::GoingDown)
         return; // Do not draw arrow for transitory states
 
     // Draw arrow up/down for normally up/down relays
@@ -670,7 +704,7 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter)
     const double triangleSemiWidth = 0.5 * qMin(arrowRect.width(),
                                                 arrowRect.height() - lineHeight);
 
-    bool isRelayUp = node()->relais()->state() == AbstractRelais::State::Up;
+    bool isRelayUp = relayState == AbstractRelais::State::Up;
     if(node()->modeMgr()->mode() != FileMode::Simulation)
     {
         // In static or editing mode,

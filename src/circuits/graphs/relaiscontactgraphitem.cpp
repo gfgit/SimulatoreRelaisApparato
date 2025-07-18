@@ -34,7 +34,8 @@
 RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
     : AbstractDeviatorGraphItem(node_)
 {
-
+    connect(node(), &RelaisContactNode::relayCodeChanged,
+            this, &RelaisContactGraphItem::onRelayCodeChanged);
 }
 
 void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -44,24 +45,65 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     bool contactUpOn = node()->isContactOn(AbstractDeviatorNode::UpIdx);
     bool contactDownOn = node()->isContactOn(AbstractDeviatorNode::DownIdx);
 
-    if(node()->relais() &&
-        node()->modeMgr()->mode() != FileMode::Simulation)
+    AbstractRelais::State relayState = AbstractRelais::State::Down;
+
+    if(node()->relais())
     {
-        // In static or editing mode,
-        // draw relay in its normal state
-        // unlsess user choses to hide state for this node
-        RelaisContactNode::State state = RelaisContactNode::State::Down;
-
-        if(node()->relais() && node()->relais()->normallyUp())
+        if(node()->modeMgr()->mode() != FileMode::Simulation)
         {
-            if(!node()->hideRelayNormalState())
-                state = RelaisContactNode::State::Up;
-        }
+            // In static or editing mode,
+            // draw relay in its normal state
+            // unlsess user choses to hide state for this node
+            RelaisContactNode::State state = RelaisContactNode::State::Down;
 
-        contactUpOn = state == RelaisContactNode::State::Up;
-        contactDownOn = state == RelaisContactNode::State::Down;
-        if(node()->swapContactState())
-            std::swap(contactUpOn, contactDownOn);
+            if(node()->relais() && node()->relais()->normallyUp())
+            {
+                if(!node()->hideRelayNormalState())
+                    state = RelaisContactNode::State::Up;
+            }
+
+            contactUpOn = state == RelaisContactNode::State::Up;
+            contactDownOn = state == RelaisContactNode::State::Down;
+            if(node()->swapContactState())
+                std::swap(contactUpOn, contactDownOn);
+        }
+        else
+        {
+            relayState = node()->relais()->state();
+
+            if(relayState == AbstractRelais::State::Up)
+            {
+                SignalAspectCode code = SignalAspectCode::CodeAbsent;
+
+                bool forceUp = false;
+                switch (node()->relais()->relaisType())
+                {
+                case AbstractRelais::RelaisType::Encoder:
+                {
+                    code = node()->relais()->getExpectedCode();
+                }
+                case AbstractRelais::RelaisType::CodeRepeater:
+                {
+                    code = node()->relais()->getDetectedCode();
+                    if(code == SignalAspectCode::CodeAbsent)
+                        forceUp = true;
+                }
+                default:
+                    break;
+                }
+
+                // Fake relay pulsing at code frequency
+                if(node()->modeMgr()->getCodePhase(code) || forceUp)
+                    relayState = AbstractRelais::State::Up;
+                else
+                    relayState = AbstractRelais::State::Down;
+
+                contactUpOn = relayState == AbstractRelais::State::Up;
+                contactDownOn = relayState == AbstractRelais::State::Down;
+                if(node()->swapContactState())
+                    std::swap(contactUpOn, contactDownOn);
+            }
+        }
     }
 
     drawDeviator(painter, contactUpOn, contactDownOn);
@@ -96,7 +138,7 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
         drawName(painter, &textBr);
 
         if(!node()->hideRelayNormalState())
-            drawRelayArrow(painter, textRotate(), textBr);
+            drawRelayArrow(painter, textRotate(), textBr, int(relayState));
     }
 }
 
@@ -214,7 +256,7 @@ QRectF RelaisContactGraphItem::boundingRect() const
     // also on arrow space.
     const QRectF textRect = textDisplayRect();
     return base.united(textRect)
-        .united(calculateArrowRect(textRotate(), textRect));
+            .united(calculateArrowRect(textRotate(), textRect));
 }
 
 QString RelaisContactGraphItem::displayString() const
@@ -232,14 +274,14 @@ QString RelaisContactGraphItem::tooltipString() const
     return tr("Contact of relay <b>%1</b><br>"
               "State: <b>%2</b><br>"
               "%3")
-        .arg(node()->relais()->name(),
-             node()->relais()->getStateName(),
-             getContactTooltip());
+            .arg(node()->relais()->name(),
+                 node()->relais()->getStateName(),
+                 getContactTooltip());
 }
 
 void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
                                             Connector::Direction r,
-                                            const QRectF& textBr)
+                                            const QRectF& textBr, int relState)
 {
     if(!node()->relais())
         return;
@@ -247,8 +289,10 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
     if(node()->relais()->relaisType() == AbstractRelais::RelaisType::Combinator)
         return; // Combinators do not need arrow
 
-    if(node()->relais()->state() == AbstractRelais::State::GoingUp
-        || node()->relais()->state() == AbstractRelais::State::GoingDown)
+    AbstractRelais::State relayState = AbstractRelais::State(relState);
+
+    if(relayState == AbstractRelais::State::GoingUp
+            || relayState == AbstractRelais::State::GoingDown)
         return; // Do not draw arrow for transitory states
 
     // Draw arrow up/down for normally up/down relays
@@ -264,7 +308,7 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
     const double triangleSemiWidth = 0.5 * qMin(arrowRect.width(),
                                                 arrowRect.height() - lineHeight);
 
-    bool isRelayUp = node()->relais()->state() == AbstractRelais::State::Up;
+    bool isRelayUp = relayState == AbstractRelais::State::Up;
     if(node()->modeMgr()->mode() != FileMode::Simulation)
     {
         // In static or editing mode,
@@ -353,4 +397,9 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
 RelaisContactNode *RelaisContactGraphItem::node() const
 {
     return static_cast<RelaisContactNode *>(getAbstractNode());
+}
+
+void RelaisContactGraphItem::onRelayCodeChanged()
+{
+
 }

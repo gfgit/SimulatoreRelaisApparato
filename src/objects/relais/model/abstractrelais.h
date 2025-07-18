@@ -75,8 +75,6 @@ public:
     explicit AbstractRelais(AbstractSimulationObjectModel *m);
     ~AbstractRelais();
 
-    bool event(QEvent *e) override;
-
     static constexpr QLatin1String Type = QLatin1String("abstract_relais");
     QString getType() const override;
 
@@ -131,6 +129,10 @@ public:
     SignalAspectCode getExpectedCode() const;
     void setExpectedCode(SignalAspectCode code);
 
+    inline SignalAspectCode getDetectedCode() const
+    {
+        return mDetectedCode;
+    }
 
     inline int hasActivePowerUp() const
     {
@@ -175,7 +177,6 @@ private:
     void setPosition(double newPosition);
     void startMove(bool up);
 
-    void decoderRelayRoutine();
     void setDecodedResult(SignalAspectCode code);
 
     void startCodeTimeout(SignalAspectCode code);
@@ -220,16 +221,8 @@ private:
     static constexpr double UpPositionThreshold = 0.75;
     static constexpr double DownPositionThreshold = 0.25;
 
-    struct Encoding
-    {
-        QElapsedTimer timer;
-        SignalAspectCode expectedCode = SignalAspectCode::CodeAbsent;
-        SignalAspectCode detectedCode = SignalAspectCode::CodeAbsent;
-        SignalAspectCode tempDetectedCode = SignalAspectCode::CodeAbsent;
-        QBasicTimer encodeTimeout;
-    };
-
-    Encoding mEncoding;
+    SignalAspectCode mExpectedCode = SignalAspectCode::CodeAbsent;
+    SignalAspectCode mDetectedCode = SignalAspectCode::CodeAbsent;
 };
 
 #endif // ABSTRACTRELAIS_H

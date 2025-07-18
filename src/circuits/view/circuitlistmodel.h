@@ -99,6 +99,8 @@ public:
 
     AbstractNodeGraphItem *getGraphForNode(AbstractCircuitNode *node) const;
 
+    void updateCodeStatus();
+
 signals:
     void nodeEditRequested(AbstractNodeGraphItem *item);
     void cableEditRequested(CableGraphItem *item);

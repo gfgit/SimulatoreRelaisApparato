@@ -86,12 +86,16 @@ private slots:
 protected:
     void timerEvent(QTimerEvent *e) override;
 
+    void onCircuitFlagsChanged() override;
+
 private:
     void activateRelay(int contact);
     void deactivateRelay(int contact);
     void stopTimer(int contact);
     void ensureTimeoutPercentTimer();
     void stopTimeoutPercentTimer();
+
+    void updateDecoderState();
 
 private:
     // Settings

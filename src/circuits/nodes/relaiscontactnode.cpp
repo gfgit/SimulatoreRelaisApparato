@@ -115,26 +115,7 @@ AbstractCircuitNode::ConnectionsRes RelaisContactNode::getActiveConnections(Cabl
             other.nodeContact = otherContactIdx;
 
             const SignalAspectCode code = mRelais->getExpectedCode();
-            if(code == SignalAspectCode::CodeAbsent)
-                break;
-
-            switch (code)
-            {
-            case SignalAspectCode::Code75:
-                other.flags = CircuitFlags::Code75;
-                break;
-            case SignalAspectCode::Code120:
-                other.flags = CircuitFlags::Code120;
-                break;
-            case SignalAspectCode::Code180:
-                other.flags = CircuitFlags::Code180;
-                break;
-            case SignalAspectCode::Code270:
-                other.flags = CircuitFlags::Code270;
-                break;
-            default:
-                break;
-            }
+            other.flags = codeToFlag(code);
 
             return {other};
         }
@@ -188,7 +169,9 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais, bool autoSwapState)
 
     emit shapeChanged();
     emit relayChanged(mRelais);
+    emit relayCodeChanged();
     onRelaisStateChanged();
+
     modeMgr()->setFileEdited();
 }
 

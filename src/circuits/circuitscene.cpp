@@ -1692,6 +1692,11 @@ QVector<AbstractNodeGraphItem *> CircuitScene::getSelectedNodes()
     return result;
 }
 
+void CircuitScene::updateCodeStatus()
+{
+    update();
+}
+
 void CircuitScene::helpEvent(QGraphicsSceneHelpEvent *e)
 {
     const TileLocation tile = TileLocation::fromPointFloor(e->scenePos());
