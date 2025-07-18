@@ -100,14 +100,14 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     };
 
     // Draw common contact (0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
     //painter->drawLine(commonLine);
 
     // Draw bulb circle
 
     pen.setWidthF(10.0);
-    pen.setColor(colors[int(AnyCircuitType::None)]);
+    pen.setColor(CircuitColors::None);
 
     ElectroMagnetObject *magnet = static_cast<ElectroMagnetObject *>(node()->object());
     if(magnet)

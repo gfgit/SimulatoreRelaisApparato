@@ -101,15 +101,8 @@ void ScreenRelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     pen.setWidthF(10.0);
     pen.setCapStyle(Qt::FlatCap);
 
-    const QColor colors[3] =
-    {
-        CircuitColors::Open,
-        CircuitColors::Closed,
-        CircuitColors::None
-    };
-
     // Draw common contact (0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
     painter->drawLine(commonLine);
 

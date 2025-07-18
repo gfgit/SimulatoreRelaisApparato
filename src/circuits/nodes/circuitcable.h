@@ -80,6 +80,7 @@ public:
         return mModeMgr;
     }
 
+    void circuitAddedRemovedFlags(ElectricCircuit *circuit, bool add);
     void updateCircuitFlags(CircuitType type, CircuitPole pole);
 
 signals:

@@ -22,6 +22,8 @@
 
 #include "cablegraphitem.h"
 
+#include "abstractnodegraphitem.h"
+
 #include "../nodes/circuitcable.h"
 #include "../nodes/abstractcircuitnode.h"
 
@@ -421,22 +423,17 @@ void CableGraphItem::updatePen()
     const auto powerType = toCircuitType(power);
     const auto circuitFlags = mCable->getFlags();
 
-    QColor color = CircuitColors::None;
+    AnyCircuitType targetType = AnyCircuitType::None;
     if(powerPole != CablePowerPole::None)
     {
         if(powerType == CircuitType::Closed)
-            color = CircuitColors::Closed;
+            targetType = AnyCircuitType::Closed;
         else
-            color = CircuitColors::Open;
+            targetType = AnyCircuitType::Open;
     }
 
-    if(hasResistor(circuitFlags))
-    {
-        if(powerType == CircuitType::Closed)
-            color = CircuitColors::ClosedResistor;
-        else if(powerType == CircuitType::Open)
-            color = CircuitColors::OpenResistor;
-    }
+    const QColor color = AbstractNodeGraphItem::getContactColor(targetType,
+                                                                circuitFlags);
 
     Qt::PenStyle style = Qt::SolidLine;
     if(powerPole != CablePowerPole::None &&

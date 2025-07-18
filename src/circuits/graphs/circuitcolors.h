@@ -37,6 +37,11 @@ constexpr QRgb Open = qRgb(120, 210, 255); // Light blue
 constexpr QRgb ClosedResistor = qRgb(255, 120, 120); // Light red
 constexpr QRgb OpenResistor = qRgb(170, 230, 255); // Very Light blue
 
+// Code
+constexpr QRgb Code75 = qRgb(0, 255, 0); // green
+constexpr QRgb Code120 = qRgb(0, 120, 0); // dark green
+constexpr QRgb CodeInvalid = qRgb(255, 255, 0); // yellow
+
 }
 
 #endif // CIRCUITCOLORS_H

@@ -79,6 +79,7 @@ public:
     void terminateHere(AbstractCircuitNode *goalNode, QVector<ElectricCircuit *>& deduplacteList);
 
     inline CircuitFlags flags() const { return onlyFlags(mFlagsAndType); }
+    inline CircuitFlags nonSourceFlags() const { return onlyFlags(mNonSourceFlags); }
     inline CircuitType type() const { return toType_(mFlagsAndType); }
 
     inline bool isEnabled() const { return enabled; }
@@ -104,9 +105,13 @@ public:
 
     static void defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode);
 
+    void updateItemFlags();
+
 private:
+    bool recalculateFlags();
+
     void setType(CircuitType type);
-    void setFlags(CircuitFlags f);
+    void setFlags(CircuitFlags f, CircuitFlags f2);
 
     bool tryReachOpen(AbstractCircuitNode *goalNode);
 
@@ -132,6 +137,7 @@ private:
     bool enabled = false;
     bool isDisabling = false;
     CircuitFlags mFlagsAndType = CircuitFlags::None;
+    CircuitFlags mNonSourceFlags = CircuitFlags::None;
 };
 
 constexpr bool operator ==(const ElectricCircuit::Item& lhs, const ElectricCircuit::Item& rhs)

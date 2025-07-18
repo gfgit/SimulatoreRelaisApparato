@@ -429,25 +429,17 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, Til
         break;
     }
 
-    QColor color = CircuitColors::None;
-    if(getAbstractNode()->hasCircuit(nodeContact,
-                                     CircuitType::Closed))
-        color = CircuitColors::Closed;
-    else if(getAbstractNode()->hasCircuit(nodeContact,
-                                     CircuitType::Open))
-        color = CircuitColors::Open;
-
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
     pen.setStyle(Qt::SolidLine);
     pen.setWidthF(10.0);
-    pen.setColor(color);
+    pen.setColor(getContactColor(nodeContact));
 
     painter->setPen(pen);
     painter->drawLine(morsettoLine);
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(color);
+    painter->setBrush(pen.color());
     painter->drawEllipse(morsettoEllipse);
 
     QFont f;
@@ -600,13 +592,7 @@ void AbstractNodeGraphItem::drawUnpairedConnectors(QPainter *painter)
         if(contact.cable)
             continue; // Already paired, skip
 
-        QColor color = Qt::black;
-        if(node->hasCircuit(c.nodeContact, CircuitType::Closed))
-            color = Qt::red;
-        else if(node->hasCircuit(c.nodeContact, CircuitType::Open))
-            color.setRgb(120, 210, 255); // Light blue
-
-        pen.setColor(color);
+        pen.setColor(getContactColor(c.nodeContact));
         painter->setPen(pen);
         painter->drawLine(connectorLines[int(c.direction)]);
     }
@@ -681,6 +667,15 @@ void AbstractNodeGraphItem::recalculateTextPosition()
             possibleTextDir = PreferredDir[i % 4];
         }
     }
+}
+
+QColor AbstractNodeGraphItem::getContactColor(int nodeContact) const
+{
+    Q_ASSERT(nodeContact >= 0 && nodeContact < getAbstractNode()->getContactCount());
+
+    const AnyCircuitType targetType = getAbstractNode()->hasAnyCircuit(nodeContact);
+    return getContactColor(targetType, getAbstractNode()->getCircuitFlags(nodeContact),
+                           getAbstractNode()->hasCircuitsWithFlags());
 }
 
 TileRotate AbstractNodeGraphItem::rotate() const
@@ -761,6 +756,51 @@ void AbstractNodeGraphItem::saveToJSON(QJsonObject &obj) const
     obj["text_rotation"] = int(mTextDirection);
 
     getAbstractNode()->saveToJSON(obj);
+}
+
+QColor AbstractNodeGraphItem::getContactColor(const AnyCircuitType targetType,
+                                              const CircuitFlags contactFlags,
+                                              bool hasFlags)
+{
+    static const QColor colors[3] =
+    {
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
+    };
+
+    QColor color = colors[int(targetType)];
+
+    if(hasFlags && targetType != AnyCircuitType::None)
+    {
+        const auto code = getCode(contactFlags);
+        if(code != CircuitFlags::None)
+        {
+            switch (code)
+            {
+            case CircuitFlags::Code75:
+                color = CircuitColors::Code75;
+                break;
+            case CircuitFlags::Code120:
+                color = CircuitColors::Code120;
+                break;
+            case CircuitFlags::CodeInvalid:
+                color = CircuitColors::CodeInvalid;
+                break;
+            default:
+                break;
+            }
+        }
+        else if(hasResistor(contactFlags))
+        {
+            if(targetType == AnyCircuitType::Closed)
+                color = CircuitColors::ClosedResistor;
+            else if(targetType == AnyCircuitType::Open)
+                color = CircuitColors::OpenResistor;
+        }
+    }
+
+    return color;
 }
 
 void AbstractNodeGraphItem::onShapeChanged(bool boundingRectChange)

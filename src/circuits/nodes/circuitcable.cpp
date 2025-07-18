@@ -111,8 +111,9 @@ void CircuitCable::addCircuit(ElectricCircuit *circuit, CircuitPole pole)
     CircuitList& circuitList = getCircuits(circuit->type(),
                                            pole);
 
-    if(circuitList.contains(circuit))
-        return; // A circuit may pass 2 times on same item
+    // Since pole lists are different
+    // a circuit may pass only once per list
+    Q_ASSERT(!circuitList.contains(circuit));
     circuitList.append(circuit);
 
     if(circuit->flags() != getFlags(circuit->type(), pole))
@@ -120,7 +121,6 @@ void CircuitCable::addCircuit(ElectricCircuit *circuit, CircuitPole pole)
 
     if(circuit->flags() != CircuitFlags::None)
         mCircuitsWithFlags++;
-
 
     const CablePower newPower = powered();
     if(oldPower != newPower)
@@ -161,6 +161,41 @@ void CircuitCable::removeCircuit(ElectricCircuit *circuit)
     const CablePower newPower = powered();
     if(oldPower != newPower)
         emit powerChanged(newPower);
+}
+
+void CircuitCable::circuitAddedRemovedFlags(ElectricCircuit *circuit, bool add)
+{
+    CircuitList& circuitList1 = getCircuits(circuit->type(),
+                                            CircuitPole::First);
+    CircuitList& circuitList2 = getCircuits(circuit->type(),
+                                            CircuitPole::Second);
+
+    bool isFirst = circuitList1.contains(circuit);
+    bool isSecond = circuitList2.contains(circuit);
+
+    Q_ASSERT(isFirst || isSecond);
+
+    if(mCircuitsWithFlags > 0)
+    {
+        if(isFirst)
+            updateCircuitFlags(circuit->type(), CircuitPole::First);
+        if(isSecond)
+            updateCircuitFlags(circuit->type(), CircuitPole::Second);
+    }
+
+    if(add)
+    {
+        mCircuitsWithFlags++;
+        if(isFirst && isSecond)
+            mCircuitsWithFlags++;
+    }
+    else
+    {
+        mCircuitsWithFlags--;
+        if(isFirst && isSecond)
+            mCircuitsWithFlags--;
+    }
+    Q_ASSERT(mCircuitsWithFlags >= 0);
 }
 
 void CircuitCable::updateCircuitFlags(CircuitType type, CircuitPole pole)

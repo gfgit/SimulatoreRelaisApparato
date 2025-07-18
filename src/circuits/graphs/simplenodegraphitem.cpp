@@ -87,6 +87,10 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
     // Start from turned off contacts, then open and then closed circuits
     AnyCircuitType targetType = AnyCircuitType::None;
     bool finishedDrawingContacts = false;
+
+    // Do 2 rounds of drawing.
+    // First with circuit flags, second only with None-flagged circuits.
+    bool skipCircuitWithFlags = false;
     while(!finishedDrawingContacts)
     {
         // Set pen color based on circuit type
@@ -99,12 +103,20 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
                 continue; // Common contact is never disabled
 
             const AnyCircuitType state = node()->hasAnyCircuit(contact);
-
-            // Always draw full line if in None state
-            if(state != targetType && targetType != AnyCircuitType::None)
-                continue;
+            const CircuitFlags contactFlags = node()->getCircuitFlags(contact);
 
             const QLineF circuit = lines[(startIdx + contact) % 4];
+
+            if(targetType != AnyCircuitType::None && node()->hasCircuitsWithFlags())
+            {
+                if(skipCircuitWithFlags && contactFlags != CircuitFlags::None)
+                    continue;
+
+                QColor color = getContactColor(contact);
+
+                pen.setColor(color);
+                painter->setPen(pen);
+            }
 
             bool passThrough = false;
             for(int other = 0; other < 4; other++)
@@ -118,8 +130,26 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
                 // Draw full circuit, passing center
                 // Always draw full line if in None state
                 AnyCircuitType otherState = node()->hasAnyCircuit(other);
-                if(otherState != targetType && targetType != AnyCircuitType::None)
-                    continue;
+
+                if(targetType == AnyCircuitType::Open)
+                {
+                    if(state != AnyCircuitType::Open && state != AnyCircuitType::Open)
+                        continue;
+                    if(state == AnyCircuitType::None || otherState == AnyCircuitType::None)
+                        continue;
+                }
+                else if(targetType == AnyCircuitType::Closed)
+                {
+                    if(state != AnyCircuitType::Closed || otherState != AnyCircuitType::Closed)
+                        continue;
+                }
+
+                if(targetType != AnyCircuitType::None && node()->hasCircuitsWithFlags())
+                {
+                    const CircuitFlags otherFlags = node()->getCircuitFlags(other);
+                    if(contactFlags != otherFlags)
+                        continue; // We draw them separately
+                }
 
                 passThrough = true;
 
@@ -136,7 +166,7 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
                 painter->drawPolyline(points, 5);
             }
 
-            if(!passThrough)
+            if(!passThrough && state == targetType)
             {
                 // Draw only until center
                 if(contact == 0)
@@ -163,11 +193,20 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
             targetType = AnyCircuitType::Open;
             break;
         case AnyCircuitType::Open:
-            targetType = AnyCircuitType::Closed;
+            if(!skipCircuitWithFlags)
+                skipCircuitWithFlags = true;
+            else
+            {
+                skipCircuitWithFlags = false;
+                targetType = AnyCircuitType::Closed;
+            }
             break;
         case AnyCircuitType::Closed:
         default:
-            finishedDrawingContacts = true;
+            if(!skipCircuitWithFlags)
+                skipCircuitWithFlags = true;
+            else
+                finishedDrawingContacts = true;
             break;
         }
     }

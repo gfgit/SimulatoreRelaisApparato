@@ -39,6 +39,7 @@ AbstractCircuitNode::~AbstractCircuitNode()
 {
     Q_ASSERT(mClosedCircuits.isEmpty());
     Q_ASSERT(mOpenCircuits.isEmpty());
+    Q_ASSERT(mCircuitsWithFlags == 0);
 
     // Detach all contacts
     for(int i = 0; i < mContacts.size(); i++)
@@ -58,7 +59,12 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
 
     circuitList.append(circuit);
 
+    if(circuit->flags() != CircuitFlags::None)
+        mCircuitsWithFlags++;
+
     bool updateNeeded = false;
+
+    bool flagsChanged = false;
 
     const auto items = circuit->getNode(this);
     for(int i = 0; i < items.size(); i++)
@@ -72,6 +78,9 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
             fromCount++;
             if(fromCount == 1)
                 updateNeeded = true;
+
+            if(circuit->flags() != mContacts[item.fromContact].getFlags(circuit->type()))
+                flagsChanged |= updateCircuitFlags(item.fromContact, circuit->type());
         }
 
         if(item.toContact != NodeItem::InvalidContact)
@@ -81,11 +90,17 @@ void AbstractCircuitNode::addCircuit(ElectricCircuit *circuit)
             toCount++;
             if(toCount == 1)
                 updateNeeded = true;
+
+            if(circuit->flags() != mContacts[item.toContact].getFlags(circuit->type()))
+                flagsChanged |= updateCircuitFlags(item.toContact, circuit->type());
         }
     }
 
-    if(circuitList.size() == 1 || updateNeeded)
+    if(circuitList.size() == 1 || updateNeeded || flagsChanged)
         emit circuitsChanged();
+
+    if(flagsChanged)
+        onCircuitFlagsChanged();
 }
 
 void AbstractCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences& items)
@@ -96,6 +111,37 @@ void AbstractCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccu
     partialRemoveCircuit(circuit, items);
 
     circuitList.removeOne(circuit);
+
+    if(mCircuitsWithFlags > 0)
+    {
+        bool flagsChanged = false;
+        for(int i = 0; i < items.size(); i++)
+        {
+            const NodeItem& item = items.at(i);
+
+            if(item.fromContact != NodeItem::InvalidContact)
+            {
+                flagsChanged |= updateCircuitFlags(item.fromContact, circuit->type());
+            }
+
+            if(item.toContact != NodeItem::InvalidContact)
+            {
+                flagsChanged |= updateCircuitFlags(item.toContact, circuit->type());
+            }
+        }
+
+        if(flagsChanged)
+        {
+            emit circuitsChanged();
+            onCircuitFlagsChanged();
+        }
+    }
+
+    if(circuit->flags() != CircuitFlags::None)
+    {
+        mCircuitsWithFlags--;
+    }
+    Q_ASSERT(mCircuitsWithFlags >= 0);
 }
 
 void AbstractCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
@@ -242,6 +288,48 @@ void AbstractCircuitNode::detachCable(int contactIdx)
         contact.type1 = contact.type2 = ContactType::NotConnected;
         contact.cable = nullptr;
     }
+}
+
+bool AbstractCircuitNode::updateCircuitFlags(int contact, CircuitType type)
+{
+    CircuitFlags newFlags = CircuitFlags::None;
+    bool isFirst = true;
+
+    const CircuitList& circuitList = getCircuits(type);
+
+    for(ElectricCircuit *circuit : circuitList)
+    {
+        const auto items = circuit->getNode(this);
+        for(const NodeItem& item : items)
+        {
+            if(item.fromContact != contact && item.toContact != contact)
+                continue;
+
+            if(isFirst)
+            {
+                isFirst = false;
+                newFlags = circuit->flags();
+            }
+            else
+            {
+                newFlags = newFlags & circuit->flags();
+            }
+        }
+    }
+
+    CircuitFlags &curFlags = mContacts[contact].getFlags(type);
+    if(newFlags != curFlags)
+    {
+        curFlags = newFlags;
+        return true;
+    }
+
+    return false;
+}
+
+void AbstractCircuitNode::onCircuitFlagsChanged()
+{
+
 }
 
 void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,

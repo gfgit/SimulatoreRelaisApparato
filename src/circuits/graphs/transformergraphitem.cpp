@@ -99,13 +99,6 @@ void TransformerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         break;
     }
 
-    const QColor colors[3] =
-    {
-        CircuitColors::Open,
-        CircuitColors::Closed,
-        CircuitColors::None
-    };
-
     // Draw wires
     painter->setBrush(Qt::NoBrush);
     QPen pen;
@@ -114,15 +107,15 @@ void TransformerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
     // Draw common contact (1)
     if(circuitScene()->mode() == FileMode::Editing)
-        pen.setColor(colors[0]); // Draw contact 1 blue during Editing
+        pen.setColor(Qt::cyan); // Draw contact 1 blue during Editing
     else
-        pen.setColor(colors[int(node()->hasAnyCircuit(1))]);
+        pen.setColor(getContactColor(1));
     painter->setPen(pen);
     painter->drawLine(contact1Line);
     painter->drawEllipse(coilCenters[1], CoilRadius, CoilRadius);
 
     // Draw common contact (0) on top
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
     painter->drawLine(commonLine);
     painter->drawEllipse(coilCenters[0], CoilRadius, CoilRadius);

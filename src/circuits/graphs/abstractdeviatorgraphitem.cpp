@@ -435,6 +435,10 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     // Start from turned off contacts, then open and then closed circuits
     AnyCircuitType targetType = AnyCircuitType::None;
     bool finishedDrawingContacts = false;
+
+    // Do 2 rounds of drawing.
+    // First with circuit flags, second only with None-flagged circuits.
+    bool skipCircuitWithFlags = false;
     while(!finishedDrawingContacts)
     {
         // Set pen color based on circuit type
@@ -444,6 +448,19 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
         for(int contact = 0; contact < 3; contact++)
         {
             const AnyCircuitType state = deviatorNode()->hasAnyCircuit(contact);
+
+            const CircuitFlags contactFlags = deviatorNode()->getCircuitFlags(contact);
+
+            if(targetType != AnyCircuitType::None && deviatorNode()->hasCircuitsWithFlags())
+            {
+                if(skipCircuitWithFlags && contactFlags != CircuitFlags::None)
+                    continue;
+
+                QColor color = getContactColor(contact);
+
+                pen.setColor(color);
+                painter->setPen(pen);
+            }
 
             if(contact == 0 && targetType == AnyCircuitType::Open
                     && deviatorNode()->hasAnyCircuit(0) != AnyCircuitType::None)
@@ -491,6 +508,13 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
 
                     if(!contactDownOn && (other == 2 || contact == 2))
                         continue;
+
+                    if(deviatorNode()->hasCircuitsWithFlags())
+                    {
+                        const CircuitFlags otherFlags = deviatorNode()->getCircuitFlags(other);
+                        if(contactFlags != otherFlags)
+                            continue; // We draw them separately
+                    }
                 }
 
                 passThrough = true;

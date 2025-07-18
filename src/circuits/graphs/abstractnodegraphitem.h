@@ -27,6 +27,8 @@
 
 #include "../../utils/tilerotate.h"
 
+#include "../../enums/circuittypes.h"
+
 class AbstractCircuitNode;
 class CircuitScene;
 
@@ -88,6 +90,10 @@ public:
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
 
+    static QColor getContactColor(const AnyCircuitType targetType,
+                                  const CircuitFlags contactFlags,
+                                  bool hasFlags = true);
+
 protected slots:
     void triggerUpdate();
     virtual void updateName();
@@ -115,6 +121,8 @@ protected:
 
     void recalculateTextWidth();
     virtual void recalculateTextPosition();
+
+    QColor getContactColor(int nodeContact) const;
 
 private:
     AbstractCircuitNode *mAbstractNode;

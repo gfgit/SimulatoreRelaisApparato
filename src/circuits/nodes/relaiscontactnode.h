@@ -49,6 +49,8 @@ public:
     static constexpr QLatin1String NodeType = QLatin1String("relais_contact");
     QString nodeType() const override;
 
+    ConnectionsRes getActiveConnections(CableItem source, bool invertDir) override;
+
     AbstractRelais *relais() const;
     void setRelais(AbstractRelais *newRelais, bool autoSwapState = true);
 

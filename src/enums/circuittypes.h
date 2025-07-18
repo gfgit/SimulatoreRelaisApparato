@@ -54,8 +54,9 @@ enum class CircuitFlags : quint8
     Code270     = 0b00010000,
     CodeInvalid = 0b00100000,
     CodeMask    = 0b00111110,
+    NonCodeMask = 0b11000001,
 
-    FlagsMask = 0b00111111,
+    FlagsMask   = 0b00111111,
     PoleMask    = 0b11000000,
     FromPole    = 0b01000000,
     ToPole      = 0b10000000
@@ -116,6 +117,12 @@ constexpr CircuitFlags getCode(CircuitFlags flags)
     default:
         return CircuitFlags::CodeInvalid;
     }
+}
+
+constexpr CircuitFlags withCode(CircuitFlags flags, CircuitFlags code)
+{
+    const CircuitFlags withoutCode = flags & CircuitFlags::NonCodeMask;
+    return withoutCode | (code & CircuitFlags::CodeMask);
 }
 
 constexpr CircuitType toType_(CircuitFlags flags)

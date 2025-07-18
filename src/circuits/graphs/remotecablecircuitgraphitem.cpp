@@ -79,13 +79,6 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
         break;
     }
 
-    const QColor colors[3] =
-        {
-            CircuitColors::Open,
-            CircuitColors::Closed,
-            CircuitColors::None
-        };
-
     // Draw wires
     painter->setBrush(Qt::NoBrush);
     QPen pen;
@@ -94,7 +87,7 @@ void RemoteCableCircuitGraphItem::paint(QPainter *painter, const QStyleOptionGra
     pen.setStyle(Qt::DashLine);
 
     // Draw common line dashed (0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
@@ -125,11 +118,11 @@ QString RemoteCableCircuitGraphItem::tooltipString() const
         QString remoteStr;
         bool isConnected = false;
         if(bridge->getRemoteSession() &&
-            (bridge->isRemoteSessionConnected() || !bridge->isSerialDeviceConnected()))
+                (bridge->isRemoteSessionConnected() || !bridge->isSerialDeviceConnected()))
         {
             remoteStr = tr("To session <b>%1</b><br>"
                            "Peer node: <b><i>%2</i></b>")
-                            .arg(bridge->remoteSessionName(), bridge->peerNodeName());
+                    .arg(bridge->remoteSessionName(), bridge->peerNodeName());
 
             isConnected = bridge->isRemoteSessionConnected();
 
@@ -147,25 +140,25 @@ QString RemoteCableCircuitGraphItem::tooltipString() const
             remoteStr = tr("To device <b>%1</b><br>"
                            "Input: %2<br>"
                            "Output: %3<br>")
-                            .arg(bridge->getSerialDeviceName(), inputId, outputId);
+                    .arg(bridge->getSerialDeviceName(), inputId, outputId);
 
             isConnected = bridge->isSerialDeviceConnected();
         }
 
         QString statusStr = QLatin1String("<span style=\"color: %1;\">%2</span>")
-                                .arg(isConnected ? QLatin1String("green") : QLatin1String("red"),
-                                     isConnected ? tr("Connected") : tr("Disconnected"));
+                .arg(isConnected ? QLatin1String("green") : QLatin1String("red"),
+                     isConnected ? tr("Connected") : tr("Disconnected"));
         return tr("Bridge <b>%1</b><br>"
                   "%2<br><br>"
                   "Status: %3")
-            .arg(bridge->name(), remoteStr, statusStr);
+                .arg(bridge->name(), remoteStr, statusStr);
     }
 
     RemoteCableCircuitNode *otherNode = bridge->getNode(!node()->isNodeA());
     if(!otherNode)
         return tr("Local Bridge <b>%1</b><br>"
                   "Not connected to other node!")
-            .arg(bridge->name());
+                .arg(bridge->name());
 
     QString sceneDescr;
 
@@ -187,8 +180,8 @@ QString RemoteCableCircuitGraphItem::tooltipString() const
             sceneDescr = tr("To other node in:<br>"
                             "<b>%1<br>"
                             "%2</b>")
-                             .arg(otherScene->circuitSheetName(),
-                                  otherScene->circuitSheetLongName());
+                    .arg(otherScene->circuitSheetName(),
+                         otherScene->circuitSheetLongName());
         }
     }
     else
@@ -198,7 +191,7 @@ QString RemoteCableCircuitGraphItem::tooltipString() const
 
     return tr("Local Bridge <b>%1</b><br>"
               "%2")
-        .arg(bridge->name(), sceneDescr);
+            .arg(bridge->name(), sceneDescr);
 }
 
 QRectF RemoteCableCircuitGraphItem::textDisplayRect() const

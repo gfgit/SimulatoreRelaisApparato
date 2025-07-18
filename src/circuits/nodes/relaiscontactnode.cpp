@@ -87,6 +87,65 @@ QString RelaisContactNode::nodeType() const
     return NodeType;
 }
 
+AbstractCircuitNode::ConnectionsRes RelaisContactNode::getActiveConnections(CableItem source, bool invertDir)
+{
+    Q_UNUSED(invertDir);
+
+    if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
+        return {};
+
+    const NodeContact& sourceContact = mContacts.at(source.nodeContact);
+
+    if(!hasCentralConnector() && mRelais &&
+        sourceContact.getType(source.cable.pole) == ContactType::Connected &&
+        isContactOn(DownIdx))
+    {
+        switch (mRelais->relaisType())
+        {
+        case AbstractRelais::RelaisType::Encoder:
+        case AbstractRelais::RelaisType::CodeRepeater:
+        {
+            const int otherContactIdx = (source.nodeContact == CommonIdx) ? DownIdx : CommonIdx;
+
+            const NodeContact& otherContact = mContacts.at(otherContactIdx);
+            CableItemFlags other;
+            other.cable.cable = otherContact.cable;
+            other.cable.side = otherContact.cableSide;
+            other.cable.pole = source.cable.pole;
+            other.nodeContact = otherContactIdx;
+
+            const SignalAspectCode code = mRelais->getExpectedCode();
+            if(code == SignalAspectCode::CodeAbsent)
+                break;
+
+            switch (code)
+            {
+            case SignalAspectCode::Code75:
+                other.flags = CircuitFlags::Code75;
+                break;
+            case SignalAspectCode::Code120:
+                other.flags = CircuitFlags::Code120;
+                break;
+            case SignalAspectCode::Code180:
+                other.flags = CircuitFlags::Code180;
+                break;
+            case SignalAspectCode::Code270:
+                other.flags = CircuitFlags::Code270;
+                break;
+            default:
+                break;
+            }
+
+            return {other};
+        }
+        default:
+            break;
+        }
+    }
+
+    return AbstractDeviatorNode::getActiveConnections(source, invertDir);
+}
+
 AbstractRelais *RelaisContactNode::relais() const
 {
     return mRelais;

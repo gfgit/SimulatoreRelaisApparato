@@ -59,32 +59,35 @@ public:
         uint16_t closedCircuitExitCount[2] = {0, 0};
         uint16_t openCircuitExitCount[2] = {0, 0};
 
+        CircuitFlags mClosesFlags = CircuitFlags::None;
+        CircuitFlags mOpenFlags = CircuitFlags::None;
+
         inline uint16_t& entranceCount(CircuitType type, CircuitPole pole)
         {
             return type == CircuitType::Closed ?
-                        closedCircuitEntranceCount[int(pole)] :
-                        openCircuitEntranceCount[int(pole)];
+                       closedCircuitEntranceCount[int(pole)] :
+                       openCircuitEntranceCount[int(pole)];
         }
 
         inline uint16_t entranceCount(CircuitType type, CircuitPole pole) const
         {
             return type == CircuitType::Closed ?
-                        closedCircuitEntranceCount[int(pole)] :
-                        openCircuitEntranceCount[int(pole)];
+                       closedCircuitEntranceCount[int(pole)] :
+                       openCircuitEntranceCount[int(pole)];
         }
 
         inline uint16_t& exitCount(CircuitType type, CircuitPole pole)
         {
             return type == CircuitType::Closed ?
-                        closedCircuitExitCount[int(pole)] :
-                        openCircuitExitCount[int(pole)];
+                       closedCircuitExitCount[int(pole)] :
+                       openCircuitExitCount[int(pole)];
         }
 
         inline uint16_t exitCount(CircuitType type, CircuitPole pole) const
         {
             return type == CircuitType::Closed ?
-                        closedCircuitExitCount[int(pole)] :
-                        openCircuitExitCount[int(pole)];
+                       closedCircuitExitCount[int(pole)] :
+                       openCircuitExitCount[int(pole)];
         }
 
         inline ContactType getType(CircuitPole pole) const
@@ -100,6 +103,16 @@ public:
                 type1 = t;
             else
                 type2 = t;
+        }
+
+        inline const CircuitFlags& getFlags(CircuitType type) const
+        {
+            return type == CircuitType::Closed ? mClosesFlags : mOpenFlags;
+        }
+
+        inline CircuitFlags& getFlags(CircuitType type)
+        {
+            return type == CircuitType::Closed ? mClosesFlags : mOpenFlags;
         }
     };
 
@@ -171,14 +184,28 @@ public:
                                  CircuitType type = CircuitType::Closed) const
     {
         return hasEntranceCircuitOnPole(nodeContact, pole, type) ||
-                hasExitCircuitOnPole(nodeContact, pole, type);
+               hasExitCircuitOnPole(nodeContact, pole, type);
     }
 
     inline bool hasCircuit(int nodeContact,
                            CircuitType type = CircuitType::Closed) const
     {
         return hasCircuitOnPole(nodeContact, CircuitPole::First, type) ||
-                hasCircuitOnPole(nodeContact, CircuitPole::Second, type);
+               hasCircuitOnPole(nodeContact, CircuitPole::Second, type);
+    }
+
+    inline bool hasCircuitsWithFlags() const
+    {
+        return mCircuitsWithFlags > 0;
+    }
+
+    inline CircuitFlags getCircuitFlags(int nodeContact) const
+    {
+        Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
+
+        if(hasCircuit(nodeContact, CircuitType::Closed))
+            return mContacts.at(nodeContact).getFlags(CircuitType::Closed);
+        return mContacts.at(nodeContact).getFlags(CircuitType::Open);
     }
 
     inline AnyCircuitType hasAnyCircuitOnPole(int nodeContact,
@@ -235,12 +262,17 @@ protected:
     friend class AbstractNodeGraphItem;
     void detachCable(int contactIdx);
 
+    bool updateCircuitFlags(int contact, CircuitType type);
+
+    virtual void onCircuitFlagsChanged();
+
 signals:
     void circuitsChanged();
     void shapeChanged(bool boundingRectChange = false);
 
 protected:
     NodeContacts mContacts;
+    int mCircuitsWithFlags = 0;
 
     typedef QVector<ElectricCircuit *> CircuitList;
     void disableCircuits(const CircuitList& listCopy,

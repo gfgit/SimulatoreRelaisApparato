@@ -124,16 +124,7 @@ bool ElectricCircuit::enableCircuit(QVector<ElectricCircuit *> *deletedCircuits)
     //if(checkShuntedByOtherCircuit())
     //    return false;
 
-    CircuitFlags newFlags = CircuitFlags::None;
-    for(int i = 0; i < mItems.size(); i += 2)
-    {
-        const Item& item = mItems[i];
-        Q_ASSERT(item.isNode);
-
-        newFlags = newFlags | item.node.flags();
-    }
-
-    setFlags(newFlags);
+    recalculateFlags();
 
     for(int i = 0; i < mItems.size(); i++)
     {
@@ -478,6 +469,8 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
         cablesToKeep.clear();
     }
 
+    QMultiHash<AbstractCircuitNode *, int> nodesToUpdate;
+
     for(int i = firstIdxToRemove; i < mItems.size(); i++)
     {
         const Item& item = mItems.at(i);
@@ -488,6 +481,16 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
             {
                 // Remove only this passage
                 item.node.node->partialRemoveCircuit(this, {item.node});
+
+                if(item.node.node->hasCircuitsWithFlags())
+                {
+                    // We need to update node flags after removing items
+                    if(item.node.fromContact != NodeItem::InvalidContact)
+                        nodesToUpdate.insert(item.node.node, item.node.fromContact);
+
+                    if(item.node.toContact != NodeItem::InvalidContact)
+                        nodesToUpdate.insert(item.node.node, item.node.toContact);
+                }
             }
             else if(!nodes.contains(item.node.node))
             {
@@ -510,6 +513,12 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
 
     mItems.remove(firstIdxToRemove, mItems.size() - firstIdxToRemove);
 
+    // Update node flags after removing node
+    for(auto it : nodesToUpdate.asKeyValueRange())
+    {
+        it.first->updateCircuitFlags(it.second, type());
+    }
+
     if(mItems.isEmpty())
     {
         // We are an empty circuit
@@ -517,6 +526,13 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
     }
     else
     {
+        if(flags() != CircuitFlags::None)
+        {
+            // Flags might have come from removed items
+            // So now flags could be different, recalculate them
+            updateItemFlags();
+        }
+
         // Circuit is still registered at node
         // Remove toContact from last node
         goalNode->unregisterOpenCircuitExit(this);
@@ -1137,14 +1153,106 @@ void ElectricCircuit::defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode)
     }
 }
 
+void ElectricCircuit::updateItemFlags()
+{
+    QSet<CircuitCable *> updatedCables;
+
+    const bool hadFlags = flags() != CircuitFlags::None;
+    if(recalculateFlags())
+    {
+        const bool removeFlags = hadFlags && flags() == CircuitFlags::None;
+        const bool addFlags = !hadFlags && flags() != CircuitFlags::None;
+
+        for(int i = 0; i < mItems.size(); i++)
+        {
+            const Item& item = mItems[i];
+            if(item.isNode)
+            {
+                if(removeFlags)
+                    item.node.node->mCircuitsWithFlags--;
+                else if(addFlags)
+                    item.node.node->mCircuitsWithFlags++;
+
+                bool flagsChanged = false;
+
+                // We need to update node flags after removing items
+                if(item.node.fromContact != NodeItem::InvalidContact)
+                    flagsChanged |= item.node.node->updateCircuitFlags(item.node.fromContact, type());
+
+                if(item.node.toContact != NodeItem::InvalidContact)
+                    flagsChanged |= item.node.node->updateCircuitFlags(item.node.toContact, type());
+
+                if(flagsChanged)
+                {
+                    emit item.node.node->circuitsChanged();
+                    item.node.node->onCircuitFlagsChanged();
+                }
+            }
+            else
+            {
+                if(removeFlags)
+                {
+                    if(!updatedCables.contains(item.cable.cable))
+                    {
+                        updatedCables.insert(item.cable.cable);
+                        item.cable.cable->circuitAddedRemovedFlags(this, false);
+                    }
+                }
+                else if(addFlags)
+                {
+                    if(!updatedCables.contains(item.cable.cable))
+                    {
+                        updatedCables.insert(item.cable.cable);
+                        item.cable.cable->circuitAddedRemovedFlags(this, true);
+                    }
+                }
+                else
+                {
+                    item.cable.cable->updateCircuitFlags(type(), item.cable.pole);
+                }
+            }
+        }
+    }
+}
+
+bool ElectricCircuit::recalculateFlags()
+{
+    // Flags might have come from removed items
+    // So now flags could be different, recalculate them
+    CircuitFlags newFlags = CircuitFlags::None;
+    CircuitFlags newNonSourceFlags = CircuitFlags::None;
+    for(int i = 0; i < mItems.size(); i += 2)
+    {
+        const Item& item = mItems[i];
+        Q_ASSERT(item.isNode);
+
+        if(type() == CircuitType::Open && (i + 2) >= mItems.size())
+            break; // Ignore last node flags for open circuis
+
+        newFlags = newFlags | item.node.flags();
+
+        if(i != 0)
+            newNonSourceFlags = newNonSourceFlags | item.node.flags();
+    }
+
+    if(flags() != newFlags || nonSourceFlags() != newNonSourceFlags)
+    {
+        setFlags(newFlags, newNonSourceFlags);
+        return true;
+    }
+
+    return false;
+}
+
 void ElectricCircuit::setType(CircuitType type)
 {
     mFlagsAndType = withType(mFlagsAndType, type);
 }
 
-void ElectricCircuit::setFlags(CircuitFlags f)
+void ElectricCircuit::setFlags(CircuitFlags f, CircuitFlags f2)
 {
     mFlagsAndType = withType(f, type());
+    mNonSourceFlags = onlyFlags(f2);
 }
 
 void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, ItemVector &items, int depth)

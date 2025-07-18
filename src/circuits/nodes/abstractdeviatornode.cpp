@@ -39,6 +39,7 @@ AbstractDeviatorNode::AbstractDeviatorNode(ModeManager *mgr, QObject *parent)
 
 AbstractDeviatorNode::ConnectionsRes AbstractDeviatorNode::getActiveConnections(CableItem source, bool invertDir)
 {
+    Q_UNUSED(invertDir);
     if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
 

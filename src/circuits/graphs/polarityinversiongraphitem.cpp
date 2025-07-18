@@ -102,14 +102,7 @@ void PolarityInversionGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     pen.setCapStyle(Qt::FlatCap);
     pen.setJoinStyle(Qt::MiterJoin);
 
-    const QColor colors[3] =
-    {
-        CircuitColors::Open,
-        CircuitColors::Closed,
-        CircuitColors::None
-    };
-
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
 
     // TODO: polyline for join

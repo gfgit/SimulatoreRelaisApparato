@@ -92,20 +92,13 @@ void DiodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     pen.setWidthF(10.0);
     pen.setCapStyle(Qt::FlatCap);
 
-    const QColor colors[3] =
-    {
-        CircuitColors::Open,
-        CircuitColors::Closed,
-        CircuitColors::None
-    };
-
     // Draw common contact (Anode, 0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
     painter->drawLine(anodeLine);
 
     // Draw second contact (Cathode, 1)
-    pen.setColor(colors[int(node()->hasAnyCircuit(1))]);
+    pen.setColor(getContactColor(1));
     painter->setPen(pen);
     painter->drawLine(cathodeLine);
 
@@ -136,7 +129,9 @@ void DiodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     }
 
     // Color triangle only if circuits are passing through
-    QColor passingColor = colors[int(node()->hasAnyPassingCircuits())];
+    QColor passingColor = CircuitColors::None;
+    if(node()->hasAnyPassingCircuits() != AnyCircuitType::None)
+        passingColor = pen.color();
 
     // Triangle
     painter->setBrush(passingColor);
