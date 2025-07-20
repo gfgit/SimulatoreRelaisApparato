@@ -257,7 +257,7 @@ public:
         return mModeMgr;
     }
 
-    void applyNewFlags();
+    void applyNewFlags(CircuitFlags sourceFlags = CircuitFlags::None);
 
 protected:
     friend class CircuitScene;

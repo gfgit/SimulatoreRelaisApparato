@@ -121,6 +121,10 @@ AbstractCircuitNode::ConnectionsRes RelaisContactNode::getActiveConnections(Cabl
 
             other.flags = codeToFlag(code);
 
+            if(code == SignalAspectCode::CodeAbsent &&
+                    mRelais->state() == AbstractRelais::State::Up)
+                other.flags = CircuitFlags::CodeInvalid; // Relais is not pulsing
+
             return {other};
         }
         default:

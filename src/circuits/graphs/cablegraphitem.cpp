@@ -144,7 +144,6 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         showUnconnected = !isAconnected || !isBconnected;
     }
 
-    QColor oldColor = pen.color();
     if(s && s->mode() == FileMode::Editing && isSelected())
     {
         pen.setColor(Qt::darkCyan);
@@ -154,13 +153,33 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         // Draw line with light orange
         pen.setColor(qRgb(255, 178, 102));
     }
+    else
+    {
+        const auto power = mCable->powered();
+        const auto powerPole = toCablePowerPole(power);
+        const auto powerType = toCircuitType(power);
+        const auto circuitFlags = mCable->getFlags();
+
+        AnyCircuitType targetType = AnyCircuitType::None;
+        if(powerPole != CablePowerPole::None)
+        {
+            if(powerType == CircuitType::Closed)
+                targetType = AnyCircuitType::Closed;
+            else
+                targetType = AnyCircuitType::Open;
+        }
+
+        const QColor color = AbstractNodeGraphItem::getContactColor(targetType,
+                                                                    circuitFlags,
+                                                                    mCable->hasCircuitsWithFlags(),
+                                                                    mCable->modeMgr());
+        pen.setColor(color);
+    }
 
     // Draw cable path
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(mPath);
-
-    pen.setColor(oldColor);
 }
 
 void CableGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
@@ -421,27 +440,12 @@ void CableGraphItem::updatePen()
     const auto power = mCable->powered();
     const auto powerPole = toCablePowerPole(power);
     const auto powerType = toCircuitType(power);
-    const auto circuitFlags = mCable->getFlags();
-
-    AnyCircuitType targetType = AnyCircuitType::None;
-    if(powerPole != CablePowerPole::None)
-    {
-        if(powerType == CircuitType::Closed)
-            targetType = AnyCircuitType::Closed;
-        else
-            targetType = AnyCircuitType::Open;
-    }
-
-    const QColor color = AbstractNodeGraphItem::getContactColor(targetType,
-                                                                circuitFlags);
-
     Qt::PenStyle style = Qt::SolidLine;
     if(powerPole != CablePowerPole::None &&
             powerPole != CablePowerPole::Both &&
             mCable->mode() == CircuitCable::Mode::Unifilar)
         style = Qt::DashLine;
 
-    pen.setColor(color);
     pen.setStyle(style);
 
     if(powerPole == CablePowerPole::None)

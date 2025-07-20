@@ -233,16 +233,16 @@ void AbstractCircuitNode::detachCable(const CableItem &item)
     }
 }
 
-void AbstractCircuitNode::applyNewFlags()
+void AbstractCircuitNode::applyNewFlags(CircuitFlags sourceFlags)
 {
     for(ElectricCircuit *circuit : getCircuits(CircuitType::Open))
     {
-        circuit->applyNewFlags(this);
+        circuit->applyNewFlags(this, sourceFlags);
     }
 
     for(ElectricCircuit *circuit : getCircuits(CircuitType::Closed))
     {
-        circuit->applyNewFlags(this);
+        circuit->applyNewFlags(this, sourceFlags);
     }
 }
 
@@ -325,7 +325,14 @@ bool AbstractCircuitNode::updateCircuitFlags(int contact, CircuitType type)
             }
             else
             {
-                newFlags = newFlags & circuit->flags();
+                const CircuitFlags flags2 = circuit->flags();
+                const CircuitFlags code1 = getCode(newFlags);
+                const CircuitFlags code2 = getCode(flags2);
+
+                newFlags = newFlags & flags2;
+
+                if(code1 != code2 && code1 != CircuitFlags::None && code2 != CircuitFlags::None)
+                    newFlags = withCode(newFlags, CircuitFlags::CodeInvalid);
             }
         }
     }
@@ -334,6 +341,7 @@ bool AbstractCircuitNode::updateCircuitFlags(int contact, CircuitType type)
     if(newFlags != curFlags)
     {
         curFlags = newFlags;
+
         return true;
     }
 

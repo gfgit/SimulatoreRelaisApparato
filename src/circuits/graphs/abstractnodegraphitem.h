@@ -32,6 +32,8 @@
 class AbstractCircuitNode;
 class CircuitScene;
 
+class ModeManager;
+
 class QJsonObject;
 
 class AbstractNodeGraphItem : public QGraphicsObject
@@ -92,7 +94,9 @@ public:
 
     static QColor getContactColor(const AnyCircuitType targetType,
                                   const CircuitFlags contactFlags,
-                                  bool hasFlags = true);
+                                  bool hasFlags = true,
+                                  ModeManager *modeMgr = nullptr,
+                                  bool *outShouldDraw = nullptr);
 
 protected slots:
     void triggerUpdate();
@@ -122,7 +126,8 @@ protected:
     void recalculateTextWidth();
     virtual void recalculateTextPosition();
 
-    QColor getContactColor(int nodeContact) const;
+    QColor getContactColor(int nodeContact,
+                           bool *outShouldDraw = nullptr) const;
 
 private:
     AbstractCircuitNode *mAbstractNode;

@@ -112,7 +112,10 @@ void SimpleNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIte
                 if(skipCircuitWithFlags && contactFlags != CircuitFlags::None)
                     continue;
 
-                QColor color = getContactColor(contact);
+                bool shouldDraw = true;
+                QColor color = getContactColor(contact, &shouldDraw);
+                if(!shouldDraw)
+                    continue;
 
                 pen.setColor(color);
                 painter->setPen(pen);

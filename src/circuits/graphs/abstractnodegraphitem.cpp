@@ -669,13 +669,15 @@ void AbstractNodeGraphItem::recalculateTextPosition()
     }
 }
 
-QColor AbstractNodeGraphItem::getContactColor(int nodeContact) const
+QColor AbstractNodeGraphItem::getContactColor(int nodeContact, bool *outShouldDraw) const
 {
     Q_ASSERT(nodeContact >= 0 && nodeContact < getAbstractNode()->getContactCount());
 
     const AnyCircuitType targetType = getAbstractNode()->hasAnyCircuit(nodeContact);
     return getContactColor(targetType, getAbstractNode()->getCircuitFlags(nodeContact),
-                           getAbstractNode()->hasCircuitsWithFlags());
+                           getAbstractNode()->hasCircuitsWithFlags(),
+                           getAbstractNode()->modeMgr(),
+                           outShouldDraw);
 }
 
 TileRotate AbstractNodeGraphItem::rotate() const
@@ -760,7 +762,8 @@ void AbstractNodeGraphItem::saveToJSON(QJsonObject &obj) const
 
 QColor AbstractNodeGraphItem::getContactColor(const AnyCircuitType targetType,
                                               const CircuitFlags contactFlags,
-                                              bool hasFlags)
+                                              bool hasFlags, ModeManager *modeMgr,
+                                              bool *outShouldDraw)
 {
     static const QColor colors[3] =
     {
@@ -771,34 +774,44 @@ QColor AbstractNodeGraphItem::getContactColor(const AnyCircuitType targetType,
 
     QColor color = colors[int(targetType)];
 
+    bool shouldDraw = true;
+
     if(hasFlags && targetType != AnyCircuitType::None)
     {
-        const auto code = getCode(contactFlags);
-        if(code != CircuitFlags::None)
-        {
-            switch (code)
-            {
-            case CircuitFlags::Code75:
-                color = CircuitColors::Code75;
-                break;
-            case CircuitFlags::Code120:
-                color = CircuitColors::Code120;
-                break;
-            case CircuitFlags::CodeInvalid:
-                color = CircuitColors::CodeInvalid;
-                break;
-            default:
-                break;
-            }
-        }
-        else if(hasResistor(contactFlags))
+        if(hasResistor(contactFlags))
         {
             if(targetType == AnyCircuitType::Closed)
                 color = CircuitColors::ClosedResistor;
             else if(targetType == AnyCircuitType::Open)
                 color = CircuitColors::OpenResistor;
         }
+
+        const auto code = getCode(contactFlags);
+        if(code != CircuitFlags::None)
+        {
+            switch (code)
+            {
+            case CircuitFlags::CodeInvalid:
+            {
+                shouldDraw = true;
+                color = CircuitColors::CodeInvalid;
+                break;
+            }
+            default:
+            {
+                const SignalAspectCode aspect = codeFromFlag(code);
+                shouldDraw = !modeMgr || modeMgr->getCodePhase(aspect);
+                break;
+            }
+            }
+        }
     }
+
+    if(outShouldDraw)
+        *outShouldDraw = shouldDraw;
+
+    if(!shouldDraw)
+        return CircuitColors::None;
 
     return color;
 }

@@ -80,6 +80,11 @@ public:
         return mModeMgr;
     }
 
+    inline bool hasCircuitsWithFlags() const
+    {
+        return mCircuitsWithFlags > 0;
+    }
+
     void circuitAddedRemovedFlags(ElectricCircuit *circuit, bool add);
     void updateCircuitFlags(CircuitType type, CircuitPole pole);
 
