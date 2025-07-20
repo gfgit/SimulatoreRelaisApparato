@@ -1300,6 +1300,10 @@ void ElectricCircuit::setFlags(CircuitFlags f, CircuitFlags f2)
 {
     mFlagsAndType = withType(f, type());
     mNonSourceFlags = onlyFlags(f2);
+
+    // Validate code
+    mFlagsAndType = withCode(mFlagsAndType, getCode(mFlagsAndType));
+    mNonSourceFlags = withCode(mNonSourceFlags, getCode(mNonSourceFlags));
 }
 
 void ElectricCircuit::searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, ItemVector &items, int depth)
