@@ -96,7 +96,9 @@ public:
 
     static void createCircuitsFromPowerNode(AbstractCircuitNode *source,
                                             CircuitPole startPole = CircuitPole::First,
-                                            int nodeContact = 0);
+                                            int nodeContact = 0,
+                                            CircuitFlags startFlags = CircuitFlags::None);
+
     static void createCircuitsFromOtherNode(AbstractCircuitNode *node);
 
     static void tryReachNextOpenCircuit(AbstractCircuitNode *goalNode,
@@ -107,7 +109,7 @@ public:
 
     void updateItemsFlags();
 
-    void applyNewFlags(AbstractCircuitNode *changedNode);
+    void applyNewFlags(AbstractCircuitNode *changedNode, CircuitFlags sourceFlags);
 
 private:
     bool recalculateFlags();

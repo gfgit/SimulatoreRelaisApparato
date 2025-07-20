@@ -618,7 +618,10 @@ ElectricCircuit *ElectricCircuit::cloneToOppositeType()
     return other;
 }
 
-void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, CircuitPole startPole, int nodeContact)
+void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source,
+                                                  CircuitPole startPole,
+                                                  int nodeContact,
+                                                  CircuitFlags startFlags)
 {
     auto contact = source->getContacts().at(nodeContact);
 
@@ -628,6 +631,7 @@ void ElectricCircuit::createCircuitsFromPowerNode(AbstractCircuitNode *source, C
     firstItem.node.fromContact = NodeItem::InvalidContact;
     firstItem.node.toContact = nodeContact;
     firstItem.node.setPoles(startPole, startPole);
+    firstItem.node.setFlags(startFlags);
 
     if(contact.cable)
     {
@@ -1155,6 +1159,7 @@ void ElectricCircuit::defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode)
 
 void ElectricCircuit::updateItemsFlags()
 {
+    QSet<AbstractCircuitNode *> updatedNodes;
     QSet<CircuitCable *> updatedCables;
 
     const bool hadFlags = flags() != CircuitFlags::None;
@@ -1169,10 +1174,17 @@ void ElectricCircuit::updateItemsFlags()
         const Item& item = mItems[i];
         if(item.isNode)
         {
-            if(removeFlags)
-                item.node.node->mCircuitsWithFlags--;
-            else if(addFlags)
-                item.node.node->mCircuitsWithFlags++;
+            if(!updatedNodes.contains(item.node.node))
+            {
+                updatedNodes.insert(item.node.node);
+
+                // Update only once per circuit
+                // Even if circuit passes multiple times on this node
+                if(removeFlags)
+                    item.node.node->mCircuitsWithFlags--;
+                else if(addFlags)
+                    item.node.node->mCircuitsWithFlags++;
+            }
 
             bool flagsChanged = false;
 
@@ -1215,8 +1227,13 @@ void ElectricCircuit::updateItemsFlags()
     }
 }
 
-void ElectricCircuit::applyNewFlags(AbstractCircuitNode *changedNode)
+void ElectricCircuit::applyNewFlags(AbstractCircuitNode *changedNode, CircuitFlags sourceFlags)
 {
+    if(getSource() == changedNode)
+    {
+        mItems[0].node.setFlags(sourceFlags);
+    }
+
     for(int i = 2; i < mItems.size(); i += 2)
     {
         Item& item = mItems[i];
