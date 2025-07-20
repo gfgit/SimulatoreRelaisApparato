@@ -258,19 +258,21 @@ void RemoteSession::onRemoteBridgeListReceived(const QVector<BridgeListItem> &li
 }
 
 void RemoteSession::onRemoteBridgeModeChanged(quint64 localNodeId,
-                                              qint8 mode, qint8 pole, qint8 replyToMode)
+                                              qint8 mode, qint8 pole,
+                                              qint8 replyToMode, quint8 circuitFlags)
 {
     RemoteCircuitBridge *bridge = mBridges.at(localNodeId - 1);
     if(bridge)
-        bridge->onRemoteNodeModeChanged(mode, pole, replyToMode);
+        bridge->onRemoteNodeModeChanged(mode, pole, replyToMode, circuitFlags);
 }
 
-void RemoteSession::onLocalBridgeModeChanged(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode)
+void RemoteSession::onLocalBridgeModeChanged(quint64 peerNodeId, qint8 mode,
+                                             qint8 pole, qint8 replyToMode, quint8 circuitFlags)
 {
     if(!mPeerConn)
         return;
 
-    mPeerConn->sendBridgeStatus(peerNodeId, mode, pole, replyToMode);
+    mPeerConn->sendBridgeStatus(peerNodeId, mode, pole, replyToMode, circuitFlags);
 }
 
 void RemoteSession::sendReplicaList()

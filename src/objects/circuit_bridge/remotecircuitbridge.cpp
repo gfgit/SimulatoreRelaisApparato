@@ -275,6 +275,12 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
     const RemoteCableCircuitNode::Mode currMode = node->mode();
     const CircuitPole currSendPole = node->getSendPole();
     const RemoteCableCircuitNode::Mode replyToMode = node->lastPeerMode();
+    const CircuitFlags circuitFlags = node->getCircuitFlags(0);
+    const CircuitFlags nonSourceFlags = node->getNonSourceFlags();
+
+    CircuitFlags flagsToSend = circuitFlags;
+    if(RemoteCableCircuitNode::isReceiveMode(currMode))
+        flagsToSend = nonSourceFlags;
 
     if(other)
     {
@@ -282,14 +288,15 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
         // because it triggers circuit add/remove from inside
         // another circuit add/remove.
         // So use delayed event posting
-        other->delayedPeerModeChanged(currMode, currSendPole, replyToMode);
+        other->delayedPeerModeChanged(currMode, currSendPole,
+                                      replyToMode, flagsToSend);
     }
     else if(mRemoteSession && mPeerNodeId)
     {
         // Send to remote session
         mRemoteSession->onLocalBridgeModeChanged(mPeerNodeId,
                                                  qint8(currMode), qint8(currSendPole),
-                                                 qint8(replyToMode));
+                                                 qint8(replyToMode), quint8(flagsToSend));
     }
     else if(mSerialNameId)
     {
@@ -301,14 +308,16 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
                 // Fake close circuit
                 node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
                                              currSendPole,
-                                             RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed);
+                                             RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
+                                             CircuitFlags::None);
             }
             else if(currMode == RemoteCableCircuitNode::Mode::SendCurrentClosed)
             {
                 // Fake close circuit
                 node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
                                              currSendPole,
-                                             RemoteCableCircuitNode::Mode::ReceiveCurrentClosed);
+                                             RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
+                                             CircuitFlags::None);
 
                 int mode = currSendPole == CircuitPole::First ? 1 : 2;
                 mSerialDevice->onOutputChanged(mSerialOutputId, mode);
@@ -322,34 +331,40 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
             // Fake reset circuit
             node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::None,
                                          currSendPole,
-                                         RemoteCableCircuitNode::Mode::None);
+                                         RemoteCableCircuitNode::Mode::None,
+                                         CircuitFlags::None);
         }
         else if(currMode == RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed && mSerialInputId)
         {
             // Fake close remote circuit
             node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::SendCurrentClosed,
                                          node->mRecvPole,
-                                         RemoteCableCircuitNode::Mode::SendCurrentClosed);
+                                         RemoteCableCircuitNode::Mode::SendCurrentClosed,
+                                         circuitFlags);
         }
     }
 }
 
 void RemoteCircuitBridge::onSerialInputMode(int mode)
 {
+    const CircuitFlags circuitFlags = mNodeA->getCircuitFlags(0);
+
     if(mode == 1 || mode == 2)
     {
         // Enable input
         if(mNodeA->mode() == RemoteCableCircuitNode::Mode::None)
         {
             mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::SendCurrentOpen,
-                                      mode == 1 ? CircuitPole::First : CircuitPole::Second);
+                                      mode == 1 ? CircuitPole::First : CircuitPole::Second,
+                                      circuitFlags);
         }
     }
     else
     {
         // Disable input
         mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::None,
-                                  CircuitPole::First);
+                                  CircuitPole::First,
+                                  circuitFlags);
     }
 }
 
@@ -482,11 +497,13 @@ bool RemoteCircuitBridge::setSerialDevice(SerialDevice *serialDevice)
     return true;
 }
 
-void RemoteCircuitBridge::onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode)
+void RemoteCircuitBridge::onRemoteNodeModeChanged(qint8 mode, qint8 pole,
+                                                  qint8 replyToMode, quint8 circuitFlags)
 {
     const RemoteCableCircuitNode::Mode currMode = RemoteCableCircuitNode::Mode(mode);
     const CircuitPole currSendPole = CircuitPole(pole);
     const RemoteCableCircuitNode::Mode replyMode = RemoteCableCircuitNode::Mode(replyToMode);
+    const CircuitFlags recvFlags = CircuitFlags(circuitFlags);
 
     if(!mNodeA)
         return;
@@ -499,14 +516,15 @@ void RemoteCircuitBridge::onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 
             RemoteCableCircuitNode::isReceiveMode(currMode))
         return;
 
-    mNodeA->onPeerModeChanged(currMode, currSendPole);
+    mNodeA->onPeerModeChanged(currMode, currSendPole, recvFlags);
 }
 
 void RemoteCircuitBridge::onRemoteDisconnected()
 {
     if(mNodeA)
         mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::None,
-                                  CircuitPole::First);
+                                  CircuitPole::First,
+                                  CircuitFlags::None);
 }
 
 void RemoteCircuitBridge::onRemoteStarted()
@@ -517,6 +535,7 @@ void RemoteCircuitBridge::onRemoteStarted()
     const RemoteCableCircuitNode::Mode currMode = mNodeA->mode();
     const CircuitPole currSendPole = mNodeA->getSendPole();
     const RemoteCableCircuitNode::Mode replyToMode = RemoteCableCircuitNode::Mode::None;
+    const CircuitFlags circuitFlags = mNodeA->getCircuitFlags(0);
 
     if(!RemoteCableCircuitNode::isSendMode(currMode))
         return;
@@ -526,7 +545,7 @@ void RemoteCircuitBridge::onRemoteStarted()
         // Send to remote session
         mRemoteSession->onLocalBridgeModeChanged(mPeerNodeId,
                                                  qint8(currMode), qint8(currSendPole),
-                                                 qint8(replyToMode));
+                                                 qint8(replyToMode), quint8(circuitFlags));
     }
     else if(mSerialNameId && mSerialOutputId)
     {
@@ -534,7 +553,8 @@ void RemoteCircuitBridge::onRemoteStarted()
         {
             // Fake close circuit, this will then send to serial device
             mNodeA->onPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
-                                      currSendPole);
+                                      currSendPole,
+                                      CircuitFlags::None);
         }
     }
 }

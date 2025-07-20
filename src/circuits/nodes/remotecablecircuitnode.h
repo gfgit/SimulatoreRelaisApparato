@@ -138,16 +138,28 @@ public:
 
     QString getDescription() const;
 
+    inline CircuitFlags getNonSourceFlags() const
+    {
+        return mNonSourceFlags;
+    }
+
 signals:
     void modeChanged(Mode newMode);
 
+protected:
+    virtual void onCircuitFlagsChanged() override;
+
 private:
     friend class RemoteCircuitBridge;
-    void onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole);
-    void delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole, Mode replyToMode);
+    void onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole,
+                           CircuitFlags peerFlags);
+    void delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole,
+                                Mode replyToMode, CircuitFlags circuitFlags);
 
     void scheduleStateRefresh();
     void refreshState();
+
+    void updateNonSourceFlags();
 
 private:
     RemoteCircuitBridge *mRemote = nullptr;
@@ -163,6 +175,8 @@ private:
 
     CircuitPole mSendPole = CircuitPole::First;
     CircuitPole mRecvPole = CircuitPole::First;
+    CircuitFlags mRecvFlags = CircuitFlags::None;
+    CircuitFlags mNonSourceFlags = CircuitFlags::None;
 };
 
 #endif // REMOTE_CABLE_CIRCUIT_NODE_H

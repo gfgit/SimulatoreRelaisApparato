@@ -122,9 +122,10 @@ bool PeerConnection::sendMessage(const QString &message)
     return true;
 }
 
-void PeerConnection::sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode)
+void PeerConnection::sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole,
+                                      qint8 replyToMode, quint8 circuitFlags)
 {
-    const quint64 arr[2] = {quint64(peerNodeId), quint64(mode | (pole << 8) | (replyToMode << 16))};
+    const quint64 arr[2] = {quint64(peerNodeId), quint64(mode | (pole << 8) | (replyToMode << 16) | (circuitFlags << 24))};
 
     writer.startMap(1);
     writer.append(BridgeStatus);
@@ -479,8 +480,10 @@ void PeerConnection::processData()
             qint8 mode = qint8(arr[1] & 0xFF);
             qint8 pole = qint8((arr[1] >> 8) & 0xFF);
             qint8 replyToMode = qint8((arr[1] >> 16) & 0xFF);
+            quint8 circuitFlags = quint8((arr[1] >> 24) & 0xFF);
             remoteSession->onRemoteBridgeModeChanged(localNodeId,
-                                                     mode, pole, replyToMode);
+                                                     mode, pole,
+                                                     replyToMode, circuitFlags);
         }
         break;
     }
