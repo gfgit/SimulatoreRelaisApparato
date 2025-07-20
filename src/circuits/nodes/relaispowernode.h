@@ -52,11 +52,11 @@ public:
     AbstractRelais *relais() const;
     void setRelais(AbstractRelais *newRelais);
 
-    int delayUpSeconds() const;
-    void setDelayUpSeconds(int newDelayUpSeconds);
+    int delayUpMillis() const;
+    void setDelayUpMillis(int newDelayUpMillis);
 
-    int delayDownSeconds() const;
-    void setDelayDownSeconds(int newDelayDownSeconds);
+    int delayDownMillis() const;
+    void setDelayDownMillis(int newDelayDownMillis);
 
     bool hasSecondConnector() const;
     void setHasSecondConnector(bool newHasSecondConnector);
@@ -101,7 +101,7 @@ private:
     // Settings
     AbstractRelais *mRelais = nullptr;
 
-    int mDelayUpSeconds = 0;
+    int mDelayUpMillis = 0;
     int mDelayDownSeconds = 0;
     bool mHasSecondConnector = false;
     bool mCombinatorSecondCoil = false;

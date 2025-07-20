@@ -704,10 +704,10 @@ bool AbstractRelais::isDelayed(State dir) const
 
     for(RelaisPowerNode *node : mPowerNodes)
     {
-        if(dir == State::Up && node->delayUpSeconds() > 0)
+        if(dir == State::Up && node->delayUpMillis() > 0)
             return true;
 
-        if(dir == State::Down && node->delayDownSeconds() > 0)
+        if(dir == State::Down && node->delayDownMillis() > 0)
             return true;
     }
 

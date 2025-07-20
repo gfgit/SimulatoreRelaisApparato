@@ -45,7 +45,6 @@
 
 QJsonObject convertFileFormatBetaToV1(const QJsonObject& origFile)
 {
-
     QJsonObject objects;
 
     // Port Relais
@@ -320,6 +319,49 @@ QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFileOld)
     return newFile;
 }
 
+QJsonObject convertFileFormatV2ToV3(const QJsonObject& origFileOld)
+{
+    const QJsonObject origFile = replaceACESasibType(origFileOld);
+
+    QJsonObject circuits = origFile.value("circuits").toObject();
+    const QJsonArray scenes = circuits.value("scenes").toArray();
+
+    QJsonArray newScenes;
+    for(const QJsonValue& v : scenes)
+    {
+        QJsonObject scene = v.toObject();
+
+        QJsonArray nodes;
+        for(QJsonValueRef nodeVal : scene["nodes"].toArray())
+        {
+            QJsonObject node = nodeVal.toObject();
+            const QString nodeType = node.value("type").toString();
+            if(nodeType == "relais_power")
+            {
+                // Convert delay to milliseconds
+                node["delay_up_ms"] = node["delay_up_sec"].toInt() * 1000;
+                node["delay_down_ms"] = node["delay_down_sec"].toInt() * 1000;
+            }
+
+            nodes.append(node);
+        }
+        scene["nodes"] = nodes;
+
+        newScenes.append(scene);
+    }
+
+    // Save new file
+    QJsonObject newFile = origFile;
+    newFile["file_version"] = ModeManager::FileVersion::V2;
+
+    QJsonObject newCircuits;
+    newCircuits["scenes"] = newScenes;
+
+    newFile["circuits"] = newCircuits;
+
+    return newFile;
+}
+
 QJsonObject convertOldFileFormat(const QJsonObject& origFile)
 {
     QJsonObject rootObj = origFile;
@@ -334,6 +376,12 @@ QJsonObject convertOldFileFormat(const QJsonObject& origFile)
     {
         // V1 file, try to convert it to V2
         rootObj = convertFileFormatV1ToV2(rootObj);
+    }
+
+    if(rootObj.value("file_version") == ModeManager::FileVersion::V2)
+    {
+        // V1 file, try to convert it to V3
+        rootObj = convertFileFormatV2ToV3(rootObj);
     }
 
     return rootObj;

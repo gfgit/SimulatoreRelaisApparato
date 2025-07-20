@@ -391,12 +391,12 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         // Separate a bit delay line and relay circle
         const double delayLineMargin = pen.widthF() * 0.6;
 
-        if(node()->delayUpSeconds() > 0)
+        if(node()->delayUpMillis() > 0)
         {
             painter->drawLine(QLineF(lineRect.left(), lineRect.top() - delayLineMargin,
                                      lineRect.right(), lineRect.top() - delayLineMargin));
         }
-        if(node()->delayDownSeconds() > 0)
+        if(node()->delayDownMillis() > 0)
         {
             painter->drawLine(QLineF(lineRect.left(), lineRect.bottom() + delayLineMargin,
                                      lineRect.right(), lineRect.bottom() + delayLineMargin));

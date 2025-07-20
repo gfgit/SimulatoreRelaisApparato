@@ -55,7 +55,8 @@ public:
         Beta = 0,
         V1 = 1,
         V2 = 2,
-        Current = V2
+        V3 = 3,
+        Current = V3
     };
 
     explicit ModeManager(QObject *parent = nullptr);

@@ -183,8 +183,8 @@ bool RelaisPowerNode::loadFromJSON(const QJsonObject &obj)
     else
         setRelais(nullptr);
 
-    mDelayUpSeconds = obj.value("delay_up_sec").toInt();
-    mDelayDownSeconds = obj.value("delay_down_sec").toInt();
+    mDelayUpMillis = obj.value("delay_up_ms").toInt();
+    mDelayDownMillis = obj.value("delay_down_ms").toInt();
 
     setHasSecondConnector(obj.value("has_second_connector").toBool());
 
@@ -199,8 +199,8 @@ void RelaisPowerNode::saveToJSON(QJsonObject &obj) const
 
     obj["relais"] = mRelais ? mRelais->name() : QString();
 
-    obj["delay_up_sec"] = mDelayUpSeconds;
-    obj["delay_down_sec"] = mDelayDownSeconds;
+    obj["delay_up_ms"] = mDelayUpMillis;
+    obj["delay_down_ms"] = mDelayDownMillis;
 
     obj["has_second_connector"] = hasSecondConnector();
     obj["combinator_second_coil"] = combinatorSecondCoil();
@@ -281,17 +281,17 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
     modeMgr()->setFileEdited();
 }
 
-int RelaisPowerNode::delayUpSeconds() const
+int RelaisPowerNode::delayUpMillis() const
 {
-    return mDelayUpSeconds;
+    return mDelayUpMillis;
 }
 
-void RelaisPowerNode::setDelayUpSeconds(int newDelayUpSeconds)
+void RelaisPowerNode::setDelayUpMillis(int newDelayUpMillis)
 {
-    if(mDelayUpSeconds == newDelayUpSeconds)
+    if(mDelayUpMillis == newDelayUpMillis)
         return;
 
-    mDelayUpSeconds = newDelayUpSeconds;
+    mDelayUpMillis = newDelayUpMillis;
     emit delaysChanged();
     emit shapeChanged();
 
@@ -301,17 +301,17 @@ void RelaisPowerNode::setDelayUpSeconds(int newDelayUpSeconds)
     modeMgr()->setFileEdited();
 }
 
-int RelaisPowerNode::delayDownSeconds() const
+int RelaisPowerNode::delayDownMillis() const
 {
-    return mDelayDownSeconds;
+    return mDelayDownMillis;
 }
 
-void RelaisPowerNode::setDelayDownSeconds(int newDelayDownSeconds)
+void RelaisPowerNode::setDelayDownMillis(int newDelayDownMillis)
 {
-    if(mDelayDownSeconds == newDelayDownSeconds)
+    if(mDelayDownMillis == newDelayDownMillis)
         return;
 
-    mDelayDownSeconds = newDelayDownSeconds;
+    mDelayDownMillis = newDelayDownMillis;
     emit delaysChanged();
     emit shapeChanged();
 
@@ -343,8 +343,8 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
         Q_ASSERT_X(mRelais, "RelaisPowerNode::timerEvent", "no relay");
 
         // Increment timeout percent (down is negative)
-        const double upIncrement = 1.0 / (4.0 * qMax(0.1, double(mDelayUpSeconds)));
-        const double downIncrement = -1.0 / (4.0 * qMax(0.1, double(mDelayDownSeconds)));
+        const double upIncrement = 250.0 / qMax(0.1, double(mDelayUpMillis));
+        const double downIncrement = -250.0 / qMax(0.1, double(mDelayDownMillis));
 
         if(mTimerIds[0])
             mTimeoutPercentStatus[0] += wasGoingUp[0] ? upIncrement : downIncrement;
@@ -376,7 +376,7 @@ void RelaisPowerNode::activateRelay(int contact)
     if(mIsUp[contact] || !mRelais)
         return; // Already in position
 
-    if(mDelayUpSeconds == 0)
+    if(mDelayUpMillis == 0)
     {
         // Do it now
         mIsUp[contact] = true;
@@ -385,7 +385,7 @@ void RelaisPowerNode::activateRelay(int contact)
     else
     {
         wasGoingUp[contact] = true;
-        mTimerIds[contact] = startTimer(mDelayUpSeconds * 1000,
+        mTimerIds[contact] = startTimer(mDelayUpMillis,
                                         Qt::PreciseTimer);
         mTimeoutPercentStatus[contact] = 0.0; // We start from bottom
         ensureTimeoutPercentTimer();
@@ -404,7 +404,7 @@ void RelaisPowerNode::deactivateRelay(int contact)
     if(!mIsUp[contact] || !mRelais)
         return; // Already in position
 
-    if(mDelayDownSeconds == 0)
+    if(mDelayDownMillis == 0)
     {
         // Do it now
         mIsUp[contact] = false;
@@ -413,7 +413,7 @@ void RelaisPowerNode::deactivateRelay(int contact)
     else
     {
         wasGoingUp[contact] = false;
-        mTimerIds[contact] = startTimer(mDelayDownSeconds * 1000,
+        mTimerIds[contact] = startTimer(mDelayDownMillis,
                                         Qt::PreciseTimer);
         mTimeoutPercentStatus[contact] = 1.0; // We start from top
         ensureTimeoutPercentTimer();

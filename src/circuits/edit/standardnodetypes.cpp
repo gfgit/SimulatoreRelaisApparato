@@ -415,28 +415,28 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             lay->addRow(tr("Relay:"), relayEdit);
 
             // Delayed up/down
-            QSpinBox *delayUpSeconds = new QSpinBox;
-            delayUpSeconds->setRange(0, 5 * 60);
-            delayUpSeconds->setSpecialValueText(tr("None"));
-            delayUpSeconds->setSuffix(tr(" sec")); // Seconds
-            lay->addRow(tr("Delay up:"), delayUpSeconds);
+            QSpinBox *delayUpMillis = new QSpinBox;
+            delayUpMillis->setRange(0, 5 * 60 * 1000);
+            delayUpMillis->setSpecialValueText(tr("None"));
+            delayUpMillis->setSuffix(tr(" ms")); // Milliseconds
+            lay->addRow(tr("Delay up:"), delayUpMillis);
 
-            QObject::connect(delayUpSeconds, &QSpinBox::valueChanged,
+            QObject::connect(delayUpMillis, &QSpinBox::valueChanged,
                              node, [node](int val)
             {
-                node->setDelayUpSeconds(val);
+                node->setDelayUpMillis(val);
             });
 
-            QSpinBox *delayDownSeconds = new QSpinBox;
-            delayDownSeconds->setRange(0, 5 * 60);
-            delayDownSeconds->setSpecialValueText(tr("None"));
-            delayDownSeconds->setSuffix(tr(" sec")); // Seconds
-            lay->addRow(tr("Delay down:"), delayDownSeconds);
+            QSpinBox *delayDownMillis = new QSpinBox;
+            delayDownMillis->setRange(0, 5 * 60 * 1000);
+            delayDownMillis->setSpecialValueText(tr("None"));
+            delayDownMillis->setSuffix(tr(" ms")); // Milliseconds
+            lay->addRow(tr("Delay down:"), delayDownMillis);
 
-            QObject::connect(delayDownSeconds, &QSpinBox::valueChanged,
+            QObject::connect(delayDownMillis, &QSpinBox::valueChanged,
                              node, [node](int val)
             {
-                node->setDelayDownSeconds(val);
+                node->setDelayDownMillis(val);
             });
 
             QCheckBox *hasSecondContact = new QCheckBox(tr("Has second contact"));
@@ -471,12 +471,12 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             });
 
             auto updDelayLambda =
-                    [delayUpSeconds, delayDownSeconds,
+                    [delayUpMillis, delayDownMillis,
                     hasSecondContact, combinatorSecondCoil, preferEastArrow,
                     node, item]()
             {
-                delayUpSeconds->setValue(node->delayUpSeconds());
-                delayDownSeconds->setValue(node->delayDownSeconds());
+                delayUpMillis->setValue(node->delayUpMillis());
+                delayDownMillis->setValue(node->delayDownMillis());
                 hasSecondContact->setChecked(node->hasSecondConnector());
                 combinatorSecondCoil->setChecked(node->combinatorSecondCoil());
                 preferEastArrow->setChecked(static_cast<RelaisPowerGraphItem *>(item)->preferEastArrow());
