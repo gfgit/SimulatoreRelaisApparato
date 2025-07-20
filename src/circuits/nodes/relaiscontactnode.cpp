@@ -173,6 +173,20 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais, bool autoSwapState)
             // Swap by default for new normally up ralais contacts
             setSwapContactState(true);
         }
+
+        switch (mRelais->relaisType())
+        {
+        case AbstractRelais::RelaisType::Encoder:
+        case AbstractRelais::RelaisType::CodeRepeater:
+        {
+            // Relays is normally down and contact must be normally open
+            setSwapContactState(true);
+            setHasCentralConnector(false);
+            break;
+        }
+        default:
+            break;
+        }
     }
 
     emit shapeChanged();
