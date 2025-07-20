@@ -484,6 +484,8 @@ void AbstractRelais::startMove(bool up)
     {
     case RelaisType::Combinator:
     case RelaisType::Decoder:
+    case RelaisType::Encoder:
+    case RelaisType::CodeRepeater:
         // These types have symmetric time characteristic
         // So use always custom up time
         timeUp = true;
@@ -502,6 +504,8 @@ void AbstractRelais::startMove(bool up)
             totalTime = DefaultCombinatorMS;
             break;
         case RelaisType::Decoder:
+        case RelaisType::Encoder:
+        case RelaisType::CodeRepeater:
             totalTime = DefaultDecoderMS;
             break;
         default:
