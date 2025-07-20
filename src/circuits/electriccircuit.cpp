@@ -530,7 +530,7 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
         {
             // Flags might have come from removed items
             // So now flags could be different, recalculate them
-            updateItemFlags();
+            updateItemsFlags();
         }
 
         // Circuit is still registered at node
@@ -1153,66 +1153,96 @@ void ElectricCircuit::defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode)
     }
 }
 
-void ElectricCircuit::updateItemFlags()
+void ElectricCircuit::updateItemsFlags()
 {
     QSet<CircuitCable *> updatedCables;
 
     const bool hadFlags = flags() != CircuitFlags::None;
-    if(recalculateFlags())
+    if(!recalculateFlags())
+        return; // No change
+
+    const bool removeFlags = hadFlags && flags() == CircuitFlags::None;
+    const bool addFlags = !hadFlags && flags() != CircuitFlags::None;
+
+    for(int i = 0; i < mItems.size(); i++)
     {
-        const bool removeFlags = hadFlags && flags() == CircuitFlags::None;
-        const bool addFlags = !hadFlags && flags() != CircuitFlags::None;
-
-        for(int i = 0; i < mItems.size(); i++)
+        const Item& item = mItems[i];
+        if(item.isNode)
         {
-            const Item& item = mItems[i];
-            if(item.isNode)
+            if(removeFlags)
+                item.node.node->mCircuitsWithFlags--;
+            else if(addFlags)
+                item.node.node->mCircuitsWithFlags++;
+
+            bool flagsChanged = false;
+
+            // We need to update node flags after removing items
+            if(item.node.fromContact != NodeItem::InvalidContact)
+                flagsChanged |= item.node.node->updateCircuitFlags(item.node.fromContact, type());
+
+            if(item.node.toContact != NodeItem::InvalidContact)
+                flagsChanged |= item.node.node->updateCircuitFlags(item.node.toContact, type());
+
+            if(flagsChanged)
             {
-                if(removeFlags)
-                    item.node.node->mCircuitsWithFlags--;
-                else if(addFlags)
-                    item.node.node->mCircuitsWithFlags++;
-
-                bool flagsChanged = false;
-
-                // We need to update node flags after removing items
-                if(item.node.fromContact != NodeItem::InvalidContact)
-                    flagsChanged |= item.node.node->updateCircuitFlags(item.node.fromContact, type());
-
-                if(item.node.toContact != NodeItem::InvalidContact)
-                    flagsChanged |= item.node.node->updateCircuitFlags(item.node.toContact, type());
-
-                if(flagsChanged)
+                emit item.node.node->circuitsChanged();
+                item.node.node->onCircuitFlagsChanged();
+            }
+        }
+        else
+        {
+            if(removeFlags)
+            {
+                if(!updatedCables.contains(item.cable.cable))
                 {
-                    emit item.node.node->circuitsChanged();
-                    item.node.node->onCircuitFlagsChanged();
+                    updatedCables.insert(item.cable.cable);
+                    item.cable.cable->circuitAddedRemovedFlags(this, false);
+                }
+            }
+            else if(addFlags)
+            {
+                if(!updatedCables.contains(item.cable.cable))
+                {
+                    updatedCables.insert(item.cable.cable);
+                    item.cable.cable->circuitAddedRemovedFlags(this, true);
                 }
             }
             else
             {
-                if(removeFlags)
-                {
-                    if(!updatedCables.contains(item.cable.cable))
-                    {
-                        updatedCables.insert(item.cable.cable);
-                        item.cable.cable->circuitAddedRemovedFlags(this, false);
-                    }
-                }
-                else if(addFlags)
-                {
-                    if(!updatedCables.contains(item.cable.cable))
-                    {
-                        updatedCables.insert(item.cable.cable);
-                        item.cable.cable->circuitAddedRemovedFlags(this, true);
-                    }
-                }
-                else
-                {
-                    item.cable.cable->updateCircuitFlags(type(), item.cable.pole);
-                }
+                item.cable.cable->updateCircuitFlags(type(), item.cable.pole);
             }
         }
     }
+}
+
+void ElectricCircuit::applyNewFlags(AbstractCircuitNode *changedNode)
+{
+    for(int i = 2; i < mItems.size(); i += 2)
+    {
+        Item& item = mItems[i];
+        Q_ASSERT(item.isNode);
+
+        if(item.node.node != changedNode)
+            continue;
+
+        CableItem nodeSourceCable;
+        nodeSourceCable.cable = mItems.at(i - 1).cable;
+        nodeSourceCable.nodeContact = item.node.fromContact;
+        const auto connections = item.node.node->getActiveConnections(nodeSourceCable);
+
+        for(const auto& conn : connections)
+        {
+            if(conn.nodeContact == item.node.toContact &&
+                    conn.cable.pole == item.node.toPole())
+            {
+                // Same as our path, update flags
+                item.node.setFlags(conn.flags);
+                break;
+            }
+        }
+    }
+
+    updateItemsFlags();
 }
 
 bool ElectricCircuit::recalculateFlags()

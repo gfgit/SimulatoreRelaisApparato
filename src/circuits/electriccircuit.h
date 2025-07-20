@@ -105,7 +105,9 @@ public:
 
     static void defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode);
 
-    void updateItemFlags();
+    void updateItemsFlags();
+
+    void applyNewFlags(AbstractCircuitNode *changedNode);
 
 private:
     bool recalculateFlags();

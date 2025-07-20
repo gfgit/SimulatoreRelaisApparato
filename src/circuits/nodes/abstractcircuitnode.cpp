@@ -233,6 +233,19 @@ void AbstractCircuitNode::detachCable(const CableItem &item)
     }
 }
 
+void AbstractCircuitNode::applyNewFlags()
+{
+    for(ElectricCircuit *circuit : getCircuits(CircuitType::Open))
+    {
+        circuit->applyNewFlags(this);
+    }
+
+    for(ElectricCircuit *circuit : getCircuits(CircuitType::Closed))
+    {
+        circuit->applyNewFlags(this);
+    }
+}
+
 bool AbstractCircuitNode::loadFromJSON(const QJsonObject &obj)
 {
     if(obj.value("type") != nodeType())

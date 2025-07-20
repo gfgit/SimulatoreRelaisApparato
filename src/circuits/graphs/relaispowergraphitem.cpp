@@ -181,27 +181,34 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
                 SignalAspectCode code = SignalAspectCode::CodeAbsent;
 
                 bool forceUp = false;
+                bool skip = false;
                 switch (node()->relais()->relaisType())
                 {
                 case AbstractRelais::RelaisType::Encoder:
                 {
                     code = node()->relais()->getExpectedCode();
+                    break;
                 }
                 case AbstractRelais::RelaisType::CodeRepeater:
                 {
                     code = node()->relais()->getDetectedCode();
                     if(code == SignalAspectCode::CodeAbsent)
                         forceUp = true;
+                    break;
                 }
                 default:
+                    skip = true;
                     break;
                 }
 
-                // Fake relay pulsing at code frequency
-                if(node()->modeMgr()->getCodePhase(code) || forceUp)
-                    relayState = AbstractRelais::State::Up;
-                else
-                    relayState = AbstractRelais::State::Down;
+                if(!skip)
+                {
+                    // Fake relay pulsing at code frequency
+                    if(node()->modeMgr()->getCodePhase(code) || forceUp)
+                        relayState = AbstractRelais::State::Up;
+                    else
+                        relayState = AbstractRelais::State::Down;
+                }
             }
 
             switch (relayState)

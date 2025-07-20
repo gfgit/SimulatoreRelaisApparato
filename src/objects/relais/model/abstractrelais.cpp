@@ -347,19 +347,28 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
     }
     else if(mActivePowerNodesUp == 1)
     {
-        if(relaisType() == RelaisType::Blinker || relaisType() == RelaisType::Encoder)
+        if(relaisType() == RelaisType::Blinker)
         {
             mPositionTimer.stop();
 
             // Timer will switch state
-            if(relaisType() == RelaisType::Blinker)
-            {
-                mPositionTimer.start(mCustomDownMS > 0 ? mCustomDownMS : mCustomUpMS,
-                                     Qt::PreciseTimer, this);
-            }
+            mPositionTimer.start(mCustomDownMS > 0 ? mCustomDownMS : mCustomUpMS,
+                                 Qt::PreciseTimer, this);
         }
         else
         {
+            switch (relaisType())
+            {
+            case AbstractRelais::RelaisType::Decoder:
+            case AbstractRelais::RelaisType::CodeRepeater:
+            {
+                setDecodedResult(mDetectedCode);
+                return;
+            }
+            default:
+                break;
+            }
+
             // Begin powering normal relais
             startMove(true);
         }
@@ -426,7 +435,7 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
     }
     else if(mActivePowerNodesUp == 0)
     {
-        if(relaisType() == RelaisType::Blinker || relaisType() == RelaisType::Encoder)
+        if(relaisType() == RelaisType::Blinker)
         {
             // Timer will self stop at next timeout and set relais to Down state
         }
@@ -523,10 +532,11 @@ void AbstractRelais::setDecodedResult(SignalAspectCode code)
     Q_ASSERT(relaisType() == RelaisType::Decoder ||
              relaisType() == RelaisType::CodeRepeater);
 
-    if(mDetectedCode == code)
-        return;
+    const auto oldCode = mDetectedCode;
+    mDetectedCode = code;
 
-    if((mExpectedCode != SignalAspectCode::CodeAbsent && mDetectedCode != mExpectedCode)
+    if(mActivePowerNodesUp == 0 ||
+            (mExpectedCode != SignalAspectCode::CodeAbsent && mDetectedCode != mExpectedCode)
             || (mDetectedCode == SignalAspectCode::CodeAbsent && relaisType() == RelaisType::Decoder))
     {
         // Wrong or no code detected, go down
@@ -536,6 +546,16 @@ void AbstractRelais::setDecodedResult(SignalAspectCode code)
 
     // We detected correct code, move up
     startMove(true);
+
+    if(relaisType() == RelaisType::CodeRepeater &&
+            oldCode != mDetectedCode)
+    {
+        // Update contact flags
+        for(RelaisContactNode *c : mContactNodes)
+        {
+            c->applyNewFlags();
+        }
+    }
 }
 
 SignalAspectCode AbstractRelais::codeForMillis(qint64 millis)

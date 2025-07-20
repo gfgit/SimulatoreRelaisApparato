@@ -257,6 +257,8 @@ public:
         return mModeMgr;
     }
 
+    void applyNewFlags();
+
 protected:
     friend class CircuitScene;
     friend class AbstractNodeGraphItem;

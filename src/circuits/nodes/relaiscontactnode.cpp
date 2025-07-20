@@ -114,7 +114,11 @@ AbstractCircuitNode::ConnectionsRes RelaisContactNode::getActiveConnections(Cabl
             other.cable.pole = source.cable.pole;
             other.nodeContact = otherContactIdx;
 
-            const SignalAspectCode code = mRelais->getExpectedCode();
+            SignalAspectCode code = mRelais->getExpectedCode();
+
+            if(mRelais->relaisType() == AbstractRelais::RelaisType::CodeRepeater)
+                code = mRelais->getDetectedCode();
+
             other.flags = codeToFlag(code);
 
             return {other};

@@ -76,32 +76,39 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
                 SignalAspectCode code = SignalAspectCode::CodeAbsent;
 
                 bool forceUp = false;
+                bool skip = false;
                 switch (node()->relais()->relaisType())
                 {
                 case AbstractRelais::RelaisType::Encoder:
                 {
                     code = node()->relais()->getExpectedCode();
+                    break;
                 }
                 case AbstractRelais::RelaisType::CodeRepeater:
                 {
                     code = node()->relais()->getDetectedCode();
                     if(code == SignalAspectCode::CodeAbsent)
                         forceUp = true;
+                    break;
                 }
                 default:
+                    skip = true;
                     break;
                 }
 
-                // Fake relay pulsing at code frequency
-                if(node()->modeMgr()->getCodePhase(code) || forceUp)
-                    relayState = AbstractRelais::State::Up;
-                else
-                    relayState = AbstractRelais::State::Down;
+                if(!skip)
+                {
+                    // Fake relay pulsing at code frequency
+                    if(node()->modeMgr()->getCodePhase(code) || forceUp)
+                        relayState = AbstractRelais::State::Up;
+                    else
+                        relayState = AbstractRelais::State::Down;
 
-                contactUpOn = relayState == AbstractRelais::State::Up;
-                contactDownOn = relayState == AbstractRelais::State::Down;
-                if(node()->swapContactState())
-                    std::swap(contactUpOn, contactDownOn);
+                    contactUpOn = relayState == AbstractRelais::State::Up;
+                    contactDownOn = relayState == AbstractRelais::State::Down;
+                    if(node()->swapContactState())
+                        std::swap(contactUpOn, contactDownOn);
+                }
             }
         }
     }

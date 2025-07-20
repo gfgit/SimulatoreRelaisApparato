@@ -114,12 +114,12 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
         {
             activateRelay(mCombinatorSecondCoil ? 0 : 1);
         }
-        else if(decoder || repeater)
-        {
-            updateDecoderState();
-        }
         else
         {
+            if(decoder || repeater)
+            {
+                updateDecoderState();
+            }
             activateRelay(0);
         }
     }
@@ -152,12 +152,12 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
         {
             deactivateRelay(mCombinatorSecondCoil ? 0 : 1);
         }
-        else if(decoder || repeater)
-        {
-            updateDecoderState();
-        }
         else
         {
+            if(decoder || repeater)
+            {
+                updateDecoderState();
+            }
             deactivateRelay(0);
         }
     }
@@ -464,11 +464,22 @@ void RelaisPowerNode::stopTimeoutPercentTimer()
 
 void RelaisPowerNode::updateDecoderState()
 {
+    if(!mRelais)
+        return;
+
     CircuitFlags code = getCircuitFlags(0);
-    if(hasCircuit(0, CircuitType::Closed))
+    if(!hasCircuit(0, CircuitType::Closed))
         code = CircuitFlags::None;
 
-    relais()->setDecodedResult(codeFromFlag(code));
+    switch (relais()->relaisType())
+    {
+    case AbstractRelais::RelaisType::Decoder:
+    case AbstractRelais::RelaisType::CodeRepeater:
+        relais()->setDecodedResult(codeFromFlag(code));
+        break;
+    default:
+        break;
+    }
 }
 
 bool RelaisPowerNode::combinatorSecondCoil() const

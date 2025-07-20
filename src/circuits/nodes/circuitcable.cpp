@@ -113,7 +113,8 @@ void CircuitCable::addCircuit(ElectricCircuit *circuit, CircuitPole pole)
 
     // Since pole lists are different
     // a circuit may pass only once per list
-    Q_ASSERT(!circuitList.contains(circuit));
+    if(circuitList.contains(circuit))
+        return;
     circuitList.append(circuit);
 
     if(circuit->flags() != getFlags(circuit->type(), pole))
