@@ -25,6 +25,8 @@
 
 #include "abstractcircuitnode.h"
 
+#include "../../enums/signalaspectcodes.h"
+
 class AbstractRelais;
 
 class RelaisPowerNode : public AbstractCircuitNode
@@ -102,7 +104,7 @@ private:
     AbstractRelais *mRelais = nullptr;
 
     int mDelayUpMillis = 0;
-    int mDelayDownSeconds = 0;
+    int mDelayDownMillis = 0;
     bool mHasSecondConnector = false;
     bool mCombinatorSecondCoil = false;
 
@@ -113,6 +115,9 @@ private:
     double mTimeoutPercentStatus[2] = {0, 0};
     bool wasGoingUp[2] = {true, true};
     bool mIsUp[2] = {false, false};
+
+    bool skipDecoderUpdate = false;
+    SignalAspectCode nextDetectedCode = SignalAspectCode::CodeAbsent;
 };
 
 #endif // RELAISPOWERNODE_H

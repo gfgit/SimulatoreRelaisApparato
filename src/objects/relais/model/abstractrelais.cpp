@@ -357,18 +357,6 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
         }
         else
         {
-            switch (relaisType())
-            {
-            case AbstractRelais::RelaisType::Decoder:
-            case AbstractRelais::RelaisType::CodeRepeater:
-            {
-                setDecodedResult(mDetectedCode);
-                return;
-            }
-            default:
-                break;
-            }
-
             // Begin powering normal relais
             startMove(true);
         }
@@ -536,28 +524,21 @@ void AbstractRelais::setDecodedResult(SignalAspectCode code)
     Q_ASSERT(relaisType() == RelaisType::Decoder ||
              relaisType() == RelaisType::CodeRepeater);
 
-    const auto oldCode = mDetectedCode;
-    mDetectedCode = code;
-
-    if(mActivePowerNodesUp == 0 ||
-            (mExpectedCode != SignalAspectCode::CodeAbsent && mDetectedCode != mExpectedCode)
-            || (mDetectedCode == SignalAspectCode::CodeAbsent && relaisType() == RelaisType::Decoder))
-    {
-        // Wrong or no code detected, go down
-        startMove(false);
-        return;
-    }
-
-    // We detected correct code, move up
-    startMove(true);
+    mNextDetectedCode = code;
 
     if(relaisType() == RelaisType::CodeRepeater &&
-            oldCode != mDetectedCode)
+            mNextDetectedCode != mDetectedCode)
     {
-        // Update contact flags
-        for(RelaisContactNode *c : mContactNodes)
+        // If relay is in moving delay apply
+        if(mInternalState == State::Up || mInternalState == State::Down)
         {
-            c->applyNewFlags();
+            mDetectedCode = mNextDetectedCode; // Apply immediately
+
+            // Update contact flags
+            for(RelaisContactNode *c : mContactNodes)
+            {
+                c->applyNewFlags();
+            }
         }
     }
 }
@@ -784,6 +765,19 @@ void AbstractRelais::setState(State newState)
         return;
     mState = newState;
     emit stateChanged(this);
+
+    if(relaisType() == RelaisType::CodeRepeater &&
+            mDetectedCode != mNextDetectedCode &&
+            (mState == State::Up || mState == State::Down))
+    {
+        mDetectedCode = mNextDetectedCode;
+
+        // Update contact flags now
+        for(RelaisContactNode *c : mContactNodes)
+        {
+            c->applyNewFlags();
+        }
+    }
 }
 
 QString AbstractRelais::getStateName() const

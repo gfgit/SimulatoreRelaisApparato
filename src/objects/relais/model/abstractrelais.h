@@ -223,6 +223,7 @@ private:
 
     SignalAspectCode mExpectedCode = SignalAspectCode::CodeAbsent;
     SignalAspectCode mDetectedCode = SignalAspectCode::CodeAbsent;
+    SignalAspectCode mNextDetectedCode = SignalAspectCode::CodeAbsent;
 };
 
 #endif // ABSTRACTRELAIS_H

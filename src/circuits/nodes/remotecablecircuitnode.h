@@ -140,7 +140,9 @@ public:
 
     inline CircuitFlags getNonSourceFlags() const
     {
-        return mNonSourceFlags;
+        if(mMode == Mode::ReceiveCurrentClosed)
+            return mNonSourceFlagsClosed;
+        return mNonSourceFlagsOpen;
     }
 
 signals:
@@ -176,7 +178,8 @@ private:
     CircuitPole mSendPole = CircuitPole::First;
     CircuitPole mRecvPole = CircuitPole::First;
     CircuitFlags mRecvFlags = CircuitFlags::None;
-    CircuitFlags mNonSourceFlags = CircuitFlags::None;
+    CircuitFlags mNonSourceFlagsOpen = CircuitFlags::None;
+    CircuitFlags mNonSourceFlagsClosed = CircuitFlags::None;
 };
 
 #endif // REMOTE_CABLE_CIRCUIT_NODE_H

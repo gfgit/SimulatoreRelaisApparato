@@ -40,6 +40,8 @@ class AbstractCircuitNode : public QObject
 {
     Q_OBJECT
 public:
+    typedef QVector<ElectricCircuit *> CircuitList;
+
     struct NodeContact
     {
         NodeContact(const QString& name1_ = QString(),
@@ -276,7 +278,6 @@ protected:
     NodeContacts mContacts;
     int mCircuitsWithFlags = 0;
 
-    typedef QVector<ElectricCircuit *> CircuitList;
     void disableCircuits(const CircuitList& listCopy,
                          AbstractCircuitNode *node);
 

@@ -182,6 +182,7 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais, bool autoSwapState)
             // Relays is normally down and contact must be normally open
             setSwapContactState(true);
             setHasCentralConnector(false);
+            setActiveWhileMiddle(false);
             break;
         }
         default:

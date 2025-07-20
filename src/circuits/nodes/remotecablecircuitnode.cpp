@@ -130,7 +130,7 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
 
     AbstractCircuitNode::addCircuit(circuit);
 
-    if(circuit->nonSourceFlags() != mNonSourceFlags)
+    if(circuit->nonSourceFlags() != mNonSourceFlagsOpen)
         updateNonSourceFlags();
 
     const AnyCircuitType after = hasAnyCircuit(0);
@@ -378,7 +378,7 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
         }
         else
         {
-            mNonSourceFlags = CircuitFlags::None;
+            mNonSourceFlagsOpen = CircuitFlags::None;
 
             // Disable previous circuits
             const CircuitList closedCopy = getCircuits(CircuitType::Closed);
@@ -601,6 +601,9 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
 void RemoteCableCircuitNode::delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole,
                                                     Mode replyToMode, CircuitFlags circuitFlags)
 {
+    if(getCode(circuitFlags) == CircuitFlags::CodeInvalid)
+        qt_noop();
+
     QCoreApplication::postEvent(this, new RemoteCableDelayedPeerMode(peerMode, peerSendPole,
                                                                      replyToMode, circuitFlags));
 }
@@ -640,22 +643,10 @@ void RemoteCableCircuitNode::refreshState()
     mStateDirty = false;
 }
 
-void RemoteCableCircuitNode::updateNonSourceFlags()
+CircuitFlags getFlagsFromList(const AbstractCircuitNode::CircuitList& circuitList)
 {
-    if(!isReceiveMode(mode()))
-    {
-        mNonSourceFlags = CircuitFlags::None;
-        return;
-    }
-
     CircuitFlags newFlags = CircuitFlags::None;
     bool isFirst = true;
-
-    CircuitType targetType = CircuitType::Open;
-    if(mode() == Mode::ReceiveCurrentClosed)
-        targetType = CircuitType::Closed;
-
-    const CircuitList& circuitList = getCircuits(targetType);
 
     for(ElectricCircuit *circuit : circuitList)
     {
@@ -677,9 +668,26 @@ void RemoteCableCircuitNode::updateNonSourceFlags()
         }
     }
 
-    if(newFlags != mNonSourceFlags)
+    return newFlags;
+}
+
+void RemoteCableCircuitNode::updateNonSourceFlags()
+{
+    if(!isReceiveMode(mode()))
     {
-        mNonSourceFlags = newFlags;
+        mNonSourceFlagsOpen = CircuitFlags::None;
+        mNonSourceFlagsClosed = CircuitFlags::None;
+        return;
+    }
+
+    const CircuitFlags newFlagsOpen = getFlagsFromList(getCircuits(CircuitType::Open));
+    const CircuitFlags newFlagsClosed = getFlagsFromList(getCircuits(CircuitType::Closed));
+
+    if(newFlagsOpen != mNonSourceFlagsOpen ||
+            newFlagsClosed != mNonSourceFlagsClosed)
+    {
+        mNonSourceFlagsOpen = newFlagsOpen;
+        mNonSourceFlagsClosed = newFlagsClosed;
 
         if(mRemote)
         {
