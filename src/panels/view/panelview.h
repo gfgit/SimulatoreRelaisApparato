@@ -44,7 +44,6 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *ev) override;
-    void keyReleaseEvent(QKeyEvent *ev) override;
 
 private:
     void deleteSelectedItems();

@@ -144,7 +144,7 @@ signals:
 protected:
     void helpEvent(QGraphicsSceneHelpEvent *e) override;
 
-    void keyReleaseEvent(QKeyEvent *e) override;
+    void keyPressEvent(QKeyEvent *e) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
 
     void drawBackground(QPainter *painter, const QRectF &rect) override;

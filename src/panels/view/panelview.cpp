@@ -91,6 +91,15 @@ void PanelView::keyPressEvent(QKeyEvent *ev)
                 return;
             }
         }
+        else if(ev->key() == Qt::Key_D && ev->modifiers() & Qt::ControlModifier)
+        {
+            // Batch Edit
+            if(ev->modifiers() & Qt::ShiftModifier)
+                batchNodeEdit();
+            else
+                batchObjectReplace();
+            return;
+        }
 
         if(ev->matches(QKeySequence::Paste))
         {
@@ -113,28 +122,6 @@ void PanelView::keyPressEvent(QKeyEvent *ev)
     }
 
     ZoomGraphView::keyPressEvent(ev);
-}
-
-void PanelView::keyReleaseEvent(QKeyEvent *ev)
-{
-    PanelScene *s = panelScene();
-    if(s && s->modeMgr()->mode() == FileMode::Editing)
-    {
-        if(s->modeMgr()->editingSubMode() == EditingSubMode::ItemSelection)
-        {
-            if(ev->key() == Qt::Key_D && ev->modifiers() & Qt::ControlModifier)
-            {
-                // Batch Edit
-                if(ev->modifiers() & Qt::ShiftModifier)
-                    batchNodeEdit();
-                else
-                    batchObjectReplace();
-                return;
-            }
-        }
-    }
-
-    ZoomGraphView::keyReleaseEvent(ev);
 }
 
 void PanelView::deleteSelectedItems()

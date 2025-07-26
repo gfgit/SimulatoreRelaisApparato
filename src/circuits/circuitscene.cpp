@@ -2476,7 +2476,7 @@ void CircuitScene::editCableUndoLast()
     editCableUpdatePen();
 }
 
-void CircuitScene::keyReleaseEvent(QKeyEvent *e)
+void CircuitScene::keyPressEvent(QKeyEvent *e)
 {
     bool consumed = true;
 
@@ -2561,7 +2561,7 @@ void CircuitScene::keyReleaseEvent(QKeyEvent *e)
         return;
     }
 
-    QGraphicsScene::keyReleaseEvent(e);
+    QGraphicsScene::keyPressEvent(e);
 }
 
 void CircuitScene::mousePressEvent(QGraphicsSceneMouseEvent *e)

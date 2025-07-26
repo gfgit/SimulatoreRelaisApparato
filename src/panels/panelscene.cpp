@@ -875,7 +875,7 @@ void PanelScene::saveToJSON(QJsonObject &obj) const
     obj["lights"] = lights;
 }
 
-void PanelScene::keyReleaseEvent(QKeyEvent *e)
+void PanelScene::keyPressEvent(QKeyEvent *e)
 {
     bool consumed = true;
 
@@ -947,7 +947,7 @@ void PanelScene::keyReleaseEvent(QKeyEvent *e)
         return;
     }
 
-    QGraphicsScene::keyReleaseEvent(e);
+    QGraphicsScene::keyPressEvent(e);
 }
 
 void PanelScene::mousePressEvent(QGraphicsSceneMouseEvent *e)
