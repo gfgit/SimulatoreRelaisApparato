@@ -89,7 +89,43 @@ QVariant RelaisModel::data(const QModelIndex &idx, int role) const
             break;
         }
 
+        if(modeMgr()->mode() == FileMode::Editing)
+        {
+            // During editing we highlight special relays
+            switch (relay->relaisType())
+            {
+            case AbstractRelais::RelaisType::Encoder:
+            case AbstractRelais::RelaisType::CodeRepeater:
+                color = Qt::darkCyan;
+                break;
+            case AbstractRelais::RelaisType::Blinker:
+                color = Qt::darkGreen;
+                break;
+            case AbstractRelais::RelaisType::Timer:
+                color = Qt::darkMagenta;
+                break;
+            default:
+            {
+                // For other types, show default state
+                if(relay->normallyUp())
+                    color = CircuitColors::Closed; // Red
+                else
+                    color = Qt::black;
+                break;
+            }
+            }
+        }
+
         return color;
+    }
+    else if(idx.column() == NameCol && role == Qt::ToolTipRole)
+    {
+        return tr("Relay: <b>%1</b><br>"
+                  "Type: %2<br>"
+                  "Default state: %3")
+                .arg(relay->name(),
+                     AbstractRelais::getRelaisTypeName(relay->relaisType()),
+                     relay->normallyUp() ? tr("Up") : tr("Down"));
     }
     else if(idx.column() == PowerNodes)
     {
