@@ -99,7 +99,7 @@ To select items you can:
 To copy current selection press `Ctrl + C`.
 To paste items into a view, press `Ctrl + V`.
 
-To replace objects/batch edit in current selection, press `Ctrl + D` or `Shift + Ctrl + D`.
+To replace objects/batch edit in current selection, press `Ctrl + E` or `Shift + Ctrl + E`.
 
 # Items shortcuts
 

@@ -157,9 +157,9 @@ void CircuitsView::keyPressEvent(QKeyEvent *ev)
                 deleteSelectedItems();
                 return;
             }
-            else if(ev->key() == Qt::Key_D && ev->modifiers() & Qt::ControlModifier)
+            else if(ev->key() == Qt::Key_E && ev->modifiers() & Qt::ControlModifier)
             {
-                // Batch Edit (Ctrl + D)
+                // Batch Edit (Ctrl + E)
                 if(ev->modifiers() & Qt::ShiftModifier)
                     batchNodeEdit();
                 else

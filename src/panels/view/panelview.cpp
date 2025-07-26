@@ -91,9 +91,9 @@ void PanelView::keyPressEvent(QKeyEvent *ev)
                 return;
             }
         }
-        else if(ev->key() == Qt::Key_D && ev->modifiers() & Qt::ControlModifier)
+        else if(ev->key() == Qt::Key_E && ev->modifiers() & Qt::ControlModifier)
         {
-            // Batch Edit
+            // Batch Edit (Ctrl + E)
             if(ev->modifiers() & Qt::ShiftModifier)
                 batchNodeEdit();
             else
