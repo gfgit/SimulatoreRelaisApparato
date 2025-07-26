@@ -165,7 +165,9 @@ bool TransformerNode::isSourceEnabled() const
 {
     if(enabled && modeMgr()->mode() == FileMode::Editing)
         return false; // Act as Off during Editing
-    return enabled;
+
+    // Return true if explicitly enabled and has source circuit
+    return enabled && hasCircuit(0, CircuitType::Closed);
 }
 
 void TransformerNode::setSourceEnabled(bool newEnabled)

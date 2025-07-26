@@ -325,7 +325,7 @@ bool RemoteCableCircuitNode::sourceDoNotCloseCircuits() const
 
 bool RemoteCableCircuitNode::isSourceEnabled() const
 {
-    return mIsEnabled;
+    return mIsEnabled && isReceiveSide();
 }
 
 void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled)
