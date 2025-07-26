@@ -93,7 +93,8 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     pen.setCapStyle(Qt::FlatCap);
 
     // Draw common contact (0)
-    pen.setColor(getContactColor(0));
+    bool shouldDraw = true;
+    pen.setColor(getContactColor(0, &shouldDraw));
     painter->setPen(pen);
     // painter->drawLine(commonLine);
 
@@ -101,7 +102,9 @@ void LightBulbGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 
     // If we have only open circuit (light bulb is still off)
     // Draw in black instead of Light blue.
-    if(!node()->hasCircuits())
+    if(node()->hasCircuits() && shouldDraw)
+        pen.setColor(CircuitColors::Closed);
+    else
         pen.setColor(CircuitColors::None);
     pen.setWidthF(10.0);
     painter->setPen(pen);
