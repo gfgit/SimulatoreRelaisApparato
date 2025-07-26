@@ -28,6 +28,7 @@
 #include "../views/modemanager.h"
 
 #include <QColor>
+#include <QHostAddress>
 
 RemoteSessionsModel::RemoteSessionsModel(RemoteManager *mgr)
     : QAbstractTableModel(mgr)
@@ -98,6 +99,32 @@ QVariant RemoteSessionsModel::data(const QModelIndex &idx, int role) const
             if(remoteSession->getConnection())
                 statusColor = Qt::green;
             return statusColor;
+        }
+        default:
+            break;
+        }
+        break;
+    }
+    case Qt::ToolTipRole:
+    {
+        switch (idx.column())
+        {
+        case NameCol:
+        {
+            if(remoteSession->getConnection())
+            {
+                return tr("<b>%1</b><br>"
+                          "Connected!<br>"
+                          "Peer IP: %2")
+                        .arg(remoteSession->getSessionName(),
+                             remoteSession->getPeerAddress().toString());
+            }
+            else
+            {
+                return tr("<b>%1</b><br>"
+                          "Not connected.")
+                        .arg(remoteSession->getSessionName());
+            }
         }
         default:
             break;

@@ -35,6 +35,8 @@ class RemoteManager;
 
 class QCborMap;
 
+class QHostAddress;
+
 class RemoteSession : public QObject
 {
     Q_OBJECT
@@ -76,6 +78,8 @@ public:
     {
         return mPeerConn;
     }
+
+    QHostAddress getPeerAddress() const;
 
     void onConnected(PeerConnection *conn);
     void onDisconnected();

@@ -101,6 +101,13 @@ void RemoteSession::removeRemoteBridge(RemoteCircuitBridge *bridge)
     mBridges.removeOne(bridge);
 }
 
+QHostAddress RemoteSession::getPeerAddress() const
+{
+    if(mPeerConn)
+        return mPeerConn->peerAddress();
+    return QHostAddress();
+}
+
 void RemoteSession::onConnected(PeerConnection *conn)
 {
     Q_ASSERT(!mPeerConn);

@@ -27,6 +27,8 @@
 
 #include "../views/modemanager.h"
 
+#include <QColor>
+
 SerialDevicesModel::SerialDevicesModel(SerialManager *mgr)
     : QAbstractTableModel(mgr)
 {
@@ -69,6 +71,66 @@ QVariant SerialDevicesModel::data(const QModelIndex &idx, int role) const
         return QVariant();
 
     const SerialDevice *serialDevice = mSerialDevices.at(idx.row());
+
+    switch (role)
+    {
+    case Qt::DisplayRole:
+    case Qt::EditRole:
+    {
+        switch (idx.column())
+        {
+        case NameCol:
+            return serialDevice->getName();
+        default:
+            break;
+        }
+
+        break;
+    }
+    case Qt::DecorationRole:
+    {
+        switch (idx.column())
+        {
+        case NameCol:
+        {
+            // Show connection status
+            QColor statusColor = Qt::black;
+            if(serialDevice->isConnected())
+                statusColor = Qt::green;
+            return statusColor;
+        }
+        default:
+            break;
+        }
+        break;
+    }
+    case Qt::ToolTipRole:
+    {
+        switch (idx.column())
+        {
+        case NameCol:
+        {
+            if(serialDevice->isConnected())
+            {
+                return tr("<b>%1</b><br>"
+                          "Connected!")
+                        .arg(serialDevice->getName());
+            }
+            else
+            {
+                return tr("<b>%1</b><br>"
+                          "Not connected.")
+                        .arg(serialDevice->getName());
+            }
+        }
+        default:
+            break;
+        }
+        break;
+    }
+    default:
+        break;
+    }
 
     if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
@@ -170,4 +232,10 @@ void SerialDevicesModel::removeSerialDevice(SerialDevice *serialDevice)
     beginRemoveRows(QModelIndex(), row, row);
     mSerialDevices.removeAt(row);
     endRemoveRows();
+}
+
+void SerialDevicesModel::updateDeviceStatus()
+{
+    emit dataChanged(index(0, NameCol),
+                     index(rowCount() - 1, NameCol));
 }

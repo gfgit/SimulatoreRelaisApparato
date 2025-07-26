@@ -308,6 +308,8 @@ void SerialManager::disconnectAllDevices()
     mPingTimer.stop();
 
     mRescanTimer.stop();
+
+    mDevicesModel->updateDeviceStatus();
 }
 
 void SerialManager::timerEvent(QTimerEvent *e)
@@ -356,6 +358,7 @@ void SerialManager::timerEvent(QTimerEvent *e)
 
                 dev->reset();
                 dev->closeSerial();
+                mDevicesModel->updateDeviceStatus();
 
                 scheduleRescan();
                 continue;
@@ -443,6 +446,7 @@ void SerialManager::onSerialDisconnected()
 
     dev->reset();
     dev->closeSerial();
+    mDevicesModel->updateDeviceStatus();
 
     scheduleRescan();
 
@@ -491,6 +495,7 @@ bool SerialManager::checkSerialValid(QSerialPort *serialPort)
 
         serialPort->setObjectName(name);
         dev->start(serialPort);
+        mDevicesModel->updateDeviceStatus();
 
         if(!mPingTimer.isActive())
             mPingTimer.start(500, this);
