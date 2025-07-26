@@ -85,7 +85,7 @@ public:
         return mLastPeerMode;
     }
 
-    void setMode(Mode newMode);
+    void setMode(Mode newMode, bool flagsChanged = false);
 
     static inline bool isReceiveMode(Mode m)
     {
@@ -174,6 +174,8 @@ private:
     Mode mLastPeerMode = Mode::None;
 
     bool insideRemoveCircuit = false;
+    bool skipFlagUpdate = false;
+    bool flagsNeedUpdate = false;
 
     CircuitPole mSendPole = CircuitPole::First;
     CircuitPole mRecvPole = CircuitPole::First;

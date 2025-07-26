@@ -128,7 +128,9 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
         mFakeClosedCircuitsCount++;
     }
 
+    skipFlagUpdate = true;
     AbstractCircuitNode::addCircuit(circuit);
+    skipFlagUpdate = false;
 
     if(circuit->nonSourceFlags() != mNonSourceFlagsOpen)
         updateNonSourceFlags();
@@ -177,6 +179,9 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
         // This circuit can close, but we wait for send side to close too
         setMode(Mode::ReceiveCurrentWaitClosed);
     }
+
+    if(flagsNeedUpdate && mRemote)
+        mRemote->onLocalNodeModeChanged(this);
 }
 
 void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
@@ -186,7 +191,9 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
 
     const AnyCircuitType before = hasAnyCircuit(0);
 
+    skipFlagUpdate = true;
     AbstractCircuitNode::removeCircuit(circuit, items);
+    skipFlagUpdate = false;
 
     if(mCircuitsWithFlags > 0)
         updateNonSourceFlags();
@@ -246,6 +253,9 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
         }
         return;
     }
+
+    if(flagsNeedUpdate && mRemote)
+        mRemote->onLocalNodeModeChanged(this);
 }
 
 void RemoteCableCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
@@ -353,7 +363,7 @@ void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled)
     }
 }
 
-void RemoteCableCircuitNode::setMode(Mode newMode)
+void RemoteCableCircuitNode::setMode(Mode newMode, bool flagsChanged)
 {
     if(!mIsEnabled)
     {
@@ -363,7 +373,7 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
             newMode = Mode::SendCurrentOpen; // Cannot close if not enabled
     }
 
-    if(mMode == newMode)
+    if(mMode == newMode && !flagsChanged)
         return;
 
     const Mode oldMode = mMode;
@@ -641,6 +651,9 @@ void RemoteCableCircuitNode::refreshState()
     }
 
     mStateDirty = false;
+
+    if(flagsNeedUpdate && mRemote)
+        mRemote->onLocalNodeModeChanged(this);
 }
 
 CircuitFlags getFlagsFromList(const AbstractCircuitNode::CircuitList& circuitList)
@@ -677,6 +690,7 @@ void RemoteCableCircuitNode::updateNonSourceFlags()
     {
         mNonSourceFlagsOpen = CircuitFlags::None;
         mNonSourceFlagsClosed = CircuitFlags::None;
+        flagsNeedUpdate = true;
         return;
     }
 
@@ -688,11 +702,7 @@ void RemoteCableCircuitNode::updateNonSourceFlags()
     {
         mNonSourceFlagsOpen = newFlagsOpen;
         mNonSourceFlagsClosed = newFlagsClosed;
-
-        if(mRemote)
-        {
-            mRemote->onLocalNodeModeChanged(this);
-        }
+        flagsNeedUpdate = true;
     }
 }
 
@@ -744,6 +754,10 @@ QString RemoteCableCircuitNode::getDescription() const
 
 void RemoteCableCircuitNode::onCircuitFlagsChanged()
 {
+    flagsNeedUpdate = true;
+    if(skipFlagUpdate)
+        return;
+
     if(mRemote)
     {
         mRemote->onLocalNodeModeChanged(this);

@@ -270,6 +270,8 @@ void RemoteCircuitBridge::setNode(RemoteCableCircuitNode *newNode, bool isA)
 
 void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
 {
+    node->flagsNeedUpdate = false;
+
     RemoteCableCircuitNode *other = node == mNodeA ? mNodeB : mNodeA;
 
     const RemoteCableCircuitNode::Mode currMode = node->mode();
