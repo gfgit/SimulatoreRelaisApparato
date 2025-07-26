@@ -284,6 +284,19 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
     if(RemoteCableCircuitNode::isReceiveMode(currMode))
         flagsToSend = nonSourceFlags;
 
+#if 0
+    if(name() == "TR2")
+    {
+        qt_noop();
+
+        qDebug() << "SEND: m=" << modeToStr(currMode)
+                 << "l=" << modeToStr(replyToMode)
+                 << "cf=" << codeToStr(circuitFlags)
+                 << "nsf=" << codeToStr(nonSourceFlags)
+                 << "fts=" << codeToStr(flagsToSend);
+    }
+#endif
+
     if(other)
     {
         // NOTE: we cannot directly call onPeerModeChanged()

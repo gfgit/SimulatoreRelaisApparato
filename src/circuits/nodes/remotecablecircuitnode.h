@@ -184,4 +184,29 @@ private:
     CircuitFlags mNonSourceFlagsClosed = CircuitFlags::None;
 };
 
+#if 0
+inline QString modeToStr(RemoteCableCircuitNode::Mode m)
+{
+    switch (m)
+    {
+    case RemoteCableCircuitNode::Mode::None:
+        return "None";
+    case RemoteCableCircuitNode::Mode::SendCurrentOpen:
+        return "SendCurrentOpen";
+    case RemoteCableCircuitNode::Mode::SendCurrentWaitClosed:
+        return "SendCurrentWaitClosed";
+    case RemoteCableCircuitNode::Mode::SendCurrentClosed:
+        return "SendCurrentClosed";
+    case RemoteCableCircuitNode::Mode::ReceiveCurrentOpen:
+        return "ReceiveCurrentOpen";
+    case RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed:
+        return "ReceiveCurrentWaitClosed";
+    case RemoteCableCircuitNode::Mode::ReceiveCurrentClosed:
+        return "ReceiveCurrentClosed";
+    }
+
+    return "";
+}
+#endif
+
 #endif // REMOTE_CABLE_CIRCUIT_NODE_H

@@ -130,4 +130,23 @@ inline constexpr SignalAspectCode codeFromFlag(CircuitFlags code)
 
 extern EnumDesc SignalAspectCode_getDesc();
 
+
+#if 0
+inline QString codeToStr(CircuitFlags f)
+{
+    switch (getCode(f))
+    {
+    case CircuitFlags::None:
+        return "None";
+    case CircuitFlags::CodeInvalid:
+        return "INVALID";
+    default:
+        return QLatin1String("Code %1")
+                .arg(QString::number(codeToNumber(codeFromFlag(getCode(f)))));
+    }
+
+    return "";
+}
+#endif
+
 #endif // SIGNALASPECTCODES_H

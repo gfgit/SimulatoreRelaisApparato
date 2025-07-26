@@ -505,6 +505,17 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
     mRecvFlags = peerFlags;
     mLastPeerMode = peerMode;
 
+#if 0
+    if(mRemote && mRemote->name() == "TR2")
+    {
+        qt_noop();
+
+        qDebug() << "RECV: m=" << modeToStr(peerMode)
+                 << "cur=" << modeToStr(mMode)
+                 << "cf=" << codeToStr(peerFlags);
+    }
+#endif
+
     switch (peerMode)
     {
     case Mode::None:
@@ -611,9 +622,6 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
 void RemoteCableCircuitNode::delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole,
                                                     Mode replyToMode, CircuitFlags circuitFlags)
 {
-    if(getCode(circuitFlags) == CircuitFlags::CodeInvalid)
-        qt_noop();
-
     QCoreApplication::postEvent(this, new RemoteCableDelayedPeerMode(peerMode, peerSendPole,
                                                                      replyToMode, circuitFlags));
 }
