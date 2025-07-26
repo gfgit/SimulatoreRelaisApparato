@@ -118,6 +118,7 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
         }
         else if(decoder || repeater)
         {
+            needsFlagUpdate = false;
             updateDecoderState();
         }
         else
@@ -129,6 +130,11 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
     if(!combinator && mHasSecondConnector && isActiveSecond && !wasActiveSecond)
     {
         activateRelay(1);
+    }
+
+    if((decoder || repeater) && needsFlagUpdate)
+    {
+        updateDecoderState();
     }
 }
 
@@ -169,6 +175,11 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
     if(!combinator && mHasSecondConnector && !isActiveSecond && wasActiveSecond)
     {
         deactivateRelay(1);
+    }
+
+    if((decoder || repeater) && needsFlagUpdate)
+    {
+        updateDecoderState();
     }
 }
 
@@ -272,6 +283,7 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
         {
             setDelayUpMillis(0);
             setDelayDownMillis(0);
+            needsFlagUpdate = false;
         }
     }
 
@@ -395,7 +407,10 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
 void RelaisPowerNode::onCircuitFlagsChanged()
 {
     if(skipDecoderUpdate)
+    {
+        needsFlagUpdate = true;
         return;
+    }
 
     const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
     const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
@@ -413,11 +428,14 @@ void RelaisPowerNode::activateRelay(int contact)
 
     stopTimer(contact);
 
-    if(mIsUp[contact] || !mRelais)
-        return; // Already in position
+    if(!mRelais)
+        return;
 
-    const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
-    const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+    const bool decoder = relais()->relaisType() == AbstractRelais::RelaisType::Decoder;
+    const bool repeater = relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater;
+
+    if(mIsUp[contact] && !decoder && !repeater)
+        return; // Already in position
 
     if(mDelayUpMillis == 0)
     {
@@ -525,6 +543,8 @@ void RelaisPowerNode::updateDecoderState()
 
     Q_ASSERT(mRelais->relaisType() == AbstractRelais::RelaisType::Decoder ||
              mRelais->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+
+    needsFlagUpdate = false;
 
     CircuitFlags code = getCircuitFlags(0);
     if(!hasCircuit(0, CircuitType::Closed))

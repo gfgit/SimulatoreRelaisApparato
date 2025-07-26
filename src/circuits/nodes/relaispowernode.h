@@ -117,6 +117,7 @@ private:
     bool mIsUp[2] = {false, false};
 
     bool skipDecoderUpdate = false;
+    bool needsFlagUpdate = false;
     SignalAspectCode nextDetectedCode = SignalAspectCode::CodeAbsent;
 };
 
