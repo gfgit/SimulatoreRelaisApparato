@@ -342,88 +342,88 @@
 <context>
     <name>AbstractRelais</name>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="55"/>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="919"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="40"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="793"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="57"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="42"/>
         <source>Polarized</source>
         <translation>Polarizzato</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="59"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="44"/>
         <source>Polarized Inverted</source>
         <translation>Polarizzato Inverso</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="61"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="46"/>
         <source>Stabilized</source>
         <translation>Stabilizzato</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="63"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="48"/>
         <source>Combinator</source>
         <translation>Combinatore</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="65"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="50"/>
         <source>Timer</source>
         <translation>Temporizzatore</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="67"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="52"/>
         <source>Blinker</source>
         <translation>Lampeggiatore</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="69"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="54"/>
         <source>Encoder</source>
         <translation>Battitore di Codice</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="71"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="56"/>
         <source>Decoder</source>
         <translation>Rilevatore di Codice</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="73"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="58"/>
         <source>Code Repeater</source>
         <translation>Trasmetti Codice</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="917"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="791"/>
         <source>Reverse</source>
         <translation>Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="921"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="795"/>
         <source>Going reverse</source>
         <translation>Andando in Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="923"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="797"/>
         <source>Going normal</source>
         <translation>Andando in Normale</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="933"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="807"/>
         <source>Up</source>
         <translation>Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="935"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="809"/>
         <source>Down</source>
         <translation>Basso</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="937"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="811"/>
         <source>Going up</source>
         <translation>Andando Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="939"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="813"/>
         <source>Going down</source>
         <translation>Andando Basso</translation>
     </message>
@@ -720,27 +720,27 @@ Scegli un altro nome:</translation>
         <translation>Nome:</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="217"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="222"/>
         <source>Render To SVG</source>
         <translation>Renderizza su SVG</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="219"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="224"/>
         <source>Scalable Vector Graphics (*.svg)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="249"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="245"/>
         <source>Delete Items</source>
         <translation>Elimina Elementi</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="250"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="246"/>
         <source>Delete selected items?Are you sure?</source>
         <translation>Eliminare elementi selezionati? Sei sicuro?</translation>
     </message>
     <message>
-        <location filename="../circuits/view/circuitsview.cpp" line="262"/>
+        <location filename="../circuits/view/circuitsview.cpp" line="258"/>
         <source>Simulatore Relais Apparato</source>
         <translation></translation>
     </message>
@@ -1637,12 +1637,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>PanelView</name>
     <message>
-        <location filename="../panels/view/panelview.cpp" line="150"/>
+        <location filename="../panels/view/panelview.cpp" line="137"/>
         <source>Delete Items</source>
         <translation>Elimina Elementi</translation>
     </message>
     <message>
-        <location filename="../panels/view/panelview.cpp" line="151"/>
+        <location filename="../panels/view/panelview.cpp" line="138"/>
         <source>Delete selected items?Are you sure?</source>
         <translation>Eliminare elementi selezionati? Sei sicuro?</translation>
     </message>
@@ -1676,12 +1676,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RelaisContactGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="230"/>
+        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="279"/>
         <source>No Relay set!</source>
         <translation>Nessun Relè impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="232"/>
+        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="281"/>
         <source>Contact of relay &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;State: &lt;b&gt;%2&lt;/b&gt;&lt;br&gt;%3</source>
         <translation>Contatto del Relè &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;State: &lt;b&gt;%2&lt;/b&gt;&lt;br&gt;%3</translation>
     </message>
@@ -1712,12 +1712,27 @@ Scegli un altro nome:</translation>
         <translation>Tot. Nodi</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/relaismodel.cpp" line="99"/>
+        <location filename="../objects/relais/model/relaismodel.cpp" line="123"/>
+        <source>Relay: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Type: %2&lt;br&gt;Default state: %3</source>
+        <translation>Relé: &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Tipo: %2&lt;br&gt;Normalmente: %3</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/model/relaismodel.cpp" line="128"/>
+        <source>Up</source>
+        <translation>Alto</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/model/relaismodel.cpp" line="128"/>
+        <source>Down</source>
+        <translation>Basso</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/model/relaismodel.cpp" line="135"/>
         <source>Relay &lt;b&gt;%1&lt;/b&gt; is powered by &lt;b&gt;%2&lt;/b&gt; nodes.</source>
         <translation>Il Relé &lt;b&gt;%1&lt;/b&gt; è alimentato da &lt;b&gt;%2&lt;/b&gt; nodi.</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/relaismodel.cpp" line="107"/>
+        <location filename="../objects/relais/model/relaismodel.cpp" line="143"/>
         <source>Relay &lt;b&gt;%1&lt;/b&gt; contacts are used in &lt;b&gt;%2&lt;/b&gt; nodes.</source>
         <translation>Il contatti del Relé &lt;b&gt;%1&lt;/b&gt; sono usati in &lt;b&gt;%2&lt;/b&gt; nodi.</translation>
     </message>
@@ -1725,12 +1740,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RelaisPowerGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/relaispowergraphitem.cpp" line="407"/>
+        <location filename="../circuits/graphs/relaispowergraphitem.cpp" line="446"/>
         <source>No Relay set!</source>
         <translation>Nessun Relè impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/relaispowergraphitem.cpp" line="409"/>
+        <location filename="../circuits/graphs/relaispowergraphitem.cpp" line="448"/>
         <source>Relay &lt;b&gt;%1&lt;/b&gt; (Power)&lt;br&gt;State: &lt;b&gt;%2&lt;/b&gt;</source>
         <translation>Relè &lt;b&gt;%1&lt;/b&gt; (Alimentazione)&lt;br&gt;Stato: &lt;b&gt;%2&lt;/b&gt;</translation>
     </message>
@@ -1738,7 +1753,7 @@ Scegli un altro nome:</translation>
 <context>
     <name>RelaisPowerNode</name>
     <message>
-        <location filename="../circuits/nodes/relaispowernode.cpp" line="201"/>
+        <location filename="../circuits/nodes/relaispowernode.cpp" line="228"/>
         <source>Relay</source>
         <translation>Relè</translation>
     </message>
@@ -1746,62 +1761,62 @@ Scegli un altro nome:</translation>
 <context>
     <name>RemoteCableCircuitGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="121"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="114"/>
         <source>No remote bridge set!</source>
         <translation>Nessun ponte remoto impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="130"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="123"/>
         <source>To session &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Peer node: &lt;b&gt;&lt;i&gt;%2&lt;/i&gt;&lt;/b&gt;</source>
         <translation>Alla sessione &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Nodo compagno: &lt;b&gt;&lt;i&gt;%2&lt;/i&gt;&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="140"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="133"/>
         <source>None</source>
         <translation>Nessuno</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="147"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="140"/>
         <source>To device &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Input: %2&lt;br&gt;Output: %3&lt;br&gt;</source>
         <translation>Al dispositivo &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Input: %2&lt;br&gt;Output: %3&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="157"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="150"/>
         <source>Connected</source>
         <translation>Connesso</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="157"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="150"/>
         <source>Disconnected</source>
         <translation>Disconnesso</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="158"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="151"/>
         <source>Bridge &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2&lt;br&gt;&lt;br&gt;Status: %3</source>
         <translation>Ponte circuito &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2&lt;br&gt;&lt;br&gt;Stato: %3</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="166"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="159"/>
         <source>Local Bridge &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Not connected to other node!</source>
         <translation>Ponte circuito locale &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Non connesso ad un altro nodo!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="183"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="176"/>
         <source>To other node in this sheet</source>
         <translation>Ad un altro nodo in questo foglio</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="187"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="180"/>
         <source>To other node in:&lt;br&gt;&lt;b&gt;%1&lt;br&gt;%2&lt;/b&gt;</source>
         <translation>Ad un altro nodo in:&lt;br&gt;&lt;b&gt;%1&lt;br&gt;%2&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="196"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="189"/>
         <source>Error: could not find peer scene</source>
         <translation>Errore: impossibile trovare la scena compagna</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="199"/>
+        <location filename="../circuits/graphs/remotecablecircuitgraphitem.cpp" line="192"/>
         <source>Local Bridge &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</source>
         <translation>Ponte locacale &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;%2</translation>
     </message>
@@ -1809,7 +1824,7 @@ Scegli un altro nome:</translation>
 <context>
     <name>RemoteCableCircuitNode</name>
     <message>
-        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="651"/>
+        <location filename="../circuits/nodes/remotecablecircuitnode.cpp" line="753"/>
         <source>BRIDGE!!!</source>
         <translation></translation>
     </message>
@@ -1918,9 +1933,19 @@ Scegli un altro nome:</translation>
 <context>
     <name>RemoteSessionsModel</name>
     <message>
-        <location filename="../network/remotesessionsmodel.cpp" line="47"/>
+        <location filename="../network/remotesessionsmodel.cpp" line="50"/>
         <source>Name</source>
         <translation>Nome</translation>
+    </message>
+    <message>
+        <location filename="../network/remotesessionsmodel.cpp" line="116"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Connected!&lt;br&gt;Peer IP: %2</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Connesso!&lt;br&gt;IP compagna: %2</translation>
+    </message>
+    <message>
+        <location filename="../network/remotesessionsmodel.cpp" line="124"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Not connected.</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Non connesso.</translation>
     </message>
 </context>
 <context>
@@ -2112,12 +2137,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>ScreenRelaisPowerGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="193"/>
+        <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="186"/>
         <source>No Screen Relay set!</source>
         <translation>Nessuno Relè Schermo impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="197"/>
+        <location filename="../circuits/graphs/screenrelaispowergraphitem.cpp" line="190"/>
         <source>Screen Relay &lt;b&gt;%1&lt;/b&gt; (Power)&lt;br&gt;Type: %2</source>
         <translation>Relè Schermo &lt;b&gt;%1&lt;/b&gt; (Alimentazione)&lt;br&gt;Tipo: %2</translation>
     </message>
@@ -2173,9 +2198,19 @@ Scegli un altro nome:</translation>
 <context>
     <name>SerialDevicesModel</name>
     <message>
-        <location filename="../serial/serialdevicesmodel.cpp" line="47"/>
+        <location filename="../serial/serialdevicesmodel.cpp" line="49"/>
         <source>Name</source>
         <translation>Nome</translation>
+    </message>
+    <message>
+        <location filename="../serial/serialdevicesmodel.cpp" line="115"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Connected!</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Connesso!</translation>
+    </message>
+    <message>
+        <location filename="../serial/serialdevicesmodel.cpp" line="121"/>
+        <source>&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Not connected.</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;Non connesso.</translation>
     </message>
 </context>
 <context>
@@ -2232,7 +2267,7 @@ Scegli un altro nome:</translation>
 <context>
     <name>SimpleActivationNode</name>
     <message>
-        <location filename="../circuits/nodes/simpleactivationnode.cpp" line="115"/>
+        <location filename="../circuits/nodes/simpleactivationnode.cpp" line="119"/>
         <source>Object</source>
         <translation>Oggetto</translation>
     </message>
@@ -2482,12 +2517,6 @@ Scegli un altro nome:</translation>
         <translation>Relè:</translation>
     </message>
     <message>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="421"/>
-        <location filename="../circuits/edit/standardnodetypes.cpp" line="433"/>
-        <source> sec</source>
-        <translation></translation>
-    </message>
-    <message>
         <location filename="../circuits/edit/standardnodetypes.cpp" line="422"/>
         <source>Delay up:</source>
         <translation>Ritardo Eccitazione:</translation>
@@ -2613,6 +2642,12 @@ Scegli un altro nome:</translation>
         <location filename="../circuits/edit/standardnodetypes.cpp" line="244"/>
         <source>Selected Circuit Bridge &lt;b&gt;%1&lt;/b&gt; is connected to a remote session or serial device and has already one node on this session.&lt;br&gt;Connecting this node too will remove remote session connection.&lt;br&gt;Do you want to proceed?</source>
         <translation>Il Ponte Circuito selezionato &lt;b&gt;%1&lt;/b&gt; è connesso ad una sessione remota o dispositivo seriale e ha già un nodo in questa sessione.&lt;br&gt;Connettendo anche questo nodo verrà rimossa la connessione alla sessione remota.&lt;br&gt;Procedere?</translation>
+    </message>
+    <message>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="421"/>
+        <location filename="../circuits/edit/standardnodetypes.cpp" line="433"/>
+        <source> ms</source>
+        <translation></translation>
     </message>
     <message>
         <location filename="../circuits/edit/standardnodetypes.cpp" line="599"/>
