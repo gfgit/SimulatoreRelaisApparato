@@ -459,7 +459,8 @@ QString RemoteCircuitBridge::getSerialDeviceName() const
 
 bool RemoteCircuitBridge::isRemoteSessionConnected() const
 {
-    return mRemoteSession && mRemoteSession->getConnection();
+    return mRemoteSession && mRemoteSession->getConnection()
+            && mPeerNodeId != 0;
 }
 
 bool RemoteCircuitBridge::setSerialDevice(SerialDevice *serialDevice)

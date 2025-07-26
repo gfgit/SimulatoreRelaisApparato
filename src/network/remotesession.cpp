@@ -21,6 +21,7 @@
  */
 
 #include "remotesession.h"
+#include "remotesessionsmodel.h"
 
 #include "remotemanager.h"
 #include "peerconnection.h"
@@ -112,6 +113,8 @@ void RemoteSession::onConnected(PeerConnection *conn)
     }
 
     sendReplicaList();
+
+    remoteMgr()->remoteSessionsModel()->updateSessionStatus();
 }
 
 void RemoteSession::onDisconnected()
@@ -138,6 +141,8 @@ void RemoteSession::onDisconnected()
 
     // If a session disconnects, ensure we are discoverable again
     remoteMgr()->setDiscoveryEnabled(true);
+
+    remoteMgr()->remoteSessionsModel()->updateSessionStatus();
 }
 
 void RemoteSession::sendBridgesStatusToPeer()

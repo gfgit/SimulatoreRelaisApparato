@@ -27,6 +27,8 @@
 
 #include "../views/modemanager.h"
 
+#include <QColor>
+
 RemoteSessionsModel::RemoteSessionsModel(RemoteManager *mgr)
     : QAbstractTableModel(mgr)
 {
@@ -70,7 +72,10 @@ QVariant RemoteSessionsModel::data(const QModelIndex &idx, int role) const
 
     const RemoteSession *remoteSession = mRemoteSessions.at(idx.row());
 
-    if(role == Qt::DisplayRole || role == Qt::EditRole)
+    switch (role)
+    {
+    case Qt::DisplayRole:
+    case Qt::EditRole:
     {
         switch (idx.column())
         {
@@ -79,6 +84,28 @@ QVariant RemoteSessionsModel::data(const QModelIndex &idx, int role) const
         default:
             break;
         }
+
+        break;
+    }
+    case Qt::DecorationRole:
+    {
+        switch (idx.column())
+        {
+        case NameCol:
+        {
+            // Show connection status
+            QColor statusColor = Qt::black;
+            if(remoteSession->getConnection())
+                statusColor = Qt::green;
+            return statusColor;
+        }
+        default:
+            break;
+        }
+        break;
+    }
+    default:
+        break;
     }
 
     return QVariant();
@@ -122,6 +149,12 @@ Qt::ItemFlags RemoteSessionsModel::flags(const QModelIndex &idx) const
         f.setFlag(Qt::ItemIsEditable);
 
     return f;
+}
+
+void RemoteSessionsModel::updateSessionStatus()
+{
+    emit dataChanged(index(0, NameCol),
+                     index(rowCount() - 1, NameCol));
 }
 
 void RemoteSessionsModel::sortItems()
