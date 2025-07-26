@@ -31,7 +31,7 @@ class AbstractDeviatorGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    static constexpr double TextDisplayMarginSmall = 3;
+    static constexpr double TextDisplayMarginSmall = 5;
 
     static constexpr double morsettiOffset = 10;
     static constexpr double arcRadius = 30;

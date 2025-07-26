@@ -99,7 +99,7 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
 {
     const Connector::Direction arcSide = calculateArcSide();
 
-    const double textDisplayHeight = textDisplayFontSize() * 1.2;
+    const double textDisplayHeight = textDisplayFontSize() * 1.5;
     QRectF textRect;
     switch (textRotate())
     {

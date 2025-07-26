@@ -120,7 +120,7 @@ QRectF LeverContactGraphItem::textDisplayRect() const
 
     const QRectF conditionsRect = leverConditionsRect();
 
-    const double textDisplayHeight = textDisplayFontSize() * 1.2;
+    const double textDisplayHeight = textDisplayFontSize() * 1.5;
     QRectF textRect;
     switch (textRotate())
     {

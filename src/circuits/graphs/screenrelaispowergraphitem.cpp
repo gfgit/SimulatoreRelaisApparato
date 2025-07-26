@@ -206,7 +206,9 @@ void ScreenRelaisPowerGraphItem::updateRelay()
                    this, &ScreenRelaisPowerGraphItem::triggerUpdate);
     }
 
+    prepareGeometryChange();
     mScreenRelay = node()->screenRelais();
+    recalculateTextWidth();
 
     if(mScreenRelay)
     {

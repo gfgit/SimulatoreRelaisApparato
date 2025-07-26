@@ -125,6 +125,8 @@ void LeverContactNode::setLever(AbstractSimulationObject *newLever)
 
     // TODO: sanitize conditions based on new lever type
     emit leverChanged(mLever);
+    emit shapeChanged();
+
     refreshContactState();
     modeMgr()->setFileEdited();
 }

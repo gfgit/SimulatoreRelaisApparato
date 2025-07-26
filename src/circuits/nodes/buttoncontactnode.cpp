@@ -139,6 +139,7 @@ void ButtonContactNode::setButton(AbstractSimulationObject *newButton)
     }
 
     emit buttonChanged(mButton);
+    emit shapeChanged();
     refreshContactState();
     modeMgr()->setFileEdited();
 }

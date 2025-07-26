@@ -101,7 +101,7 @@ QRectF ScreenRelaisContactGraphItem::textDisplayRect() const
     // Put text higher in East/West so we can draw cotact name below
     const Connector::Direction arcSide = calculateArcSide();
 
-    const double textDisplayHeight = textDisplayFontSize() * 1.2;
+    const double textDisplayHeight = textDisplayFontSize() * 1.5;
     QRectF textRect;
     switch (textRotate())
     {
