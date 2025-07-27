@@ -14,6 +14,9 @@ set(SIMULATORE_RELAIS_SOURCES
     objects/simple_activable/soundobject.cpp
     objects/simple_activable/soundobject.h
 
+    objects/simple_activable/abstractactivableobjectsmodel.cpp
+    objects/simple_activable/abstractactivableobjectsmodel.h
+
     ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE
 )

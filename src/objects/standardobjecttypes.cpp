@@ -40,6 +40,8 @@
 
 #include "lever/bem/bemleverobject.h"
 
+#include "simple_activable/abstractactivableobjectsmodel.h"
+
 #include "simple_activable/lightbulbobject.h"
 
 #include "simple_activable/electromagnet.h"
@@ -90,6 +92,12 @@ template <typename T>
 AbstractSimulationObjectModel *createModel(ModeManager *mgr)
 {
     return new T(mgr);
+}
+
+template <typename ActivableObjT>
+AbstractSimulationObjectModel *createSimpleActivableModel(ModeManager *mgr)
+{
+    return new AbstractActivableObjectsModel(mgr, ActivableObjT::Type);
 }
 
 template <typename T>
@@ -724,7 +732,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     {
         // Ligth bulb
         SimulationObjectFactory::FactoryItem item;
-        item.customModelFunc = nullptr;
+        item.customModelFunc = &createSimpleActivableModel<LightBulbObject>;
         item.create = &createObject<LightBulbObject>;
         item.edit = nullptr;
         item.objectType = LightBulbObject::Type;
@@ -737,7 +745,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     {
         // Electromagnet
         SimulationObjectFactory::FactoryItem item;
-        item.customModelFunc = nullptr;
+        item.customModelFunc = &createSimpleActivableModel<ElectroMagnetObject>;
         item.create = &createObject<ElectroMagnetObject>;
         item.edit = nullptr;
         item.objectType = ElectroMagnetObject::Type;
@@ -802,7 +810,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     {
         // Sound Activable Object
         SimulationObjectFactory::FactoryItem item;
-        item.customModelFunc = nullptr;
+        item.customModelFunc = &createSimpleActivableModel<SoundObject>;
         item.create = &createObject<SoundObject>;
         item.objectType = SoundObject::Type;
         item.prettyName = tr("Sound Object");
