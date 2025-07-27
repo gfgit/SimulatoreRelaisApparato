@@ -65,7 +65,7 @@ QRectF RelaisPowerGraphItem::boundingRect() const
     QRectF xRect(-TileLocation::Size, 0,
                  TileLocation::Size, TileLocation::Size);
     QRectF xRect2(TileLocation::Size, 0,
-                 TileLocation::Size, TileLocation::Size);
+                  TileLocation::Size, TileLocation::Size);
 
     return base.united(xRect).united(xRect2);
 }
@@ -245,6 +245,9 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         painter->drawChord(relayRect, angleDeg * 16, arcLen * 16);
     }
 
+    const QRectF lineRect = relayRect.adjusted(-pen.widthF() / 2.0, 0,
+                                               +pen.widthF() / 2.0, 0);
+
     if(node()->relais())
     {
         switch (node()->relais()->relaisType())
@@ -364,6 +367,34 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
             painter->drawArc(relayRect.translated(relayRadius, 0), -90 * 16, -180 * 16);
             break;
         }
+        case AbstractRelais::RelaisType::Blinker:
+        case AbstractRelais::RelaisType::Encoder:
+        {
+            // Draw pie sector 45 degrees
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(color);
+
+            // Left
+            painter->drawPie(relayRect,
+                             -45 * 16, 90 * 16);
+
+            painter->drawPie(relayRect,
+                             135 * 16, 90 * 16);
+            break;
+        }
+        case AbstractRelais::RelaisType::CodeRepeater:
+        {
+            // Draw horizontal center line
+            painter->setBrush(Qt::NoBrush);
+            painter->setPen(pen);
+
+            const double centerY = lineRect.center().y();
+            painter->drawLine(QLineF(lineRect.left(),
+                                     centerY,
+                                     lineRect.right(),
+                                     centerY));
+            break;
+        }
         default:
             break;
         }
@@ -378,9 +409,6 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     if(!isCombinatorRelay)
     {
         // Draw lines top/bottom
-        const QRectF lineRect = relayRect.adjusted(-pen.widthF() / 2.0, 0,
-                                                   +pen.widthF() / 2.0, 0);
-
         painter->drawLine(lineRect.topLeft(), lineRect.topRight());
         painter->drawLine(lineRect.bottomLeft(), lineRect.bottomRight());
 
@@ -620,7 +648,7 @@ void RelaisPowerGraphItem::updateRelay()
         connect(mRelay, &AbstractRelais::stateChanged,
                 this, &RelaisPowerGraphItem::triggerUpdate);
         connect(mRelay, &AbstractRelais::typeChanged,
-                   this, &RelaisPowerGraphItem::onRelayTypeChanged);
+                this, &RelaisPowerGraphItem::onRelayTypeChanged);
 
         if(!hadRelay)
         {
@@ -703,7 +731,6 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter, int relState)
     QRectF arrowRect = arrowDisplayRect();
 
     QLineF line;
-    QPointF triangle[3];
 
     const double centerX = arrowRect.center().x();
     const double lineHeight = arrowRect.height() * 0.6;
@@ -712,22 +739,40 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter, int relState)
                                                 arrowRect.height() - lineHeight);
 
     bool isRelayUp = relayState == AbstractRelais::State::Up;
-    if(node()->modeMgr()->mode() != FileMode::Simulation)
+
+    const bool isNotSimulating = node()->modeMgr()->mode() != FileMode::Simulation;
+    bool isEncoderOrRepeater = (mRelay->relaisType() == AbstractRelais::RelaisType::Encoder
+                                || mRelay->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+
+    if(isNotSimulating)
     {
         // In static or editing mode,
         // draw relay in its normal state
         isRelayUp = node()->relais()->normallyUp();
+
+        if(isEncoderOrRepeater)
+            isRelayUp = false;
     }
+
+    const QPointF arrowUpTriangle[3] =
+    {
+        QPointF(centerX, arrowRect.top()),
+        QPointF(centerX + triangleSemiWidth, arrowRect.bottom() - lineHeight),
+        QPointF(centerX - triangleSemiWidth, arrowRect.bottom() - lineHeight)
+    };
+
+    const QPointF arrowDownTriangle[3] =
+    {
+        QPointF(centerX, arrowRect.bottom()),
+        QPointF(centerX + triangleSemiWidth, arrowRect.top() + lineHeight),
+        QPointF(centerX - triangleSemiWidth, arrowRect.top() + lineHeight)
+    };
 
     if(isRelayUp)
     {
         // Arrow up
         line.setP1(QPointF(centerX, arrowRect.bottom() - lineHeight));
         line.setP2(QPointF(centerX, arrowRect.bottom()));
-
-        triangle[0] = QPointF(centerX, arrowRect.top());
-        triangle[1] = QPointF(centerX + triangleSemiWidth, line.y1());
-        triangle[2] = QPointF(centerX - triangleSemiWidth, line.y1());
     }
     else
     {
@@ -735,9 +780,10 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter, int relState)
         line.setP1(QPointF(centerX, arrowRect.top() + lineHeight));
         line.setP2(QPointF(centerX, arrowRect.top()));
 
-        triangle[0] = QPointF(centerX, arrowRect.bottom());
-        triangle[1] = QPointF(centerX + triangleSemiWidth, line.y1());
-        triangle[2] = QPointF(centerX - triangleSemiWidth, line.y1());
+        if(isEncoderOrRepeater && isNotSimulating)
+        {
+            line.setP2(QPointF(centerX, arrowRect.bottom() - lineHeight));
+        }
     }
 
     /* Colors:
@@ -749,7 +795,11 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter, int relState)
      */
 
     QColor color = Qt::black;
-    if(isRelayUp)
+    if(isEncoderOrRepeater && isNotSimulating)
+    {
+        color = Qt::blue;
+    }
+    else if(isRelayUp)
     {
         if(node()->relais()->normallyUp())
             color = Qt::red; // Relay in normal state
@@ -775,7 +825,13 @@ void RelaisPowerGraphItem::drawRelayArrow(QPainter *painter, int relState)
 
     painter->setPen(Qt::NoPen);
     painter->setBrush(color);
-    painter->drawPolygon(triangle, 3);
+    painter->drawPolygon(isRelayUp ? arrowUpTriangle : arrowDownTriangle, 3);
+
+    if(isEncoderOrRepeater && isNotSimulating)
+    {
+        // Draw also other arrow
+        painter->drawPolygon(!isRelayUp ? arrowUpTriangle : arrowDownTriangle, 3);
+    }
 }
 
 bool RelaisPowerGraphItem::preferEastArrow() const
