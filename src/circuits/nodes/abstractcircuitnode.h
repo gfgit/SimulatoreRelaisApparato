@@ -259,7 +259,8 @@ public:
         return mModeMgr;
     }
 
-    void applyNewFlags(CircuitFlags sourceFlags = CircuitFlags::None);
+    void applyNewFlags(CircuitFlags sourceFlags = CircuitFlags::None,
+                       int nodeContact = NodeItem::InvalidContact);
 
 protected:
     friend class CircuitScene;

@@ -48,12 +48,17 @@ public:
     bool isSourceEnabled() const override;
     void setSourceEnabled(bool newEnabled) override;
 
+    void onCircuitFlagsChanged() override;
+
 private:
+    void scheduleUpdate();
     void updateSourceState();
 
 private:
     bool enabled = false;
     bool reallyEnabled = false;
+    bool flagsNeedUpdate = false;
+    bool updateScheduled = false;
 };
 
 #endif // TRANSFORMERNODE_H

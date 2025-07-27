@@ -176,7 +176,7 @@ void CircuitCable::circuitAddedRemovedFlags(ElectricCircuit *circuit, bool add)
 
     Q_ASSERT(isFirst || isSecond);
 
-    if(mCircuitsWithFlags > 0)
+    if(mCircuitsWithFlags > 0 || add)
     {
         if(isFirst)
             updateCircuitFlags(circuit->type(), CircuitPole::First);

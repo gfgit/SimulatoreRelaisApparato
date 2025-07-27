@@ -34,10 +34,16 @@ class TransformerNodeEnableEvent : public QEvent
 public:
     static const QEvent::Type _Type = QEvent::Type(QEvent::User + 2);
 
-    TransformerNodeEnableEvent() :
-        QEvent(_Type)
+    TransformerNodeEnableEvent(bool flagChange_ = false) :
+        QEvent(_Type),
+        mFlagChange(flagChange_)
     {
     }
+
+    inline bool isFlagChange() const { return mFlagChange; }
+
+private:
+    bool mFlagChange = false;
 };
 
 
@@ -53,7 +59,8 @@ bool TransformerNode::event(QEvent *e)
 {
     if(e->type() == TransformerNodeEnableEvent::_Type)
     {
-        e->accept();
+        TransformerNodeEnableEvent *ev = static_cast<TransformerNodeEnableEvent *>(e);
+        ev->accept();
         updateSourceState();
         return true;
     }
@@ -63,20 +70,21 @@ bool TransformerNode::event(QEvent *e)
 
 void TransformerNode::addCircuit(ElectricCircuit *circuit)
 {
-    const AnyCircuitType oldSourceState = hasAnyCircuit(1);
+    const AnyCircuitType oldOutputState = hasAnyCircuit(1);
 
     AbstractCircuitNode::addCircuit(circuit);
+
     const bool shouldEnable = hasCircuit(0, CircuitType::Closed);
 
     bool changed = false;
     if(shouldEnable != reallyEnabled)
     {
-        QCoreApplication::postEvent(this, new TransformerNodeEnableEvent);
+        scheduleUpdate();
         changed = true;
     }
 
-    const AnyCircuitType sourceState = hasAnyCircuit(1);
-    if(oldSourceState != sourceState)
+    const AnyCircuitType outputState = hasAnyCircuit(1);
+    if(oldOutputState != outputState)
         changed = true;
 
     if(changed)
@@ -85,20 +93,21 @@ void TransformerNode::addCircuit(ElectricCircuit *circuit)
 
 void TransformerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
 {
-    const AnyCircuitType oldSourceState = hasAnyCircuit(1);
+    const AnyCircuitType oldOutputState = hasAnyCircuit(1);
 
     AbstractCircuitNode::removeCircuit(circuit, items);
+
     const bool shouldEnable = hasCircuit(0, CircuitType::Closed);
 
     bool changed = false;
     if(shouldEnable != reallyEnabled)
     {
-        QCoreApplication::postEvent(this, new TransformerNodeEnableEvent);
+        scheduleUpdate();
         changed = true;
     }
 
-    const AnyCircuitType sourceState = hasAnyCircuit(1);
-    if(oldSourceState != sourceState)
+    const AnyCircuitType outputState = hasAnyCircuit(1);
+    if(oldOutputState != outputState)
         changed = true;
 
     if(changed)
@@ -110,12 +119,13 @@ void TransformerNode::partialRemoveCircuit(ElectricCircuit *circuit, const NodeO
     const AnyCircuitType oldSourceState = hasAnyCircuit(1);
 
     AbstractCircuitNode::partialRemoveCircuit(circuit, items);
+
     const bool shouldEnable = hasCircuit(0, CircuitType::Closed);
 
     bool changed = false;
     if(shouldEnable != reallyEnabled)
     {
-        QCoreApplication::postEvent(this, new TransformerNodeEnableEvent);
+        scheduleUpdate();
         changed = true;
     }
 
@@ -137,11 +147,11 @@ AbstractCircuitNode::ConnectionsRes TransformerNode::getActiveConnections(CableI
 
     if(source.nodeContact == 1)
     {
-        // Make dependant circuits end here
+        // Make output circuits end here
         return {};
     }
 
-    // Close the primary circuit
+    // Close the input circuit
     CableItemFlags dest;
     dest.cable.cable = mContacts.at(0).cable;
     dest.cable.side = mContacts.at(0).cableSide;
@@ -166,7 +176,7 @@ bool TransformerNode::isSourceEnabled() const
     if(enabled && modeMgr()->mode() == FileMode::Editing)
         return false; // Act as Off during Editing
 
-    // Return true if explicitly enabled and has source circuit
+    // Return true if explicitly enabled and has input circuit
     return enabled && hasCircuit(0, CircuitType::Closed);
 }
 
@@ -182,30 +192,59 @@ void TransformerNode::setSourceEnabled(bool newEnabled)
     updateSourceState();
 }
 
+void TransformerNode::onCircuitFlagsChanged()
+{
+    // Delay flag update
+    flagsNeedUpdate = true;
+    scheduleUpdate();
+}
+
+void TransformerNode::scheduleUpdate()
+{
+    if(updateScheduled)
+        return;
+
+    updateScheduled = true;
+    QCoreApplication::postEvent(this, new TransformerNodeEnableEvent);
+}
+
 void TransformerNode::updateSourceState()
 {
+    updateScheduled = false;
+
     const bool shouldEnable = enabled && hasCircuit(0, CircuitType::Closed)
             && modeMgr()->mode() != FileMode::Editing;
 
-    if (reallyEnabled == shouldEnable)
+    const bool wasEnabled = reallyEnabled;
+
+    if (reallyEnabled == shouldEnable && !flagsNeedUpdate)
         return;
     reallyEnabled = shouldEnable;
 
-    if(reallyEnabled)
+    if(reallyEnabled && !wasEnabled)
     {
         CircuitPole pole = CircuitPole::First;
         if(hasExitCircuitOnPole(0, CircuitPole::First))
             pole = CircuitPole::Second;
 
-        ElectricCircuit::createCircuitsFromPowerNode(this, pole, 1);
+        // Mirror flags from input to output
+        ElectricCircuit::createCircuitsFromPowerNode(this, pole,
+                                                     1, getCircuitFlags(0));
+    }
+    else if(reallyEnabled && flagsNeedUpdate)
+    {
+        // Change output flags based on input flags
+        applyNewFlags(getCircuitFlags(0), 1);
     }
     else
     {
         // Disable circuits
         const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-        disableCircuits(closedCopy, this);
+        disableCircuits(closedCopy, this, 1);
 
         const CircuitList openCopy = getCircuits(CircuitType::Open);
-        truncateCircuits(openCopy, this);
+        truncateCircuits(openCopy, this, 1);
     }
+
+    flagsNeedUpdate = false;
 }

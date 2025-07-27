@@ -233,15 +233,49 @@ void AbstractCircuitNode::detachCable(const CableItem &item)
     }
 }
 
-void AbstractCircuitNode::applyNewFlags(CircuitFlags sourceFlags)
+void AbstractCircuitNode::applyNewFlags(CircuitFlags sourceFlags, int nodeContact)
 {
     for(ElectricCircuit *circuit : getCircuits(CircuitType::Open))
     {
+        if(nodeContact != NodeItem::InvalidContact)
+        {
+            bool skip = true;
+            const auto items = circuit->getNode(this);
+            for(const NodeItem& item : items)
+            {
+                if(item.fromContact == nodeContact || item.toContact == nodeContact)
+                {
+                    skip = false;
+                    break;
+                }
+            }
+
+            if(skip)
+                continue;
+        }
+
         circuit->applyNewFlags(this, sourceFlags);
     }
 
     for(ElectricCircuit *circuit : getCircuits(CircuitType::Closed))
     {
+        if(nodeContact != NodeItem::InvalidContact)
+        {
+            bool skip = true;
+            const auto items = circuit->getNode(this);
+            for(const NodeItem& item : items)
+            {
+                if(item.fromContact == nodeContact || item.toContact == nodeContact)
+                {
+                    skip = false;
+                    break;
+                }
+            }
+
+            if(skip)
+                continue;
+        }
+
         circuit->applyNewFlags(this, sourceFlags);
     }
 }
