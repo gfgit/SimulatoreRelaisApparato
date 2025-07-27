@@ -34,8 +34,6 @@
 RelaisContactGraphItem::RelaisContactGraphItem(RelaisContactNode *node_)
     : AbstractDeviatorGraphItem(node_)
 {
-    connect(node(), &RelaisContactNode::relayCodeChanged,
-            this, &RelaisContactGraphItem::onRelayCodeChanged);
 }
 
 void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -429,9 +427,4 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
 RelaisContactNode *RelaisContactGraphItem::node() const
 {
     return static_cast<RelaisContactNode *>(getAbstractNode());
-}
-
-void RelaisContactGraphItem::onRelayCodeChanged()
-{
-
 }

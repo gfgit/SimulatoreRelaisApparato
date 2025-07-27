@@ -46,9 +46,6 @@ public:
 
     RelaisContactNode *node() const;
 
-private slots:
-    void onRelayCodeChanged();
-
 private:
     QRectF calculateArrowRect(Connector::Direction r, const QRectF &textBr) const;
 

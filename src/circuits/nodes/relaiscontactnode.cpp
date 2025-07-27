@@ -192,7 +192,6 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais, bool autoSwapState)
 
     emit shapeChanged();
     emit relayChanged(mRelais);
-    emit relayCodeChanged();
     onRelaisStateChanged();
 
     modeMgr()->setFileEdited();
