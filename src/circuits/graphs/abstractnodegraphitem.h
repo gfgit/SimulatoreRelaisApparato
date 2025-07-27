@@ -101,7 +101,7 @@ public:
 protected slots:
     void triggerUpdate();
     virtual void updateName();
-    void onShapeChanged(bool boundingRectChange);
+    void onShapeChanged(bool boundingRectChange, bool cableChange);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;

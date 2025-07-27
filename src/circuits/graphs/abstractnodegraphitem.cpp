@@ -816,8 +816,17 @@ QColor AbstractNodeGraphItem::getContactColor(const AnyCircuitType targetType,
     return color;
 }
 
-void AbstractNodeGraphItem::onShapeChanged(bool boundingRectChange)
+void AbstractNodeGraphItem::onShapeChanged(bool boundingRectChange, bool cableChange)
 {
+    if(cableChange)
+    {
+        // This might recurse, so return immediately
+        // Can be called from inside `invalidateConnections()`
+        prepareGeometryChange();
+        update();
+        return;
+    }
+
     if(boundingRectChange)
     {
         prepareGeometryChange();

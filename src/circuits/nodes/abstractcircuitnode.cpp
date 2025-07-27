@@ -201,6 +201,8 @@ void AbstractCircuitNode::attachCable(const CableItem& item)
         cableEnd.node = this;
         cableEnd.nodeContact = item.nodeContact;
         item.cable.cable->setNode(item.cable.side, cableEnd);
+
+        emit shapeChanged(false, true);
     }
     else
     {
@@ -225,6 +227,8 @@ void AbstractCircuitNode::detachCable(const CableItem &item)
         contact.cable = nullptr;
         item.cable.cable->setNode(item.cable.side, {});
         contact.setType(item.cable.pole, ContactType::NotConnected);
+
+        emit shapeChanged(false, true);
     }
     else
     {

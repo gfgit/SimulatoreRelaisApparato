@@ -273,7 +273,7 @@ protected:
 
 signals:
     void circuitsChanged();
-    void shapeChanged(bool boundingRectChange = false);
+    void shapeChanged(bool boundingRectChange = false, bool cableChange = false);
 
 protected:
     NodeContacts mContacts;

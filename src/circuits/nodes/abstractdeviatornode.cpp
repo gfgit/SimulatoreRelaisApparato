@@ -197,9 +197,6 @@ void AbstractDeviatorNode::setHasCentralConnector(bool newHasCentralConnector)
 
     mHasCentralConnector = newHasCentralConnector;
 
-    emit shapeChanged();
-    modeMgr()->setFileEdited();
-
     if(!mHasCentralConnector)
     {
         // Circuits must be disabled before editing contacts
@@ -208,6 +205,9 @@ void AbstractDeviatorNode::setHasCentralConnector(bool newHasCentralConnector)
 
         detachCable(1);
     }
+
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 /*!

@@ -77,9 +77,6 @@ void SimpleCircuitNode::setDisabledContact(int val)
 
     mDisabledContact = val;
 
-    emit shapeChanged();
-    modeMgr()->setFileEdited();
-
     // Commmon cannot be disabled
     if(mDisabledContact > 0)
     {
@@ -89,6 +86,9 @@ void SimpleCircuitNode::setDisabledContact(int val)
 
         detachCable(mDisabledContact);
     }
+
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
 bool SimpleCircuitNode::loadFromJSON(const QJsonObject &obj)
