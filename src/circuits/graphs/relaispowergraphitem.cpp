@@ -395,6 +395,21 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
                                      centerY));
             break;
         }
+        case AbstractRelais::RelaisType::DiskRelayAC:
+        {
+            // Draw a cross onto the circle
+            painter->setBrush(Qt::NoBrush);
+            painter->setPen(pen);
+
+            // Adjust rect so that cross lines stay inside the circle
+            const double adjLine = relayRadius * 0.27;
+            const QRectF circleInner = relayRect.adjusted(adjLine, adjLine,
+                                                          -adjLine, -adjLine);
+
+            painter->drawLine(circleInner.topLeft(), circleInner.bottomRight());
+            painter->drawLine(circleInner.topRight(), circleInner.bottomLeft());
+            break;
+        }
         default:
             break;
         }

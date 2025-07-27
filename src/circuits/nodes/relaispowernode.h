@@ -98,6 +98,7 @@ private:
     void stopTimeoutPercentTimer();
 
     void updateDecoderState();
+    void updateDiskRelayState();
 
 private:
     // Settings

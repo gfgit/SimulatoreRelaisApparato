@@ -109,6 +109,7 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
     const bool combinator = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
     const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
     const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+    const bool diskRel = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::DiskRelayAC);
 
     if(isActiveFirst && !wasActiveFirst)
     {
@@ -121,13 +122,13 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
             needsFlagUpdate = false;
             updateDecoderState();
         }
-        else
+        else if(!diskRel)
         {
             activateRelay(0);
         }
     }
 
-    if(!combinator && mHasSecondConnector && isActiveSecond && !wasActiveSecond)
+    if(!combinator && mHasSecondConnector && isActiveSecond && !wasActiveSecond && !diskRel)
     {
         activateRelay(1);
     }
@@ -135,6 +136,10 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
     if((decoder || repeater) && needsFlagUpdate)
     {
         updateDecoderState();
+    }
+    else if(diskRel)
+    {
+        updateDiskRelayState();
     }
 }
 
@@ -158,6 +163,7 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
     const bool combinator = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
     const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
     const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+    const bool diskRel = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::DiskRelayAC);
 
     if(!isActiveFirst && wasActiveFirst)
     {
@@ -169,13 +175,13 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
         {
             updateDecoderState();
         }
-        else
+        else if(!diskRel)
         {
             deactivateRelay(0);
         }
     }
 
-    if(!combinator && mHasSecondConnector && !isActiveSecond && wasActiveSecond)
+    if(!combinator && mHasSecondConnector && !isActiveSecond && wasActiveSecond && !diskRel)
     {
         deactivateRelay(1);
     }
@@ -183,6 +189,10 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
     if((decoder || repeater) && needsFlagUpdate)
     {
         updateDecoderState();
+    }
+    else if(diskRel)
+    {
+        updateDiskRelayState();
     }
 }
 
@@ -558,10 +568,6 @@ void RelaisPowerNode::updateDecoderState()
     if(!mRelais)
         return;
 
-    if(mRelais->name() == "TR_351")
-        qt_noop();
-
-
     Q_ASSERT(mRelais->relaisType() == AbstractRelais::RelaisType::Decoder ||
              mRelais->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
 
@@ -587,6 +593,26 @@ void RelaisPowerNode::updateDecoderState()
     default:
         break;
     }
+
+    if(valid)
+        activateRelay(0);
+    else
+        deactivateRelay(0);
+}
+
+void RelaisPowerNode::updateDiskRelayState()
+{
+    if(!mRelais)
+        return;
+
+    Q_ASSERT(mRelais->relaisType() == AbstractRelais::RelaisType::DiskRelayAC);
+
+    bool valid = hasEntranceCircuitOnPole(0, CircuitPole::First, CircuitType::Closed)
+            && hasEntranceCircuitOnPole(1, CircuitPole::First, CircuitType::Closed);
+
+    if(!valid)
+        valid = hasEntranceCircuitOnPole(0, CircuitPole::Second, CircuitType::Closed)
+                && hasEntranceCircuitOnPole(1, CircuitPole::Second, CircuitType::Closed);
 
     if(valid)
         activateRelay(0);

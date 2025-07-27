@@ -47,6 +47,9 @@ public:
     // Decoders are very fast too and symmetric time
     static constexpr int DefaultDecoderMS = 50;
 
+    // Disk relays are pretty fast, symmetric
+    static constexpr int DefaultDiskMS = 150;
+
     enum class State
     {
         Up = 0,
@@ -67,6 +70,7 @@ public:
         Encoder,
         Decoder,
         CodeRepeater,
+        DiskRelayAC,
         NTypes
     };
 
@@ -103,6 +107,8 @@ public:
         if(relaisType() == RelaisType::Stabilized)
             return true;
         if(relaisType() == RelaisType::Combinator)
+            return true;
+        if(relaisType() == RelaisType::DiskRelayAC)
             return true;
         return false;
     }

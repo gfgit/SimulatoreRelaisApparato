@@ -56,6 +56,8 @@ QString AbstractRelais::getRelaisTypeName(RelaisType t)
         return tr("Decoder");
     case RelaisType::CodeRepeater:
         return tr("Code Repeater");
+    case RelaisType::DiskRelayAC:
+        return tr("Disk Relay (AC)");
     case RelaisType::NTypes:
         break;
     }
@@ -474,6 +476,7 @@ void AbstractRelais::startMove(bool up)
     case RelaisType::Decoder:
     case RelaisType::Encoder:
     case RelaisType::CodeRepeater:
+    case RelaisType::DiskRelayAC:
         // These types have symmetric time characteristic
         // So use always custom up time
         timeUp = true;
@@ -495,6 +498,9 @@ void AbstractRelais::startMove(bool up)
         case RelaisType::Encoder:
         case RelaisType::CodeRepeater:
             totalTime = DefaultDecoderMS;
+            break;
+        case RelaisType::DiskRelayAC:
+            totalTime = DefaultDiskMS;
             break;
         default:
             totalTime = timeUp ? DefaultUpMS : DefaultDownMS;
