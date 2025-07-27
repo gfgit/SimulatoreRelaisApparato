@@ -57,14 +57,14 @@ AbstractCircuitNode::ConnectionsRes RelaisPowerNode::getActiveConnections(CableI
 
     if(relais()->relaisType() == AbstractRelais::RelaisType::Polarized)
     {
-        // Polarized must have positive on first pole
-        if((source.cable.pole != CircuitPole::First) != invertDir)
+        // Polarized must have positive on second pole
+        if((source.cable.pole != CircuitPole::Second) != invertDir)
             return {};
     }
     else if(relais()->relaisType() == AbstractRelais::RelaisType::PolarizedInverted)
     {
-        // Polarized inverted must have positive on second pole
-        if((source.cable.pole != CircuitPole::Second) != invertDir)
+        // Polarized inverted must have positive on first pole
+        if((source.cable.pole != CircuitPole::First) != invertDir)
             return {};
     }
     else if(relais()->relaisType() == AbstractRelais::RelaisType::Combinator)

@@ -343,7 +343,7 @@
     <name>AbstractRelais</name>
     <message>
         <location filename="../objects/relais/model/abstractrelais.cpp" line="40"/>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="793"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="799"/>
         <source>Normal</source>
         <translation>Normale</translation>
     </message>
@@ -393,37 +393,42 @@
         <translation>Trasmetti Codice</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="791"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="60"/>
+        <source>Disk Relay (AC)</source>
+        <translation>Relé a Disco (AC)</translation>
+    </message>
+    <message>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="797"/>
         <source>Reverse</source>
         <translation>Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="795"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="801"/>
         <source>Going reverse</source>
         <translation>Andando in Rovescia</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="797"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="803"/>
         <source>Going normal</source>
         <translation>Andando in Normale</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="807"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="813"/>
         <source>Up</source>
         <translation>Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="809"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="815"/>
         <source>Down</source>
         <translation>Basso</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="811"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="817"/>
         <source>Going up</source>
         <translation>Andando Alto</translation>
     </message>
     <message>
-        <location filename="../objects/relais/model/abstractrelais.cpp" line="813"/>
+        <location filename="../objects/relais/model/abstractrelais.cpp" line="819"/>
         <source>Going down</source>
         <translation>Andando Basso</translation>
     </message>
@@ -1676,12 +1681,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RelaisContactGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="279"/>
+        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="277"/>
         <source>No Relay set!</source>
         <translation>Nessun Relè impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="281"/>
+        <location filename="../circuits/graphs/relaiscontactgraphitem.cpp" line="279"/>
         <source>Contact of relay &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;State: &lt;b&gt;%2&lt;/b&gt;&lt;br&gt;%3</source>
         <translation>Contatto del Relè &lt;b&gt;%1&lt;/b&gt;&lt;br&gt;State: &lt;b&gt;%2&lt;/b&gt;&lt;br&gt;%3</translation>
     </message>
@@ -1740,12 +1745,12 @@ Scegli un altro nome:</translation>
 <context>
     <name>RelaisPowerGraphItem</name>
     <message>
-        <location filename="../circuits/graphs/relaispowergraphitem.cpp" line="446"/>
+        <location filename="../circuits/graphs/relaispowergraphitem.cpp" line="489"/>
         <source>No Relay set!</source>
         <translation>Nessun Relè impostato!</translation>
     </message>
     <message>
-        <location filename="../circuits/graphs/relaispowergraphitem.cpp" line="448"/>
+        <location filename="../circuits/graphs/relaispowergraphitem.cpp" line="491"/>
         <source>Relay &lt;b&gt;%1&lt;/b&gt; (Power)&lt;br&gt;State: &lt;b&gt;%2&lt;/b&gt;</source>
         <translation>Relè &lt;b&gt;%1&lt;/b&gt; (Alimentazione)&lt;br&gt;Stato: &lt;b&gt;%2&lt;/b&gt;</translation>
     </message>
@@ -1753,7 +1758,7 @@ Scegli un altro nome:</translation>
 <context>
     <name>RelaisPowerNode</name>
     <message>
-        <location filename="../circuits/nodes/relaispowernode.cpp" line="228"/>
+        <location filename="../circuits/nodes/relaispowernode.cpp" line="241"/>
         <source>Relay</source>
         <translation>Relè</translation>
     </message>

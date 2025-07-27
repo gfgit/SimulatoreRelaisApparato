@@ -319,10 +319,8 @@ QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFileOld)
     return newFile;
 }
 
-QJsonObject convertFileFormatV2ToV3(const QJsonObject& origFileOld)
+QJsonObject convertFileFormatV2ToV3(const QJsonObject& origFile)
 {
-    const QJsonObject origFile = replaceACESasibType(origFileOld);
-
     QJsonObject circuits = origFile.value("circuits").toObject();
     const QJsonArray scenes = circuits.value("scenes").toArray();
 
@@ -362,6 +360,49 @@ QJsonObject convertFileFormatV2ToV3(const QJsonObject& origFileOld)
     return newFile;
 }
 
+QJsonObject convertFileFormatV3ToV4(const QJsonObject& origFile)
+{
+    enum RelaisTypeV4
+    {
+        Polarized = 1,
+        PolarizedInverted = 2
+    };
+
+    QJsonObject objects = origFile.value("objects").toObject();
+
+    {
+        // Swap polarized relais
+        QJsonObject relaisModel = objects.value("abstract_relais").toObject();
+        const QJsonArray arr = relaisModel.value("objects").toArray();
+        QJsonArray newRelays;
+
+        for(const QJsonValue& v : arr)
+        {
+            QJsonObject relayObj = v.toObject();
+
+            int relayType = relayObj.value("relay_type").toInt();
+            if(relayType == RelaisTypeV4::Polarized)
+                relayType = RelaisTypeV4::PolarizedInverted;
+            else if(relayType == RelaisTypeV4::PolarizedInverted)
+                relayType = RelaisTypeV4::Polarized;
+
+            relayObj["relay_type"] = relayType;
+
+            newRelays.append(relayObj);
+        }
+
+        relaisModel["objects"] = newRelays;
+        objects["abstract_relais"] = relaisModel;
+    }
+
+    // Save new file
+    QJsonObject newFile = origFile;
+    newFile["file_version"] = ModeManager::FileVersion::V4;
+    newFile["objects"] = objects;
+
+    return newFile;
+}
+
 QJsonObject convertOldFileFormat(const QJsonObject& origFile)
 {
     QJsonObject rootObj = origFile;
@@ -380,8 +421,14 @@ QJsonObject convertOldFileFormat(const QJsonObject& origFile)
 
     if(rootObj.value("file_version") == ModeManager::FileVersion::V2)
     {
-        // V1 file, try to convert it to V3
+        // V2 file, try to convert it to V3
         rootObj = convertFileFormatV2ToV3(rootObj);
+    }
+
+    if(rootObj.value("file_version") == ModeManager::FileVersion::V3)
+    {
+        // V3 file, try to convert it to V4
+        rootObj = convertFileFormatV3ToV4(rootObj);
     }
 
     return rootObj;

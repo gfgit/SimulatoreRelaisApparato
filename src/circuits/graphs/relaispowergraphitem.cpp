@@ -304,7 +304,7 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
                 {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize + halfHeight}
             };
 
-            if(node()->relais()->relaisType() == AbstractRelais::RelaisType::PolarizedInverted)
+            if(node()->relais()->relaisType() == AbstractRelais::RelaisType::Polarized)
             {
                 // Invert diode
                 std::swap(triangle[0].rx(), triangle[1].rx());
