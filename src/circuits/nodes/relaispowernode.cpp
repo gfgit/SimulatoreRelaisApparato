@@ -140,6 +140,9 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
 
 void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
 {
+    if(mRelais->name() == "TR_351")
+        qt_noop();
+
     const bool wasActiveFirst = hasCircuit(0, CircuitType::Closed);
     const bool wasActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
@@ -374,10 +377,12 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
         }
 
         // Do delayed action
+        const bool wasUp = mIsUp[contact];
         mIsUp[contact] = wasGoingUp[contact];
-        if(wasGoingUp[contact])
+
+        if(mIsUp[contact] && !wasUp)
             mRelais->powerNodeActivated(this, contact == 1);
-        else
+        else if(!mIsUp[contact] && wasUp)
             mRelais->powerNodeDeactivated(this, contact == 1);
 
         stopTimer(contact);
@@ -421,6 +426,9 @@ void RelaisPowerNode::onCircuitFlagsChanged()
 
 void RelaisPowerNode::activateRelay(int contact)
 {
+    if(mRelais->name() == "TR_351")
+        qt_noop();
+
     Q_ASSERT(contact == 0 || contact == 1);
 
     if(mTimerIds[contact] && wasGoingUp[contact])
@@ -440,8 +448,11 @@ void RelaisPowerNode::activateRelay(int contact)
     if(mDelayUpMillis == 0)
     {
         // Do it now
+        const bool wasUp = mIsUp[contact];
         mIsUp[contact] = true;
-        mRelais->powerNodeActivated(this, contact == 1);
+
+        if(!wasUp)
+            mRelais->powerNodeActivated(this, contact == 1);
 
         if(decoder || repeater)
         {
@@ -460,6 +471,9 @@ void RelaisPowerNode::activateRelay(int contact)
 
 void RelaisPowerNode::deactivateRelay(int contact)
 {
+    if(mRelais->name() == "TR_351")
+        qt_noop();
+
     Q_ASSERT(contact == 0 || contact == 1);
 
     if(mTimerIds[contact] && !wasGoingUp[contact])
@@ -476,8 +490,11 @@ void RelaisPowerNode::deactivateRelay(int contact)
     if(mDelayDownMillis == 0)
     {
         // Do it now
+        const bool wasUp = mIsUp[contact];
         mIsUp[contact] = false;
-        mRelais->powerNodeDeactivated(this, contact == 1);
+
+        if(wasUp)
+            mRelais->powerNodeDeactivated(this, contact == 1);
 
         if(decoder || repeater)
         {
@@ -540,6 +557,10 @@ void RelaisPowerNode::updateDecoderState()
 {
     if(!mRelais)
         return;
+
+    if(mRelais->name() == "TR_351")
+        qt_noop();
+
 
     Q_ASSERT(mRelais->relaisType() == AbstractRelais::RelaisType::Decoder ||
              mRelais->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
