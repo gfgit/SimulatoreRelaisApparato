@@ -64,6 +64,7 @@ CircuitListWidget::CircuitListWidget(ViewManager *mgr, CircuitListModel *model, 
 
     mView->setModel(mModel);
     mView->setContextMenuPolicy(Qt::CustomContextMenu);
+    mView->resizeColumnsToContents();
 
     // Edit through dedicate options widget
     mView->setEditTriggers(QTableView::NoEditTriggers);

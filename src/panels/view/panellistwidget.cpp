@@ -64,6 +64,7 @@ PanelListWidget::PanelListWidget(ViewManager *mgr, PanelListModel *model, QWidge
 
     mView->setModel(mModel);
     mView->setContextMenuPolicy(Qt::CustomContextMenu);
+    mView->resizeColumnsToContents();
 
     // Edit through dedicate options widget
     mView->setEditTriggers(QTableView::NoEditTriggers);

@@ -59,6 +59,7 @@ SerialDeviceListWidget::SerialDeviceListWidget(ViewManager *viewMgr, QWidget *pa
     mView = new QTableView;
     mView->setModel(mModel);
     lay->addWidget(mView);
+    mView->resizeColumnsToContents();
 
     connect(addBut, &QPushButton::clicked,
             this, &SerialDeviceListWidget::addSerialDevice);

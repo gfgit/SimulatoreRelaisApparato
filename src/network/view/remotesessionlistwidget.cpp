@@ -59,6 +59,7 @@ RemoteSessionListWidget::RemoteSessionListWidget(ViewManager *viewMgr, QWidget *
     mView = new QTableView;
     mView->setModel(mModel);
     lay->addWidget(mView);
+    mView->resizeColumnsToContents();
 
     connect(addBut, &QPushButton::clicked,
             this, &RemoteSessionListWidget::addRemoteSession);
