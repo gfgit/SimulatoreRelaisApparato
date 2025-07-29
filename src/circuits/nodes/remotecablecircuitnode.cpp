@@ -505,8 +505,8 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
     mRecvFlags = peerFlags;
     mLastPeerMode = peerMode;
 
-#if 0
-    if(mRemote && mRemote->name() == "TR2")
+#ifdef REMOTE_CABLE_DEBUG
+    if(mRemote && IS_REMOTE_DEBUG(mRemote))
     {
         qt_noop();
 

@@ -131,7 +131,7 @@ inline constexpr SignalAspectCode codeFromFlag(CircuitFlags code)
 extern EnumDesc SignalAspectCode_getDesc();
 
 
-#if 0
+#ifdef REMOTE_CABLE_DEBUG
 inline QString codeToStr(CircuitFlags f)
 {
     switch (getCode(f))

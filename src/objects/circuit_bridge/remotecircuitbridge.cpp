@@ -284,8 +284,8 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
     if(RemoteCableCircuitNode::isReceiveMode(currMode))
         flagsToSend = nonSourceFlags;
 
-#if 0
-    if(name() == "TR2")
+#ifdef REMOTE_CABLE_DEBUG
+    if(IS_REMOTE_DEBUG(this))
     {
         qt_noop();
 

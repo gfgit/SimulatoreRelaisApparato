@@ -25,6 +25,9 @@
 
 #include "abstractcircuitnode.h"
 
+#define REMOTE_CABLE_DEBUG
+#define IS_REMOTE_DEBUG(remote) (remote->name() == "HC15")
+
 class RemoteCircuitBridge;
 
 /*!
@@ -184,7 +187,7 @@ private:
     CircuitFlags mNonSourceFlagsClosed = CircuitFlags::None;
 };
 
-#if 0
+#ifdef REMOTE_CABLE_DEBUG
 inline QString modeToStr(RemoteCableCircuitNode::Mode m)
 {
     switch (m)
