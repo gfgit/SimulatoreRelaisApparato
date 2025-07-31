@@ -158,7 +158,11 @@ void PanelScene::addNode(AbstractPanelItem *item)
     }
 
     item->setFlag(QGraphicsItem::ItemIsSelectable, editing);
-    item->setFlag(QGraphicsItem::ItemIsMovable, editing);
+
+    bool isMovable = editing;
+    if(item->itemType() == ImagePanelItem::ItemType)
+        isMovable = false;
+    item->setFlag(QGraphicsItem::ItemIsMovable, isMovable);
 
     setHasUnsavedChanges(true);
 }
@@ -210,7 +214,11 @@ void PanelScene::allowItemSelection(bool enabled)
     for(AbstractPanelItem* item : mOtherPanelItems)
     {
         item->setFlag(QGraphicsItem::ItemIsSelectable, enabled);
-        item->setFlag(QGraphicsItem::ItemIsMovable, enabled);
+
+        bool isMovable = enabled;
+        if(item->itemType() == ImagePanelItem::ItemType)
+            isMovable = false;
+        item->setFlag(QGraphicsItem::ItemIsMovable, isMovable);
     }
 
     for(AbstractPanelItem* item : mLightRects)
