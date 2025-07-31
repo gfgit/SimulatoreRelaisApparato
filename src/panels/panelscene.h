@@ -106,7 +106,10 @@ protected:
     void helpEvent(QGraphicsSceneHelpEvent *e) override;
 
     void keyPressEvent(QKeyEvent *e) override;
+    void keyReleaseEvent(QKeyEvent *e) override;
+
     void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *e) override;
 
     void drawBackground(QPainter *painter, const QRectF &rect) override;
 
@@ -121,6 +124,8 @@ private:
     void onEditingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode);
 
     void allowItemSelection(bool enabled);
+
+    void setLightDragCreateAllowed(bool allow);
 
     void onItemSelected(AbstractPanelItem *item, bool value);
 
@@ -194,6 +199,8 @@ private:
 
     SnapResult getSnapFor(const QPointF& target);
 
+    void createNewLightItem(const QRectF& r);
+
 private:
     QString mCircuitSheetName;
     QString mCircuitSheetLongName;
@@ -206,6 +213,7 @@ private:
     QMap<double, int> mYSnapMap;
 
     bool m_hasUnsavedChanges = false;
+    bool mIsLightCreadDragAllowed = false;
 
     std::unordered_map<AbstractPanelItem *, TileLocation> mSelectedItemPositions;
 };

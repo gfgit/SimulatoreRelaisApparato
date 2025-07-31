@@ -64,6 +64,10 @@ Doppio click su un nodo/cabo per mostrare la finestra di modifica.
 Questa è la modalità di default.
 Se ti trovi in un'altra modalità, premi `Esc` per tornare alla modalità di Default.
 
+### Scene Banco
+
+Quando il tasto `Alt` viene tenuto premuto durante un trascinamento del mouse, un nuovo rettangolo luminoso verrà creato al rilascio del mouse con la forma del rettangolo selezionato.
+
 ### Modifica Cavi
 
 Quando sei in modalità modifica cavi, puoi creare il percorso di un cavo con:

@@ -63,6 +63,10 @@ Double click on a node/cable to show editing dialog.
 
 This is default mode. If you are in another mode, press `Esc` to return to Default mode.
 
+### Panel scenes
+
+When editing if `Alt` key is held during mouse drag, a new light rect item will be created on mouse release with shape of selected area.
+
 ### Cable editing
 
 When in cable editing you create the path for a cable by:
