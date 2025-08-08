@@ -86,6 +86,11 @@ PanelListWidget::PanelListWidget(ViewManager *mgr, PanelListModel *model, QWidge
     onFileModeChanged(mModel->modeMgr()->mode());
 }
 
+void PanelListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
+}
+
 PanelListModel *PanelListWidget::model() const
 {
     return mModel;

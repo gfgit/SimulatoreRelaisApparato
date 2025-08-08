@@ -72,6 +72,11 @@ SerialDeviceListWidget::SerialDeviceListWidget(ViewManager *viewMgr, QWidget *pa
     onFileModeChanged(mViewMgr->modeMgr()->mode());
 }
 
+void SerialDeviceListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
+}
+
 void SerialDeviceListWidget::onFileModeChanged(FileMode mode)
 {
     const bool canEdit = mode == FileMode::Editing;

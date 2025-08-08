@@ -396,6 +396,16 @@ void ViewManager::saveLayoutFile()
     mLayoutsModel->saveLayout(QString());
 }
 
+template <typename ListWidgetT>
+inline void resizeListWidgetColumns(ViewManager::DockWidget *dock)
+{
+    if(!dock)
+        return;
+
+    ListWidgetT *listW = static_cast<ListWidgetT *>(dock->widget());
+    listW->resizeColumns();
+}
+
 void ViewManager::loadStartLayout()
 {
     if(!mLayoutsModel->loadLayout(mLayoutsModel->layoutToLoadAtStart()))
@@ -404,6 +414,16 @@ void ViewManager::loadStartLayout()
         showCircuitListView();
         showPanelListView();
     }
+
+    // Resize previously opened list docks to new content
+    resizeListWidgetColumns<CircuitListWidget>(mCircuitListViewDock);
+    resizeListWidgetColumns<PanelListWidget>(mPanelListViewDock);
+    resizeListWidgetColumns<RemoteSessionListWidget>(mRemoteSessionsListViewDock);
+    resizeListWidgetColumns<ReplicasListWidget>(mReplicaListViewDock);
+    resizeListWidgetColumns<SerialDeviceListWidget>(mSerialDevicesListViewDock);
+
+    for(DockWidget *objDock : mObjectListDocks)
+        resizeListWidgetColumns<SimulationObjectListWidget>(objDock);
 }
 
 void ViewManager::setCurrentViewType(ViewType newCurrentViewType)

@@ -89,6 +89,11 @@ ReplicasListWidget::ReplicasListWidget(ViewManager *viewMgr, QWidget *parent)
     onFileModeChanged(mViewMgr->modeMgr()->mode());
 }
 
+void ReplicasListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
+}
+
 void ReplicasListWidget::onFileModeChanged(FileMode mode)
 {
     const bool canEdit = mode == FileMode::Editing;

@@ -111,6 +111,11 @@ SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, Abstrac
     onFileModeChanged(mModel->modeMgr()->mode());
 }
 
+void SimulationObjectListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
+}
+
 AbstractSimulationObjectModel *SimulationObjectListWidget::model() const
 {
     return mModel;

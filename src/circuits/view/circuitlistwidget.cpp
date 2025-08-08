@@ -86,6 +86,11 @@ CircuitListWidget::CircuitListWidget(ViewManager *mgr, CircuitListModel *model, 
     onFileModeChanged(mModel->modeMgr()->mode());
 }
 
+void CircuitListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
+}
+
 CircuitListModel *CircuitListWidget::model() const
 {
     return mModel;

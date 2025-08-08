@@ -42,6 +42,8 @@ class CircuitListWidget : public QWidget
 public:
     CircuitListWidget(ViewManager *mgr, CircuitListModel *model, QWidget *parent = nullptr);
 
+    void resizeColumns();
+
     CircuitListModel *model() const;
 
 private slots:

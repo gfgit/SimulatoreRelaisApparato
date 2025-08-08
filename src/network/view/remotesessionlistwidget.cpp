@@ -72,6 +72,11 @@ RemoteSessionListWidget::RemoteSessionListWidget(ViewManager *viewMgr, QWidget *
     onFileModeChanged(mViewMgr->modeMgr()->mode());
 }
 
+void RemoteSessionListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
+}
+
 void RemoteSessionListWidget::onFileModeChanged(FileMode mode)
 {
     const bool canEdit = mode == FileMode::Editing;
