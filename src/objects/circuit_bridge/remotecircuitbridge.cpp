@@ -530,7 +530,21 @@ void RemoteCircuitBridge::onRemoteNodeModeChanged(qint8 mode, qint8 pole,
     // our current state
     if(mNodeA->mode() != replyMode &&
             RemoteCableCircuitNode::isReceiveMode(currMode))
+    {
+#ifdef REMOTE_CABLE_DEBUG
+        if(IS_REMOTE_DEBUG(this))
+        {
+            qt_noop();
+
+            qDebug() << "IGNORED REM: m=" << modeToStr(currMode)
+                     << "l=" << modeToStr(replyMode)
+                     << "cur=" << modeToStr(mNodeA->mode())
+                     << "cf=" << codeToStr(recvFlags);
+        }
+#endif
+
         return;
+    }
 
     mNodeA->onPeerModeChanged(currMode, currSendPole, recvFlags);
 }

@@ -85,7 +85,20 @@ bool RemoteCableCircuitNode::event(QEvent *e)
         // our current state
         if(mode() != ev->replyToMode() &&
                 RemoteCableCircuitNode::isReceiveMode(ev->peerMode()))
+        {
+#ifdef REMOTE_CABLE_DEBUG
+            if(mRemote && IS_REMOTE_DEBUG(mRemote))
+            {
+                qt_noop();
+
+                qDebug() << "IGNORED: m=" << modeToStr(ev->peerMode())
+                         << "l=" << modeToStr(ev->replyToMode())
+                         << "cur=" << modeToStr(mMode)
+                         << "cf=" << codeToStr(ev->peerFlags());
+            }
+#endif
             return true;
+        }
 
         onPeerModeChanged(ev->peerMode(), ev->peerSendPole(),
                           ev->peerFlags());
@@ -550,19 +563,63 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
         {
             setMode(Mode::ReceiveCurrentWaitClosed);
         }
+        else if(mMode == Mode::ReceiveCurrentOpen)
+        {
+            // There has been a sync issue, maybe due to network latency
+            // Re-send current state with new last reply to mode
+
+            if(mRemote)
+            {
+                mRemote->onLocalNodeModeChanged(this);
+            }
+        }
         else if(mMode != Mode::ReceiveCurrentWaitClosed)
         {
             // Reject change
+
+#ifdef REMOTE_CABLE_DEBUG
+            if(mRemote && IS_REMOTE_DEBUG(mRemote))
+            {
+                qt_noop();
+
+                qDebug() << "REJECT SET TO NONE: m=" << modeToStr(peerMode)
+                         << "cur=" << modeToStr(mMode)
+                         << "cf=" << codeToStr(peerFlags);
+            }
+#endif
+
             setMode(Mode::None);
         }
         break;
     }
     case Mode::SendCurrentClosed:
     {
-        if(mMode != Mode::ReceiveCurrentWaitClosed
+        if(mMode == Mode::ReceiveCurrentOpen)
+        {
+            // There has been a sync issue, maybe due to network latency
+            // Re-send current state with new last reply to mode
+
+            if(mRemote)
+            {
+                mRemote->onLocalNodeModeChanged(this);
+            }
+        }
+        else if(mMode != Mode::ReceiveCurrentWaitClosed
                 && mMode != Mode::ReceiveCurrentClosed)
         {
             // Reject change
+
+#ifdef REMOTE_CABLE_DEBUG
+            if(mRemote && IS_REMOTE_DEBUG(mRemote))
+            {
+                qt_noop();
+
+                qDebug() << "REJECT SET TO NONE: m=" << modeToStr(peerMode)
+                         << "cur=" << modeToStr(mMode)
+                         << "cf=" << codeToStr(peerFlags);
+            }
+#endif
+
             setMode(Mode::None);
         }
 
