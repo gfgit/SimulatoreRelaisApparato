@@ -327,8 +327,8 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
         case AbstractRelais::RelaisType::Combinator:
         {
             // Draw full X near to relay circle
-            QPointF startPt(70.25, 9.8137150261);
-            QPointF targetPt(2 * TileLocation::Size, 75.195162993);
+            QPointF startPt(0.725, 0.0534857225127);
+            QPointF targetPt(2.1666666666667, 0.7799462554779);
 
             QPen xPen = pen;
             xPen.setColor(Qt::black);
@@ -338,15 +338,17 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 
             if(node()->combinatorSecondCoil())
             {
-                startPt.setX(TileLocation::Size - startPt.x());
-                targetPt.setX(-TileLocation::Size);
+                startPt.setX(1 - startPt.x());
+                targetPt.setX(1 - targetPt.x());
             }
 
-            painter->drawLine(startPt, targetPt);
+            painter->drawLine(startPt * relayRect.width() + relayRect.topLeft(),
+                              targetPt * relayRect.width() + relayRect.topLeft());
 
-            startPt.ry()  = TileLocation::Size - startPt.y();
-            targetPt.ry() = TileLocation::Size - targetPt.y();
-            painter->drawLine(startPt, targetPt);
+            startPt.ry()  = 1 - startPt.y();
+            targetPt.ry() = 1 - targetPt.y();
+            painter->drawLine(startPt * relayRect.width() + relayRect.topLeft(),
+                              targetPt * relayRect.width() + relayRect.topLeft());
 
             const QChar letter = node()->combinatorSecondCoil() ? 'R' : 'N';
 
