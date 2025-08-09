@@ -252,6 +252,38 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     {
         switch (node()->relais()->relaisType())
         {
+        case AbstractRelais::RelaisType::Polarized:
+        case AbstractRelais::RelaisType::PolarizedInverted:
+        {
+            // Draw a diode symbol inside relay circle
+            const double halfHeight = relayRadius * 0.6;
+            QPointF triangle[3] =
+            {
+                {TileLocation::HalfSize - halfHeight * 0.86, TileLocation::HalfSize},
+                {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize - halfHeight},
+                {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize + halfHeight}
+            };
+
+            if(node()->relais()->relaisType() == AbstractRelais::RelaisType::Polarized)
+            {
+                // Invert diode
+                std::swap(triangle[0].rx(), triangle[1].rx());
+                triangle[2].rx() = triangle[1].x();
+            }
+
+            // Diode triangle
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(color);
+            painter->drawPolygon(triangle, 3);
+
+            painter->setPen(pen);
+            painter->setBrush(Qt::NoBrush);
+
+            // Diode vertical line
+            painter->drawLine(QLineF(triangle[0].x(), triangle[1].y(),
+                                     triangle[0].x(), triangle[2].y()));
+            break;
+        }
         case AbstractRelais::RelaisType::Stabilized:
         {
             // Stabilized relais have a slice
@@ -290,38 +322,6 @@ void RelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
             painter->drawPie(relayRect,
                              upCoilAngleStart - 180 * 16,
                              180 * 16);
-            break;
-        }
-        case AbstractRelais::RelaisType::Polarized:
-        case AbstractRelais::RelaisType::PolarizedInverted:
-        {
-            // Draw a diode symbol inside relay circle
-            const double halfHeight = relayRadius * 0.6;
-            QPointF triangle[3] =
-            {
-                {TileLocation::HalfSize - halfHeight * 0.86, TileLocation::HalfSize},
-                {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize - halfHeight},
-                {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize + halfHeight}
-            };
-
-            if(node()->relais()->relaisType() == AbstractRelais::RelaisType::Polarized)
-            {
-                // Invert diode
-                std::swap(triangle[0].rx(), triangle[1].rx());
-                triangle[2].rx() = triangle[1].x();
-            }
-
-            // Diode triangle
-            painter->setPen(Qt::NoPen);
-            painter->setBrush(color);
-            painter->drawPolygon(triangle, 3);
-
-            painter->setPen(pen);
-            painter->setBrush(Qt::NoBrush);
-
-            // Diode vertical line
-            painter->drawLine(QLineF(triangle[0].x(), triangle[1].y(),
-                                     triangle[0].x(), triangle[2].y()));
             break;
         }
         case AbstractRelais::RelaisType::Combinator:
