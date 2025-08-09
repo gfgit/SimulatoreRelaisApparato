@@ -62,7 +62,7 @@ protected:
 
     Connector::Direction calculateArcSide() const;
 
-    QRectF itemPreviewRect() const;
+    virtual QRectF itemPreviewRect() const;
 };
 
 #endif // ABSTRACTDEVIATORGRAPHITEM_H

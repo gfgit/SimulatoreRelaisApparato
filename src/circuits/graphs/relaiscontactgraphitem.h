@@ -47,7 +47,11 @@ public:
     RelaisContactNode *node() const;
 
 private:
+    QRectF itemPreviewRect() const override;
+
     QRectF calculateArrowRect(Connector::Direction r, const QRectF &textBr) const;
+
+    void drawRelayPreview(QPainter *painter);
 
     void drawRelayArrow(QPainter *painter,
                         Connector::Direction r,

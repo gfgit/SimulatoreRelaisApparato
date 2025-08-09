@@ -114,10 +114,9 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     drawDeviator(painter, contactUpOn, contactDownOn);
 
     // Draw name
+    QColor color = Qt::black;
     if(node()->relais())
     {
-        QColor color = Qt::black;
-
         if(node()->modeMgr()->mode() == FileMode::Simulation)
         {
             // Draw name in red for active relais only during simulation mode
@@ -136,15 +135,16 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
                 break;
             }
         }
-
-        painter->setPen(color);
-
-        QRectF textBr;
-        drawName(painter, &textBr);
-
-        if(!node()->hideRelayNormalState())
-            drawRelayArrow(painter, textRotate(), textBr, int(relayState));
     }
+
+    painter->setPen(color);
+    QRectF textBr;
+    drawName(painter, &textBr);
+
+    drawRelayPreview(painter);
+
+    if(!node()->hideRelayNormalState())
+        drawRelayArrow(painter, textRotate(), textBr, int(relayState));
 }
 
 QRectF RelaisContactGraphItem::calculateArrowRect(Connector::Direction r, const QRectF& textBr) const
@@ -285,16 +285,15 @@ QString RelaisContactGraphItem::tooltipString() const
                  getContactTooltip());
 }
 
-void RelaisContactGraphItem::drawRelayPreview(QPainter *painter, int relState)
+void RelaisContactGraphItem::drawRelayPreview(QPainter *painter)
 {
     if(!node()->relais())
         return;
 
     const QRectF previewRect = itemPreviewRect();
 
-    const AbstractRelais::State relayState = AbstractRelais::State(relState);
     QColor color = CircuitColors::None;
-    switch (relayState)
+    switch (node()->relais()->state())
     {
     case AbstractRelais::State::Up:
         color = CircuitColors::Closed;
@@ -327,12 +326,14 @@ void RelaisContactGraphItem::drawRelayPreview(QPainter *painter, int relState)
     case AbstractRelais::RelaisType::PolarizedInverted:
     {
         // Draw a diode symbol, a bit bigger because we skip relay circle
-        const double halfHeight = relayRadius * 0.8;
+        const double relCenterX = relayRect.center().x();
+        const double relCenterY = relayRect.center().y();
+        const double halfHeight = relayRadius * 0.7;
         QPointF triangle[3] =
         {
-            {TileLocation::HalfSize - halfHeight * 0.86, TileLocation::HalfSize},
-            {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize - halfHeight},
-            {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize + halfHeight}
+            {relCenterX - halfHeight * 0.86, relCenterY},
+            {relCenterX + halfHeight, relCenterY - halfHeight},
+            {relCenterX + halfHeight, relCenterY + halfHeight}
         };
 
         if(node()->relais()->relaisType() == AbstractRelais::RelaisType::Polarized)
@@ -361,35 +362,12 @@ void RelaisContactGraphItem::drawRelayPreview(QPainter *painter, int relState)
         // The slice represent the permanent magnet
         // We use it instead to show disabling coil,
         // which if active brings the relay down.
-        const QColor coilColor = qRgb(255, 140, 140);
-        QColor downCoilColor = Qt::black;
+        // For relay contact we always draw it inactive
+        const int upCoilAngleStart = -90 * 16;
 
+        // Draw slice on second connector side (black)
         painter->setPen(Qt::NoPen);
-
-        int upCoilAngleStart = -90 * 16;
-        // if(toConnectorDirection(r) == Connector::Direction::West)
-        // {
-        //     upCoilAngleStart += 180 * 16;
-        // }
-
-        if(node()->modeMgr()->mode() == FileMode::Simulation)
-        {
-            // Draw it in black if off, in light red if on
-            if(node()->relais()->hasActivePowerDown())
-            {
-                downCoilColor = coilColor;
-            }
-            else if(node()->relais()->hasActivePowerUp())
-            {
-                // Only if in simulation and if down coil is off
-                // Draw up coil in light red if active
-                painter->setBrush(coilColor);
-                painter->drawPie(relayRect, upCoilAngleStart, 180 * 16);
-            }
-        }
-
-        // Draw slice on second connector side
-        painter->setBrush(downCoilColor);
+        painter->setBrush(Qt::black);
         painter->drawPie(relayRect,
                          upCoilAngleStart - 180 * 16,
                          180 * 16);
@@ -397,9 +375,18 @@ void RelaisContactGraphItem::drawRelayPreview(QPainter *painter, int relState)
     }
     case AbstractRelais::RelaisType::Combinator:
     {
+        // Use smaller pen
+        pen.setWidthF(4.0);
+
+        // Always draw first coil
+        relayRect.setLeft(previewRect.left() + pen.widthF() / 2.0);
+        relayRect.setWidth(relayRadius * 0.95);
+        relayRect.setHeight(relayRect.width());
+        relayRect.moveTop(previewRect.center().y() - relayRect.height() / 2.0);
+
         // Draw full X near to relay circle
-        QPointF startPt(70.25, 9.8137150261);
-        QPointF targetPt(2 * TileLocation::Size, 75.195162993);
+        QPointF startPt(0.725, 0.0534857225127);
+        QPointF targetPt(2.1666666666667, 0.7799462554779);
 
         QPen xPen = pen;
         xPen.setColor(Qt::black);
@@ -407,25 +394,13 @@ void RelaisContactGraphItem::drawRelayPreview(QPainter *painter, int relState)
         painter->setPen(xPen);
         painter->setBrush(Qt::NoBrush);
 
-        if(node()->swapContactState())
-        {
-            startPt.setX(TileLocation::Size - startPt.x());
-            targetPt.setX(-TileLocation::Size);
-        }
+        painter->drawLine(startPt * relayRect.width() + relayRect.topLeft(),
+                          targetPt * relayRect.width() + relayRect.topLeft());
 
-        painter->drawLine(startPt, targetPt);
-
-        startPt.ry()  = TileLocation::Size - startPt.y();
-        targetPt.ry() = TileLocation::Size - targetPt.y();
-        painter->drawLine(startPt, targetPt);
-
-        const QChar letter = node()->swapContactState() ? 'R' : 'N';
-
-        QFont f;
-        f.setPointSize(relayRect.height() * 0.5);
-        painter->setFont(f);
-        painter->drawText(relayRect, letter, QTextOption(Qt::AlignCenter));
-
+        startPt.ry()  = 1 - startPt.y();
+        targetPt.ry() = 1 - targetPt.y();
+        painter->drawLine(startPt * relayRect.width() + relayRect.topLeft(),
+                          targetPt * relayRect.width() + relayRect.topLeft());
         break;
     }
     case AbstractRelais::RelaisType::Timer:
@@ -497,6 +472,7 @@ void RelaisContactGraphItem::drawRelayPreview(QPainter *painter, int relState)
     case AbstractRelais::RelaisType::CodeRepeater:
     case AbstractRelais::RelaisType::DiskRelayAC:
     {
+        // Draw relay circle
         painter->drawEllipse(relayRect);
 
         // Draw lines top/bottom
@@ -504,11 +480,25 @@ void RelaisContactGraphItem::drawRelayPreview(QPainter *painter, int relState)
         painter->drawLine(lineRect.bottomLeft(), lineRect.bottomRight());
         break;
     }
-    default:
+    case AbstractRelais::RelaisType::Combinator:
+    {
+        // Combinator relays have circle but not lines
+        painter->drawEllipse(relayRect);
+        break;
+    }
+    case AbstractRelais::RelaisType::Polarized:
+    case AbstractRelais::RelaisType::PolarizedInverted:
+    {
         // We skip relay circle for polarized relays
-        // Combinator relays do not have circle
+        break;
+    }
+    case AbstractRelais::RelaisType::Normal:
+    case AbstractRelais::RelaisType::Decoder:
+    case AbstractRelais::RelaisType::NTypes:
+    {
         // Other relay types do not have preview
         break;
+    }
     }
 }
 
@@ -655,4 +645,24 @@ void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
 RelaisContactNode *RelaisContactGraphItem::node() const
 {
     return static_cast<RelaisContactNode *>(getAbstractNode());
+}
+
+QRectF RelaisContactGraphItem::itemPreviewRect() const
+{
+    if(!node()->relais())
+        return QRectF(); // No preview
+
+    switch (node()->relais()->relaisType())
+    {
+    case AbstractRelais::RelaisType::Normal:
+    case AbstractRelais::RelaisType::Decoder:
+    {
+        // No preview for these types
+        return QRectF();
+    }
+    default:
+        break;
+    }
+
+    return AbstractDeviatorGraphItem::itemPreviewRect();
 }
