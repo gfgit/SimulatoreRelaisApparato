@@ -27,6 +27,8 @@
 #include "../../objects/interfaces/buttoninterface.h"
 #include "../../objects/button/genericbuttonobject.h"
 
+#include "../../views/modemanager.h"
+
 #include "../../utils/enum_desc.h"
 
 #include <QPainter>
@@ -44,6 +46,8 @@ void ButtonContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     drawDeviator(painter,
                  node()->isContactOn(AbstractDeviatorNode::UpIdx),
                  node()->isContactOn(AbstractDeviatorNode::DownIdx));
+
+    drawButtonPreview(painter);
 
     // Draw name
     QColor color = Qt::black;
@@ -100,4 +104,99 @@ QString ButtonContactGraphItem::tooltipString() const
 ButtonContactNode *ButtonContactGraphItem::node() const
 {
     return static_cast<ButtonContactNode *>(getAbstractNode());
+}
+
+void ButtonContactGraphItem::drawButtonPreview(QPainter *painter)
+{
+    if(!node()->buttonIface())
+        return;
+
+    QPen pen;
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setWidthF(3);
+    pen.setColor(Qt::black);
+
+    const QRectF previewRect = itemPreviewRect();
+
+    // Make square and a bit smaller
+    const double maxWidth = qMin(previewRect.width(), previewRect.height()) * 0.9;
+
+    QRectF squarePreview = QRectF(0, 0, maxWidth, maxWidth);
+    squarePreview.moveCenter(previewRect.center());
+
+
+    QRectF circle = QRectF(0, 0, maxWidth * 0.7, maxWidth * 0.7);
+    circle.moveCenter(squarePreview.center());
+
+    QRectF circleOuter = squarePreview.adjusted(-pen.widthF() / 2.0, -pen.widthF() / 2.0,
+                                                pen.widthF() / 2.0, pen.widthF() / 2.0);
+
+    QPainterPath extractedPath;
+    extractedPath.addEllipse(circleOuter);
+    extractedPath.addEllipse(circle);
+
+    ButtonInterface::State butState = node()->buttonIface()->state();
+
+    if(node()->modeMgr()->mode() != FileMode::Simulation)
+    {
+        butState = ButtonInterface::State::Normal;
+
+        bool normallyOff = !node()->getContactStateFor(int(ButtonInterface::State::Normal), 0);
+        bool onlyPressed = false;
+        bool onlyExtracted = false;
+        if(normallyOff)
+        {
+            if(node()->getContactStateFor(int(ButtonInterface::State::Pressed), 0))
+            {
+                onlyPressed = true;
+            }
+
+            if(node()->getContactStateFor(int(ButtonInterface::State::Extracted), 0))
+            {
+                onlyExtracted = true;
+            }
+        }
+
+        if(node()->hasCentralConnector())
+        {
+            if(normallyOff)
+                normallyOff = !node()->getContactStateFor(int(ButtonInterface::State::Normal), 1);
+
+            if(normallyOff)
+            {
+                if(node()->getContactStateFor(int(ButtonInterface::State::Pressed), 1))
+                {
+                    onlyPressed = true;
+                }
+
+                if(node()->getContactStateFor(int(ButtonInterface::State::Extracted), 1))
+                {
+                    onlyExtracted = true;
+                }
+            }
+        }
+
+        if(!normallyOff || (onlyPressed && onlyExtracted))
+            butState = ButtonInterface::State::Normal;
+        else if(onlyPressed)
+            butState = ButtonInterface::State::Pressed;
+        else if(onlyExtracted)
+            butState = ButtonInterface::State::Extracted;
+    }
+
+    painter->setPen(pen);
+
+    if(butState == ButtonInterface::State::Extracted)
+        painter->setBrush(Qt::black); // Fill outer circle ring
+
+    painter->drawPath(extractedPath);
+
+    if(butState == ButtonInterface::State::Pressed)
+    {
+        // Fill inner circle
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(Qt::black);
+
+        painter->drawEllipse(circle);
+    }
 }

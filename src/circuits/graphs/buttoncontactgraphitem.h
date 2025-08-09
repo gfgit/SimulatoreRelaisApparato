@@ -42,6 +42,9 @@ public:
     QString tooltipString() const override;
 
     ButtonContactNode *node() const;
+
+private:
+    void drawButtonPreview(QPainter *painter);
 };
 
 #endif // BUTTON_CONTACT_GRAPHITEM_H
