@@ -25,8 +25,6 @@
 #include "../nodes/screenrelaiscontactnode.h"
 #include "../../objects/screen_relais/model/screenrelais.h"
 
-#include "../../views/modemanager.h"
-
 #include "../../utils/enum_desc.h"
 
 #include <QPainter>
@@ -35,18 +33,6 @@ ScreenRelaisContactGraphItem::ScreenRelaisContactGraphItem(ScreenRelaisContactNo
     : AbstractDeviatorGraphItem(node_)
 {
 
-}
-
-QRectF ScreenRelaisContactGraphItem::boundingRect() const
-{
-    const double extraMargin = TileLocation::HalfSize;
-    QRectF base(-extraMargin, -extraMargin,
-                TileLocation::Size + 2 * extraMargin, TileLocation::Size + 2 * extraMargin);
-
-    if(mTextWidth == 0)
-        return base;
-
-    return base.united(textDisplayRect()).united(calculateContactNameRect());
 }
 
 void ScreenRelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -58,20 +44,14 @@ void ScreenRelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGr
 
     drawDeviator(painter, contactUpOn, contactDownOn);
 
+    drawScreenRelayPreview(painter);
+
     // Draw name
     QColor color = Qt::black;
     painter->setPen(color);
 
     QRectF textBr;
     drawName(painter, &textBr);
-
-    // Draw Contact name
-    const QRectF contactNameRect = calculateContactNameRect();
-
-    painter->setPen(Qt::darkGreen);
-
-    const QLatin1String contactName = QLatin1String(node()->isContactA() ? "a" : "b");
-    painter->drawText(contactNameRect, Qt::AlignCenter, contactName);
 }
 
 QString ScreenRelaisContactGraphItem::displayString() const
@@ -101,48 +81,49 @@ ScreenRelaisContactNode *ScreenRelaisContactGraphItem::node() const
     return static_cast<ScreenRelaisContactNode *>(getAbstractNode());
 }
 
-QRectF ScreenRelaisContactGraphItem::calculateContactNameRect() const
+void ScreenRelaisContactGraphItem::drawScreenRelayPreview(QPainter *painter)
 {
-    const double halfNameWidth = 12.0;
-    const QRectF textBr = textDisplayRect();
-    QRectF contactNameRect;
+    if(!node()->screenRelais())
+        return;
 
-    const QPointF textCenter = textBr.center();
+    QPen pen;
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setWidthF(3);
+    pen.setColor(Qt::black);
 
-    // Follow drawName() layout to place contact name next to relais name
-    switch (textRotate())
-    {
-    case Connector::Direction::North:
-        contactNameRect.setWidth(20.0);
-        contactNameRect.moveLeft(textBr.right() + 5.0);
-        contactNameRect.setTop(textCenter.y() - halfNameWidth);
-        contactNameRect.setBottom(textCenter.y() + halfNameWidth);
-        break;
+    const QRectF previewRect = itemPreviewRect();
+    const double maxWidth = qMin(previewRect.width(), previewRect.height());
 
-    case Connector::Direction::South:
-        contactNameRect.setWidth(20.0);
-        contactNameRect.moveLeft(textBr.right() + 5.0);
-        contactNameRect.setTop(textCenter.y() - halfNameWidth);
-        contactNameRect.setBottom(textCenter.y() + halfNameWidth);
-        break;
+    QRectF squarePreview = QRectF(0, 0, maxWidth, maxWidth);
+    squarePreview.moveCenter(previewRect.center());
 
-    case Connector::Direction::East:
-        contactNameRect.setLeft(textCenter.x() - halfNameWidth);
-        contactNameRect.setRight(textCenter.x() + halfNameWidth);
-        contactNameRect.setTop(TileLocation::HalfSize + 2.0);
-        contactNameRect.setBottom(TileLocation::Size - 20.0);
-        break;
 
-    case Connector::Direction::West:
-        contactNameRect.setLeft(textCenter.x() - halfNameWidth);
-        contactNameRect.setRight(textCenter.x() + halfNameWidth);
-        contactNameRect.setTop(TileLocation::HalfSize + 2.0);
-        contactNameRect.setBottom(TileLocation::Size - 20.0);
-        break;
+    QRectF circle = QRectF(0, 0, maxWidth * 0.6, maxWidth * 0.6);
+    circle.moveCenter(squarePreview.center());
+    circle.moveBottom(squarePreview.bottom() - pen.widthF() / 2.0);
 
-    default:
-        break;
-    }
+    const double outerHeight = 2 * (circle.center().y() - squarePreview.top());
+    QRectF circleOuter = QRectF(0, 0, outerHeight, outerHeight);
+    circleOuter.moveCenter(circle.center());
 
-    return contactNameRect;
+    // Draw screen center
+    painter->setBrush(Qt::NoBrush);
+    painter->setPen(pen);
+    painter->drawEllipse(circle);
+
+    // Draw screen
+    QPainterPath path;
+    path.arcMoveTo(circle, 45);
+    path.arcTo(circle, 45, 90);
+    path.arcTo(circleOuter, 135, -90);
+    path.closeSubpath();
+    painter->fillPath(path, Qt::black);
+
+    // Draw Contact name
+    QFont f;
+    f.setPointSize(circle.height() * 0.7);
+    painter->setFont(f);
+
+    const QLatin1String contactName = QLatin1String(node()->isContactA() ? "a" : "b");
+    painter->drawText(circle, Qt::AlignCenter, contactName);
 }

@@ -35,8 +35,6 @@ public:
 
     ScreenRelaisContactGraphItem(ScreenRelaisContactNode *node_);
 
-    QRectF boundingRect() const override;
-
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     QString displayString() const override;
@@ -46,7 +44,7 @@ public:
     ScreenRelaisContactNode *node() const;
 
 private:
-    QRectF calculateContactNameRect() const;
+    void drawScreenRelayPreview(QPainter *painter);
 };
 
 #endif // SCREEN_RELAIS_CONTACT_GRAPHITEM_H
