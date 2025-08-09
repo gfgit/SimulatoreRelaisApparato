@@ -323,7 +323,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
                 // Fake close circuit
                 node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
                                              currSendPole,
-                                             RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
+                                             currMode,
                                              CircuitFlags::None);
             }
             else if(currMode == RemoteCableCircuitNode::Mode::SendCurrentClosed)
@@ -331,7 +331,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
                 // Fake close circuit
                 node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
                                              currSendPole,
-                                             RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
+                                             currMode,
                                              CircuitFlags::None);
 
                 int mode = currSendPole == CircuitPole::First ? 1 : 2;
@@ -346,7 +346,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
             // Fake reset circuit
             node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::None,
                                          currSendPole,
-                                         RemoteCableCircuitNode::Mode::None,
+                                         currMode,
                                          CircuitFlags::None);
         }
         else if(currMode == RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed && mSerialInputId)
@@ -354,7 +354,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
             // Fake close remote circuit
             node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::SendCurrentClosed,
                                          node->mRecvPole,
-                                         RemoteCableCircuitNode::Mode::SendCurrentClosed,
+                                         currMode,
                                          circuitFlags);
         }
     }
