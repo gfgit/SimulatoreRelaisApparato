@@ -36,8 +36,13 @@ public:
     static constexpr double morsettiOffset = 10;
     static constexpr double arcRadius = 30;
 
+    static constexpr double PreviewRectWidth = 44.0;
+    static constexpr double PreviewExtraMargin = 4.0;
+
 public:
     explicit AbstractDeviatorGraphItem(AbstractDeviatorNode *node_);
+
+    QRectF boundingRect() const override;
 
     void getConnectors(std::vector<Connector>& connectors) const final;
 
@@ -56,6 +61,8 @@ protected:
     void drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn);
 
     Connector::Direction calculateArcSide() const;
+
+    QRectF itemPreviewRect() const;
 };
 
 #endif // ABSTRACTDEVIATORGRAPHITEM_H

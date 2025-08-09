@@ -43,8 +43,6 @@ public:
 
     QString tooltipString() const override;
 
-    QRectF textDisplayRect() const override;
-
     ScreenRelaisContactNode *node() const;
 
 private:

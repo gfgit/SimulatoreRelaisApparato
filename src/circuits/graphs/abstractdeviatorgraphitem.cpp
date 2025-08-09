@@ -68,6 +68,64 @@ Connector::Direction AbstractDeviatorGraphItem::calculateArcSide() const
     return arcSide;
 }
 
+QRectF AbstractDeviatorGraphItem::itemPreviewRect() const
+{
+    const Connector::Direction arcSide = calculateArcSide();
+
+    QRectF previewRect;
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+    {
+        previewRect.setTop(- PreviewRectWidth + PreviewExtraMargin);
+        previewRect.setBottom(PreviewExtraMargin);
+        previewRect.setLeft(TileLocation::HalfSize - PreviewRectWidth / 2.0);
+        previewRect.setRight(TileLocation::HalfSize + PreviewRectWidth / 2.0);
+
+        if(arcSide != textRotate())
+            previewRect.moveTop(previewRect.top() + TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::South:
+    {
+        previewRect.setTop(TileLocation::Size - PreviewExtraMargin);
+        previewRect.setBottom(TileLocation::Size + PreviewRectWidth - PreviewExtraMargin);
+        previewRect.setLeft(TileLocation::HalfSize - PreviewRectWidth / 2.0);
+        previewRect.setRight(TileLocation::HalfSize + PreviewRectWidth / 2.0);
+
+        if(arcSide != textRotate())
+            previewRect.moveTop(previewRect.top() - TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::East:
+    {
+        previewRect.setTop(TileLocation::HalfSize);
+        previewRect.setBottom(TileLocation::Size);
+        previewRect.setLeft(TileLocation::Size);
+        previewRect.setRight(TileLocation::Size + PreviewRectWidth);
+
+        if(arcSide != textRotate())
+            previewRect.moveLeft(previewRect.left() - TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::West:
+    {
+        previewRect.setTop(TileLocation::HalfSize);
+        previewRect.setBottom(TileLocation::Size);
+        previewRect.setLeft(- PreviewRectWidth);
+        previewRect.setRight(0);
+
+        if(arcSide != textRotate())
+            previewRect.moveLeft(previewRect.left() + TileLocation::HalfSize / 2.0);
+        break;
+    }
+    default:
+        break;
+    }
+
+    return previewRect;
+}
+
 AbstractDeviatorGraphItem::AbstractDeviatorGraphItem(AbstractDeviatorNode *node_)
     : AbstractNodeGraphItem{node_}
 {
@@ -76,6 +134,21 @@ AbstractDeviatorGraphItem::AbstractDeviatorGraphItem(AbstractDeviatorNode *node_
 
     // Default text position to arc side
     setTextRotate(calculateArcSide());
+}
+
+QRectF AbstractDeviatorGraphItem::boundingRect() const
+{
+    const double extraMargin = TileLocation::HalfSize;
+    QRectF base(-extraMargin, -extraMargin,
+                TileLocation::Size + 2 * extraMargin, TileLocation::Size + 2 * extraMargin);
+
+    if(mTextWidth == 0)
+        return base;
+
+    // Override to take extra space for item preview.
+    const QRectF textRect = textDisplayRect();
+    return base.united(textRect)
+        .united(itemPreviewRect());
 }
 
 void AbstractDeviatorGraphItem::getConnectors(std::vector<Connector> &connectors) const
@@ -99,6 +172,8 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
 {
     const Connector::Direction arcSide = calculateArcSide();
 
+    const QRectF previewRect = itemPreviewRect();
+
     const double textDisplayHeight = textDisplayFontSize() * 1.5;
     QRectF textRect;
     switch (textRotate())
@@ -111,6 +186,10 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
 
         if(arcSide != textRotate())
             textRect.moveTop(textRect.top() + TileLocation::HalfSize / 2.0);
+
+        if(!previewRect.isNull() && previewRect.top() < TileLocation::HalfSize)
+            textRect.moveBottom(qMin(textRect.bottom(), previewRect.top()));
+
         break;
     case Connector::Direction::South:
         textRect.setTop(TileLocation::Size);
@@ -120,10 +199,16 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
 
         if(arcSide != textRotate())
             textRect.moveTop(textRect.top() - TileLocation::HalfSize / 2.0);
+
+        if(!previewRect.isNull() && previewRect.bottom() > TileLocation::HalfSize)
+            textRect.moveTop(qMax(textRect.top(), previewRect.bottom()));
         break;
     case Connector::Direction::East:
         textRect.setTop(0);
-        textRect.setBottom(TileLocation::Size);
+        if(previewRect.isNull())
+            textRect.setBottom(TileLocation::Size);
+        else
+            textRect.setBottom(TileLocation::HalfSize); // Put text higher
         textRect.setLeft(TileLocation::Size);
         textRect.setRight(TileLocation::Size + TextDisplayMarginSmall + mTextWidth);
 
@@ -135,7 +220,10 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
         break;
     case Connector::Direction::West:
         textRect.setTop(0);
-        textRect.setBottom(TileLocation::Size);
+        if(previewRect.isNull())
+            textRect.setBottom(TileLocation::Size);
+        else
+            textRect.setBottom(TileLocation::HalfSize); // Put text higher
         textRect.setLeft(- TextDisplayMarginSmall - mTextWidth);
         textRect.setRight(0);
 

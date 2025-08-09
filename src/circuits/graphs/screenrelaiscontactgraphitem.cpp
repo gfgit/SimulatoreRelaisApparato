@@ -96,65 +96,6 @@ QString ScreenRelaisContactGraphItem::tooltipString() const
                  getContactTooltip());
 }
 
-QRectF ScreenRelaisContactGraphItem::textDisplayRect() const
-{
-    // Put text higher in East/West so we can draw cotact name below
-    const Connector::Direction arcSide = calculateArcSide();
-
-    const double textDisplayHeight = textDisplayFontSize() * 1.5;
-    QRectF textRect;
-    switch (textRotate())
-    {
-    case Connector::Direction::North:
-        textRect.setTop(- TextDisplayMarginSmall - textDisplayHeight);
-        textRect.setBottom(0);
-        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
-        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
-
-        if(arcSide != textRotate())
-            textRect.moveTop(textRect.top() + TileLocation::HalfSize / 2.0);
-
-        break;
-    case Connector::Direction::South:
-        textRect.setTop(TileLocation::Size);
-        textRect.setBottom(TileLocation::Size + TextDisplayMarginSmall + textDisplayHeight);
-        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
-        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
-
-        if(arcSide != textRotate())
-            textRect.moveTop(textRect.top() - TileLocation::HalfSize / 2.0);
-        break;
-    case Connector::Direction::East:
-        textRect.setTop(0);
-        textRect.setBottom(TileLocation::HalfSize);
-        textRect.setLeft(TileLocation::Size);
-        textRect.setRight(TileLocation::Size + TextDisplayMarginSmall + mTextWidth);
-
-        if(arcSide != textRotate())
-            textRect.moveLeft(textRect.left() - TileLocation::HalfSize / 2.0);
-
-        if(deviatorNode()->hasCentralConnector())
-            textRect.moveLeft(textRect.left() + 2);
-        break;
-    case Connector::Direction::West:
-        textRect.setTop(0);
-        textRect.setBottom(TileLocation::HalfSize);
-        textRect.setLeft(- TextDisplayMarginSmall - mTextWidth);
-        textRect.setRight(0);
-
-        if(arcSide != textRotate())
-            textRect.moveLeft(textRect.left() + TileLocation::HalfSize / 2.0);
-
-        if(deviatorNode()->hasCentralConnector())
-            textRect.moveLeft(textRect.left() - 2);
-        break;
-    default:
-        break;
-    }
-
-    return textRect;
-}
-
 ScreenRelaisContactNode *ScreenRelaisContactGraphItem::node() const
 {
     return static_cast<ScreenRelaisContactNode *>(getAbstractNode());

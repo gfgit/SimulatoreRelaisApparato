@@ -261,7 +261,8 @@ QRectF RelaisContactGraphItem::boundingRect() const
     // also on arrow space.
     const QRectF textRect = textDisplayRect();
     return base.united(textRect)
-            .united(calculateArrowRect(textRotate(), textRect));
+            .united(calculateArrowRect(textRotate(), textRect))
+            .united(itemPreviewRect());
 }
 
 QString RelaisContactGraphItem::displayString() const
@@ -282,6 +283,233 @@ QString RelaisContactGraphItem::tooltipString() const
             .arg(node()->relais()->name(),
                  node()->relais()->getStateName(),
                  getContactTooltip());
+}
+
+void RelaisContactGraphItem::drawRelayPreview(QPainter *painter, int relState)
+{
+    if(!node()->relais())
+        return;
+
+    const QRectF previewRect = itemPreviewRect();
+
+    const AbstractRelais::State relayState = AbstractRelais::State(relState);
+    QColor color = CircuitColors::None;
+    switch (relayState)
+    {
+    case AbstractRelais::State::Up:
+        color = CircuitColors::Closed;
+        break;
+    case AbstractRelais::State::GoingDown:
+    case AbstractRelais::State::GoingUp:
+        color = CircuitColors::Open;
+        break;
+    default:
+        break;
+    }
+
+    QPen pen;
+    pen.setWidthF(5.0);
+    pen.setCapStyle(Qt::FlatCap);
+    pen.setColor(color);
+
+    // Half rect - half pen width
+    const double relayRadius = (qMin(previewRect.height(), previewRect.width()) - pen.widthF()) / 2.0;
+
+    QRectF relayRect = QRectF(0, 0, relayRadius * 2, relayRadius * 2);
+    relayRect.moveCenter(previewRect.center());
+
+    const QRectF lineRect = relayRect.adjusted(-pen.widthF() / 2.0, 0,
+                                               +pen.widthF() / 2.0, 0);
+
+    switch (node()->relais()->relaisType())
+    {
+    case AbstractRelais::RelaisType::Polarized:
+    case AbstractRelais::RelaisType::PolarizedInverted:
+    {
+        // Draw a diode symbol, a bit bigger because we skip relay circle
+        const double halfHeight = relayRadius * 0.8;
+        QPointF triangle[3] =
+        {
+            {TileLocation::HalfSize - halfHeight * 0.86, TileLocation::HalfSize},
+            {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize - halfHeight},
+            {TileLocation::HalfSize + halfHeight, TileLocation::HalfSize + halfHeight}
+        };
+
+        if(node()->relais()->relaisType() == AbstractRelais::RelaisType::Polarized)
+        {
+            // Invert diode
+            std::swap(triangle[0].rx(), triangle[1].rx());
+            triangle[2].rx() = triangle[1].x();
+        }
+
+        // Diode triangle
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(color);
+        painter->drawPolygon(triangle, 3);
+
+        painter->setPen(pen);
+        painter->setBrush(Qt::NoBrush);
+
+        // Diode vertical line
+        painter->drawLine(QLineF(triangle[0].x(), triangle[1].y(),
+                                 triangle[0].x(), triangle[2].y()));
+        break;
+    }
+    case AbstractRelais::RelaisType::Stabilized:
+    {
+        // Stabilized relais have a slice
+        // The slice represent the permanent magnet
+        // We use it instead to show disabling coil,
+        // which if active brings the relay down.
+        const QColor coilColor = qRgb(255, 140, 140);
+        QColor downCoilColor = Qt::black;
+
+        painter->setPen(Qt::NoPen);
+
+        int upCoilAngleStart = -90 * 16;
+        // if(toConnectorDirection(r) == Connector::Direction::West)
+        // {
+        //     upCoilAngleStart += 180 * 16;
+        // }
+
+        if(node()->modeMgr()->mode() == FileMode::Simulation)
+        {
+            // Draw it in black if off, in light red if on
+            if(node()->relais()->hasActivePowerDown())
+            {
+                downCoilColor = coilColor;
+            }
+            else if(node()->relais()->hasActivePowerUp())
+            {
+                // Only if in simulation and if down coil is off
+                // Draw up coil in light red if active
+                painter->setBrush(coilColor);
+                painter->drawPie(relayRect, upCoilAngleStart, 180 * 16);
+            }
+        }
+
+        // Draw slice on second connector side
+        painter->setBrush(downCoilColor);
+        painter->drawPie(relayRect,
+                         upCoilAngleStart - 180 * 16,
+                         180 * 16);
+        break;
+    }
+    case AbstractRelais::RelaisType::Combinator:
+    {
+        // Draw full X near to relay circle
+        QPointF startPt(70.25, 9.8137150261);
+        QPointF targetPt(2 * TileLocation::Size, 75.195162993);
+
+        QPen xPen = pen;
+        xPen.setColor(Qt::black);
+
+        painter->setPen(xPen);
+        painter->setBrush(Qt::NoBrush);
+
+        if(node()->swapContactState())
+        {
+            startPt.setX(TileLocation::Size - startPt.x());
+            targetPt.setX(-TileLocation::Size);
+        }
+
+        painter->drawLine(startPt, targetPt);
+
+        startPt.ry()  = TileLocation::Size - startPt.y();
+        targetPt.ry() = TileLocation::Size - targetPt.y();
+        painter->drawLine(startPt, targetPt);
+
+        const QChar letter = node()->swapContactState() ? 'R' : 'N';
+
+        QFont f;
+        f.setPointSize(relayRect.height() * 0.5);
+        painter->setFont(f);
+        painter->drawText(relayRect, letter, QTextOption(Qt::AlignCenter));
+
+        break;
+    }
+    case AbstractRelais::RelaisType::Timer:
+    {
+        // Draw arcs on relay circle
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(pen);
+
+        painter->drawArc(relayRect.translated(-relayRadius, 0), -90 * 16, 180 * 16);
+        painter->drawArc(relayRect.translated(relayRadius, 0), -90 * 16, -180 * 16);
+        break;
+    }
+    case AbstractRelais::RelaisType::Blinker:
+    case AbstractRelais::RelaisType::Encoder:
+    {
+        // Draw pie sector 45 degrees
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(color);
+
+        // Left
+        painter->drawPie(relayRect,
+                         -45 * 16, 90 * 16);
+
+        painter->drawPie(relayRect,
+                         135 * 16, 90 * 16);
+        break;
+    }
+    case AbstractRelais::RelaisType::CodeRepeater:
+    {
+        // Draw horizontal center line
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(pen);
+
+        const double centerY = lineRect.center().y();
+        painter->drawLine(QLineF(lineRect.left(),
+                                 centerY,
+                                 lineRect.right(),
+                                 centerY));
+        break;
+    }
+    case AbstractRelais::RelaisType::DiskRelayAC:
+    {
+        // Draw a cross onto the circle
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(pen);
+
+        // Adjust rect so that cross lines stay inside the circle
+        const double adjLine = relayRadius * 0.27;
+        const QRectF circleInner = relayRect.adjusted(adjLine, adjLine,
+                                                      -adjLine, -adjLine);
+
+        painter->drawLine(circleInner.topLeft(), circleInner.bottomRight());
+        painter->drawLine(circleInner.topRight(), circleInner.bottomLeft());
+        break;
+    }
+    default:
+        break;
+    }
+
+    painter->setPen(pen);
+    painter->setBrush(Qt::NoBrush);
+
+    switch (node()->relais()->relaisType())
+    {
+    case AbstractRelais::RelaisType::Stabilized:
+    case AbstractRelais::RelaisType::Timer:
+    case AbstractRelais::RelaisType::Blinker:
+    case AbstractRelais::RelaisType::Encoder:
+    case AbstractRelais::RelaisType::CodeRepeater:
+    case AbstractRelais::RelaisType::DiskRelayAC:
+    {
+        painter->drawEllipse(relayRect);
+
+        // Draw lines top/bottom
+        painter->drawLine(lineRect.topLeft(), lineRect.topRight());
+        painter->drawLine(lineRect.bottomLeft(), lineRect.bottomRight());
+        break;
+    }
+    default:
+        // We skip relay circle for polarized relays
+        // Combinator relays do not have circle
+        // Other relay types do not have preview
+        break;
+    }
 }
 
 void RelaisContactGraphItem::drawRelayArrow(QPainter *painter,
