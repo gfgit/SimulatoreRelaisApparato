@@ -318,15 +318,7 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
         // Send to serial device
         if(RemoteCableCircuitNode::isSendMode(currMode) && mSerialOutputId)
         {
-            if(currMode == RemoteCableCircuitNode::Mode::SendCurrentOpen)
-            {
-                // Fake close circuit
-                node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
-                                             currSendPole,
-                                             currMode,
-                                             CircuitFlags::None);
-            }
-            else if(currMode == RemoteCableCircuitNode::Mode::SendCurrentClosed)
+            if(currMode == RemoteCableCircuitNode::Mode::SendCurrentClosed)
             {
                 // Fake close circuit
                 node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentClosed,
@@ -334,20 +326,34 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
                                              currMode,
                                              CircuitFlags::None);
 
-                int mode = currSendPole == CircuitPole::First ? 1 : 2;
+                // Enable output
+                const int mode = currSendPole == CircuitPole::First ? 1 : 2;
                 mSerialDevice->onOutputChanged(mSerialOutputId, mode);
             }
-        }
-        else if(currMode == RemoteCableCircuitNode::Mode::None && mSerialOutputId)
-        {
-            int mode = 0;
-            mSerialDevice->onOutputChanged(mSerialOutputId, mode);
+            else
+            {
+                if(currMode == RemoteCableCircuitNode::Mode::SendCurrentOpen)
+                {
+                    // Fake close circuit
+                    node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed,
+                                                 currSendPole,
+                                                 currMode,
+                                                 CircuitFlags::None);
+                }
 
-            // Fake reset circuit
-            node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::None,
-                                         currSendPole,
-                                         currMode,
-                                         CircuitFlags::None);
+                // Disable output
+                const int mode = 0;
+                mSerialDevice->onOutputChanged(mSerialOutputId, mode);
+
+                if(currMode == RemoteCableCircuitNode::Mode::None && mSerialOutputId)
+                {
+                    // Fake reset circuit
+                    node->delayedPeerModeChanged(RemoteCableCircuitNode::Mode::None,
+                                                 currSendPole,
+                                                 currMode,
+                                                 CircuitFlags::None);
+                }
+            }
         }
         else if(currMode == RemoteCableCircuitNode::Mode::ReceiveCurrentWaitClosed && mSerialInputId)
         {
