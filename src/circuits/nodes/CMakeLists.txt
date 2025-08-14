@@ -46,6 +46,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/transformernode.cpp
     circuits/nodes/transformernode.h
 
+    circuits/nodes/traintasticsensornode.cpp
+    circuits/nodes/traintasticsensornode.h
 
     PARENT_SCOPE
 )

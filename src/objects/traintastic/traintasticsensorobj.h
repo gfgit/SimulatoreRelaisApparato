@@ -24,6 +24,9 @@
 #define TRAINTASTICSENSOROBJ_H
 
 #include "../abstractsimulationobject.h"
+#include <QVector>
+
+class TraintasticSensorNode;
 
 class TraintasticSensorObj : public AbstractSimulationObject
 {
@@ -44,6 +47,8 @@ public:
     bool loadFromJSON(const QJsonObject &obj, LoadPhase phase) override;
     void saveToJSON(QJsonObject &obj) const override;
 
+    int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
+
     inline int channel() const { return mChannel; }
     inline int address() const { return mAddress; }
     inline int state() const { return mState; }
@@ -58,7 +63,13 @@ private:
     friend class TraintasticSimManager;
     void setState(int newState);
 
+    friend class TraintasticSensorNode;
+    void addContactNode(TraintasticSensorNode *c);
+    void removeContactNode(TraintasticSensorNode *c);
+
 private:
+    QVector<TraintasticSensorNode *> mContactNodes;
+
     int mChannel = -1;
     int mAddress = -1;
     int mState = 0;

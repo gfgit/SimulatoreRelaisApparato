@@ -26,6 +26,8 @@
 #include "../../views/modemanager.h"
 #include "../../network/traintastic-simulator/traintasticsimmanager.h"
 
+#include "../../circuits/nodes/traintasticsensornode.h"
+
 #include <QJsonObject>
 
 TraintasticSensorObj::TraintasticSensorObj(AbstractSimulationObjectModel *m)
@@ -38,6 +40,12 @@ TraintasticSensorObj::~TraintasticSensorObj()
 {
     setChannel(-1);
     setAddress(-1);
+
+    auto contactNodes = mContactNodes;
+    for(TraintasticSensorNode *c : contactNodes)
+    {
+        c->setSensor(nullptr);
+    }
 }
 
 QString TraintasticSensorObj::getType() const
@@ -71,6 +79,21 @@ void TraintasticSensorObj::saveToJSON(QJsonObject &obj) const
     obj["sensor_type"] = int(mSensorType);
     obj["channel"] = mChannel;
     obj["address"] = mChannel;
+}
+
+int TraintasticSensorObj::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
+{
+    int nodesCount = AbstractSimulationObject::getReferencingNodes(result);
+
+    nodesCount += mContactNodes.size();
+
+    if(result)
+    {
+        for(auto item : mContactNodes)
+            result->append(item);
+    }
+
+    return nodesCount;
 }
 
 bool TraintasticSensorObj::setChannel(int newChannel)
@@ -120,4 +143,31 @@ void TraintasticSensorObj::setState(int newState)
 
     mState = newState;
     emit stateChanged(this);
+
+    for(TraintasticSensorNode *c : mContactNodes)
+    {
+        c->refreshContactState();
+    }
+}
+
+void TraintasticSensorObj::addContactNode(TraintasticSensorNode *c)
+{
+    Q_ASSERT_X(!mContactNodes.contains(c),
+               "addContactNode", "already added");
+
+    mContactNodes.append(c);
+
+    emit nodesChanged(this);
+}
+
+void TraintasticSensorObj::removeContactNode(TraintasticSensorNode *c)
+{
+    Q_ASSERT_X(mContactNodes.contains(c),
+               "removeContactNode", "not registered");
+    Q_ASSERT_X(c->sensor() == this,
+               "removeContactNode", "sensor does not match");
+
+    mContactNodes.removeOne(c);
+
+    emit nodesChanged(this);
 }

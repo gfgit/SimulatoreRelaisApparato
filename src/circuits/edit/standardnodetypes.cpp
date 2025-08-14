@@ -78,6 +78,9 @@
 #include "../graphs/resistorgraphitem.h"
 #include "../nodes/resistornode.h"
 
+#include "../graphs/traintasticsensorcontactgraphitem.h"
+#include "../nodes/traintasticsensornode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -117,6 +120,8 @@
 #include "../../objects/lever/bem/bemleverobject.h"
 
 #include "../../objects/circuit_bridge/remotecircuitbridge.h"
+
+#include "../../objects/traintastic/traintasticsensorobj.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -286,6 +291,49 @@ QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ViewManager *vi
     };
 
     QObject::connect(node, &RemoteCableCircuitNode::shapeChanged,
+                     w, updLambda);
+    updLambda();
+
+    return w;
+}
+
+QWidget *defaultTraintasticSensorContactEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    TraintasticSensorNode *node = static_cast<TraintasticSensorNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Sensor Object
+    SimulationObjectLineEdit *sensorEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticSensorObj::Type});
+    QObject::connect(node, &TraintasticSensorNode::sensorChanged,
+                     sensorEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(sensorEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+    {
+        node->setSensor(static_cast<TraintasticSensorObj *>(obj));
+    });
+
+    sensorEdit->setObject(node->sensor());
+    lay->addRow(StandardNodeTypes::tr("Sensor:"), sensorEdit);
+
+    // Target State
+    QSpinBox *targetStateSpin = new QSpinBox;
+    targetStateSpin->setRange(0, 99);
+    lay->addRow(StandardNodeTypes::tr("Target State:"), targetStateSpin);
+
+    QObject::connect(targetStateSpin, &QSpinBox::valueChanged,
+                     node, [node](int val)
+    {
+        node->setTargetState(val);
+    });
+
+    auto updLambda = [targetStateSpin, node]()
+    {
+        targetStateSpin->setValue(node->targetState());
+    };
+
+    QObject::connect(node, &TraintasticSensorNode::shapeChanged,
                      w, updLambda);
     updLambda();
 
@@ -1154,6 +1202,19 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.prettyName = tr("Resistor");
         factory.create = &addNewNodeToScene<ResistorGraphItem>;
         factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Traintastic Sensor Contact node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = TraintasticSensorGraphItem::Node::NodeType;
+        factory.prettyName = tr("Traintastic Sensor Contact");
+        factory.shortcutLetter = 'A';
+        factory.create = &addNewNodeToScene<TraintasticSensorGraphItem>;
+        factory.edit = &defaultTraintasticSensorContactEdit;
 
         factoryReg->registerFactory(factory);
     }

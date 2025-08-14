@@ -233,12 +233,12 @@ bool TraintasticSimManager::setSensorAddress(TraintasticSensorObj *obj, int newA
     }
 
     auto it = map->find(obj->channel());
-    Q_ASSERT(it != map->end());
+    Q_ASSERT(obj->address() == -1 || it != map->end());
 
     if(newAddress != -1)
     {
         // Check if available
-        if(it->contains(obj->address()))
+        if(it != map->end() && it->contains(newAddress))
             return false; // Channel + Address combination already in use
     }
 
@@ -252,7 +252,10 @@ bool TraintasticSimManager::setSensorAddress(TraintasticSensorObj *obj, int newA
 
     if(newAddress != -1)
     {
-        it->insert(obj->address(), obj);
+        if(it == map->end())
+            it = map->insert(obj->channel(), {});
+
+        it->insert(newAddress, obj);
     }
 
     return true;

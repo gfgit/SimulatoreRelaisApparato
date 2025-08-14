@@ -60,5 +60,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/transformergraphitem.cpp
     circuits/graphs/transformergraphitem.h
 
+    circuits/graphs/traintasticsensorcontactgraphitem.cpp
+    circuits/graphs/traintasticsensorcontactgraphitem.h
+
     PARENT_SCOPE
 )
