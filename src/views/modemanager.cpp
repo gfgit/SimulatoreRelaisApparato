@@ -39,6 +39,8 @@
 #include "../network/remotemanager.h"
 #include "../serial/serialmanager.h"
 
+#include "../network/traintastic-simulator/traintasticsimmanager.h"
+
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -477,6 +479,8 @@ ModeManager::ModeManager(QObject *parent)
     mRemoteMgr = new RemoteManager(this);
     mSerialMgr = new SerialManager(this);
 
+    mTraintasticSim = new TraintasticSimManager(this);
+
     for(int i = 0; i < 4; i++)
     {
         const SignalAspectCode code = SignalAspectCode(i + 1);
@@ -494,6 +498,8 @@ ModeManager::~ModeManager()
     mRemoteMgr->clear();
 
     mSerialMgr->disconnectAllDevices();
+
+    mTraintasticSim->enableConnection(false);
 
     // Delete circuits and factory
     // before objects
@@ -554,6 +560,8 @@ void ModeManager::setMode(FileMode newMode)
         mRemoteMgr->setOnlineByDefault(wasOnline);
 
         mSerialMgr->disconnectAllDevices();
+
+        mTraintasticSim->enableConnection(false);
     }
     else if(oldMode != FileMode::Simulation)
     {
@@ -561,6 +569,8 @@ void ModeManager::setMode(FileMode newMode)
 
         if(mRemoteMgr->onlineByDefault())
             mRemoteMgr->setOnline(true);
+
+        mTraintasticSim->enableConnection(true);
     }
 
     // Let widgets receive mode change first, then update all other scenes
@@ -669,6 +679,8 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
 
     // Turn on power sources and stuff
     setMode(FileMode::Simulation);
+
+    mTraintasticSim->enableConnection(true);
 
     return true;
 }

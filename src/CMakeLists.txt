@@ -46,6 +46,9 @@ qt_add_executable(${SIMULATORE_RELAIS_TARGET} WIN32
     circuits/nodes/resistornode.h circuits/nodes/resistornode.cpp
     circuits/graphs/resistorgraphitem.h circuits/graphs/resistorgraphitem.cpp
     circuits/graphs/circuitcolors.h
+    network/traintastic-simulator/protocol.hpp
+    network/traintastic-simulator/traintasticsimmanager.h network/traintastic-simulator/traintasticsimmanager.cpp
+    objects/traintastic/traintasticsensorobj.h objects/traintastic/traintasticsensorobj.cpp
 )
 
 if (WIN32)

@@ -46,6 +46,8 @@ class QJsonObject;
 class RemoteManager;
 class SerialManager;
 
+class TraintasticSimManager;
+
 class ModeManager : public QObject
 {
     Q_OBJECT
@@ -111,6 +113,11 @@ public:
         return mSerialMgr;
     }
 
+    inline TraintasticSimManager *getTraitasticSimMgr() const
+    {
+        return mTraintasticSim;
+    }
+
     inline bool getCodePhase(SignalAspectCode code) const
     {
         const int idx = int(code) - 1;
@@ -149,6 +156,8 @@ private:
 
     RemoteManager *mRemoteMgr = nullptr;
     SerialManager *mSerialMgr = nullptr;
+
+    TraintasticSimManager *mTraintasticSim = nullptr;
 
     bool mFileWasEdited = false;
 

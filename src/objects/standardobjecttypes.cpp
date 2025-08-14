@@ -66,6 +66,7 @@
 #include "interfaces/buttoninterface.h"
 #include "interfaces/bemhandleinterface.h"
 
+#include "traintastic/traintasticsensorobj.h"
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
 
@@ -685,6 +686,74 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     return w;
 }
 
+QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticSensorObj *sensor = static_cast<TraintasticSensorObj *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Sensor type
+    QComboBox *sensorTypeCombo = new QComboBox;
+    sensorTypeCombo->addItem(StandardObjectTypes::tr("Generic"));
+    sensorTypeCombo->addItem(StandardObjectTypes::tr("Turnout Feedback"));
+
+    lay->addRow(StandardObjectTypes::tr("Sensor Type:"), sensorTypeCombo);
+
+    auto updateSensorTypeCombo = [sensor, sensorTypeCombo]()
+    {
+        sensorTypeCombo->setCurrentIndex(int(sensor->sensorType()));
+    };
+
+    QObject::connect(sensorTypeCombo, &QComboBox::activated,
+                     sensor, [sensor](int row)
+    {
+        sensor->setSensorType(TraintasticSensorObj::SensorType(row));
+    });
+
+    // Channel
+    QSpinBox *channelSpin = new QSpinBox;
+    channelSpin->setRange(-1, 9999);
+    channelSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
+
+    QObject::connect(channelSpin, &QSpinBox::editingFinished,
+                     sensor, [sensor, channelSpin]()
+    {
+        if(!sensor->setChannel(channelSpin->value()))
+            channelSpin->setValue(sensor->channel()); // Rejected
+    });
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     sensor, [sensor, addressSpin]()
+    {
+        if(!sensor->setAddress(addressSpin->value()))
+            addressSpin->setValue(sensor->address()); // Rejected
+    });
+
+    auto updateSettings = [sensor, updateSensorTypeCombo,
+            channelSpin, addressSpin]()
+    {
+        updateSensorTypeCombo();
+
+        channelSpin->setValue(sensor->channel());
+        addressSpin->setValue(sensor->address());
+    };
+
+    QObject::connect(sensor, &RemoteCircuitBridge::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
 void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
 {
     {
@@ -842,6 +911,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &defaultCircuitBridgeEdit;
         item.objectType = RemoteCircuitBridge::Type;
         item.prettyName = tr("Circuit Bridge");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Sensor
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticSensorObj>;
+        item.edit = &defaultTraintasticSensorEdit;
+        item.objectType = TraintasticSensorObj::Type;
+        item.prettyName = tr("Traintastic Sensor");
 
         factory->registerFactory(item);
     }
