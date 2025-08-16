@@ -38,6 +38,9 @@ public:
         TurnoutFeedback = 1
     };
 
+    static constexpr int InvalidChannel = -1;
+    static constexpr int InvalidAddress = -1;
+
     explicit TraintasticSensorObj(AbstractSimulationObjectModel *m);
     ~TraintasticSensorObj();
 
@@ -59,6 +62,10 @@ public:
     bool setAddress(int newAddress);
     void setSensorType(SensorType newSensorType);
 
+    inline int defaultOffState() const { return mDefaultOffState; }
+
+    void setDefaultOffState(int newDefaultOffState);
+
 private:
     friend class TraintasticSimManager;
     void setState(int newState);
@@ -70,9 +77,10 @@ private:
 private:
     QVector<TraintasticSensorNode *> mContactNodes;
 
-    int mChannel = -1;
-    int mAddress = -1;
+    int mChannel = InvalidChannel;
+    int mAddress = InvalidAddress;
     int mState = 0;
+    int mDefaultOffState = 1;
     SensorType mSensorType = SensorType::Generic;
 };
 

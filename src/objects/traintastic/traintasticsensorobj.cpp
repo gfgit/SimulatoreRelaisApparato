@@ -65,9 +65,12 @@ bool TraintasticSensorObj::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     if(obj.value("sensor_type").toInt() != 0)
         newType = SensorType::TurnoutFeedback;
     setSensorType(newType);
+    setDefaultOffState(obj.value("off_state").toInt(1));
 
     setChannel(obj.value("channel").toInt(-1));
     setAddress(obj.value("address").toInt(-1));
+
+    setState(defaultOffState());
 
     return true;
 }
@@ -78,7 +81,8 @@ void TraintasticSensorObj::saveToJSON(QJsonObject &obj) const
 
     obj["sensor_type"] = int(mSensorType);
     obj["channel"] = mChannel;
-    obj["address"] = mChannel;
+    obj["address"] = mAddress;
+    obj["off_state"] = mDefaultOffState;
 }
 
 int TraintasticSensorObj::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
@@ -171,3 +175,16 @@ void TraintasticSensorObj::removeContactNode(TraintasticSensorNode *c)
 
     emit nodesChanged(this);
 }
+
+void TraintasticSensorObj::setDefaultOffState(int newDefaultOffState)
+{
+    if(mDefaultOffState == newDefaultOffState)
+        return;
+
+    mDefaultOffState = newDefaultOffState;
+    emit settingsChanged(this);
+
+    setState(mDefaultOffState);
+}
+
+

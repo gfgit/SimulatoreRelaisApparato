@@ -66,10 +66,9 @@ QString TraintasticSensorGraphItem::tooltipString() const
         return tr("No Sensor set!");
 
     return tr("Contact of sensor <b>%1</b><br>"
-              "State: %2"
-              "%3")
-            .arg(node()->sensor()->name(),
-                 node()->sensor()->state());
+              "State: %2")
+            .arg(node()->sensor()->name())
+            .arg(node()->sensor()->state());
 }
 
 TraintasticSensorNode *TraintasticSensorGraphItem::node() const

@@ -151,8 +151,8 @@ void TraintasticSimManager::receive(const SimulatorProtocol::Message &message)
     {
         const auto& m = static_cast<const SimulatorProtocol::SensorChanged&>(message);
 
-        auto chan = mTurnoutSensors.constFind(m.channel);
-        if(chan == mTurnoutSensors.constEnd())
+        auto chan = mSensors.constFind(m.channel);
+        if(chan == mSensors.constEnd())
             return;
 
         auto it = chan->constFind(m.address);
@@ -170,7 +170,7 @@ void TraintasticSimManager::receive(const SimulatorProtocol::Message &message)
 
 bool TraintasticSimManager::setSensorChannel(TraintasticSensorObj *obj, int newChannel)
 {
-    if(obj->address() == -1)
+    if(obj->address() == TraintasticSensorObj::InvalidAddress)
     {
         // Still invalid
         return true;
@@ -183,7 +183,7 @@ bool TraintasticSimManager::setSensorChannel(TraintasticSensorObj *obj, int newC
         map = &mTurnoutSensors;
     }
 
-    if(newChannel != -1)
+    if(newChannel != TraintasticSensorObj::InvalidChannel)
     {
         // Check if available
         auto it = map->constFind(newChannel);
@@ -191,9 +191,9 @@ bool TraintasticSimManager::setSensorChannel(TraintasticSensorObj *obj, int newC
             return false; // Channel + Address combination already in use
     }
 
-    if(obj->channel() != -1)
+    if(obj->channel() != TraintasticSensorObj::InvalidChannel)
     {
-        auto it = map->find(newChannel);
+        auto it = map->find(obj->channel());
         Q_ASSERT(it != map->end());
         Q_ASSERT(it.value().value(obj->address()) == obj);
 
@@ -205,7 +205,7 @@ bool TraintasticSimManager::setSensorChannel(TraintasticSensorObj *obj, int newC
             map->erase(it);
     }
 
-    if(newChannel != -1)
+    if(newChannel != TraintasticSensorObj::InvalidChannel)
     {
         auto it = map->find(newChannel);
         if(it == map->end())
@@ -219,7 +219,7 @@ bool TraintasticSimManager::setSensorChannel(TraintasticSensorObj *obj, int newC
 
 bool TraintasticSimManager::setSensorAddress(TraintasticSensorObj *obj, int newAddress)
 {
-    if(obj->channel() == -1)
+    if(obj->channel() == TraintasticSensorObj::InvalidChannel)
     {
         // Still invalid
         return true;
@@ -233,16 +233,16 @@ bool TraintasticSimManager::setSensorAddress(TraintasticSensorObj *obj, int newA
     }
 
     auto it = map->find(obj->channel());
-    Q_ASSERT(obj->address() == -1 || it != map->end());
+    Q_ASSERT(obj->address() == TraintasticSensorObj::InvalidAddress || it != map->end());
 
-    if(newAddress != -1)
+    if(newAddress != TraintasticSensorObj::InvalidAddress)
     {
         // Check if available
         if(it != map->end() && it->contains(newAddress))
             return false; // Channel + Address combination already in use
     }
 
-    if(obj->address() != -1)
+    if(obj->address() != TraintasticSensorObj::InvalidAddress)
     {
         Q_ASSERT(it.value().value(obj->address()) == obj);
 
@@ -250,7 +250,7 @@ bool TraintasticSimManager::setSensorAddress(TraintasticSensorObj *obj, int newA
         it->remove(obj->address());
     }
 
-    if(newAddress != -1)
+    if(newAddress != TraintasticSensorObj::InvalidAddress)
     {
         if(it == map->end())
             it = map->insert(obj->channel(), {});
@@ -267,16 +267,15 @@ void TraintasticSimManager::setSensorsOff()
     {
         for(auto sensor : chan)
         {
-            sensor->setState(0);
+            sensor->setState(sensor->defaultOffState());
         }
     }
 
-    // TODO: set unknown state?
     for(auto chan : mTurnoutSensors)
     {
         for(auto sensor : chan)
         {
-            sensor->setState(0);
+            sensor->setState(sensor->defaultOffState());
         }
     }
 }

@@ -737,13 +737,25 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
             addressSpin->setValue(sensor->address()); // Rejected
     });
 
+    // Default Off state
+    QSpinBox *offStateSpin = new QSpinBox;
+    offStateSpin->setRange(0, 9999);
+    lay->addRow(StandardObjectTypes::tr("Off State:"), offStateSpin);
+
+    QObject::connect(offStateSpin, &QSpinBox::editingFinished,
+                     sensor, [sensor, offStateSpin]()
+    {
+        sensor->setDefaultOffState(offStateSpin->value());
+    });
+
     auto updateSettings = [sensor, updateSensorTypeCombo,
-            channelSpin, addressSpin]()
+            channelSpin, addressSpin, offStateSpin]()
     {
         updateSensorTypeCombo();
 
         channelSpin->setValue(sensor->channel());
         addressSpin->setValue(sensor->address());
+        offStateSpin->setValue(sensor->defaultOffState());
     };
 
     QObject::connect(sensor, &RemoteCircuitBridge::settingsChanged,
