@@ -128,7 +128,7 @@ void TraintasticSensorNode::refreshContactState()
     }
 
     const bool straightContactOn = mSensor->state() == mTargetState;
-    setContactState(straightContactOn, !straightContactOn);
+    setContactState(!straightContactOn, straightContactOn);
 
     // Force button redraw
     emit deviatorStateChanged();
