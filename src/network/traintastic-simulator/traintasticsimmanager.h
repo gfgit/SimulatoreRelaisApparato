@@ -31,6 +31,7 @@
 class QTcpSocket;
 
 class TraintasticSensorObj;
+class TraintasticTurnoutObj;
 
 class TraintasticSimManager : public QObject
 {
@@ -43,6 +44,8 @@ public:
 
     void enableConnection(bool val);
 
+    void setTurnoutState(int channel, int address, int state);
+
 signals:
     void stateChanged();
 
@@ -51,12 +54,19 @@ private slots:
 
     void onReadyRead();
 
+    void onConnected();
+
 private:
+    void send(const SimulatorProtocol::Message &message);
     void receive(const SimulatorProtocol::Message &message);
 
     friend class TraintasticSensorObj;
     bool setSensorChannel(TraintasticSensorObj *obj, int newChannel);
     bool setSensorAddress(TraintasticSensorObj *obj, int newAddress);
+
+    friend class TraintasticTurnoutObj;
+    void addTurnout(TraintasticTurnoutObj *obj);
+    void removeTurnout(TraintasticTurnoutObj *obj);
 
     void setSensorsOff();
 
@@ -70,6 +80,8 @@ private:
     // By channel and then by address
     QHash<int, QHash<int, TraintasticSensorObj *>> mSensors;
     QHash<int, QHash<int, TraintasticSensorObj *>> mTurnoutSensors;
+
+    QVector<TraintasticTurnoutObj *> mTurnouts;
 };
 
 #endif // TRAINTASTICSIMMANAGER_H

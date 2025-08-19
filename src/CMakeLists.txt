@@ -49,6 +49,9 @@ qt_add_executable(${SIMULATORE_RELAIS_TARGET} WIN32
     network/traintastic-simulator/protocol.hpp
     network/traintastic-simulator/traintasticsimmanager.h network/traintastic-simulator/traintasticsimmanager.cpp
     objects/traintastic/traintasticsensorobj.h objects/traintastic/traintasticsensorobj.cpp
+    objects/traintastic/traintasticturnoutobj.h objects/traintastic/traintasticturnoutobj.cpp
+    circuits/nodes/traintasticturnoutnode.h circuits/nodes/traintasticturnoutnode.cpp
+    circuits/graphs/traintasticturnoutgraphitem.h circuits/graphs/traintasticturnoutgraphitem.cpp
 )
 
 if (WIN32)

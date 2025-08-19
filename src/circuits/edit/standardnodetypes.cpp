@@ -81,6 +81,9 @@
 #include "../graphs/traintasticsensorcontactgraphitem.h"
 #include "../nodes/traintasticsensornode.h"
 
+#include "../graphs/traintasticturnoutgraphitem.h"
+#include "../nodes/traintasticturnoutnode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -122,6 +125,7 @@
 #include "../../objects/circuit_bridge/remotecircuitbridge.h"
 
 #include "../../objects/traintastic/traintasticsensorobj.h"
+#include "../../objects/traintastic/traintasticturnoutobj.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -336,6 +340,29 @@ QWidget *defaultTraintasticSensorContactEdit(AbstractNodeGraphItem *item, ViewMa
     QObject::connect(node, &TraintasticSensorNode::shapeChanged,
                      w, updLambda);
     updLambda();
+
+    return w;
+}
+
+QWidget *defaultTraintasticTurnoutNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    TraintasticTurnoutNode *node = static_cast<TraintasticTurnoutNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Turnout Object
+    SimulationObjectLineEdit *turnoutEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticTurnoutObj::Type});
+    QObject::connect(node, &TraintasticTurnoutNode::turnoutChanged,
+                     turnoutEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(turnoutEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+    {
+        node->setTurnout(static_cast<TraintasticTurnoutObj *>(obj));
+    });
+
+    turnoutEdit->setObject(node->turnout());
+    lay->addRow(StandardNodeTypes::tr("Turnout:"), turnoutEdit);
 
     return w;
 }
@@ -1215,6 +1242,19 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.shortcutLetter = 'A';
         factory.create = &addNewNodeToScene<TraintasticSensorGraphItem>;
         factory.edit = &defaultTraintasticSensorContactEdit;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Traintastic Turnout node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = TraintasticTurnoutGraphItem::Node::NodeType;
+        factory.prettyName = tr("Traintastic Turnout Node");
+        factory.shortcutLetter = QChar();
+        factory.create = &addNewNodeToScene<TraintasticTurnoutGraphItem>;
+        factory.edit = &defaultTraintasticTurnoutNodeEdit;
 
         factoryReg->registerFactory(factory);
     }

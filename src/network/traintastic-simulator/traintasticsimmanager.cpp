@@ -23,6 +23,7 @@
 #include "traintasticsimmanager.h"
 
 #include "../../objects/traintastic/traintasticsensorobj.h"
+#include "../../objects/traintastic/traintasticturnoutobj.h"
 
 #include "protocol.hpp"
 
@@ -65,7 +66,7 @@ void TraintasticSimManager::enableConnection(bool val)
         connect(mSocket, &QTcpSocket::errorOccurred,
                 this, &TraintasticSimManager::onSocketError);
         connect(mSocket, &QTcpSocket::connected,
-                this, &TraintasticSimManager::stateChanged);
+                this, &TraintasticSimManager::onConnected);
 
         connect(mSocket, &QTcpSocket::disconnected,
                 this, &TraintasticSimManager::onSocketError);
@@ -78,6 +79,12 @@ void TraintasticSimManager::enableConnection(bool val)
         mSocket->connectToHost(QHostAddress::LocalHost, SimulatorProtocol::DefaultPort);
         mSocket->setSocketOption(QTcpSocket::LowDelayOption, true);
     }
+}
+
+void TraintasticSimManager::setTurnoutState(int channel, int address, int state)
+{
+    SimulatorProtocol::AccessorySetState message(channel, address, state);
+    send(message);
 }
 
 void TraintasticSimManager::onSocketError()
@@ -125,6 +132,27 @@ void TraintasticSimManager::onReadyRead()
         }
         m_readBufferOffset = bytesTransferred;
     }
+}
+
+void TraintasticSimManager::onConnected()
+{
+    emit stateChanged();
+
+    // Send initial turnout status
+    for(const TraintasticTurnoutObj *obj : std::as_const(mTurnouts))
+    {
+        setTurnoutState(obj->channel(), obj->address(), int(obj->state()));
+    }
+    mSocket->flush();
+}
+
+void TraintasticSimManager::send(const SimulatorProtocol::Message &message)
+{
+    if(!isConnected())
+        return;
+
+    mSocket->write(reinterpret_cast<const char *>(&message), message.size);
+    //mSocket->flush();
 }
 
 void TraintasticSimManager::receive(const SimulatorProtocol::Message &message)
@@ -261,13 +289,25 @@ bool TraintasticSimManager::setSensorAddress(TraintasticSensorObj *obj, int newA
     return true;
 }
 
+void TraintasticSimManager::addTurnout(TraintasticTurnoutObj *obj)
+{
+    Q_ASSERT(!mTurnouts.contains(obj));
+    mTurnouts.append(obj);
+}
+
+void TraintasticSimManager::removeTurnout(TraintasticTurnoutObj *obj)
+{
+    Q_ASSERT(mTurnouts.contains(obj));
+    mTurnouts.removeOne(obj);
+}
+
 void TraintasticSimManager::setSensorsOff()
 {
     for(auto chan : mSensors)
     {
         for(auto sensor : chan)
         {
-            sensor->setState(sensor->defaultOffState());
+            sensor->onTraintasticDisconnected();
         }
     }
 
@@ -275,7 +315,7 @@ void TraintasticSimManager::setSensorsOff()
     {
         for(auto sensor : chan)
         {
-            sensor->setState(sensor->defaultOffState());
+            sensor->onTraintasticDisconnected();
         }
     }
 }

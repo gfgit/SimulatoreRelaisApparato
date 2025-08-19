@@ -67,6 +67,7 @@
 #include "interfaces/bemhandleinterface.h"
 
 #include "traintastic/traintasticsensorobj.h"
+#include "traintastic/traintasticturnoutobj.h"
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
 
@@ -748,17 +749,111 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
         sensor->setDefaultOffState(offStateSpin->value());
     });
 
+    // Turnout Object
+    SimulationObjectLineEdit *turnoutEdit = new SimulationObjectLineEdit(mgr, {TraintasticTurnoutObj::Type});
+    QObject::connect(turnoutEdit, &SimulationObjectLineEdit::objectChanged,
+                     sensor, [sensor](AbstractSimulationObject *obj)
+    {
+        sensor->setShuntTurnout(static_cast<TraintasticTurnoutObj *>(obj));
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Shunt Turnout:"), turnoutEdit);
+
     auto updateSettings = [sensor, updateSensorTypeCombo,
-            channelSpin, addressSpin, offStateSpin]()
+            channelSpin, addressSpin, offStateSpin, turnoutEdit]()
     {
         updateSensorTypeCombo();
 
         channelSpin->setValue(sensor->channel());
         addressSpin->setValue(sensor->address());
         offStateSpin->setValue(sensor->defaultOffState());
+        turnoutEdit->setObject(sensor->shuntTurnout());
+
+        bool isTurnout = sensor->sensorType() == TraintasticSensorObj::SensorType::TurnoutFeedback;
+        turnoutEdit->setVisible(isTurnout);
+        offStateSpin->setVisible(!isTurnout);
     };
 
     QObject::connect(sensor, &RemoteCircuitBridge::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
+QWidget *defaultTraintasticTurnoutEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticTurnoutObj *turnout = static_cast<TraintasticTurnoutObj *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Sensor type
+    QComboBox *initialStateCombo = new QComboBox;
+    initialStateCombo->addItem(StandardObjectTypes::tr("Unknown"));
+    initialStateCombo->addItem(StandardObjectTypes::tr("Closed"));
+    initialStateCombo->addItem(StandardObjectTypes::tr("Thrown"));
+
+    lay->addRow(StandardObjectTypes::tr("Initial state:"), initialStateCombo);
+
+    auto updateInitialStateCombo = [turnout, initialStateCombo]()
+    {
+        initialStateCombo->setCurrentIndex(int(turnout->initialState()));
+    };
+
+    QObject::connect(initialStateCombo, &QComboBox::activated,
+                     turnout, [turnout](int row)
+    {
+        turnout->setInitialState(TraintasticTurnoutObj::State(row));
+    });
+
+    // Channel
+    QSpinBox *channelSpin = new QSpinBox;
+    channelSpin->setRange(0, 9999);
+    lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
+
+    QObject::connect(channelSpin, &QSpinBox::editingFinished,
+                     turnout, [turnout, channelSpin]()
+    {
+        turnout->setChannel(channelSpin->value());
+    });
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     turnout, [turnout, addressSpin]()
+    {
+        turnout->setAddress(addressSpin->value());
+    });
+
+    // Total time ms
+    QSpinBox *totalTimeSpin = new QSpinBox;
+    totalTimeSpin->setRange(0, 20000);
+    totalTimeSpin->setSuffix(StandardObjectTypes::tr(" ms"));
+    lay->addRow(StandardObjectTypes::tr("Totalt time:"), totalTimeSpin);
+
+    QObject::connect(totalTimeSpin, &QSpinBox::editingFinished,
+                     turnout, [turnout, totalTimeSpin]()
+    {
+        turnout->setTotalTimeMillis(totalTimeSpin->value());
+    });
+
+    auto updateSettings = [turnout, updateInitialStateCombo,
+            channelSpin, addressSpin, totalTimeSpin]()
+    {
+        updateInitialStateCombo();
+
+        channelSpin->setValue(turnout->channel());
+        addressSpin->setValue(turnout->address());
+        totalTimeSpin->setValue(turnout->totalTimeMillis());
+    };
+
+    QObject::connect(turnout, &RemoteCircuitBridge::settingsChanged,
                      w, updateSettings);
 
     updateSettings();
@@ -935,6 +1030,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &defaultTraintasticSensorEdit;
         item.objectType = TraintasticSensorObj::Type;
         item.prettyName = tr("Traintastic Sensor");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Turnout
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticTurnoutObj>;
+        item.edit = &defaultTraintasticTurnoutEdit;
+        item.objectType = TraintasticTurnoutObj::Type;
+        item.prettyName = tr("Traintastic Turnout");
 
         factory->registerFactory(item);
     }

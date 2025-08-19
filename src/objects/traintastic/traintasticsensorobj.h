@@ -28,6 +28,8 @@
 
 class TraintasticSensorNode;
 
+class TraintasticTurnoutObj;
+
 class TraintasticSensorObj : public AbstractSimulationObject
 {
     Q_OBJECT
@@ -66,6 +68,13 @@ public:
 
     void setDefaultOffState(int newDefaultOffState);
 
+    TraintasticTurnoutObj *shuntTurnout() const;
+    void setShuntTurnout(TraintasticTurnoutObj *newShuntTurnout);
+
+private slots:
+    void onTurnoutDestroyed();
+    void onTurnoutStateChanged();
+
 private:
     friend class TraintasticSimManager;
     void setState(int newState);
@@ -74,8 +83,12 @@ private:
     void addContactNode(TraintasticSensorNode *c);
     void removeContactNode(TraintasticSensorNode *c);
 
+    void onTraintasticDisconnected();
+
 private:
     QVector<TraintasticSensorNode *> mContactNodes;
+
+    TraintasticTurnoutObj *mShuntTurnout = nullptr;
 
     int mChannel = InvalidChannel;
     int mAddress = InvalidAddress;

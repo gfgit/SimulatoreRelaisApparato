@@ -1,9 +1,9 @@
 /**
- * src/circuits/nodes/traintasticsensornode.h
+ * src/circuits/nodes/traintasticturnoutnode.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,45 +20,44 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef TRAINTASTIC_SENSOR_NODE_H
-#define TRAINTASTIC_SENSOR_NODE_H
+#ifndef TRAINTASTIC_TURNOUT_NODE_H
+#define TRAINTASTIC_TURNOUT_NODE_H
 
-#include "abstractdeviatornode.h"
+#include "abstractcircuitnode.h"
 
-class TraintasticSensorObj;
+class TraintasticTurnoutObj;
 
-class TraintasticSensorNode : public AbstractDeviatorNode
+class TraintasticTurnoutNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
-    explicit TraintasticSensorNode(ModeManager *mgr, QObject *parent = nullptr);
-    ~TraintasticSensorNode();
+    explicit TraintasticTurnoutNode(ModeManager *mgr, QObject *parent = nullptr);
+    ~TraintasticTurnoutNode();
+
+    ConnectionsRes getActiveConnections(CableItem source, bool invertDir) override;
+    void addCircuit(ElectricCircuit *circuit) override;
+    void removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items) override;
 
     bool loadFromJSON(const QJsonObject& obj) override;
     void saveToJSON(QJsonObject& obj) const override;
 
     void getObjectProperties(QVector<ObjectProperty> &result) const override;
 
-    static constexpr QLatin1String NodeType = QLatin1String("traintastic_sensor_contact");
+    static constexpr QLatin1String NodeType = QLatin1String("traintastic_turnout_node");
     QString nodeType() const override;
 
-    TraintasticSensorObj *sensor() const;
-    void setSensor(TraintasticSensorObj *newSensor);
-
-    int targetState() const;
-    void setTargetState(int newTargetState);
+    TraintasticTurnoutObj *turnout() const;
+    void setTurnout(TraintasticTurnoutObj *newTurnout);
 
 signals:
-    void sensorChanged(TraintasticSensorObj *obj);
+    void turnoutChanged(TraintasticTurnoutObj *obj);
 
 private:
-    void refreshContactState();
+    void updateState();
 
 private:
-    friend class TraintasticSensorObj;
-
-    TraintasticSensorObj *mSensor = nullptr;
-    int mTargetState = 0;
+    friend class TraintasticTurnoutObj;
+    TraintasticTurnoutObj *mTurnout = nullptr;
 };
 
-#endif // TRAINTASTIC_SENSOR_NODE_H
+#endif // TRAINTASTIC_TURNOUT_NODE_H

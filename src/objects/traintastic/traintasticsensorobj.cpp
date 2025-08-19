@@ -28,6 +28,8 @@
 
 #include "../../circuits/nodes/traintasticsensornode.h"
 
+#include "traintasticturnoutobj.h"
+
 #include <QJsonObject>
 
 TraintasticSensorObj::TraintasticSensorObj(AbstractSimulationObjectModel *m)
@@ -40,6 +42,7 @@ TraintasticSensorObj::~TraintasticSensorObj()
 {
     setChannel(-1);
     setAddress(-1);
+    setShuntTurnout(nullptr);
 
     auto contactNodes = mContactNodes;
     for(TraintasticSensorNode *c : contactNodes)
@@ -58,19 +61,30 @@ bool TraintasticSensorObj::loadFromJSON(const QJsonObject &obj, LoadPhase phase)
     if(!AbstractSimulationObject::loadFromJSON(obj, phase))
         return false;
 
-    if(phase != LoadPhase::Creation)
-        return true; // Alredy created, nothing to do
+    if(phase == LoadPhase::Creation)
+    {
+        SensorType newType = SensorType::Generic;
+        if(obj.value("sensor_type").toInt() != 0)
+            newType = SensorType::TurnoutFeedback;
+        setSensorType(newType);
+        setDefaultOffState(obj.value("off_state").toInt(1));
 
-    SensorType newType = SensorType::Generic;
-    if(obj.value("sensor_type").toInt() != 0)
-        newType = SensorType::TurnoutFeedback;
-    setSensorType(newType);
-    setDefaultOffState(obj.value("off_state").toInt(1));
+        setChannel(obj.value("channel").toInt(InvalidChannel));
+        setAddress(obj.value("address").toInt(InvalidAddress));
+    }
+    else
+    {
+        const QString turnoutName = obj.value("shunt_turnout").toString();
+        auto model_ = model()->modeMgr()->modelForType(TraintasticTurnoutObj::Type);
 
-    setChannel(obj.value("channel").toInt(-1));
-    setAddress(obj.value("address").toInt(-1));
+        if(model_)
+            setShuntTurnout(static_cast<TraintasticTurnoutObj *>(model_->getObjectByName(turnoutName)));
+        else
+            setShuntTurnout(nullptr);
 
-    setState(defaultOffState());
+        // Set initial state
+        onTraintasticDisconnected();
+    }
 
     return true;
 }
@@ -83,6 +97,7 @@ void TraintasticSensorObj::saveToJSON(QJsonObject &obj) const
     obj["channel"] = mChannel;
     obj["address"] = mAddress;
     obj["off_state"] = mDefaultOffState;
+    obj["shunt_turnout"] = mShuntTurnout ? mShuntTurnout->name() : QString();
 }
 
 int TraintasticSensorObj::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
@@ -137,6 +152,9 @@ void TraintasticSensorObj::setSensorType(SensorType newSensorType)
     setAddress(-1);
     mSensorType = newSensorType;
 
+    if(mSensorType != SensorType::TurnoutFeedback)
+        setShuntTurnout(nullptr);
+
     emit settingsChanged(this);
 }
 
@@ -176,6 +194,14 @@ void TraintasticSensorObj::removeContactNode(TraintasticSensorNode *c)
     emit nodesChanged(this);
 }
 
+void TraintasticSensorObj::onTraintasticDisconnected()
+{
+    if(sensorType() == SensorType::TurnoutFeedback && mShuntTurnout)
+        onTurnoutStateChanged();
+    else
+        setState(defaultOffState());
+}
+
 void TraintasticSensorObj::setDefaultOffState(int newDefaultOffState)
 {
     if(mDefaultOffState == newDefaultOffState)
@@ -185,6 +211,56 @@ void TraintasticSensorObj::setDefaultOffState(int newDefaultOffState)
     emit settingsChanged(this);
 
     setState(mDefaultOffState);
+}
+
+TraintasticTurnoutObj *TraintasticSensorObj::shuntTurnout() const
+{
+    return mShuntTurnout;
+}
+
+void TraintasticSensorObj::setShuntTurnout(TraintasticTurnoutObj *newShuntTurnout)
+{
+    if(mShuntTurnout == newShuntTurnout)
+        return;
+
+    if(mShuntTurnout)
+    {
+        disconnect(mShuntTurnout, &QObject::destroyed,
+                   this, &TraintasticSensorObj::onTurnoutDestroyed);
+        disconnect(mShuntTurnout, &TraintasticTurnoutObj::stateChanged,
+                   this, &TraintasticSensorObj::onTurnoutStateChanged);
+    }
+
+    mShuntTurnout = newShuntTurnout;
+
+    if(mShuntTurnout)
+    {
+        connect(mShuntTurnout, &QObject::destroyed,
+                this, &TraintasticSensorObj::onTurnoutDestroyed);
+        connect(mShuntTurnout, &TraintasticTurnoutObj::stateChanged,
+                this, &TraintasticSensorObj::onTurnoutStateChanged);
+    }
+
+    onTurnoutStateChanged();
+    emit settingsChanged(this);
+}
+
+void TraintasticSensorObj::onTurnoutDestroyed()
+{
+    if(sender() == mShuntTurnout)
+        mShuntTurnout = nullptr;
+}
+
+void TraintasticSensorObj::onTurnoutStateChanged()
+{
+    if(!mShuntTurnout)
+        return;
+
+    TraintasticSimManager *mgr = model()->modeMgr()->getTraitasticSimMgr();
+    if(mgr->isConnected())
+        return;
+
+    setState(mShuntTurnout->state());
 }
 
 
