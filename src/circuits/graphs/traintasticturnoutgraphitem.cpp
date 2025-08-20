@@ -24,6 +24,8 @@
 
 #include "../nodes/traintasticturnoutnode.h"
 
+#include "../../objects/traintastic/traintasticturnoutobj.h"
+
 #include <QPainter>
 
 TraintasticTurnoutGraphItem::TraintasticTurnoutGraphItem(TraintasticTurnoutNode *node_)
@@ -96,12 +98,29 @@ void TraintasticTurnoutGraphItem::paint(QPainter *painter, const QStyleOptionGra
     painter->setBrush(Qt::NoBrush);
     painter->drawText(rectN, "N", QTextOption(Qt::AlignCenter));
     painter->drawText(rectR, "R", QTextOption(Qt::AlignCenter));
+
+    drawName(painter);
 }
 
 void TraintasticTurnoutGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
     connectors.emplace_back(location(), rotate(), 1);
     connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 0);
+}
+
+QString TraintasticTurnoutGraphItem::displayString() const
+{
+    if(!node()->turnout())
+        return tr("DEV!");
+    return node()->turnout()->name();
+}
+
+QString TraintasticTurnoutGraphItem::tooltipString() const
+{
+    if(!node()->turnout())
+        return tr("No Traintastic turnout set!");
+    return tr("Traintastic Turnout:<br>"
+              "<b>%1</b>").arg(node()->turnout()->name());
 }
 
 TraintasticTurnoutNode *TraintasticTurnoutGraphItem::node() const
