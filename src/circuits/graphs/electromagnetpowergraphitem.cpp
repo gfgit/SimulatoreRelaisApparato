@@ -20,9 +20,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "electromagnetgraphitem.h"
+#include "electromagnetpowergraphitem.h"
 
-#include "../nodes/electromagnetnode.h"
+#include "../nodes/electromagnetpowernode.h"
 
 #include "../../objects/simple_activable/electromagnet.h"
 
@@ -30,13 +30,13 @@
 
 #include <QPainter>
 
-ElectroMagnetGraphItem::ElectroMagnetGraphItem(ElectroMagnetNode *node_)
+ElectroMagnetPowerGraphItem::ElectroMagnetPowerGraphItem(ElectroMagnetPowerNode *node_)
     : SimpleActivationGraphItem(node_)
 {
 
 }
 
-void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ElectroMagnetPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     SimpleActivationGraphItem::paint(painter, option, widget);
 
@@ -140,7 +140,7 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     drawName(painter);
 }
 
-QString ElectroMagnetGraphItem::tooltipString() const
+QString ElectroMagnetPowerGraphItem::tooltipString() const
 {
     ElectroMagnetObject *magnet = static_cast<ElectroMagnetObject *>(node()->object());
     if(!magnet)
@@ -170,7 +170,7 @@ QString ElectroMagnetGraphItem::tooltipString() const
             .arg(magnet->name(), stateStr);
 }
 
-ElectroMagnetNode *ElectroMagnetGraphItem::node() const
+ElectroMagnetPowerNode *ElectroMagnetPowerGraphItem::node() const
 {
-    return static_cast<ElectroMagnetNode *>(getAbstractNode());
+    return static_cast<ElectroMagnetPowerNode *>(getAbstractNode());
 }

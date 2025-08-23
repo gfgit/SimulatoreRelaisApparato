@@ -15,8 +15,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/cablegraphitem.h
     circuits/graphs/diodegraphitem.cpp
     circuits/graphs/diodegraphitem.h
-    circuits/graphs/electromagnetgraphitem.cpp
-    circuits/graphs/electromagnetgraphitem.h
+    circuits/graphs/electromagnetpowergraphitem.cpp
+    circuits/graphs/electromagnetpowergraphitem.h
     circuits/graphs/levercontactgraphitem.cpp
     circuits/graphs/levercontactgraphitem.h
     circuits/graphs/lightbulbgraphitem.cpp

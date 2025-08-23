@@ -54,8 +54,8 @@
 #include "../graphs/polarityinversiongraphitem.h"
 #include "../nodes/polarityinversionnode.h"
 
-#include "../graphs/electromagnetgraphitem.h"
-#include "../nodes/electromagnetnode.h"
+#include "../graphs/electromagnetpowergraphitem.h"
+#include "../nodes/electromagnetpowernode.h"
 
 #include "../graphs/electromagnetcontactgraphitem.h"
 #include "../nodes/electromagnetcontactnode.h"
@@ -904,10 +904,10 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         // Electromagnet node
         NodeEditFactory::FactoryItem factory;
         factory.needsName = NodeEditFactory::NeedsName::Never;
-        factory.nodeType = ElectroMagnetGraphItem::Node::NodeType;
+        factory.nodeType = ElectroMagnetPowerGraphItem::Node::NodeType;
         factory.prettyName = tr("Electromagnet");
         factory.shortcutLetter = 'M';
-        factory.create = &addNewNodeToScene<ElectroMagnetGraphItem>;
+        factory.create = &addNewNodeToScene<ElectroMagnetPowerGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),

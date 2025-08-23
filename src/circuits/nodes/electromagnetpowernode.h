@@ -1,5 +1,5 @@
 /**
- * src/circuits/nodes/electromagnetnode.cpp
+ * src/circuits/nodes/electromagnetnode.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,22 +20,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "electromagnetnode.h"
+#ifndef ELECTRO_MAGNET_POWER_NODE_H
+#define ELECTRO_MAGNET_POWER_NODE_H
 
-#include "../../objects/simple_activable/electromagnet.h"
+#include "simpleactivationnode.h"
 
-ElectroMagnetNode::ElectroMagnetNode(ModeManager *mgr, QObject *parent)
-    : SimpleActivationNode{mgr, parent}
+class ElectroMagnetPowerNode : public SimpleActivationNode
 {
+    Q_OBJECT
+public:
+    explicit ElectroMagnetPowerNode(ModeManager *mgr, QObject *parent = nullptr);
 
-}
+    static constexpr QLatin1String NodeType = QLatin1String("electromagnet_activation");
+    QString nodeType() const override;
 
-QString ElectroMagnetNode::nodeType() const
-{
-    return NodeType;
-}
+    QString allowedObjectType() const override;
+};
 
-QString ElectroMagnetNode::allowedObjectType() const
-{
-    return ElectroMagnetObject::Type;
-}
+#endif // ELECTRO_MAGNET_POWER_NODE_H

@@ -15,8 +15,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/circuitcable.h
     circuits/nodes/diodecircuitnode.cpp
     circuits/nodes/diodecircuitnode.h
-    circuits/nodes/electromagnetnode.cpp
-    circuits/nodes/electromagnetnode.h
+    circuits/nodes/electromagnetpowernode.cpp
+    circuits/nodes/electromagnetpowernode.h
     circuits/nodes/levercontactnode.cpp
     circuits/nodes/levercontactnode.h
     circuits/nodes/lightbulbnode.cpp
