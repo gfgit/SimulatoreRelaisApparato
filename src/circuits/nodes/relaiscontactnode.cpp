@@ -210,8 +210,8 @@ void RelaisContactNode::setState(State newState)
 
     const bool canMiddle = (mState == State::Middle && activeWhileMiddle());
 
-    setContactState(mState == State::Up || (canMiddle && swapContactState()),
-                    mState == State::Down || (canMiddle && !swapContactState()));
+    setContactState(mState == State::Up || canMiddle,
+                    mState == State::Down || canMiddle);
 }
 
 void RelaisContactNode::onRelaisStateChanged()
@@ -240,10 +240,10 @@ bool RelaisContactNode::activeWhileMiddle() const
     if(!mActiveWhileMiddle)
         return false;
 
-    // Can be special contact?
-    if(!mRelais || hasCentralConnector())
+    if(!mRelais)
         return false;
 
+    // Can be special contact?
     if(mRelais->relaisType() != AbstractRelais::RelaisType::Combinator)
         return false;
 
@@ -257,6 +257,8 @@ void RelaisContactNode::setActiveWhileMiddle(bool newActiveWhileMiddle)
 
     mActiveWhileMiddle = newActiveWhileMiddle;
     onRelaisStateChanged();
+
+    setBothCanBeActive(mActiveWhileMiddle);
 
     emit shapeChanged();
     modeMgr()->setFileEdited();

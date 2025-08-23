@@ -634,7 +634,6 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             {
                 hideRelayNormal->setChecked(node->hideRelayNormalState());
                 activeWhileMiddle->setChecked(node->activeWhileMiddle());
-                activeWhileMiddle->setEnabled(!node->hasCentralConnector());
                 activeWhileMiddle->setVisible(node->relais() &&
                                               node->relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
             };
