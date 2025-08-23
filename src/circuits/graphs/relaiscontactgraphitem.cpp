@@ -45,6 +45,8 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     AbstractRelais::State relayState = AbstractRelais::State::Down;
 
+    bool fillArc = true;
+
     if(node()->relais())
     {
         if(node()->modeMgr()->mode() != FileMode::Simulation)
@@ -109,9 +111,30 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
                 }
             }
         }
+
+        switch (node()->relais()->relaisType())
+        {
+        case AbstractRelais::RelaisType::Encoder:
+        case AbstractRelais::RelaisType::CodeRepeater:
+        {
+            // Omit arc fill for theese types
+            fillArc = false;
+            break;
+        }
+        default:
+        {
+            AbstractRelais::State defState = AbstractRelais::State::Up;
+            if(!node()->relais()->normallyUp())
+                defState = AbstractRelais::State::Down;
+
+            // Fill arc when not in normal state
+            fillArc = (node()->relais()->state() != defState);
+            break;
+        }
+        }
     }
 
-    drawDeviator(painter, contactUpOn, contactDownOn);
+    drawDeviator(painter, contactUpOn, contactDownOn, fillArc);
 
     // Draw name
     QColor color = Qt::black;

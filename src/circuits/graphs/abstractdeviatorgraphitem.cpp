@@ -325,7 +325,9 @@ void AbstractDeviatorGraphItem::recalculateTextPosition()
     }
 }
 
-void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn)
+void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter,
+                                             bool contactUpOn, bool contactDownOn,
+                                             bool fillArc)
 {
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
@@ -425,6 +427,22 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
         angleIncrement = -angleIncrement;
     }
 
+    const QRectF arcRect(center.x() - arcRadius,
+                         center.y() - arcRadius,
+                         arcRadius * 2, arcRadius * 2);
+
+    if(fillArc)
+    {
+        // Fill deviator arc in gray below everything
+        // NOTE: fill just inside wires
+        // Do not add yet angle increment
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(Qt::gray);
+        painter->drawPie(arcRect,
+                         startAngle * 16,
+                         (endAngle - startAngle) * 16);
+    }
+
     int startIncrement = 0;
     int endIncrement = 0;
 
@@ -499,10 +517,6 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     }
 
     // Draw full switch arc below wires
-    const QRectF arcRect(center.x() - arcRadius,
-                         center.y() - arcRadius,
-                         arcRadius * 2, arcRadius * 2);
-
     // Default to black arc
     if((contactUpOn && contactDownOn))
     {

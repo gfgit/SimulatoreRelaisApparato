@@ -58,7 +58,9 @@ protected:
     void recalculateTextPosition() override;
 
     // Contacts must be already swapped
-    void drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn);
+    void drawDeviator(QPainter *painter,
+                      bool contactUpOn, bool contactDownOn,
+                      bool fillArc = false);
 
     Connector::Direction calculateArcSide() const;
 
