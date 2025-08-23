@@ -286,4 +286,6 @@ void SoundObject::onStateChangedInternal()
         setSoundState(SoundState::Playing);
     else
         setSoundState(SoundState::Stopped);
+
+    AbstractSimpleActivableObject::onStateChangedInternal();
 }

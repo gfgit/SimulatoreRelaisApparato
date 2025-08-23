@@ -32,7 +32,7 @@
 class TransformerNodeEnableEvent : public QEvent
 {
 public:
-    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 2);
+    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 3);
 
     TransformerNodeEnableEvent(bool flagChange_ = false) :
         QEvent(_Type),

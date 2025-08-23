@@ -24,6 +24,25 @@
 
 #include "../../circuits/nodes/simpleactivationnode.h"
 
+#include <QCoreApplication>
+#include <QEvent>
+
+class SimpleActivableStateChangeEvent : public QEvent
+{
+public:
+    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 4);
+    SimpleActivableStateChangeEvent(bool val_)
+        : QEvent(_Type)
+        , val(val_)
+    {
+    }
+
+    inline bool value() const { return val; }
+
+private:
+    bool val = false;
+};
+
 AbstractSimpleActivableObject::AbstractSimpleActivableObject(AbstractSimulationObjectModel *m)
     : AbstractSimulationObject{m}
 {
@@ -65,6 +84,18 @@ AbstractSimpleActivableObject::State AbstractSimpleActivableObject::state() cons
     return mActiveNodesCount > 0 ? State::On : State::Off;
 }
 
+bool AbstractSimpleActivableObject::event(QEvent *e)
+{
+    if(e->type() == SimpleActivableStateChangeEvent::_Type)
+    {
+        SimpleActivableStateChangeEvent *ev = static_cast<SimpleActivableStateChangeEvent *>(e);
+        applyDelayedStateChanged(nullptr, ev->value());
+        return true;
+    }
+
+    return AbstractSimulationObject::event(e);
+}
+
 void AbstractSimpleActivableObject::addNode(SimpleActivationNode *node)
 {
     Q_ASSERT_X(!mNodes.contains(node),
@@ -88,6 +119,11 @@ void AbstractSimpleActivableObject::removeNode(SimpleActivationNode *node)
 }
 
 void AbstractSimpleActivableObject::onNodeStateChanged(SimpleActivationNode *node, bool val)
+{
+    QCoreApplication::postEvent(this, new SimpleActivableStateChangeEvent(val));
+}
+
+void AbstractSimpleActivableObject::applyDelayedStateChanged(SimpleActivationNode *node, bool val)
 {
     const State oldState = state();
 

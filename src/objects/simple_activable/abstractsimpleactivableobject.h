@@ -47,12 +47,15 @@ public:
 
     virtual State state() const;
 
+    bool event(QEvent *e) override;
+
 private:
     friend class SimpleActivationNode;
     void addNode(SimpleActivationNode *node);
     void removeNode(SimpleActivationNode *node);
 
     void onNodeStateChanged(SimpleActivationNode *node, bool val);
+    void applyDelayedStateChanged(SimpleActivationNode *node, bool val);
 
 protected:
     virtual void onStateChangedInternal();
