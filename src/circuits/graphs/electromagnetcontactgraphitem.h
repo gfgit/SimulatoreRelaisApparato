@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/buttoncontactgraphitem.h
+ * src/circuits/graphs/electromagnetcontactgraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,20 +20,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef BUTTON_CONTACT_GRAPHITEM_H
-#define BUTTON_CONTACT_GRAPHITEM_H
+#ifndef ELECTROMAGNET_CONTACT_GRAPHITEM_H
+#define ELECTROMAGNET_CONTACT_GRAPHITEM_H
 
 #include "abstractdeviatorgraphitem.h"
 
-class ButtonContactNode;
+class ElectromagnetContactNode;
 
-class ButtonContactGraphItem : public AbstractDeviatorGraphItem
+class ElectroMagnetContactGraphItem : public AbstractDeviatorGraphItem
 {
     Q_OBJECT
 public:
-    typedef ButtonContactNode Node;
+    typedef ElectromagnetContactNode Node;
 
-    explicit ButtonContactGraphItem(ButtonContactNode *node_);
+    explicit ElectroMagnetContactGraphItem(ElectromagnetContactNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
@@ -41,10 +41,10 @@ public:
 
     QString tooltipString() const override;
 
-    ButtonContactNode *node() const;
+    ElectromagnetContactNode *node() const;
 
 private:
-    void drawButtonPreview(QPainter *painter);
+    void drawMagnetPreview(QPainter *painter);
 };
 
-#endif // BUTTON_CONTACT_GRAPHITEM_H
+#endif // ELECTROMAGNET_CONTACT_GRAPHITEM_H

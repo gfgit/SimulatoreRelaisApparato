@@ -22,15 +22,40 @@
 
 #include "electromagnet.h"
 
+#include "../../circuits/nodes/electromagnetcontactnode.h"
+
 ElectroMagnetObject::ElectroMagnetObject(AbstractSimulationObjectModel *m)
     : AbstractSimpleActivableObject{m}
 {
 
 }
 
+ElectroMagnetObject::~ElectroMagnetObject()
+{
+    auto contactNodes = mContactNodes;
+    for(ElectromagnetContactNode *c : contactNodes)
+    {
+        c->setMagnet(nullptr);
+    }
+}
+
 QString ElectroMagnetObject::getType() const
 {
     return Type;
+}
+
+int ElectroMagnetObject::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
+{
+    int count = AbstractSimulationObject::getReferencingNodes(result);
+    count += mContactNodes.size();
+
+    if(result)
+    {
+        for(ElectromagnetContactNode *node : std::as_const(mContactNodes))
+            result->append(node);
+    }
+
+    return count;
 }
 
 AbstractSimpleActivableObject::State ElectroMagnetObject::electricalState() const
@@ -69,4 +94,32 @@ void ElectroMagnetObject::setForcedOn(bool newForcedOn)
         onStateChangedInternal();
         emit stateChanged(this);
     }
+}
+
+void ElectroMagnetObject::onStateChangedInternal()
+{
+    for(ElectromagnetContactNode *node : std::as_const(mContactNodes))
+        node->refreshContactState();
+}
+
+void ElectroMagnetObject::addContactNode(ElectromagnetContactNode *c)
+{
+    Q_ASSERT_X(!mContactNodes.contains(c),
+               "addContactNode", "already added");
+
+    mContactNodes.append(c);
+
+    emit nodesChanged(this);
+}
+
+void ElectroMagnetObject::removeContactNode(ElectromagnetContactNode *c)
+{
+    Q_ASSERT_X(mContactNodes.contains(c),
+               "removeContactNode", "not registered");
+    Q_ASSERT_X(c->magnet() == this,
+               "removeContactNode", "magnet does not match");
+
+    mContactNodes.removeOne(c);
+
+    emit nodesChanged(this);
 }

@@ -57,6 +57,9 @@
 #include "../graphs/electromagnetgraphitem.h"
 #include "../nodes/electromagnetnode.h"
 
+#include "../graphs/electromagnetcontactgraphitem.h"
+#include "../nodes/electromagnetcontactnode.h"
+
 #include "../graphs/levercontactgraphitem.h"
 #include "../nodes/levercontactnode.h"
 
@@ -110,6 +113,8 @@
 
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 #include "../../objects/simple_activable/lightbulbobject.h"
+
+#include "../../objects/simple_activable/electromagnet.h"
 
 #include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/screen_relais/model/screenrelais.h"
@@ -226,6 +231,33 @@ QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ViewManage
 
     objectEdit->setObject(node->object());
     lay->addRow(objFieldName, objectEdit);
+
+    return w;
+}
+
+QWidget *defaultMagnetContactEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    ElectromagnetContactNode *node = static_cast<ElectromagnetContactNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Deviator
+    lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
+                                       viewMgr));
+
+    // Magnet Object
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(viewMgr, {ElectroMagnetObject::Type});
+    QObject::connect(node, &ElectromagnetContactNode::magnetChanged,
+                     objectEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+                     {
+                         node->setMagnet(static_cast<ElectroMagnetObject *>(obj));
+                     });
+
+    objectEdit->setObject(node->magnet());
+    lay->addRow(StandardNodeTypes::tr("Magnet:"), objectEdit);
 
     return w;
 }
@@ -881,6 +913,19 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
                                                viewMgr, tr("Magnet:"));
         };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Electromagnet Contact node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = ElectroMagnetContactGraphItem::Node::NodeType;
+        factory.prettyName = tr("Electromagnet Contact");
+        factory.shortcutLetter = QChar();
+        factory.create = &addNewNodeToScene<ElectroMagnetContactGraphItem>;
+        factory.edit = &defaultMagnetContactEdit;
 
         factoryReg->registerFactory(factory);
     }

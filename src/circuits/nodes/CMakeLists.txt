@@ -43,11 +43,21 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/simpleactivationnode.h
     circuits/nodes/soundcircuitnode.cpp
     circuits/nodes/soundcircuitnode.h
+
+    circuits/nodes/resistornode.cpp
+    circuits/nodes/resistornode.h
+
     circuits/nodes/transformernode.cpp
     circuits/nodes/transformernode.h
 
     circuits/nodes/traintasticsensornode.cpp
     circuits/nodes/traintasticsensornode.h
+
+    circuits/nodes/traintasticturnoutnode.cpp
+    circuits/nodes/traintasticturnoutnode.h
+
+    circuits/nodes/electromagnetcontactnode.cpp
+    circuits/nodes/electromagnetcontactnode.h
 
     PARENT_SCOPE
 )

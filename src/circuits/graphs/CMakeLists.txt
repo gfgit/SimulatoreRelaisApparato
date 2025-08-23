@@ -57,11 +57,22 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/special/acesasiblevergraphitem.cpp
     circuits/graphs/special/acesasiblevergraphitem.h
 
+    circuits/graphs/resistorgraphitem.cpp
+    circuits/graphs/resistorgraphitem.h
+
+    circuits/graphs/circuitcolors.h
+
     circuits/graphs/transformergraphitem.cpp
     circuits/graphs/transformergraphitem.h
 
     circuits/graphs/traintasticsensorcontactgraphitem.cpp
     circuits/graphs/traintasticsensorcontactgraphitem.h
+
+    circuits/graphs/traintasticturnoutgraphitem.cpp
+    circuits/graphs/traintasticturnoutgraphitem.h
+
+    circuits/graphs/electromagnetcontactgraphitem.cpp
+    circuits/graphs/electromagnetcontactgraphitem.h
 
     PARENT_SCOPE
 )
