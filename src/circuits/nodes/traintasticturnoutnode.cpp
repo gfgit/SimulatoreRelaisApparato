@@ -132,6 +132,7 @@ void TraintasticTurnoutNode::setTurnout(TraintasticTurnoutObj *newTurnout)
     }
 
     emit turnoutChanged(mTurnout);
+    emit shapeChanged();
     modeMgr()->setFileEdited();
 
     updateState();

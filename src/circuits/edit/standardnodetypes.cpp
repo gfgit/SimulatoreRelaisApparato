@@ -308,6 +308,10 @@ QWidget *defaultTraintasticSensorContactEdit(AbstractNodeGraphItem *item, ViewMa
     QWidget *w = new QWidget;
     QFormLayout *lay = new QFormLayout(w);
 
+    // Deviator
+    lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
+                                       viewMgr));
+
     // Sensor Object
     SimulationObjectLineEdit *sensorEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticSensorObj::Type});
     QObject::connect(node, &TraintasticSensorNode::sensorChanged,

@@ -116,6 +116,7 @@ void TraintasticSensorNode::setSensor(TraintasticSensorObj *newSensor)
     emit sensorChanged(mSensor);
 
     refreshContactState();
+    emit shapeChanged();
     modeMgr()->setFileEdited();
 }
 
