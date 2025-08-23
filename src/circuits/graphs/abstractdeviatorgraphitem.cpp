@@ -213,7 +213,7 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
         textRect.setRight(TileLocation::Size + TextDisplayMarginSmall + mTextWidth);
 
         if(arcSide != textRotate())
-            textRect.moveLeft(textRect.left() - TileLocation::HalfSize / 2.0);
+            textRect.moveLeft(textRect.left() - TileLocation::HalfSize / 2.0 + 3);
 
         if(deviatorNode()->hasCentralConnector())
             textRect.moveLeft(textRect.left() + 2);
@@ -228,7 +228,7 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
         textRect.setRight(0);
 
         if(arcSide != textRotate())
-            textRect.moveLeft(textRect.left() + TileLocation::HalfSize / 2.0);
+            textRect.moveLeft(textRect.left() + TileLocation::HalfSize / 2.0 - 3);
 
         if(deviatorNode()->hasCentralConnector())
             textRect.moveLeft(textRect.left() - 2);
