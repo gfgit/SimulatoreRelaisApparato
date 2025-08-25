@@ -1,15 +1,15 @@
 #ifndef RIGHTCLICKEMULATORFILTER_H
 #define RIGHTCLICKEMULATORFILTER_H
 
-#include <QObject>
+#include <QApplication>
 
-class RightClickEmulatorFilter : public QObject
+class RightClickEmulatorFilter : public QApplication
 {
     Q_OBJECT
 public:
-    explicit RightClickEmulatorFilter(QObject *parent = nullptr);
+    explicit RightClickEmulatorFilter(int &argc, char **argv);
 
-    bool eventFilter(QObject *watched, QEvent *e) override;
+    bool notify(QObject *watched, QEvent *e) override;
 };
 
 #endif // RIGHTCLICKEMULATORFILTER_H
