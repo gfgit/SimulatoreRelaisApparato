@@ -1,5 +1,5 @@
 /**
- * src/circuits/nodes/electromagnetnode.cpp
+ * src/circuits/nodes/electromagnetpowernode.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -22,7 +22,7 @@
 
 #include "electromagnetpowernode.h"
 
-#include "../../objects/simple_activable/electromagnet.h"
+#include "../../objects/simple_activable/electromagnetobject.h"
 
 ElectroMagnetPowerNode::ElectroMagnetPowerNode(ModeManager *mgr, QObject *parent)
     : SimpleActivationNode{mgr, parent}

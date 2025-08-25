@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/electromagnetgraphitem.h
+ * src/circuits/graphs/electromagnetpowergraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

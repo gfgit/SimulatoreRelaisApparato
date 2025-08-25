@@ -26,7 +26,7 @@
 #include "../../interfaces/leverinterface.h"
 #include "../../interfaces/sasibaceleverextrainterface.h"
 
-#include "../../simple_activable/electromagnet.h"
+#include "../../simple_activable/electromagnetobject.h"
 
 static const EnumDesc ace_sasib_2_posDesc =
 {

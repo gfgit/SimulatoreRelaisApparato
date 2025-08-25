@@ -1,5 +1,5 @@
 /**
- * src/objects/simple_activable/electromagnet.cpp
+ * src/objects/simple_activable/electromagnetobject.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "electromagnet.h"
+#include "electromagnetobject.h"
 
 #include "../../circuits/nodes/electromagnetcontactnode.h"
 

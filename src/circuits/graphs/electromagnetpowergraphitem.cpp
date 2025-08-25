@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/electromagnetgraphitem.cpp
+ * src/circuits/graphs/electromagnetpowergraphitem.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -24,7 +24,7 @@
 
 #include "../nodes/electromagnetpowernode.h"
 
-#include "../../objects/simple_activable/electromagnet.h"
+#include "../../objects/simple_activable/electromagnetobject.h"
 
 #include "circuitcolors.h"
 

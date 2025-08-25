@@ -114,7 +114,7 @@
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 #include "../../objects/simple_activable/lightbulbobject.h"
 
-#include "../../objects/simple_activable/electromagnet.h"
+#include "../../objects/simple_activable/electromagnetobject.h"
 
 #include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/screen_relais/model/screenrelais.h"

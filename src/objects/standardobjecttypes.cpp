@@ -44,7 +44,7 @@
 
 #include "simple_activable/lightbulbobject.h"
 
-#include "simple_activable/electromagnet.h"
+#include "simple_activable/electromagnetobject.h"
 
 #include "simple_activable/soundobject.h"
 

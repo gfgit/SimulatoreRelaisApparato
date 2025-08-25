@@ -24,7 +24,7 @@
 
 #include "../nodes/electromagnetcontactnode.h"
 
-#include "../../objects/simple_activable/electromagnet.h"
+#include "../../objects/simple_activable/electromagnetobject.h"
 
 #include "../../views/modemanager.h"
 

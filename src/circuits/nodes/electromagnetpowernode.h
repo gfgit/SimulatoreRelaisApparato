@@ -1,5 +1,5 @@
 /**
- * src/circuits/nodes/electromagnetnode.h
+ * src/circuits/nodes/electromagnetpowernode.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

@@ -1,5 +1,5 @@
 /**
- * src/objects/simple_activable/electromagnet.h
+ * src/objects/simple_activable/electromagnetobject.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *

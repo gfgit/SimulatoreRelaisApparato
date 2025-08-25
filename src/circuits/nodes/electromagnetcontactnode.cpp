@@ -23,7 +23,7 @@
 #include "electromagnetcontactnode.h"
 
 #include "../../objects/abstractsimulationobjectmodel.h"
-#include "../../objects/simple_activable/electromagnet.h"
+#include "../../objects/simple_activable/electromagnetobject.h"
 
 #include "../../views/modemanager.h"
 
