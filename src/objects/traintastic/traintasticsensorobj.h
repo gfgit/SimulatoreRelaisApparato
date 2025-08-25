@@ -90,7 +90,7 @@ private:
 
     TraintasticTurnoutObj *mShuntTurnout = nullptr;
 
-    int mChannel = InvalidChannel;
+    int mChannel = 0; // Default to valid channel
     int mAddress = InvalidAddress;
     int mState = 0;
     int mDefaultOffState = 1;
