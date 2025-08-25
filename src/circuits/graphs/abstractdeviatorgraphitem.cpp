@@ -216,7 +216,15 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
             textRect.moveLeft(textRect.left() - TileLocation::HalfSize / 2.0 + 3);
 
         if(deviatorNode()->hasCentralConnector())
-            textRect.moveLeft(textRect.left() + 2);
+        {
+            // Move text away from arc end
+            textRect.moveLeft(textRect.left() + arcRadius / 3);
+
+            // If there is preview, text is placed higher and
+            // needs to be further away from arc end
+            if(!previewRect.isNull())
+                textRect.moveLeft(textRect.left() + arcRadius / 3);
+        }
         break;
     case Connector::Direction::West:
         textRect.setTop(0);
@@ -231,7 +239,15 @@ QRectF AbstractDeviatorGraphItem::textDisplayRect() const
             textRect.moveLeft(textRect.left() + TileLocation::HalfSize / 2.0 - 3);
 
         if(deviatorNode()->hasCentralConnector())
-            textRect.moveLeft(textRect.left() - 2);
+        {
+            // Move text away from arc end
+            textRect.moveLeft(textRect.left() - arcRadius / 3);
+
+            // If there is preview, text is placed higher and
+            // needs to be further away from arc end
+            if(!previewRect.isNull())
+                textRect.moveLeft(textRect.left() - arcRadius / 3);
+        }
         break;
     default:
         break;
