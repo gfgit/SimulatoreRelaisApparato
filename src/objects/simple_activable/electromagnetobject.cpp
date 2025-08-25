@@ -46,7 +46,7 @@ QString ElectroMagnetObject::getType() const
 
 int ElectroMagnetObject::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
-    int count = AbstractSimulationObject::getReferencingNodes(result);
+    int count = AbstractSimpleActivableObject::getReferencingNodes(result);
     count += mContactNodes.size();
 
     if(result)
