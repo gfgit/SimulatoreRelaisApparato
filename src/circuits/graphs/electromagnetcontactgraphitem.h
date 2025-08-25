@@ -35,6 +35,8 @@ public:
 
     explicit ElectroMagnetContactGraphItem(ElectromagnetContactNode *node_);
 
+    QRectF boundingRect() const override;
+
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
     QString displayString() const override;
@@ -42,9 +44,13 @@ public:
     QString tooltipString() const override;
 
     ElectromagnetContactNode *node() const;
-
 private:
     void drawMagnetPreview(QPainter *painter);
+
+    QRectF calculateArrowRect(const QRectF &textBr) const;
+
+    void drawElectroMagnetArrow(QPainter *painter,
+                                const QRectF &textBr);
 };
 
 #endif // ELECTROMAGNET_CONTACT_GRAPHITEM_H
