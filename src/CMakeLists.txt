@@ -43,6 +43,7 @@ qt_add_executable(${SIMULATORE_RELAIS_TARGET} WIN32
     ${SIMULATORE_RELAIS_SOURCES}
     #${SIMULATORE_RELAIS_UI_FILES}
     ${SIMULATORE_RELAIS_RESOURCES}
+    rightclickemulatorfilter.h rightclickemulatorfilter.cpp
 )
 
 if (WIN32)
