@@ -174,7 +174,24 @@ void LeverInterface::setAngle(int newAngle)
         return;
 
     mAngle = newAngle;
-    setPosition(closestPosition(mAngle, true));
+
+    // Now change position accordingly
+    const int targetPosition = closestPosition(mAngle, true);
+    setPosition(targetPosition);
+    if(position() != targetPosition)
+    {
+        // Maybe locked range changed during position change
+        // So we did not reach target position
+        // Reset angle accordingly
+        mAngle = angleForPosition(position());
+        if(mAngle == LeverAngleDesc::MiddleAngle)
+        {
+            // Set it half way
+            const int prevAngle = angleForPosition(position() - 1);
+            const int nextAngle = angleForPosition(position() + 1);
+            mAngle = (prevAngle + nextAngle) / 2;
+        }
+    }
 
     emitChanged(AnglePropName, mAngle);
     emit mObject->stateChanged(mObject);
@@ -218,6 +235,13 @@ void LeverInterface::setPosition(int newPosition)
     while(p != newPosition)
     {
         p += increment;
+
+        // Locked range can change during position change
+        // Check at every step
+        if(increment > 0 && p > mLockedMax && mLockedMax != LeverAngleDesc::InvalidPosition)
+            break;
+        else if(increment < 0 && p < mLockedMin && mLockedMin != LeverAngleDesc::InvalidPosition)
+            break;
 
         mPosition = p;
 
