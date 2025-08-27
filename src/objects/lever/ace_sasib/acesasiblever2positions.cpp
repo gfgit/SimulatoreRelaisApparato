@@ -174,11 +174,14 @@ void ACESasibLever2PosObject::updateButtonsMagnetLock()
 
     bool checkCircuit = (pos == ACESasibLeverPosition2::CheckCircuitNormal ||
                          pos == ACESasibLeverPosition2::CheckCircuitReverse);
+    bool checkCircuitExtended = (pos >= ACESasibLeverPosition2::CheckCircuitReverse &&
+                                 pos <= ACESasibLeverPosition2::CheckCircuitNormal);
     bool waitSwitch = (pos == ACESasibLeverPosition2::WaitSwitchNormal ||
                        pos == ACESasibLeverPosition2::WaitSwitchReverse);
 
     // Lock left button Tb if not check circuit
-    sasibInterface->setButtonLocked(!checkCircuit,
+    // But leave it unlocked in all middle position to have time for electromagnet to go up
+    sasibInterface->setButtonLocked(!checkCircuitExtended,
                                     SasibACELeverExtraInterface::Button::Left);
 
     // Lock right button Tf if not wait for switch feedback
