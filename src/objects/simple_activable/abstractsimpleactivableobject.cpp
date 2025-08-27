@@ -31,16 +31,10 @@ class SimpleActivableStateChangeEvent : public QEvent
 {
 public:
     static const QEvent::Type _Type = QEvent::Type(QEvent::User + 4);
-    SimpleActivableStateChangeEvent(bool val_)
+    SimpleActivableStateChangeEvent()
         : QEvent(_Type)
-        , val(val_)
     {
     }
-
-    inline bool value() const { return val; }
-
-private:
-    bool val = false;
 };
 
 AbstractSimpleActivableObject::AbstractSimpleActivableObject(AbstractSimulationObjectModel *m)
@@ -64,6 +58,17 @@ AbstractSimpleActivableObject::~AbstractSimpleActivableObject()
     }
 }
 
+bool AbstractSimpleActivableObject::event(QEvent *e)
+{
+    if(e->type() == SimpleActivableStateChangeEvent::_Type)
+    {
+        applyDelayedStateChanged();
+        return true;
+    }
+
+    return AbstractSimulationObject::event(e);
+}
+
 int AbstractSimpleActivableObject::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
 {
     int nodesCount = AbstractSimulationObject::getReferencingNodes(result);
@@ -82,18 +87,6 @@ int AbstractSimpleActivableObject::getReferencingNodes(QVector<AbstractCircuitNo
 AbstractSimpleActivableObject::State AbstractSimpleActivableObject::state() const
 {
     return mActiveNodesCount > 0 ? State::On : State::Off;
-}
-
-bool AbstractSimpleActivableObject::event(QEvent *e)
-{
-    if(e->type() == SimpleActivableStateChangeEvent::_Type)
-    {
-        SimpleActivableStateChangeEvent *ev = static_cast<SimpleActivableStateChangeEvent *>(e);
-        applyDelayedStateChanged(nullptr, ev->value());
-        return true;
-    }
-
-    return AbstractSimulationObject::event(e);
 }
 
 void AbstractSimpleActivableObject::addNode(SimpleActivationNode *node)
@@ -120,17 +113,28 @@ void AbstractSimpleActivableObject::removeNode(SimpleActivationNode *node)
 
 void AbstractSimpleActivableObject::onNodeStateChanged(SimpleActivationNode *node, bool val)
 {
-    QCoreApplication::postEvent(this, new SimpleActivableStateChangeEvent(val));
+    if(val)
+        mPendingNodesCount++;
+    else
+        mPendingNodesCount--;
+
+    if(mUpdateScheduled)
+        return;
+
+    mUpdateScheduled = true;
+    QCoreApplication::postEvent(this, new SimpleActivableStateChangeEvent);
 }
 
-void AbstractSimpleActivableObject::applyDelayedStateChanged(SimpleActivationNode *node, bool val)
+void AbstractSimpleActivableObject::applyDelayedStateChanged()
 {
+    if(!mUpdateScheduled)
+        return;
+
+    mUpdateScheduled = false;
+
     const State oldState = state();
 
-    if(val)
-        mActiveNodesCount++;
-    else
-        mActiveNodesCount--;
+    mActiveNodesCount = mPendingNodesCount;
 
     if(state() != oldState)
     {

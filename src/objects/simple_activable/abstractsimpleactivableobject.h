@@ -43,11 +43,13 @@ public:
     explicit AbstractSimpleActivableObject(AbstractSimulationObjectModel *m);
     ~AbstractSimpleActivableObject();
 
+    bool event(QEvent *e) override;
+
     int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
 
     virtual State state() const;
 
-    bool event(QEvent *e) override;
+    void applyDelayedStateChanged();
 
 private:
     friend class SimpleActivationNode;
@@ -55,7 +57,6 @@ private:
     void removeNode(SimpleActivationNode *node);
 
     void onNodeStateChanged(SimpleActivationNode *node, bool val);
-    void applyDelayedStateChanged(SimpleActivationNode *node, bool val);
 
 protected:
     virtual void onStateChangedInternal();
@@ -66,6 +67,8 @@ private:
     // Allow multiple powering nodes
     // TODO: is this useful?
     int mActiveNodesCount = 0;
+    int mPendingNodesCount = 0;
+    bool mUpdateScheduled = false;
 };
 
 #endif // ABSTRACTSIMPLEACTIVABLEOBJECT_H

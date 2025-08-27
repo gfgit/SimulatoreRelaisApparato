@@ -74,6 +74,11 @@ AbstractSimpleActivableObject::State ElectroMagnetObject::state() const
 
 void ElectroMagnetObject::setForcedOff(bool newForcedOff)
 {
+    if(mForcedOff == newForcedOff)
+        return;
+
+    applyDelayedStateChanged();
+
     const State oldState = state();
     mForcedOff = newForcedOff;
 
@@ -86,6 +91,11 @@ void ElectroMagnetObject::setForcedOff(bool newForcedOff)
 
 void ElectroMagnetObject::setForcedOn(bool newForcedOn)
 {
+    if(mForcedOn == newForcedOn)
+        return;
+
+    applyDelayedStateChanged();
+
     const State oldState = state();
     mForcedOn = newForcedOn;
 

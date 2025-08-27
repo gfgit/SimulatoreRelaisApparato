@@ -168,6 +168,8 @@ void ACESasibLeverCommonObject::updateElectroMagnetState()
     if(!mMagnet)
         return;
 
+    mMagnet->applyDelayedStateChanged();
+
     // Off magnet locks lever, On magnet frees lever
     if(mMagnet->state() == ElectroMagnetObject::State::Off)
         addElectromagnetLock();
@@ -283,9 +285,14 @@ void ACESasibLeverCommonObject::removeElectromagnetLock()
 
 void ACESasibLeverCommonObject::recalculateLockedRange()
 {
-    // Off magnet locks lever, On magnet frees lever
-    if(mMagnet && mMagnet->state() == ElectroMagnetObject::State::Off)
-        addElectromagnetLock();
+    if(mMagnet)
+    {
+        mMagnet->applyDelayedStateChanged();
+
+        // Off magnet locks lever, On magnet frees lever
+        if(mMagnet->state() == ElectroMagnetObject::State::Off)
+            addElectromagnetLock();
+    }
 
     updateButtonsMagnetLock();
 }
