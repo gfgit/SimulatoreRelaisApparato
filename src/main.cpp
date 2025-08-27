@@ -118,7 +118,7 @@ bool loadTranslationsFromSettings()
 
 int main(int argc, char *argv[])
 {
-    RightClickEmulatorFilter app(argc, argv);
+    QApplication app(argc, argv);
     QApplication::setOrganizationName(AppCompany);
     QApplication::setApplicationName(AppProduct);
     QApplication::setApplicationDisplayName(AppDisplayName);
