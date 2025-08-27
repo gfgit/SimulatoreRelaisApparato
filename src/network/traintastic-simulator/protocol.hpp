@@ -37,7 +37,7 @@
 namespace SimulatorProtocol
 {
 
-static constexpr uint16_t DefaultPort = 5741;
+static constexpr uint16_t DefaultPort = 5742;
 
 enum class OpCode : uint8_t
 {

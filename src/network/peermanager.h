@@ -29,7 +29,7 @@
 #include <QByteArray>
 #include <QList>
 #include <QObject>
-#include <QTimer>
+#include <QBasicTimer>
 #include <QUdpSocket>
 
 class ModeManager;
@@ -56,8 +56,11 @@ public:
 
     bool isLocalHostAddress(const QHostAddress &address) const;
 
-    bool isDiscoveryEnabled() const;
-    void setDiscoveryEnabled(bool newEnabled);
+    bool isPeerDiscoveryEnabled() const;
+    void setPeerDiscoveryEnabled(bool newEnabled);
+
+    bool isTraintasticDiscoveryEnabled() const;
+    void setTraintasticDiscoveryEnabled(bool newEnabled);
 
     ModeManager *modeMgr() const;
 
@@ -68,6 +71,9 @@ public:
 
     void updateAddresses();
 
+protected:
+    void timerEvent(QTimerEvent *ev) override;
+
 signals:
     void sessionNameChanged(const QString& newName);
 
@@ -76,23 +82,31 @@ signals:
     void enabledChanged();
 
 private slots:
-    void sendBroadcastDatagram();
-    void readBroadcastDatagram();
+    void sendPeerBroadcastDatagram();
+    void readPeerBroadcastDatagram();
+
+    void sendTraintasticBroadcastDatagram();
+    void readTraintasticBroadcastDatagram();
 
 private:
     RemoteManager *mRemoteMgr = nullptr;
     PeerClient *mClient = nullptr;
     QList<QHostAddress> broadcastAddresses;
     QList<QHostAddress> ipAddresses;
-    QUdpSocket broadcastSocket;
-    QTimer broadcastTimer;
+
+    QUdpSocket peerBroadcastSocket;
+    QUdpSocket traintasticBroadcastSocket;
+
+    QBasicTimer peerBroadcastTimer;
+    QBasicTimer traintasticBroadcastTimer;
 
     QString localSessionName;
     QByteArray localUniqueId;
 
     int serverPort = 0;
 
-    bool mEnabled = false;
+    bool mPeerDiscoveryEnabled = false;
+    bool mTraintasticDiscoveryEnabled = false;
 };
 
 #endif

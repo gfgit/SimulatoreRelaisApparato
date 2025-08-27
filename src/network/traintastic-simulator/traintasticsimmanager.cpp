@@ -22,6 +22,10 @@
 
 #include "traintasticsimmanager.h"
 
+#include "../../views/modemanager.h"
+#include "../remotemanager.h"
+#include "../peermanager.h"
+
 #include "../../objects/traintastic/traintasticsensorobj.h"
 #include "../../objects/traintastic/traintasticturnoutobj.h"
 
@@ -30,8 +34,9 @@
 #include <QTcpSocket>
 
 
-TraintasticSimManager::TraintasticSimManager(QObject *parent)
-    : QObject{parent}
+TraintasticSimManager::TraintasticSimManager(ModeManager *mgr)
+    : QObject{mgr}
+    , mModeMgr(mgr)
 {
 
 }
@@ -46,6 +51,30 @@ bool TraintasticSimManager::isConnected() const
     return mSocket && mSocket->state() == QTcpSocket::ConnectedState;
 }
 
+void TraintasticSimManager::tryConnectToServer(const QHostAddress& addr, quint16 port)
+{
+    if(mSocket)
+        return; // Already connected or trying to connect
+
+    mSocket = new QTcpSocket;
+
+    connect(mSocket, &QTcpSocket::errorOccurred,
+            this, &TraintasticSimManager::onSocketError);
+    connect(mSocket, &QTcpSocket::connected,
+            this, &TraintasticSimManager::onConnected);
+
+    connect(mSocket, &QTcpSocket::disconnected,
+            this, &TraintasticSimManager::onSocketError);
+    connect(mSocket, &QTcpSocket::readyRead,
+            this, &TraintasticSimManager::onReadyRead);
+
+    m_readBufferOffset = 0;
+    memset(m_readBuffer, 0, BufSize);
+
+    mSocket->connectToHost(addr, port);
+    mSocket->setSocketOption(QTcpSocket::LowDelayOption, true);
+}
+
 void TraintasticSimManager::enableConnection(bool val)
 {
     if(mSocket && !val)
@@ -57,27 +86,6 @@ void TraintasticSimManager::enableConnection(bool val)
         mSocket = nullptr;
 
         setSensorsOff();
-    }
-
-    if(!mSocket && val)
-    {
-        mSocket = new QTcpSocket;
-
-        connect(mSocket, &QTcpSocket::errorOccurred,
-                this, &TraintasticSimManager::onSocketError);
-        connect(mSocket, &QTcpSocket::connected,
-                this, &TraintasticSimManager::onConnected);
-
-        connect(mSocket, &QTcpSocket::disconnected,
-                this, &TraintasticSimManager::onSocketError);
-        connect(mSocket, &QTcpSocket::readyRead,
-                this, &TraintasticSimManager::onReadyRead);
-
-        m_readBufferOffset = 0;
-        memset(m_readBuffer, 0, BufSize);
-
-        mSocket->connectToHost(QHostAddress::LocalHost, SimulatorProtocol::DefaultPort);
-        mSocket->setSocketOption(QTcpSocket::LowDelayOption, true);
     }
 }
 
@@ -144,6 +152,8 @@ void TraintasticSimManager::onConnected()
         setTurnoutState(obj->channel(), obj->address(), int(obj->state()));
     }
     mSocket->flush();
+
+    mModeMgr->getRemoteManager().
 }
 
 void TraintasticSimManager::send(const SimulatorProtocol::Message &message)

@@ -29,15 +29,18 @@
 #include "protocol.hpp"
 
 class QTcpSocket;
+class QHostAddress;
 
 class TraintasticSensorObj;
 class TraintasticTurnoutObj;
+
+class ModeManager;
 
 class TraintasticSimManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit TraintasticSimManager(QObject *parent = nullptr);
+    explicit TraintasticSimManager(ModeManager *mgr);
     ~TraintasticSimManager();
 
     bool isConnected() const;
@@ -45,6 +48,8 @@ public:
     void enableConnection(bool val);
 
     void setTurnoutState(int channel, int address, int state);
+
+    void tryConnectToServer(const QHostAddress &addr, quint16 port);
 
 signals:
     void stateChanged();
@@ -71,6 +76,8 @@ private:
     void setSensorsOff();
 
 private:
+    ModeManager *mModeMgr = nullptr;
+
     QTcpSocket *mSocket = nullptr;
     qint64 m_readBufferOffset = 0;
 

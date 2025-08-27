@@ -122,12 +122,12 @@ void RemoteManager::setDiscoveryEnabled(bool val)
 {
     if(!mPeerClient->isCommunicationEnabled())
         val = false;
-    mPeerManager->setDiscoveryEnabled(val);
+    mPeerManager->setPeerDiscoveryEnabled(val);
 }
 
 bool RemoteManager::isDiscoveryEnabled() const
 {
-    return mPeerManager->isDiscoveryEnabled();
+    return mPeerManager->isPeerDiscoveryEnabled();
 }
 
 void RemoteManager::refreshNetworkAddresses()
