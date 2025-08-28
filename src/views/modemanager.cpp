@@ -561,6 +561,7 @@ void ModeManager::setMode(FileMode newMode)
 
         mSerialMgr->disconnectAllDevices();
 
+        mRemoteMgr->setTraintasticDiscoveryEnabled(false);
         mTraintasticSim->enableConnection(false);
     }
     else if(oldMode != FileMode::Simulation)
@@ -570,7 +571,7 @@ void ModeManager::setMode(FileMode newMode)
         if(mRemoteMgr->onlineByDefault())
             mRemoteMgr->setOnline(true);
 
-        mTraintasticSim->enableConnection(true);
+        mRemoteMgr->setTraintasticDiscoveryEnabled(true);
     }
 
     // Let widgets receive mode change first, then update all other scenes

@@ -153,7 +153,7 @@ void TraintasticSimManager::onConnected()
     }
     mSocket->flush();
 
-    mModeMgr->getRemoteManager().
+    mModeMgr->getRemoteManager()->setTraintasticDiscoveryEnabled(false);
 }
 
 void TraintasticSimManager::send(const SimulatorProtocol::Message &message)

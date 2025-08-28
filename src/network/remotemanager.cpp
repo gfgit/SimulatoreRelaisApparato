@@ -130,6 +130,16 @@ bool RemoteManager::isDiscoveryEnabled() const
     return mPeerManager->isPeerDiscoveryEnabled();
 }
 
+void RemoteManager::setTraintasticDiscoveryEnabled(bool val)
+{
+    mPeerManager->setTraintasticDiscoveryEnabled(val);
+}
+
+bool RemoteManager::isTraintasticDiscoveryEnabled() const
+{
+    return mPeerManager->isTraintasticDiscoveryEnabled();
+}
+
 void RemoteManager::refreshNetworkAddresses()
 {
     mPeerManager->updateAddresses();
