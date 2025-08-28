@@ -42,7 +42,7 @@
 
 static const qint32 BroadcastInterval = 2000;
 static const unsigned PeerBroadcastPort = 45000;
-static const unsigned TraintasticBroadcastPort = 5471;
+static const unsigned TraintasticBroadcastPort = 5741;
 
 PeerManager::PeerManager(PeerClient *client, RemoteManager *mgr)
     : QObject(client)
@@ -242,7 +242,10 @@ void PeerManager::readTraintasticBroadcastDatagram()
         if(!mTraintasticDiscoveryEnabled)
             continue; // Read all but ignore contents
 
-        if(datagram.size() != 6 || datagram.startsWith("sim!"))
+        if(datagram.startsWith("sim?"))
+            continue;
+
+        if(datagram.size() != 6 || !datagram.startsWith("sim!"))
             continue; // Invalid response
 
         quint16 traintasticServerPort = *reinterpret_cast<const quint16 *>(datagram.constData() + 4);
@@ -353,7 +356,7 @@ void PeerManager::setTraintasticDiscoveryEnabled(bool newEnabled)
         // Start broadcasting
         updateAddresses();
 
-        traintasticBroadcastSocket.bind(QHostAddress::Any, TraintasticBroadcastPort,
+        traintasticBroadcastSocket.bind(QHostAddress::AnyIPv4, TraintasticBroadcastPort,
                                         QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
         traintasticBroadcastTimer.start(BroadcastInterval, this);
