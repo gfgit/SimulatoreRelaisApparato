@@ -60,6 +60,11 @@ PeerManager::PeerManager(PeerClient *client, RemoteManager *mgr)
             this, &PeerManager::readPeerBroadcastDatagram);
     connect(&traintasticBroadcastSocket, &QUdpSocket::readyRead,
             this, &PeerManager::readTraintasticBroadcastDatagram);
+    connect(&traintasticBroadcastSocket, &QUdpSocket::errorOccurred,
+            this, [this]()
+            {
+                qDebug() << "Traintastic UDP error:" << traintasticBroadcastSocket.error() << traintasticBroadcastSocket.errorString();
+            });
 }
 
 void PeerManager::setServerPort(int port)
@@ -356,11 +361,15 @@ void PeerManager::setTraintasticDiscoveryEnabled(bool newEnabled)
         // Start broadcasting
         updateAddresses();
 
-        traintasticBroadcastSocket.bind(QHostAddress::AnyIPv4, TraintasticBroadcastPort,
-                                        QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+        if(!traintasticBroadcastSocket.bind(QHostAddress::AnyIPv4, TraintasticBroadcastPort,
+                                             QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint))
+        {
+            qDebug() << "Traintastic UDP bind failed:" << traintasticBroadcastSocket.error() << traintasticBroadcastSocket.errorString();
+        }
 
         traintasticBroadcastTimer.start(BroadcastInterval, this);
 
+        qDebug() << "Traintastic discovery ENABLED";
         sendTraintasticBroadcastDatagram();
     }
     else
@@ -368,6 +377,8 @@ void PeerManager::setTraintasticDiscoveryEnabled(bool newEnabled)
         // Stop broadcasting
         traintasticBroadcastTimer.stop();
         traintasticBroadcastSocket.close();
+
+        qDebug() << "Traintastic discovery DISABLED";
     }
 
     emit enabledChanged();

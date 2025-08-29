@@ -53,8 +53,13 @@ bool TraintasticSimManager::isConnected() const
 
 void TraintasticSimManager::tryConnectToServer(const QHostAddress& addr, quint16 port)
 {
+    qDebug() << "Traintastic: trying to connect to:" << addr << port;
+
     if(mSocket)
+    {
+        qDebug() << "Traintastic: already connecting... skip";
         return; // Already connected or trying to connect
+    }
 
     mSocket = new QTcpSocket;
 
@@ -87,6 +92,8 @@ void TraintasticSimManager::enableConnection(bool val)
 
         setSensorsOff();
     }
+    // else if(!mSocket && val)
+    //     tryConnectToServer(QHostAddress::LocalHost, 5742);
 }
 
 void TraintasticSimManager::setTurnoutState(int channel, int address, int state)
@@ -107,7 +114,9 @@ void TraintasticSimManager::onSocketError()
 
     setSensorsOff();
 
-    stateChanged();
+    mModeMgr->getRemoteManager()->setTraintasticDiscoveryEnabled(true);
+
+    emit stateChanged();
 }
 
 void TraintasticSimManager::onReadyRead()
