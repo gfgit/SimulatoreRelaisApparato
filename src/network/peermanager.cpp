@@ -361,12 +361,8 @@ void PeerManager::setTraintasticDiscoveryEnabled(bool newEnabled)
         // Start broadcasting
         updateAddresses();
 
-        if(!traintasticBroadcastSocket.bind(QHostAddress::AnyIPv4, TraintasticBroadcastPort,
-                                             QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint))
-        {
-            qDebug() << "Traintastic UDP bind failed:" << traintasticBroadcastSocket.error() << traintasticBroadcastSocket.errorString();
-        }
-
+        // Do not bind UDP socket, system will choose port on first write
+        // Otherwise traintastic-simulator fails to bind if started after us
         traintasticBroadcastTimer.start(BroadcastInterval, this);
 
         qDebug() << "Traintastic discovery ENABLED";
