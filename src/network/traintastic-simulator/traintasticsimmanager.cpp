@@ -28,6 +28,9 @@
 
 #include "../../objects/traintastic/traintasticsensorobj.h"
 #include "../../objects/traintastic/traintasticturnoutobj.h"
+#include "../../objects/traintastic/traintasticsignalobject.h"
+
+#include "../../objects/abstractsimulationobjectmodel.h"
 
 #include "protocol.hpp"
 
@@ -160,6 +163,21 @@ void TraintasticSimManager::onConnected()
     {
         setTurnoutState(obj->channel(), obj->address(), int(obj->state()));
     }
+
+    // Send initial signal status
+    auto signalsModel = mModeMgr->modelForType(TraintasticSignalObject::Type);
+    for(int i = 0; i < signalsModel->rowCount(); i++)
+    {
+        TraintasticSignalObject *signalObj = static_cast<TraintasticSignalObject *>(signalsModel->objectAt(0));
+
+        // Tell simulator we own this signal
+        SimulatorProtocol::OwnSignal msg(signalObj->channel(), signalObj->address());
+        send(msg);
+
+        // Send initial status
+        signalObj->sendStatusMsg();
+    }
+
     mSocket->flush();
 
     mModeMgr->getRemoteManager()->setTraintasticDiscoveryEnabled(false);

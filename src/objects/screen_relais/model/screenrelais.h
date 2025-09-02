@@ -94,6 +94,24 @@ public:
 
     inline double getPosition() const { return mPosition; }
 
+    inline int getClosestGlass() const
+    {
+        if(screenType() == ScreenType::CenteredScreen)
+        {
+            if(mPosition < -0.5)
+                return 0;
+            if(mPosition > 0.5)
+                return 2;
+            return 1;
+        }
+
+        if(mPosition < 0.5)
+            return 0;
+        if(mPosition > 1.5)
+            return 2;
+        return 1;
+    }
+
     ContactState getContactStateA() const;
     ContactState getContactStateB() const;
 

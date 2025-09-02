@@ -7,6 +7,7 @@ add_subdirectory(lever)
 add_subdirectory(relais)
 add_subdirectory(screen_relais)
 add_subdirectory(simple_activable)
+add_subdirectory(traintastic)
 
 set(SIMULATORE_RELAIS_SOURCES
 
@@ -39,12 +40,6 @@ set(SIMULATORE_RELAIS_SOURCES
 
     objects/simulationobjectlineedit.cpp
     objects/simulationobjectlineedit.h
-
-    objects/traintastic/traintasticsensorobj.cpp
-    objects/traintastic/traintasticsensorobj.h
-
-    objects/traintastic/traintasticturnoutobj.cpp
-    objects/traintastic/traintasticturnoutobj.h
 
     ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE

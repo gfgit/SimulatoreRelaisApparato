@@ -51,6 +51,8 @@ public:
 
     void tryConnectToServer(const QHostAddress &addr, quint16 port);
 
+    void send(const SimulatorProtocol::Message &message);
+
 signals:
     void stateChanged();
 
@@ -62,7 +64,6 @@ private slots:
     void onConnected();
 
 private:
-    void send(const SimulatorProtocol::Message &message);
     void receive(const SimulatorProtocol::Message &message);
 
     friend class TraintasticSensorObj;

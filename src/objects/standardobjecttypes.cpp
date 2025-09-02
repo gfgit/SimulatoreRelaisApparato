@@ -68,6 +68,7 @@
 
 #include "traintastic/traintasticsensorobj.h"
 #include "traintastic/traintasticturnoutobj.h"
+#include "traintastic/traintasticsignalobject.h"
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
 
@@ -774,7 +775,7 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
         offStateSpin->setVisible(!isTurnout);
     };
 
-    QObject::connect(sensor, &RemoteCircuitBridge::settingsChanged,
+    QObject::connect(sensor, &TraintasticSensorObj::settingsChanged,
                      w, updateSettings);
 
     updateSettings();
@@ -853,7 +854,68 @@ QWidget *defaultTraintasticTurnoutEdit(AbstractSimulationObject *item, ViewManag
         totalTimeSpin->setValue(turnout->totalTimeMillis());
     };
 
-    QObject::connect(turnout, &RemoteCircuitBridge::settingsChanged,
+    QObject::connect(turnout, &TraintasticTurnoutObj::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
+QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticSignalObject *signal = static_cast<TraintasticSignalObject *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Channel
+    QSpinBox *channelSpin = new QSpinBox;
+    channelSpin->setRange(0, 9999);
+    lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
+
+    QObject::connect(channelSpin, &QSpinBox::editingFinished,
+                     signal, [signal, channelSpin]()
+                     {
+                         signal->setChannel(channelSpin->value());
+                     });
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     signal, [signal, addressSpin]()
+                     {
+                         signal->setAddress(addressSpin->value());
+                     });
+
+    SimulationObjectLineEdit *screenEdits[3] = {};
+    for(int i = 0; i < 3; i++)
+    {
+        screenEdits[i] = new SimulationObjectLineEdit(mgr, {ScreenRelais::Type});
+        QObject::connect(screenEdits[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setScreenRelaisAt(i, static_cast<ScreenRelais *>(obj));
+                         });
+        lay->addRow(StandardObjectTypes::tr("Screen Relais %1:").arg(i), screenEdits[i]);
+    }
+
+    auto updateSettings = [signal, channelSpin, addressSpin, screenEdits]()
+    {
+        channelSpin->setValue(signal->channel());
+        addressSpin->setValue(signal->address());
+
+        for(int i = 0; i < 3; i++)
+        {
+            screenEdits[i]->setObject(signal->getScreenRelaisAt(i));
+        }
+    };
+
+    QObject::connect(signal, &TraintasticSignalObject::settingsChanged,
                      w, updateSettings);
 
     updateSettings();
@@ -1042,6 +1104,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &defaultTraintasticTurnoutEdit;
         item.objectType = TraintasticTurnoutObj::Type;
         item.prettyName = tr("Traintastic Turnout");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Signal
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticSignalObject>;
+        item.edit = &defaultTraintasticSignalEdit;
+        item.objectType = TraintasticSignalObject::Type;
+        item.prettyName = tr("Traintastic Signal");
 
         factory->registerFactory(item);
     }
