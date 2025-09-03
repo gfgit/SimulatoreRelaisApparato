@@ -168,7 +168,7 @@ void TraintasticSimManager::onConnected()
     auto signalsModel = mModeMgr->modelForType(TraintasticSignalObject::Type);
     for(int i = 0; i < signalsModel->rowCount(); i++)
     {
-        TraintasticSignalObject *signalObj = static_cast<TraintasticSignalObject *>(signalsModel->objectAt(0));
+        TraintasticSignalObject *signalObj = static_cast<TraintasticSignalObject *>(signalsModel->objectAt(i));
 
         // Tell simulator we own this signal
         SimulatorProtocol::OwnSignal msg(signalObj->channel(), signalObj->address());
