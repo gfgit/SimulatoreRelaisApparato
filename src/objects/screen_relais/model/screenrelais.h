@@ -99,9 +99,9 @@ public:
         if(screenType() == ScreenType::CenteredScreen)
         {
             if(mPosition < -0.5)
-                return 0;
-            if(mPosition > 0.5)
                 return 2;
+            if(mPosition > 0.5)
+                return 0;
             return 1;
         }
 
