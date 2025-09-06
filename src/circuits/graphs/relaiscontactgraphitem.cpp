@@ -45,7 +45,7 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     AbstractRelais::State relayState = AbstractRelais::State::Down;
 
-    bool fillArc = true;
+    bool fillArc = false;
 
     if(node()->relais())
     {
@@ -69,7 +69,8 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
         }
         else
         {
-            relayState = node()->relais()->state();
+          fillArc = true;
+          relayState = node()->relais()->state();
 
             if(relayState == AbstractRelais::State::Up)
             {
@@ -110,27 +111,27 @@ void RelaisContactGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
                         std::swap(contactUpOn, contactDownOn);
                 }
             }
-        }
 
-        switch (node()->relais()->relaisType())
-        {
-        case AbstractRelais::RelaisType::Encoder:
-        case AbstractRelais::RelaisType::CodeRepeater:
-        {
-            // Omit arc fill for theese types
-            fillArc = false;
-            break;
-        }
-        default:
-        {
-            AbstractRelais::State defState = AbstractRelais::State::Up;
-            if(!node()->relais()->normallyUp())
-                defState = AbstractRelais::State::Down;
+            switch (node()->relais()->relaisType())
+            {
+            case AbstractRelais::RelaisType::Encoder:
+            case AbstractRelais::RelaisType::CodeRepeater:
+            {
+                // Omit arc fill for theese types
+                fillArc = false;
+                break;
+            }
+            default:
+            {
+                AbstractRelais::State defState = AbstractRelais::State::Up;
+                if(!node()->relais()->normallyUp())
+                    defState = AbstractRelais::State::Down;
 
-            // Fill arc when not in normal state
-            fillArc = (node()->relais()->state() != defState);
-            break;
-        }
+                // Fill arc when not in normal state
+                fillArc = (node()->relais()->state() != defState);
+                break;
+            }
+            }
         }
     }
 
