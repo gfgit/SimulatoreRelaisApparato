@@ -99,6 +99,8 @@ public:
     static CableGraphPath loadFromJSON(const QJsonObject& obj);
     static void saveToJSON(const CableGraphPath& path, QJsonObject& obj);
 
+    bool needsReversing() const;
+
 private:
     static Connector::Direction getDirection(const TileLocation& a,
                                              const TileLocation& b);

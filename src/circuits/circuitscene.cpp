@@ -1511,6 +1511,8 @@ void CircuitScene::copySelectedItems()
     for(auto it : mSelectedCablePositions)
     {
         CableGraphItem *item = it.first;
+        if(item->cableZeroLength() || !item->cablePath().isComplete())
+            continue;
 
         QJsonObject cableObj;
         item->saveToJSON(cableObj);
@@ -2192,12 +2194,28 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
         TileLocation startA = a->cablePath().first();
         TileLocation startB = b->cablePath().first();
 
+        const bool reverseA =  a->cablePath().needsReversing();
+        if(reverseA)
+            startA = a->cablePath().last();
+
+        const bool reverseB = b->cablePath().needsReversing();
+        if(reverseB)
+            startB = b->cablePath().last();
+
         // Orded by Y, then by X, the by direction
         if(startA.y == startB.y)
         {
             if(startA.x == startB.x)
             {
-                return a->directionA() < b->directionA();
+                Connector::Direction dirA = a->directionA();
+                if(reverseA)
+                    dirA = a->directionB();
+
+                Connector::Direction dirB = b->directionA();
+                if(reverseB)
+                    dirB = b->directionB();
+
+                return dirA < dirB;
             }
 
             return startA.x < startB.x;
