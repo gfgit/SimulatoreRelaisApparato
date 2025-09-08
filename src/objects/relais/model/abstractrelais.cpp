@@ -32,6 +32,18 @@
 
 #include <QRandomGenerator>
 
+#include <QCoreApplication>
+
+class AbstractRelaisUpdateFlagsEvent : public QEvent
+{
+public:
+    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 5);
+    AbstractRelaisUpdateFlagsEvent()
+        : QEvent(_Type)
+    {
+    }
+};
+
 QString AbstractRelais::getRelaisTypeName(RelaisType t)
 {
     switch(t)
@@ -253,6 +265,17 @@ void AbstractRelais::removeContactNode(RelaisContactNode *c)
     mContactNodes.removeOne(c);
 
     emit nodesChanged(this);
+}
+
+bool AbstractRelais::event(QEvent *e)
+{
+    if(e->type() == AbstractRelaisUpdateFlagsEvent::_Type)
+    {
+        applyDecodedResult();
+        return true;
+    }
+
+    return QObject::event(e);
 }
 
 void AbstractRelais::timerEvent(QTimerEvent *e)
@@ -546,24 +569,28 @@ void AbstractRelais::setDecodedResult(SignalAspectCode code)
 
     mNextDetectedCode = code;
 
+    QCoreApplication::postEvent(this, new AbstractRelaisUpdateFlagsEvent);
+}
+
+void AbstractRelais::applyDecodedResult()
+{
+    if(relaisType() != RelaisType::Decoder &&
+        relaisType() != RelaisType::CodeRepeater)
+        return;
+
     if(relaisType() == RelaisType::CodeRepeater &&
-            mNextDetectedCode != mDetectedCode)
+        mNextDetectedCode != mDetectedCode)
     {
-        // If relay is in moving delay apply
-        if(mInternalState == State::Up || mInternalState == State::Down)
+        mDetectedCode = mNextDetectedCode;
+
+        // Update contact flags
+        for(RelaisContactNode *c : mContactNodes)
         {
-            mDetectedCode = mNextDetectedCode; // Apply immediately
-
-            // Update contact flags
-            for(RelaisContactNode *c : mContactNodes)
-            {
-                c->applyNewFlags();
-            }
+            c->applyNewFlags();
         }
-    }
 
-    // Delay stateChanged because we are inside circuit change
-    QMetaObject::invokeMethod(this, &AbstractRelais::stateChanged, Qt::QueuedConnection, this);
+        emit stateChanged(this);
+    }
 }
 
 SignalAspectCode AbstractRelais::codeForMillis(qint64 millis)

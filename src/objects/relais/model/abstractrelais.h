@@ -124,6 +124,7 @@ public:
     quint32 durationDown() const;
     void setDurationDown(quint32 durationDownMS);
 
+    bool event(QEvent *e) override;
     void timerEvent(QTimerEvent *e) override;
 
     bool normallyUp() const;
@@ -186,6 +187,8 @@ private:
     void setDecodedResult(SignalAspectCode code);
 
     void startCodeTimeout(SignalAspectCode code);
+
+    void applyDecodedResult();
 
     static constexpr inline int timeoutMillisForCode(SignalAspectCode code)
     {
