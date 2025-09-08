@@ -1051,8 +1051,10 @@ bool CableGraphPath::needsReversing() const
     }
     else if(tiles().size() > 1)
     {
-        if(first().x > last().x || first().y > last().y)
-            return true;
+        if(first().x == last().x)
+            return first().y > last().y;
+
+        return first().x > last().x;
     }
 
     return false;
