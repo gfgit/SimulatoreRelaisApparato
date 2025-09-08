@@ -23,6 +23,7 @@
 #include "traintasticsignalobject.h"
 
 #include "../screen_relais/model/screenrelais.h"
+#include "../relais/model/abstractrelais.h"
 
 #include "../abstractsimulationobjectmodel.h"
 #include "../../views/modemanager.h"
@@ -72,6 +73,20 @@ bool TraintasticSignalObject::loadFromJSON(const QJsonObject &obj, LoadPhase pha
         setScreenRelaisAt(2, nullptr);
     }
 
+    auto model2_ = model()->modeMgr()->modelForType(AbstractRelais::Type);
+    if(model2_)
+    {
+        setBlinkRelaisAt(0, static_cast<AbstractRelais *>(model2_->getObjectByName(obj.value("blink_0").toString())));
+        setBlinkRelaisAt(1, static_cast<AbstractRelais *>(model2_->getObjectByName(obj.value("blink_1").toString())));
+        setBlinkRelaisAt(2, static_cast<AbstractRelais *>(model2_->getObjectByName(obj.value("blink_2").toString())));
+    }
+    else
+    {
+        setBlinkRelaisAt(0, nullptr);
+        setBlinkRelaisAt(1, nullptr);
+        setBlinkRelaisAt(2, nullptr);
+    }
+
     return true;
 }
 
@@ -85,6 +100,10 @@ void TraintasticSignalObject::saveToJSON(QJsonObject &obj) const
     obj["screen_0"] = mScreenRelais[0] ? mScreenRelais[0]->name() : QString();
     obj["screen_1"] = mScreenRelais[1] ? mScreenRelais[1]->name() : QString();
     obj["screen_2"] = mScreenRelais[2] ? mScreenRelais[2]->name() : QString();
+
+    obj["blink_0"] = mBlinkRelais[0] ? mBlinkRelais[0]->name() : QString();
+    obj["blink_1"] = mBlinkRelais[1] ? mBlinkRelais[1]->name() : QString();
+    obj["blink_2"] = mBlinkRelais[2] ? mBlinkRelais[2]->name() : QString();
 }
 
 void TraintasticSignalObject::setChannel(int newChannel)
@@ -135,6 +154,41 @@ void TraintasticSignalObject::setScreenRelaisAt(int i, ScreenRelais *s)
     emit settingsChanged(this);
 }
 
+void TraintasticSignalObject::setBlinkRelaisAt(int i, AbstractRelais *s)
+{
+    assert(i >= 0 && i < 3);
+    if(mBlinkRelais[i] == s)
+        return;
+
+    if(mBlinkRelais[i])
+    {
+        disconnect(mBlinkRelais[i], &AbstractRelais::stateChanged,
+                   this, &TraintasticSignalObject::onBlinRelaisStateChanged);
+        disconnect(mBlinkRelais[i], &AbstractRelais::destroyed,
+                   this, &TraintasticSignalObject::onBlinRelaisDestroyed);
+    }
+
+    mBlinkRelais[i] = s;
+
+    if(mBlinkRelais[i])
+    {
+        connect(mBlinkRelais[i], &AbstractRelais::stateChanged,
+                this, &TraintasticSignalObject::onBlinRelaisStateChanged);
+        connect(mBlinkRelais[i], &AbstractRelais::destroyed,
+                this, &TraintasticSignalObject::onBlinRelaisDestroyed);
+
+        sendStatusMsg();
+
+        setBlinkRelayState(i, mBlinkRelais[i]->state() == AbstractRelais::State::Up);
+    }
+    else
+    {
+        setBlinkRelayState(i, false);
+    }
+
+    emit settingsChanged(this);
+}
+
 void TraintasticSignalObject::sendStatusMsg()
 {
     SimulatorProtocol::SignalSetState msg(mChannel, mAddress);
@@ -148,8 +202,10 @@ void TraintasticSignalObject::sendStatusMsg()
             continue;
         }
 
-        // TODO: blink
+        // TODO: blink reverse
         msg.lights[i].state = SimulatorProtocol::SignalSetState::On;
+        if(mBlinkRelaisUp[i])
+            msg.lights[i].state = SimulatorProtocol::SignalSetState::Blink;
 
         switch (mScreenRelais[i]->getColorAt(mCurScreenPos[i]))
         {
@@ -173,13 +229,17 @@ void TraintasticSignalObject::sendStatusMsg()
             break;
         }
     }
+
     msg.speed = 0.0f;
-    if(msg.lights[0].state == SimulatorProtocol::SignalSetState::On)
+    if(msg.lights[0].state != SimulatorProtocol::SignalSetState::Off)
     {
         switch (msg.lights[0].color)
         {
         case SimulatorProtocol::SignalSetState::Red:
         {
+            if(msg.lights[0].state != SimulatorProtocol::SignalSetState::On)
+                break; // Red cannot blink
+
             if(msg.lights[1].state == SimulatorProtocol::SignalSetState::Off
                 || msg.lights[1].color == SimulatorProtocol::SignalSetState::Red)
                 break; // Second light cannot be red
@@ -190,14 +250,14 @@ void TraintasticSignalObject::sendStatusMsg()
 
             if(msg.lights[1].color == SimulatorProtocol::SignalSetState::Green &&
                 msg.lights[2].state != SimulatorProtocol::SignalSetState::Off)
-                break;
+                break; // If second light is Green, third must be off
 
             // Red + Yellow or
             // Red + Green or
             // Red + Yellow + Green
 
             // Deviata
-            msg.speed = 30.0f; // TODO: blink
+            msg.speed = 30.0f; // TODO: rappel or blink of previous signal
             break;
         }
 
@@ -218,14 +278,18 @@ void TraintasticSignalObject::sendStatusMsg()
             }
 
             // Yellow
-            msg.speed = 100.0f; // TODO: distant signal
+            msg.speed = 80.0f; // TODO: distant signal
+
+            if(msg.lights[0].state == SimulatorProtocol::SignalSetState::Blink)
+                msg.speed = 120.0f;
+
             break;
         }
 
         case SimulatorProtocol::SignalSetState::Green:
         {
-            if(msg.lights[1].state != SimulatorProtocol::SignalSetState::Off)
-                break; // Second light must be off
+            if(msg.lights[0].state != SimulatorProtocol::SignalSetState::On)
+                break; // Green cannot blink
 
             // Green
             msg.speed = 200.0f;
@@ -267,11 +331,47 @@ void TraintasticSignalObject::onScreenDestroyed(QObject *obj)
     }
 }
 
+void TraintasticSignalObject::onBlinRelaisStateChanged(AbstractSimulationObject *s)
+{
+    for(int i = 0; i < 3; i++)
+    {
+        if(mBlinkRelais[i] != s)
+            continue;
+
+        setBlinkRelayState(i, mBlinkRelais[i]->state() == AbstractRelais::State::Up);
+        break;
+    }
+}
+
+void TraintasticSignalObject::onBlinRelaisDestroyed(QObject *obj)
+{
+    for(int i = 0; i < 3; i++)
+    {
+        if(mBlinkRelais[i] == obj)
+        {
+            disconnect(mBlinkRelais[i], &AbstractRelais::destroyed,
+                       this, &TraintasticSignalObject::onBlinRelaisDestroyed);
+            mBlinkRelais[i] = nullptr;
+            setBlinkRelayState(i, false);
+            break;
+        }
+    }
+}
+
 void TraintasticSignalObject::setScreenPos(int idx, int glassPos)
 {
     if(mCurScreenPos[idx] == glassPos)
         return;
 
     mCurScreenPos[idx] = glassPos;
+    sendStatusMsg();
+}
+
+void TraintasticSignalObject::setBlinkRelayState(int idx, bool up)
+{
+    if(mBlinkRelaisUp[idx] == up)
+        return;
+
+    mBlinkRelaisUp[idx] = up;
     sendStatusMsg();
 }

@@ -893,6 +893,7 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
                      });
 
     SimulationObjectLineEdit *screenEdits[3] = {};
+    SimulationObjectLineEdit *blinkEdits[3] = {};
     for(int i = 0; i < 3; i++)
     {
         screenEdits[i] = new SimulationObjectLineEdit(mgr, {ScreenRelais::Type});
@@ -902,9 +903,17 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
                              signal->setScreenRelaisAt(i, static_cast<ScreenRelais *>(obj));
                          });
         lay->addRow(StandardObjectTypes::tr("Screen Relais %1:").arg(i), screenEdits[i]);
+
+        blinkEdits[i] = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
+        QObject::connect(blinkEdits[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setBlinkRelaisAt(i, static_cast<AbstractRelais *>(obj));
+                         });
+        lay->addRow(StandardObjectTypes::tr("Blink Relais %1:").arg(i), blinkEdits[i]);
     }
 
-    auto updateSettings = [signal, channelSpin, addressSpin, screenEdits]()
+    auto updateSettings = [signal, channelSpin, addressSpin, screenEdits, blinkEdits]()
     {
         channelSpin->setValue(signal->channel());
         addressSpin->setValue(signal->address());
@@ -912,6 +921,7 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
         for(int i = 0; i < 3; i++)
         {
             screenEdits[i]->setObject(signal->getScreenRelaisAt(i));
+            blinkEdits[i]->setObject(signal->getBlinkRelaisAt(i));
         }
     };
 

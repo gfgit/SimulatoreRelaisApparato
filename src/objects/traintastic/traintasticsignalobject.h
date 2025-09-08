@@ -26,6 +26,7 @@
 #include "../abstractsimulationobject.h"
 
 class ScreenRelais;
+class AbstractRelais;
 
 class TraintasticSignalObject : public AbstractSimulationObject
 {
@@ -57,14 +58,26 @@ public:
 
     void setScreenRelaisAt(int i, ScreenRelais *s);
 
+    AbstractRelais *getBlinkRelaisAt(int i) const
+    {
+        assert(i >= 0 && i < 3);
+        return mBlinkRelais[i];
+    }
+
+    void setBlinkRelaisAt(int i, AbstractRelais *s);
+
     void sendStatusMsg();
 
 private slots:
     void onScreenPosChanged(AbstractSimulationObject *s);
     void onScreenDestroyed(QObject *obj);
 
+    void onBlinRelaisStateChanged(AbstractSimulationObject *s);
+    void onBlinRelaisDestroyed(QObject *obj);
+
 private:
     void setScreenPos(int idx, int glassPos);
+    void setBlinkRelayState(int idx, bool up);
 
 private:
     int mChannel = 0;
@@ -72,6 +85,9 @@ private:
 
     ScreenRelais *mScreenRelais[3] = {nullptr};
     int mCurScreenPos[3] = {};
+
+    AbstractRelais *mBlinkRelais[3] = {nullptr};
+    bool mBlinkRelaisUp[3] = {false, false, false};
 };
 
 #endif // TRAINTASTIC_SIGNAL_OBJECT_H
