@@ -1706,6 +1706,15 @@ void CircuitScene::helpEvent(QGraphicsSceneHelpEvent *e)
     if(item)
     {
         QString tip = item->tooltipString();
+        if(mode() == FileMode::Editing)
+        {
+            QString posTip = QLatin1String("<br><br>"
+                                           "X: %1<br>"
+                                           "Y: %2");
+            const TileLocation loc = item->location();
+            tip.append(posTip.arg(loc.x).arg(loc.y));
+        }
+
         QPoint pt;
         if(!tip.isEmpty())
             pt = e->screenPos();
