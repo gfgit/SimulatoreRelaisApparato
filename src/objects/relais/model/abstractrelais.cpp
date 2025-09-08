@@ -146,13 +146,27 @@ int AbstractRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) 
 bool AbstractRelais::setReplicaState(const QCborMap &replicaState)
 {
     State newState = State(replicaState.value(QLatin1StringView("state")).toInteger(int(State::Down)));
+    SignalAspectCode detectedCode = SignalAspectCode(replicaState.value(QLatin1StringView("detectedCode")).toInteger(int(SignalAspectCode::CodeAbsent)));
+
+    if(relaisType() == RelaisType::Decoder || relaisType() == RelaisType::CodeRepeater)
+    {
+        setDecodedResult(detectedCode);
+    }
+
     setState(newState);
+
+    if(relaisType() == RelaisType::Decoder || relaisType() == RelaisType::CodeRepeater)
+    {
+        setDecodedResult(detectedCode);
+    }
+
     return true;
 }
 
 void AbstractRelais::getReplicaState(QCborMap &replicaState) const
 {
     replicaState[QLatin1StringView("state")] = int(mState);
+    replicaState[QLatin1StringView("detectedCode")] = int(mDetectedCode);
 }
 
 bool AbstractRelais::isStateIndependent(RelaisType t)
@@ -547,6 +561,9 @@ void AbstractRelais::setDecodedResult(SignalAspectCode code)
             }
         }
     }
+
+    // Delay stateChanged because we are inside circuit change
+    QMetaObject::invokeMethod(this, &AbstractRelais::stateChanged, Qt::QueuedConnection, this);
 }
 
 SignalAspectCode AbstractRelais::codeForMillis(qint64 millis)
@@ -770,7 +787,6 @@ void AbstractRelais::setState(State newState)
     if (mState == newState)
         return;
     mState = newState;
-    emit stateChanged(this);
 
     if(relaisType() == RelaisType::CodeRepeater &&
             mDetectedCode != mNextDetectedCode &&
@@ -784,6 +800,8 @@ void AbstractRelais::setState(State newState)
             c->applyNewFlags();
         }
     }
+
+    emit stateChanged(this);
 }
 
 QString AbstractRelais::getStateName() const
