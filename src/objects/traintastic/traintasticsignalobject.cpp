@@ -313,7 +313,6 @@ void TraintasticSignalObject::onScreenPosChanged(AbstractSimulationObject *s)
 
         const int newPos = mScreenRelais[i]->getClosestGlass();
         setScreenPos(i, newPos);
-        break;
     }
 }
 
@@ -326,7 +325,6 @@ void TraintasticSignalObject::onScreenDestroyed(QObject *obj)
             disconnect(mScreenRelais[i], &ScreenRelais::destroyed,
                        this, &TraintasticSignalObject::onScreenDestroyed);
             mScreenRelais[i] = nullptr;
-            break;
         }
     }
 }
@@ -339,7 +337,6 @@ void TraintasticSignalObject::onBlinRelaisStateChanged(AbstractSimulationObject 
             continue;
 
         setBlinkRelayState(i, mBlinkRelais[i]->state() == AbstractRelais::State::Up);
-        break;
     }
 }
 
@@ -353,7 +350,6 @@ void TraintasticSignalObject::onBlinRelaisDestroyed(QObject *obj)
                        this, &TraintasticSignalObject::onBlinRelaisDestroyed);
             mBlinkRelais[i] = nullptr;
             setBlinkRelayState(i, false);
-            break;
         }
     }
 }
