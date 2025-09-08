@@ -257,8 +257,7 @@ void SerialManager::rescanPorts()
         connect(serialPort, &QSerialPort::readyRead,
                 this, &SerialManager::onSerialRead);
         connect(serialPort, &QSerialPort::errorOccurred,
-                this, &SerialManager::onSerialDisconnected,
-                Qt::QueuedConnection);
+                this, &SerialManager::onSerialDisconnected);
 
         PendingPort p;
         p.serialPort = serialPort;
@@ -414,6 +413,11 @@ void SerialManager::onSerialRead()
 void SerialManager::onSerialDisconnected()
 {
     QSerialPort *serialPort = qobject_cast<QSerialPort *>(sender());
+    if(!serialPort)
+    {
+      qDebug() << "NULL SENDER" << sender();
+      return;
+    }
     qDebug() << "Serial disconnected:" << serialPort->portName() << serialPort->objectName() << serialPort->error() << serialPort->errorString();
 
     if(serialPort->error() == QSerialPort::TimeoutError)
