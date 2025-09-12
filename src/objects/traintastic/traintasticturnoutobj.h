@@ -58,6 +58,8 @@ public:
 
     int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
 
+    const TraintasticTurnoutNode *getNode() const { return mNode; }
+
     inline int channel() const { return mChannel; }
     inline int address() const { return mAddress; }
     inline State state() const { return mState; }

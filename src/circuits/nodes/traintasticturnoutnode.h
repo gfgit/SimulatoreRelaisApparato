@@ -47,7 +47,7 @@ public:
     QString nodeType() const override;
 
     TraintasticTurnoutObj *turnout() const;
-    void setTurnout(TraintasticTurnoutObj *newTurnout);
+    bool setTurnout(TraintasticTurnoutObj *newTurnout, bool steal = false);
 
 signals:
     void turnoutChanged(TraintasticTurnoutObj *obj);

@@ -81,7 +81,7 @@ bool TraintasticTurnoutNode::loadFromJSON(const QJsonObject &obj)
     auto model = modeMgr()->modelForType(TraintasticTurnoutObj::Type);
 
     if(model)
-        setTurnout(static_cast<TraintasticTurnoutObj *>(model->getObjectByName(turnoutName)));
+        setTurnout(static_cast<TraintasticTurnoutObj *>(model->getObjectByName(turnoutName)), false);
     else
         setTurnout(nullptr);
 
@@ -114,10 +114,13 @@ TraintasticTurnoutObj *TraintasticTurnoutNode::turnout() const
     return mTurnout;
 }
 
-void TraintasticTurnoutNode::setTurnout(TraintasticTurnoutObj *newTurnout)
+bool TraintasticTurnoutNode::setTurnout(TraintasticTurnoutObj *newTurnout, bool steal)
 {
     if (mTurnout == newTurnout)
-        return;
+        return true;
+
+    if(newTurnout && newTurnout->getNode() && !steal)
+        return false;
 
     if(mTurnout)
     {
@@ -136,6 +139,7 @@ void TraintasticTurnoutNode::setTurnout(TraintasticTurnoutObj *newTurnout)
     modeMgr()->setFileEdited();
 
     updateState();
+    return true;
 }
 
 void TraintasticTurnoutNode::updateState()

@@ -392,9 +392,23 @@ QWidget *defaultTraintasticTurnoutNodeEdit(AbstractNodeGraphItem *item, ViewMana
     QObject::connect(node, &TraintasticTurnoutNode::turnoutChanged,
                      turnoutEdit, &SimulationObjectLineEdit::setObject);
     QObject::connect(turnoutEdit, &SimulationObjectLineEdit::objectChanged,
-                     node, [node](AbstractSimulationObject *obj)
+                     node, [node, w, turnoutEdit](AbstractSimulationObject *obj)
     {
-        node->setTurnout(static_cast<TraintasticTurnoutObj *>(obj));
+        TraintasticTurnoutObj *turnoutObj = static_cast<TraintasticTurnoutObj *>(obj);
+        bool success = node->setTurnout(turnoutObj, false);
+        if(!success && turnoutObj->getNode())
+        {
+            int ret = QMessageBox::question(w, StandardNodeTypes::tr("Turnout already powered"),
+                                            StandardNodeTypes::tr("Turnout <b>%1</b> is already set in another node.<br>"
+                                                                  "Setting turnout here will remove it from other node.<br>"
+                                                                  "Proceed?")
+                                                .arg(turnoutObj->name()));
+            if(ret == QMessageBox::Yes)
+                success = node->setTurnout(turnoutObj, true);
+        }
+
+        if(!success)
+            turnoutEdit->setObject(node->turnout()); // Reset to previous value
     });
 
     turnoutEdit->setObject(node->turnout());
