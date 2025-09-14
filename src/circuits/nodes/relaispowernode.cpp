@@ -145,9 +145,6 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
 
 void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
 {
-    if(mRelais->name() == "TR_351")
-        qt_noop();
-
     const bool wasActiveFirst = hasCircuit(0, CircuitType::Closed);
     const bool wasActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
@@ -436,9 +433,6 @@ void RelaisPowerNode::onCircuitFlagsChanged()
 
 void RelaisPowerNode::activateRelay(int contact)
 {
-    if(mRelais->name() == "TR_351")
-        qt_noop();
-
     Q_ASSERT(contact == 0 || contact == 1);
 
     if(mTimerIds[contact] && wasGoingUp[contact])
@@ -481,9 +475,6 @@ void RelaisPowerNode::activateRelay(int contact)
 
 void RelaisPowerNode::deactivateRelay(int contact)
 {
-    if(mRelais->name() == "TR_351")
-        qt_noop();
-
     Q_ASSERT(contact == 0 || contact == 1);
 
     if(mTimerIds[contact] && !wasGoingUp[contact])
