@@ -368,6 +368,9 @@ void RemoteCircuitBridge::onLocalNodeModeChanged(RemoteCableCircuitNode *node)
 
 void RemoteCircuitBridge::onSerialInputMode(int mode)
 {
+    if(!mNodeA)
+        return;
+
     const CircuitFlags circuitFlags = mNodeA->getCircuitFlags(0);
 
     if(mode == 1 || mode == 2)
