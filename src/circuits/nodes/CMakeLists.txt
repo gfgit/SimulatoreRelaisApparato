@@ -59,5 +59,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/electromagnetcontactnode.cpp
     circuits/nodes/electromagnetcontactnode.h
 
+    circuits/nodes/commandnode.cpp
+    circuits/nodes/commandnode.h
+
     PARENT_SCOPE
 )
