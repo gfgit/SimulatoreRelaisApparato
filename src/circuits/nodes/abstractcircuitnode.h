@@ -165,6 +165,20 @@ public:
         return getCircuits(type).size() > 0;
     }
 
+    inline uint16_t entranceCount(int nodeContact,
+                                  CircuitType type, CircuitPole pole) const
+    {
+        Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
+        return mContacts.at(nodeContact).entranceCount(type, pole);
+    }
+
+    inline uint16_t exitCount(int nodeContact,
+                              CircuitType type, CircuitPole pole) const
+    {
+        Q_ASSERT(nodeContact >= 0 && nodeContact < getContactCount());
+        return mContacts.at(nodeContact).exitCount(type, pole);
+    }
+
     inline bool hasEntranceCircuitOnPole(int nodeContact,
                                          CircuitPole pole,
                                          CircuitType type = CircuitType::Closed) const
@@ -232,9 +246,9 @@ public:
     inline AnyCircuitType hasAnyEntranceCircuitOnPole(int nodeContact,
                                                       CircuitPole pole) const
     {
-        if(hasExitCircuitOnPole(nodeContact, pole, CircuitType::Closed))
+        if(hasEntranceCircuitOnPole(nodeContact, pole, CircuitType::Closed))
             return AnyCircuitType::Closed;
-        if(hasExitCircuitOnPole(nodeContact, pole, CircuitType::Open))
+        if(hasEntranceCircuitOnPole(nodeContact, pole, CircuitType::Open))
             return AnyCircuitType::Open;
         return AnyCircuitType::None;
     }
