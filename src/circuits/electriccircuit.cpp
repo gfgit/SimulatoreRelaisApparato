@@ -349,6 +349,9 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
             const Item& item = mItems.at(i);
             Q_ASSERT(item.isNode);
 
+            if(checkedReverseNodes.contains(item.node.node))
+                continue;
+
             if(item.node.node->entranceCount(item.node.fromContact,
                                               CircuitType::Closed,
                                               mItems.at(i - 1).cable.pole) > 1)
@@ -375,7 +378,7 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
                 {
                     checkedReverseNodes.insert(item.node.node);
 
-                    bool hasOtherSourcesSameDirection = false;
+                    bool foundOppositeSource = false;
 
                     // We have a circuit going opposite direction
                     const QVector<ElectricCircuit *> closedCircuitsCopy = item.node.node->getCircuits(CircuitType::Closed);
@@ -387,18 +390,19 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
                         const NodeOccurences occurences = other->getNode(item.node.node);
                         for(const NodeItem& otherItem : occurences)
                         {
-                            if(otherItem.fromContact == item.node.fromContact && otherItem.fromPole() == item.node.fromPole())
+                            if(otherItem.fromContact == conn.nodeContact &&
+                                otherItem.fromPole() == conn.cable.pole)
                             {
-                                hasOtherSourcesSameDirection = true;
+                                foundOppositeSource = true;
                                 break;
                             }
                         }
 
-                        if(hasOtherSourcesSameDirection)
+                        if(foundOppositeSource)
                             break;
                     }
 
-                    if(!hasOtherSourcesSameDirection)
+                    if(foundOppositeSource)
                         createCircuitsFromOtherNode(item.node.node);
 
                     break;
