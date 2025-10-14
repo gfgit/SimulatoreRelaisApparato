@@ -37,6 +37,9 @@ public:
     explicit CommandNode(ModeManager *mgr, QObject *parent = nullptr);
     ~CommandNode();
 
+    static constexpr QLatin1String NodeType = QLatin1String("command_node");
+    QString nodeType() const override;
+
     ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) override;
 
     void addCircuit(ElectricCircuit *circuit) override;
@@ -57,6 +60,8 @@ public:
     void setTargetPosition(int newTargetPosition);
 
     bool getObjectPosDesc(EnumDesc &descOut) const;
+
+    QStringList supportedObjectTypes() const;
 
 signals:
     void objectChanged(AbstractSimulationObject *obj);

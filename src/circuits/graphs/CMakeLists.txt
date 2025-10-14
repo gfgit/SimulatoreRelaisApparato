@@ -13,6 +13,10 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/bifilarizatorgraphitem.h
     circuits/graphs/cablegraphitem.cpp
     circuits/graphs/cablegraphitem.h
+
+    circuits/graphs/commandnodegraphitem.cpp
+    circuits/graphs/commandnodegraphitem.h
+
     circuits/graphs/diodegraphitem.cpp
     circuits/graphs/diodegraphitem.h
     circuits/graphs/electromagnetpowergraphitem.cpp

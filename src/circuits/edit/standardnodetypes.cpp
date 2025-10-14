@@ -87,6 +87,9 @@
 #include "../graphs/traintasticturnoutgraphitem.h"
 #include "../nodes/traintasticturnoutnode.h"
 
+#include "../graphs/commandnodegraphitem.h"
+#include "../nodes/commandnode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -95,6 +98,7 @@
 #include <QWidget>
 #include <QFormLayout>
 
+#include <QComboBox>
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLabel>
@@ -123,6 +127,8 @@
 #include "../../objects/lever/model/levercontactconditionsmodel.h"
 
 #include "../../objects/lever/view/levercontactconditionsview.h"
+
+#include "../../utils/enumvaluesmodel.h"
 
 // TODO: remove BEM
 #include "../../objects/lever/bem/bemleverobject.h"
@@ -413,6 +419,99 @@ QWidget *defaultTraintasticTurnoutNodeEdit(AbstractNodeGraphItem *item, ViewMana
 
     turnoutEdit->setObject(node->turnout());
     lay->addRow(StandardNodeTypes::tr("Turnout:"), turnoutEdit);
+
+    return w;
+}
+
+QWidget *defaultCommandNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    CommandNode *node = static_cast<CommandNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Target Object
+    SimulationObjectLineEdit *objEdit = new SimulationObjectLineEdit(viewMgr, node->supportedObjectTypes());
+    lay->addRow(StandardNodeTypes::tr("Target Object:"), objEdit);
+
+    // Target Position Combo
+    QComboBox *targetPosCombo = new QComboBox;
+    EnumValuesModel *posModel = new EnumValuesModel(targetPosCombo);
+
+    auto updateCombo = [node, posModel, targetPosCombo]()
+    {
+        EnumDesc desc;
+        bool valid = node->object() && node->getObjectPosDesc(desc);
+        targetPosCombo->setEnabled(valid);
+
+        if(valid)
+        {
+            targetPosCombo->setModel(posModel);
+            posModel->setEnumDescFull(desc, false);
+
+            const int row = posModel->rowForValue(node->targetPosition());
+            if(row < 0)
+                valid = false;
+            else
+                targetPosCombo->setCurrentIndex(row);
+        }
+        else
+        {
+            targetPosCombo->setModel(nullptr);
+            targetPosCombo->clear();
+        }
+
+        if(!valid)
+            targetPosCombo->setCurrentText(StandardNodeTypes::tr("Unknown (%1)")
+                                           .arg(node->targetPosition()));
+    };
+
+    QObject::connect(targetPosCombo, &QComboBox::activated,
+                     item, [node, posModel](int idx)
+    {
+        node->setTargetPosition(posModel->valueAt(idx));
+    });
+
+    lay->addRow(StandardNodeTypes::tr("Target State:"), targetPosCombo);
+
+
+    QObject::connect(node, &CommandNode::objectChanged,
+                     objEdit, [node, updateCombo, objEdit](AbstractSimulationObject *obj)
+    {
+        objEdit->setObject(node->object());
+        updateCombo();
+    });
+
+    QObject::connect(objEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, updateCombo](AbstractSimulationObject *obj)
+    {
+        node->setObject(obj);
+        updateCombo();
+    });
+
+    objEdit->setObject(node->object());
+
+    // Delay Spin box
+    QSpinBox *delaySpin = new QSpinBox;
+    delaySpin->setRange(10, 2000);
+    delaySpin->setSuffix(StandardNodeTypes::tr(" ms"));
+    lay->addRow(StandardNodeTypes::tr("Delay:"), delaySpin);
+
+    QObject::connect(delaySpin, &QSpinBox::valueChanged,
+                     node, [node](int val)
+    {
+        node->setDelayMillis(val);
+    });
+
+    auto updLambda = [delaySpin, node, updateCombo]()
+    {
+        delaySpin->setValue(node->delayMillis());
+        updateCombo();
+    };
+
+    QObject::connect(node, &CommandNode::shapeChanged,
+                     w, updLambda);
+    updLambda();
 
     return w;
 }
@@ -1317,6 +1416,19 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.shortcutLetter = QChar();
         factory.create = &addNewNodeToScene<TraintasticTurnoutGraphItem>;
         factory.edit = &defaultTraintasticTurnoutNodeEdit;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Command node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = CommandNodeGraphItem::Node::NodeType;
+        factory.prettyName = tr("Command Node");
+        factory.shortcutLetter = QChar();
+        factory.create = &addNewNodeToScene<CommandNodeGraphItem>;
+        factory.edit = &defaultCommandNodeEdit;
 
         factoryReg->registerFactory(factory);
     }

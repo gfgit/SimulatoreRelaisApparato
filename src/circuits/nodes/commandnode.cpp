@@ -48,6 +48,11 @@ CommandNode::~CommandNode()
     setObject(nullptr);
 }
 
+QString CommandNode::nodeType() const
+{
+    return NodeType;
+}
+
 AbstractCircuitNode::ConnectionsRes CommandNode::getActiveConnections(CableItem source, bool invertDir)
 {
     if(source.nodeContact != 0 || !mContacts.at(0).cable)
@@ -125,15 +130,10 @@ void CommandNode::saveToJSON(QJsonObject &obj) const
 
 void CommandNode::getObjectProperties(QVector<ObjectProperty> &result) const
 {
-    SimulationObjectFactory *factory = modeMgr()->objectFactory();
-
     ObjectProperty objProp;
     objProp.name = "object";
-    objProp.prettyName = tr("Object");
-
-    objProp.types.append(factory->typesForInterface(ButtonInterface::IfaceType));
-    objProp.types.append(factory->typesForInterface(LeverInterface::IfaceType));
-    objProp.types.removeDuplicates();
+    objProp.prettyName = tr("Target");
+    objProp.types = supportedObjectTypes();
 
     result.append(objProp);
 }
@@ -173,6 +173,7 @@ void CommandNode::performAction()
 
     if(LeverInterface *leverIface = mObject->getInterface<LeverInterface>())
     {
+        leverIface->setAngle(leverIface->angleForPosition(mTargetPosition));
         leverIface->setPosition(mTargetPosition);
     }
     else if(ButtonInterface *butIface = mObject->getInterface<ButtonInterface>())
@@ -232,6 +233,17 @@ bool CommandNode::getObjectPosDesc(EnumDesc &descOut) const
     }
 
     return false;
+}
+
+QStringList CommandNode::supportedObjectTypes() const
+{
+    SimulationObjectFactory *factory = modeMgr()->objectFactory();
+
+    QStringList types;
+    types.append(factory->typesForInterface(ButtonInterface::IfaceType));
+    types.append(factory->typesForInterface(LeverInterface::IfaceType));
+    types.removeDuplicates();
+    return types;
 }
 
 AbstractSimulationObject *CommandNode::object() const
