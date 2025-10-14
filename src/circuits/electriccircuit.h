@@ -111,6 +111,8 @@ public:
 
     void applyNewFlags(AbstractCircuitNode *changedNode, CircuitFlags sourceFlags);
 
+    void setToDisable() { aboutToDisable = true; }
+
 private:
     bool recalculateFlags();
 
@@ -136,10 +138,13 @@ private:
     bool checkShuntedByOtherCircuit();
     void checkOtherShuntedByMe(QVector<ElectricCircuit *> *deletedCircuits);
 
+    inline bool isDisabling() const { return insideDisable || aboutToDisable; }
+
 private:
     QVector<Item> mItems;
     bool enabled = false;
-    bool isDisabling = false;
+    bool insideDisable = false;
+    bool aboutToDisable = false;
     CircuitFlags mFlagsAndType = CircuitFlags::None;
     CircuitFlags mNonSourceFlags = CircuitFlags::None;
 };

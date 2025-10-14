@@ -222,10 +222,10 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
     Q_ASSERT(enabled);
 
     // Guard against recursive disabling of circuit
-    if(isDisabling)
+    if(insideDisable)
         return;
 
-    isDisabling = true;
+    insideDisable = true;
 
     // Try re-enabling shunted circuits
     if(getSource()->isSourceEnabled())
@@ -335,75 +335,75 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
                 }
             }
 
-            // Now check for other possible closed circuits that were removed because
-            // reversed and now could be re-enabled
-            QSet<AbstractCircuitNode *> checkedReverseNodes;
-
-            for(int i = 2;  i < mItems.size();
-                 i += 2)
-            {
-                const Item& item = mItems.at(i);
-                Q_ASSERT(item.isNode);
-
-                if(item.node.node->entranceCount(item.node.fromContact,
-                                                  CircuitType::Closed,
-                                                  mItems.at(i - 1).cable.pole) > 1)
-                    continue; // We are not last closed circuit in this direction
-
-                // Go forward
-                CableItem nodeSourceCable;
-                nodeSourceCable.cable = mItems.at(i - 1).cable;
-                nodeSourceCable.nodeContact = item.node.fromContact;
-                const auto connections = item.node.node->getActiveConnections(nodeSourceCable, true);
-
-                for(const auto& conn : connections)
-                {
-                    if(conn.nodeContact == item.node.toContact &&
-                        conn.cable.pole == item.node.toPole())
-                    {
-                        // Same as our path
-                        continue;
-                    }
-
-                    if(!checkedReverseNodes.contains(item.node.node) &&
-                        item.node.node->hasAnyEntranceCircuitOnPole(conn.nodeContact,
-                                                                    conn.cable.pole) != AnyCircuitType::None)
-                    {
-                        checkedReverseNodes.insert(item.node.node);
-
-                        bool hasOtherSourcesSameDirection = false;
-
-                        // We have a circuit going opposite direction
-                        const QVector<ElectricCircuit *> closedCircuitsCopy = item.node.node->getCircuits(CircuitType::Closed);
-                        for(ElectricCircuit *other : closedCircuitsCopy)
-                        {
-                            if(deletedCircuits.contains(other) || other->isDisabling)
-                                continue;
-
-                            const NodeOccurences occurences = other->getNode(item.node.node);
-                            for(const NodeItem& otherItem : occurences)
-                            {
-                                if(otherItem.fromContact == item.node.fromContact && otherItem.fromPole() == item.node.fromPole())
-                                {
-                                    hasOtherSourcesSameDirection = true;
-                                    break;
-                                }
-                            }
-
-                            if(hasOtherSourcesSameDirection)
-                                break;
-                        }
-
-                        if(!hasOtherSourcesSameDirection)
-                            createCircuitsFromOtherNode(item.node.node);
-
-                        break;
-                    }
-                }
-            }
-
             if(!canGoForward || item.node.node == node)
                 break;
+        }
+
+        // Now check for other possible closed circuits that were removed because
+        // reversed and now could be re-enabled
+        QSet<AbstractCircuitNode *> checkedReverseNodes;
+
+        for(int i = 2;  i < mItems.size();
+             i += 2)
+        {
+            const Item& item = mItems.at(i);
+            Q_ASSERT(item.isNode);
+
+            if(item.node.node->entranceCount(item.node.fromContact,
+                                              CircuitType::Closed,
+                                              mItems.at(i - 1).cable.pole) > 1)
+                continue; // We are not last closed circuit in this direction
+
+            // Go forward
+            CableItem nodeSourceCable;
+            nodeSourceCable.cable = mItems.at(i - 1).cable;
+            nodeSourceCable.nodeContact = item.node.fromContact;
+            const auto connections = item.node.node->getActiveConnections(nodeSourceCable, true);
+
+            for(const auto& conn : connections)
+            {
+                if(conn.nodeContact == item.node.toContact &&
+                    conn.cable.pole == item.node.toPole())
+                {
+                    // Same as our path
+                    continue;
+                }
+
+                if(!checkedReverseNodes.contains(item.node.node) &&
+                    item.node.node->hasAnyEntranceCircuitOnPole(conn.nodeContact,
+                                                                conn.cable.pole) != AnyCircuitType::None)
+                {
+                    checkedReverseNodes.insert(item.node.node);
+
+                    bool hasOtherSourcesSameDirection = false;
+
+                    // We have a circuit going opposite direction
+                    const QVector<ElectricCircuit *> closedCircuitsCopy = item.node.node->getCircuits(CircuitType::Closed);
+                    for(ElectricCircuit *other : closedCircuitsCopy)
+                    {
+                        if(deletedCircuits.contains(other) || other->isDisabling())
+                            continue;
+
+                        const NodeOccurences occurences = other->getNode(item.node.node);
+                        for(const NodeItem& otherItem : occurences)
+                        {
+                            if(otherItem.fromContact == item.node.fromContact && otherItem.fromPole() == item.node.fromPole())
+                            {
+                                hasOtherSourcesSameDirection = true;
+                                break;
+                            }
+                        }
+
+                        if(hasOtherSourcesSameDirection)
+                            break;
+                    }
+
+                    if(!hasOtherSourcesSameDirection)
+                        createCircuitsFromOtherNode(item.node.node);
+
+                    break;
+                }
+            }
         }
     }
 
@@ -436,7 +436,8 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
         }
     }
 
-    isDisabling = false;
+    insideDisable = false;
+    aboutToDisable = false;
 
     enabled = false;
 
@@ -1010,7 +1011,7 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
     for(ElectricCircuit *origCircuit : openCircuitsCopy)
     {
-        if(deletedCircuits.contains(origCircuit) || origCircuit->isDisabling)
+        if(deletedCircuits.contains(origCircuit) || origCircuit->isDisabling())
             continue;
 
         // Try to continue circuit
@@ -1164,7 +1165,7 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
     const QVector<ElectricCircuit *> closedCircuitsCopy = node->getCircuits(CircuitType::Closed);
     for(ElectricCircuit *circuit : closedCircuitsCopy)
     {
-        if(deletedCircuits.contains(circuit) || circuit->isDisabling)
+        if(deletedCircuits.contains(circuit) || circuit->isDisabling())
             continue;
 
         circuit->checkReverseVoltageSiblings();
@@ -1635,7 +1636,7 @@ bool ElectricCircuit::checkShuntedByOtherCircuit()
                 const auto afterCircuits = after.node.node->getCircuits(CircuitType::Closed);
                 for(ElectricCircuit *other : afterCircuits)
                 {
-                    if(other == this || other->isDisabling || other->getSource() != this->getSource())
+                    if(other == this || other->isDisabling() || other->getSource() != this->getSource())
                         continue;
 
                     const int togheterMax = qMin(other->mItems.size() - 1, afterIdx);
@@ -1718,7 +1719,7 @@ void ElectricCircuit::checkOtherShuntedByMe(QVector<ElectricCircuit *> *deletedC
 
             for(ElectricCircuit *other : beforeCircuits)
             {
-                if(other == this || other->isDisabling || other->getSource() != this->getSource())
+                if(other == this || other->isDisabling() || other->getSource() != this->getSource())
                     break;
 
                 const int togheterMax = qMin(other->mItems.size() - 1, lastBeforeLoadIdx);
