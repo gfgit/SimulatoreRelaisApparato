@@ -224,7 +224,7 @@ void CommandNode::setTargetPosition(int newTargetPosition)
     modeMgr()->setFileEdited();
 }
 
-bool CommandNode::getObjectPosDesc(EnumDesc &descOut) const
+bool CommandNode::getObjectPosDesc(EnumDesc &descOut, bool *skipMiddleOut) const
 {
     if(!mObject)
         return false;
@@ -232,11 +232,15 @@ bool CommandNode::getObjectPosDesc(EnumDesc &descOut) const
     if(LeverInterface *leverIface = mObject->getInterface<LeverInterface>())
     {
         descOut = leverIface->positionDesc();
+        if(skipMiddleOut)
+            *skipMiddleOut = true;
         return true;
     }
-    else if(ButtonInterface *butIface = mObject->getInterface<ButtonInterface>())
+    else if(mObject->getInterface<ButtonInterface>())
     {
         descOut = ButtonInterface::getStateDesc();
+        if(skipMiddleOut)
+            *skipMiddleOut = false;
         return true;
     }
 

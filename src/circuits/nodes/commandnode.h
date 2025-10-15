@@ -59,7 +59,7 @@ public:
     int targetPosition() const;
     void setTargetPosition(int newTargetPosition);
 
-    bool getObjectPosDesc(EnumDesc &descOut) const;
+    bool getObjectPosDesc(EnumDesc &descOut, bool *skipMiddleOut = nullptr) const;
 
     QStringList supportedObjectTypes() const;
 

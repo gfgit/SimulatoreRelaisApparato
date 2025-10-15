@@ -441,13 +441,14 @@ QWidget *defaultCommandNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMg
     auto updateCombo = [node, posModel, targetPosCombo]()
     {
         EnumDesc desc;
-        bool valid = node->object() && node->getObjectPosDesc(desc);
+        bool skipMiddle = false;
+        bool valid = node->object() && node->getObjectPosDesc(desc, &skipMiddle);
         targetPosCombo->setEnabled(valid);
 
         if(valid)
         {
             targetPosCombo->setModel(posModel);
-            posModel->setEnumDescFull(desc, false);
+            posModel->setEnumDescFull(desc, skipMiddle);
 
             const int row = posModel->rowForValue(node->targetPosition());
             if(row < 0)
