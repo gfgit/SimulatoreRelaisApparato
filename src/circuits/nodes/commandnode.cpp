@@ -158,23 +158,28 @@ void CommandNode::timerEvent(QTimerEvent *ev)
 {
     if(ev->timerId() == mTimer.timerId())
     {
-        performAction();
         mTimer.stop();
+        if(!performAction())
+        {
+            // Action failed, retry in 1 second
+            mTimer.start(std::chrono::seconds(1), Qt::CoarseTimer, this);
+        }
         return;
     }
 
     AbstractCircuitNode::timerEvent(ev);
 }
 
-void CommandNode::performAction()
+bool CommandNode::performAction()
 {
     if(!mObject)
-        return;
+        return true;
 
     if(LeverInterface *leverIface = mObject->getInterface<LeverInterface>())
     {
         leverIface->setAngle(leverIface->angleForPosition(mTargetPosition));
         leverIface->setPosition(mTargetPosition);
+        return leverIface->position() == mTargetPosition;
     }
     else if(ButtonInterface *butIface = mObject->getInterface<ButtonInterface>())
     {
@@ -187,9 +192,12 @@ void CommandNode::performAction()
             butIface->setState(s);
             break;
         default:
-            break;
+            return true; // Ignore, stop retry
         }
+        return butIface->state() == s;
     }
+
+    return true; // Ignore, stop retry
 }
 
 int CommandNode::targetPosition() const

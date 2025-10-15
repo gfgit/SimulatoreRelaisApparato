@@ -69,7 +69,7 @@ signals:
 protected:
     void timerEvent(QTimerEvent *ev) override;
 
-    void performAction();
+    bool performAction();
 
 private:
     AbstractSimulationObject *mObject = nullptr;
