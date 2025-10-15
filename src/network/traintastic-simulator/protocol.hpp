@@ -46,7 +46,8 @@ enum class OpCode : uint8_t
   SensorChanged = 3,
   AccessorySetState = 4,
   SignalSetState = 5,
-  OwnSignal = 6
+  OwnSignal = 6,
+  RequestChannel = 7
 };
 
 struct Message
@@ -162,6 +163,18 @@ struct OwnSignal : Message
     }
 } ATTRIBUTE_PACKED;
 static_assert(sizeof(OwnSignal) == 6);
+
+struct RequestChannel : Message
+{
+    uint16_t channel;
+
+    RequestChannel(uint16_t ch)
+        : Message(OpCode::RequestChannel, sizeof(RequestChannel))
+        , channel{ch}
+    {
+    }
+} ATTRIBUTE_PACKED;
+static_assert(sizeof(RequestChannel) == 4);
 
 PRAGMA_PACK_POP
 

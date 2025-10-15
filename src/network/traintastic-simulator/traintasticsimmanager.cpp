@@ -180,6 +180,14 @@ void TraintasticSimManager::onConnected()
 
     mSocket->flush();
 
+    // HACK: force sync track circuits by requesting their state
+    for(auto it : mSensors.asKeyValueRange())
+    {
+        // Tell simulator we are interested in this sensor channel
+        SimulatorProtocol::RequestChannel msg(it.first);
+        send(msg);
+    }
+
     mModeMgr->getRemoteManager()->setTraintasticDiscoveryEnabled(false);
 }
 
