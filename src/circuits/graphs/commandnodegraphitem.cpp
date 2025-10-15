@@ -43,8 +43,67 @@ void CommandNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
 {
     AbstractNodeGraphItem::paint(painter, option, widget);
 
+    constexpr QPointF center(TileLocation::HalfSize,
+                             TileLocation::HalfSize);
+    constexpr double morsettiOffset = 0;
+    constexpr double circleRadius = 30.0;
+    constexpr double centerOffset = circleRadius;
+
+    constexpr QLineF centerToNorth(center.x(), center.y() - centerOffset,
+                                   center.x(), morsettiOffset);
+
+    constexpr QLineF centerToSouth(center.x(), center.y() + centerOffset,
+                                   center.x(), TileLocation::Size - morsettiOffset);
+
+    constexpr QLineF centerToEast(center.x() + centerOffset, center.y(),
+                                  TileLocation::Size - morsettiOffset, center.y());
+
+    constexpr QLineF centerToWest(center.x() - centerOffset, center.y(),
+                                  morsettiOffset, center.y());
+
+    QLineF commonLine;
+
+    QRectF bulbRect;
+    bulbRect.setSize(QSizeF(circleRadius * 2.0, circleRadius * 2.0));
+    bulbRect.moveCenter(center);
+
+    switch (toConnectorDirection(rotate()))
+    {
+    case Connector::Direction::North:
+        commonLine = centerToNorth;
+        break;
+
+    case Connector::Direction::South:
+        commonLine = centerToSouth;
+        break;
+
+    case Connector::Direction::East:
+        commonLine = centerToEast;
+        break;
+
+    case Connector::Direction::West:
+        commonLine = centerToWest;
+        break;
+    default:
+        break;
+    }
+
+    //drawMorsetti(painter, 0, rotate() + TileRotate::Deg0);
+
+    // Now draw wires
+    painter->setBrush(Qt::NoBrush);
+    QPen pen;
+    pen.setWidthF(10.0);
+    pen.setCapStyle(Qt::FlatCap);
+
+    // Draw common contact (0)
+    bool shouldDraw = true;
+    pen.setColor(getContactColor(0, &shouldDraw));
+    painter->setPen(pen);
+    painter->drawLine(commonLine);
+
     // TODO: proper drawing
-    painter->fillRect(baseTileRect(), Qt::cyan);
+    painter->fillRect(bulbRect, Qt::darkGreen);
 
     drawName(painter);
 }
