@@ -397,10 +397,6 @@ void AbstractCircuitNode::disableCircuits(const CircuitList &listCopy,
     for(ElectricCircuit *circuit : listCopy)
     {
         Q_ASSERT(circuit->type() == CircuitType::Closed);
-    }
-
-    for(ElectricCircuit *circuit : listCopy)
-    {
         circuit->setToDisable();
     }
 
@@ -449,6 +445,13 @@ void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
                                            AbstractCircuitNode *node)
 {
     CircuitList duplicateList;
+
+    for(ElectricCircuit *circuit : listCopy)
+    {
+        Q_ASSERT(circuit->type() == CircuitType::Open);
+        circuit->setToDisable();
+    }
+
     for(ElectricCircuit *circuit : listCopy)
     {
         circuit->terminateHere(node, duplicateList);
@@ -459,7 +462,9 @@ void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
                                            AbstractCircuitNode *node,
                                            const int contact)
 {
-    CircuitList duplicateList;
+    CircuitList toDisable;
+    toDisable.reserve(listCopy.size());
+
     for(ElectricCircuit *circuit : listCopy)
     {
         const auto items = circuit->getNode(this);
@@ -470,10 +475,17 @@ void AbstractCircuitNode::truncateCircuits(const CircuitList &listCopy,
 
             if(item.fromContact == contact || item.toContact == contact)
             {
-                circuit->terminateHere(node, duplicateList);
+                circuit->setToDisable();
+                toDisable.append(circuit);
                 break;
             }
         }
+    }
+
+    CircuitList duplicateList;
+    for(ElectricCircuit *circuit : std::as_const(toDisable))
+    {
+        circuit->terminateHere(node, duplicateList);
     }
 }
 

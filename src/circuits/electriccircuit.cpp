@@ -590,6 +590,8 @@ void ElectricCircuit::terminateHere(AbstractCircuitNode *goalNode,
         it.first->updateCircuitFlags(it.second, type());
     }
 
+    aboutToDisable = false;
+
     if(mItems.isEmpty())
     {
         // We are an empty circuit
