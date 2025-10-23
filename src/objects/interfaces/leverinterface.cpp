@@ -229,19 +229,55 @@ void LeverInterface::setPosition(int newPosition)
         return;
 
     // Always ensure all positions are passed
-    const int increment = (newPosition > mPosition) ? +1 : -1;
+    int increment = (newPosition > mPosition) ? +1 : -1;
+
+    if(canWarpAroundZero())
+    {
+        // TODO: consider angles, but what about middle positions?
+        const int normDiff = std::abs(newPosition - mPosition);
+        const int totalDiff = mPositionDesc.maxValue - mPositionDesc.minValue + 1;
+        const int reverseDiff = totalDiff - normDiff;
+        if(reverseDiff < normDiff)
+            increment = -increment;
+    }
 
     int p = mPosition;
     while(p != newPosition)
     {
         p += increment;
 
-        // Locked range can change during position change
-        // Check at every step
-        if(increment > 0 && p > mLockedMax && mLockedMax != LeverAngleDesc::InvalidPosition)
-            break;
-        else if(increment < 0 && p < mLockedMin && mLockedMin != LeverAngleDesc::InvalidPosition)
-            break;
+        if(canWarpAroundZero())
+        {
+            if(p < 0)
+                p = mPositionDesc.maxValue;
+            else if(p > mPositionDesc.maxValue)
+                p = mPositionDesc.minValue;
+
+            if(mLockedMax != LeverAngleDesc::InvalidPosition && mLockedMin != LeverAngleDesc::InvalidPosition)
+            {
+                if(mLockedMax > mLockedMin)
+                {
+                    if(increment > 0 && p > mLockedMax)
+                        break;
+                    else if(increment < 0 && p < mLockedMin)
+                        break;
+                }
+                else
+                {
+                    if(p < mLockedMin && p > mLockedMax)
+                        break;
+                }
+            }
+        }
+        else
+        {
+            // Locked range can change during position change
+            // Check at every step
+            if(increment > 0 && p > mLockedMax && mLockedMax != LeverAngleDesc::InvalidPosition)
+                break;
+            else if(increment < 0 && p < mLockedMin && mLockedMin != LeverAngleDesc::InvalidPosition)
+                break;
+        }
 
         mPosition = p;
 
