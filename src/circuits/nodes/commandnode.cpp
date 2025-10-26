@@ -31,6 +31,8 @@
 #include "../../objects/interfaces/buttoninterface.h"
 #include "../../objects/interfaces/leverinterface.h"
 
+#include "../../objects/lever/acei/aceileverobject.h"
+
 #include <QTimerEvent>
 
 #include <QJsonObject>
@@ -177,8 +179,25 @@ bool CommandNode::performAction()
 
     if(LeverInterface *leverIface = mObject->getInterface<LeverInterface>())
     {
+        ACEILeverObject *aceiLever = mObject->getType() == ACEILeverObject::Type ?
+                    static_cast<ACEILeverObject *>(mObject) :
+                    nullptr;
+
+        if(aceiLever && aceiLever->canSealLeftPosition() && mTargetPosition < int(ACEILeverPosition::Vertical))
+        {
+            // Unlock seal before changing position
+            aceiLever->setIsLeftPositionSealed(false);
+        }
+
         leverIface->setAngle(leverIface->angleForPosition(mTargetPosition));
         leverIface->setPosition(mTargetPosition);
+
+        if(aceiLever && aceiLever->canSealLeftPosition() && mTargetPosition >= int(ACEILeverPosition::Vertical))
+        {
+            // Re-lock seal after changing position
+            aceiLever->setIsLeftPositionSealed(true);
+        }
+
         return leverIface->position() == mTargetPosition;
     }
     else if(ButtonInterface *butIface = mObject->getInterface<ButtonInterface>())
