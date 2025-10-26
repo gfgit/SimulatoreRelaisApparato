@@ -494,7 +494,7 @@ QWidget *defaultCommandNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMg
 
     // Delay Spin box
     QSpinBox *delaySpin = new QSpinBox;
-    delaySpin->setRange(10, 2000);
+    delaySpin->setRange(0, 1000 * 60 * 60);
     delaySpin->setSuffix(StandardNodeTypes::tr(" ms"));
     lay->addRow(StandardNodeTypes::tr("Delay:"), delaySpin);
 

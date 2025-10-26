@@ -149,7 +149,7 @@ int CommandNode::delayMillis() const
 
 void CommandNode::setDelayMillis(int newDelayMillis)
 {
-    newDelayMillis = std::clamp(newDelayMillis, 10, 2000);
+    newDelayMillis = std::clamp(newDelayMillis, 0, 1000 * 60 * 60);
     if(mDelayMillis == newDelayMillis)
         return;
 
