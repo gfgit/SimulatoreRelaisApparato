@@ -102,8 +102,28 @@ void CommandNodeGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsIt
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
-    // TODO: proper drawing
-    painter->fillRect(bulbRect, Qt::darkGreen);
+    QColor color;
+    switch(node()->phase())
+    {
+    case CommandNode::Phase::Off:
+    default:
+        color = Qt::darkGreen;
+        break;
+    case CommandNode::Phase::Waiting:
+        color = Qt::darkYellow;
+        break;
+    case CommandNode::Phase::Retry:
+        color = Qt::red;
+        break;
+    case CommandNode::Phase::PerformingAction:
+        color = Qt::blue;
+        break;
+    case CommandNode::Phase::Done:
+        color = Qt::cyan;
+        break;
+    };
+
+    painter->fillRect(bulbRect, color);
 
     drawName(painter);
 }
