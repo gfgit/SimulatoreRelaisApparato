@@ -25,53 +25,65 @@
 #include <cstdint>
 
 #ifdef _MSC_VER
-  #define ATTRIBUTE_PACKED
-  #define PRAGMA_PACK_PUSH_1 __pragma(pack(push, 1))
-  #define PRAGMA_PACK_POP __pragma(pack(pop))
+#define ATTRIBUTE_PACKED
+#define PRAGMA_PACK_PUSH_1 __pragma(pack(push, 1))
+#define PRAGMA_PACK_POP __pragma(pack(pop))
 #else
-  #define ATTRIBUTE_PACKED __attribute__((packed))
-  #define PRAGMA_PACK_PUSH_1
-  #define PRAGMA_PACK_POP
+#define ATTRIBUTE_PACKED __attribute__((packed))
+#define PRAGMA_PACK_PUSH_1
+#define PRAGMA_PACK_POP
 #endif
 
 namespace SimulatorProtocol
 {
 
-static constexpr uint16_t DefaultPort = 5742;
+static constexpr uint16_t DefaultPort = 5741;
 
 enum class OpCode : uint8_t
 {
-  Power = 1,
-  LocomotiveSpeedDirection = 2,
-  SensorChanged = 3,
-  AccessorySetState = 4,
-  SignalSetState = 5,
-  OwnSignal = 6,
-  RequestChannel = 7
+    Power = 1,
+    LocomotiveSpeedDirection = 2,
+    SensorChanged = 3,
+    AccessorySetState = 4,
+    SignalSetState = 5,
+    OwnSignal = 6,
+    RequestChannel = 7,
+    Handshake = 5,
+    HandshakeResponse = 6
 };
 
 struct Message
 {
-  OpCode opCode;
-  uint8_t size;
+    OpCode opCode;
+    uint8_t size;
 
-  Message(OpCode opCode_, uint8_t size_)
-    : opCode{opCode_}
-    , size{size_}
-  {
-  }
+    Message(OpCode opCode_, uint8_t size_)
+        : opCode{opCode_}
+        , size{size_}
+    {
+    }
 };
 static_assert(sizeof(Message) == 2);
 
+struct HandShake : Message
+{
+    HandShake(bool reply)
+        : Message(reply ? OpCode::HandshakeResponse : OpCode::Handshake,
+                  sizeof(HandShake))
+    {
+    }
+};
+static_assert(sizeof(HandShake) == 2);
+
 struct Power : Message
 {
-  uint8_t powerOn;
+    uint8_t powerOn;
 
-  Power(bool on)
-    : Message(OpCode::Power, sizeof(Power))
-    , powerOn(on ? 1 : 0)
-  {
-  }
+    Power(bool on)
+        : Message(OpCode::Power, sizeof(Power))
+        , powerOn(on ? 1 : 0)
+    {
+    }
 };
 static_assert(sizeof(Power) == 3);
 
@@ -79,33 +91,33 @@ PRAGMA_PACK_PUSH_1
 
 struct SensorChanged : Message
 {
-  uint16_t channel;
-  uint16_t address;
-  uint8_t value;
+    uint16_t channel;
+    uint16_t address;
+    uint8_t value;
 
-  SensorChanged(uint16_t ch, uint16_t addr, bool val)
-    : Message(OpCode::SensorChanged, sizeof(SensorChanged))
-    , channel{ch}
-    , address{addr}
-    , value(val ? 1 : 0)
-  {
-  }
+    SensorChanged(uint16_t ch, uint16_t addr, bool val)
+        : Message(OpCode::SensorChanged, sizeof(SensorChanged))
+        , channel{ch}
+        , address{addr}
+        , value(val ? 1 : 0)
+    {
+    }
 } ATTRIBUTE_PACKED;
 static_assert(sizeof(SensorChanged) == 7);
 
 struct AccessorySetState : Message
 {
-  uint16_t channel;
-  uint16_t address;
-  uint8_t state;
+    uint16_t channel;
+    uint16_t address;
+    uint8_t state;
 
-  AccessorySetState(uint16_t ch, uint16_t addr, uint8_t st)
-    : Message(OpCode::AccessorySetState, sizeof(AccessorySetState))
-    , channel{ch}
-    , address{addr}
-    , state{st}
-  {
-  }
+    AccessorySetState(uint16_t ch, uint16_t addr, uint8_t st)
+        : Message(OpCode::AccessorySetState, sizeof(AccessorySetState))
+        , channel{ch}
+        , address{addr}
+        , state{st}
+    {
+    }
 } ATTRIBUTE_PACKED;
 static_assert(sizeof(AccessorySetState) == 7);
 

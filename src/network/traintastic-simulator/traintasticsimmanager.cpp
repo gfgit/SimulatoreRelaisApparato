@@ -35,6 +35,7 @@
 #include "protocol.hpp"
 
 #include <QTcpSocket>
+#include <QTimerEvent>
 
 
 TraintasticSimManager::TraintasticSimManager(ModeManager *mgr)
@@ -87,16 +88,10 @@ void TraintasticSimManager::enableConnection(bool val)
 {
     if(mSocket && !val)
     {
-        disconnect(mSocket, nullptr, this, nullptr);
-        mSocket->flush();
-        mSocket->disconnectFromHost();
-        mSocket->deleteLater();
-        mSocket = nullptr;
-
-        setSensorsOff();
+        disconnectSimulator();
     }
     // else if(!mSocket && val)
-    //     tryConnectToServer(QHostAddress::LocalHost, 5742);
+    //     tryConnectToServer(QHostAddress::LocalHost, 5741);
 }
 
 void TraintasticSimManager::setTurnoutState(int channel, int address, int state)
@@ -107,19 +102,10 @@ void TraintasticSimManager::setTurnoutState(int channel, int address, int state)
 
 void TraintasticSimManager::onSocketError()
 {
-    if(!mSocket)
-        return;
+    disconnectSimulator();
 
-    disconnect(mSocket, nullptr, this, nullptr);
-    mSocket->disconnectFromHost();
-    mSocket->deleteLater();
-    mSocket = nullptr;
-
-    setSensorsOff();
-
+    // Try to reconnect
     mModeMgr->getRemoteManager()->setTraintasticDiscoveryEnabled(true);
-
-    emit stateChanged();
 }
 
 void TraintasticSimManager::onReadyRead()
@@ -189,6 +175,23 @@ void TraintasticSimManager::onConnected()
     }
 
     mModeMgr->getRemoteManager()->setTraintasticDiscoveryEnabled(false);
+
+    mHandShakeTimer.start(HandShakeRate, Qt::PreciseTimer, this);
+}
+
+void TraintasticSimManager::timerEvent(QTimerEvent *ev)
+{
+    if(ev->timerId() == mHandShakeTimer.timerId())
+    {
+        // We missed handshake, maybe server is dead?
+        disconnectSimulator();
+
+        // Try to reconnect
+        mModeMgr->getRemoteManager()->setTraintasticDiscoveryEnabled(true);
+        return;
+    }
+
+    QObject::timerEvent(ev);
 }
 
 void TraintasticSimManager::send(const SimulatorProtocol::Message &message)
@@ -204,6 +207,13 @@ void TraintasticSimManager::receive(const SimulatorProtocol::Message &message)
 {
     switch (message.opCode)
     {
+    case SimulatorProtocol::OpCode::Handshake:
+    {
+        // Restart counting
+        mHandShakeTimer.start(HandShakeRate, Qt::PreciseTimer, this);
+        send(SimulatorProtocol::HandShake(true));
+        break;
+    }
     case SimulatorProtocol::OpCode::AccessorySetState:
     {
         const auto& m = static_cast<const SimulatorProtocol::AccessorySetState&>(message);
@@ -363,4 +373,19 @@ void TraintasticSimManager::setSensorsOff()
             sensor->onTraintasticDisconnected();
         }
     }
+}
+
+void TraintasticSimManager::disconnectSimulator()
+{
+    if(!mSocket)
+        return;
+
+    mHandShakeTimer.stop();
+    disconnect(mSocket, nullptr, this, nullptr);
+    mSocket->disconnectFromHost();
+    mSocket->deleteLater();
+    mSocket = nullptr;
+
+    setSensorsOff();
+    emit stateChanged();
 }

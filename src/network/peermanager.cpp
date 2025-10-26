@@ -42,7 +42,7 @@
 
 static const qint32 BroadcastInterval = 2000;
 static const unsigned PeerBroadcastPort = 45000;
-static const unsigned TraintasticBroadcastPort = 5742;
+static const unsigned TraintasticBroadcastPort = 5741;
 
 PeerManager::PeerManager(PeerClient *client, RemoteManager *mgr)
     : QObject(client)

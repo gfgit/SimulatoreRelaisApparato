@@ -25,6 +25,7 @@
 
 #include <QObject>
 #include <QHash>
+#include <QBasicTimer>
 
 #include "protocol.hpp"
 
@@ -63,6 +64,9 @@ private slots:
 
     void onConnected();
 
+protected:
+    void timerEvent(QTimerEvent *ev) override;
+
 private:
     void receive(const SimulatorProtocol::Message &message);
 
@@ -75,6 +79,7 @@ private:
     void removeTurnout(TraintasticTurnoutObj *obj);
 
     void setSensorsOff();
+    void disconnectSimulator();
 
 private:
     ModeManager *mModeMgr = nullptr;
@@ -90,6 +95,10 @@ private:
     QHash<int, QHash<int, TraintasticSensorObj *>> mTurnoutSensors;
 
     QVector<TraintasticTurnoutObj *> mTurnouts;
+
+    // 1 sec handshake + 500ms tolerance
+    static constexpr auto HandShakeRate = std::chrono::milliseconds(1500);
+    QBasicTimer mHandShakeTimer;
 };
 
 #endif // TRAINTASTICSIMMANAGER_H
