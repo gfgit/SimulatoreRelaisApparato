@@ -227,15 +227,18 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
 {
     mConditionSet = newConditionSet;
 
+    const auto posDesc = mLeverIface->positionDesc();
+    int maxPos = posDesc.maxValue;
+    if(mLeverIface->isPositionMiddle(maxPos))
+        maxPos--; // Ignore last middle position
+
     if(mLeverIface)
     {
-        const auto posDesc = mLeverIface->positionDesc();
-
         // Sanitize conditions
         for(auto it = mConditionSet.begin(); it != mConditionSet.end(); it++)
         {
-            it->positionFrom = std::clamp(it->positionFrom, posDesc.minValue, posDesc.maxValue);
-            it->positionTo = std::clamp(it->positionTo, posDesc.minValue, posDesc.maxValue);
+            it->positionFrom = std::clamp(it->positionFrom, posDesc.minValue, maxPos);
+            it->positionTo = std::clamp(it->positionTo, posDesc.minValue, maxPos);
         }
     }
 
@@ -243,13 +246,17 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
     for(auto it = mConditionSet.begin(); it != mConditionSet.end(); it++)
     {
         LeverPositionCondition& item = *it;
-        if(item.type == LeverPositionConditionType::Exact)
+        if(item.type == LeverPositionConditionType::Exact || item.positionFrom == item.positionTo)
         {
             item.positionTo = item.positionFrom;
             item.warpsAroundZero = false;
+            item.type = LeverPositionConditionType::Exact;
         }
         else
         {
+            // Check if it warps
+            item.warpsAroundZero = (item.positionFrom > item.positionTo);
+
             if(mLeverIface && !mLeverIface->canWarpAroundZero())
                 item.warpsAroundZero = false;
 
@@ -257,6 +264,10 @@ void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newCondi
             {
                 item.positionTo = qMax(item.positionFrom + 2,
                                        item.positionTo);
+
+                it->positionTo = std::clamp(it->positionTo, posDesc.minValue, maxPos);
+                if(item.positionFrom == item.positionTo)
+                    item.type = LeverPositionConditionType::Exact;
             }
         }
 
