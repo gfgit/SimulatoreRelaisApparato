@@ -45,11 +45,11 @@ enum class OpCode : uint8_t
     LocomotiveSpeedDirection = 2,
     SensorChanged = 3,
     AccessorySetState = 4,
-    SignalSetState = 5,
-    OwnSignal = 6,
-    RequestChannel = 7,
     Handshake = 5,
-    HandshakeResponse = 6
+    HandshakeResponse = 6,
+    SignalSetState = 7,
+    OwnSignal = 8,
+    RequestChannel = 9
 };
 
 struct Message
