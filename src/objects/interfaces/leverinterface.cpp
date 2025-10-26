@@ -126,8 +126,13 @@ int LeverInterface::angle() const
 
 void LeverInterface::setAngle(int newAngle)
 {
-    if(newAngle < 0 && canWarpAroundZero())
-        newAngle += 360;
+    if(canWarpAroundZero())
+    {
+        if(newAngle < 0)
+            newAngle += 360;
+        else if(newAngle >= 360)
+            newAngle -= 360;
+    }
 
     if(mLockedMin != LeverAngleDesc::InvalidPosition
             && mLockedMax != LeverAngleDesc::InvalidPosition)
@@ -435,8 +440,13 @@ int LeverInterface::positionForAngle_internal(int pos, int newAngle, bool allowM
 
 int LeverInterface::closestPosition(int newAngle, bool allowMiddle) const
 {
-    if(newAngle < 0 && canWarpAroundZero())
-        newAngle += 360;
+    if(canWarpAroundZero())
+    {
+        if(newAngle < 0)
+            newAngle += 360;
+        else if(newAngle >= 360)
+            newAngle -= 360;
+    }
 
     int fromPos = mLockedMin;
     int toPos = mLockedMax;

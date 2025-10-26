@@ -34,6 +34,15 @@ class CommandNode : public AbstractCircuitNode
 {
     Q_OBJECT
 public:
+    enum class Phase
+    {
+        Off = 0,
+        Waiting,
+        Retry,
+        PerformingAction,
+        Done
+    };
+
     explicit CommandNode(ModeManager *mgr, QObject *parent = nullptr);
     ~CommandNode();
 
@@ -63,6 +72,8 @@ public:
 
     QStringList supportedObjectTypes() const;
 
+    Phase phase() const;
+
 signals:
     void objectChanged(AbstractSimulationObject *obj);
 
@@ -70,6 +81,7 @@ protected:
     void timerEvent(QTimerEvent *ev) override;
 
     bool performAction();
+    void setPhase(Phase newPhase);
 
 private:
     AbstractSimulationObject *mObject = nullptr;
@@ -77,6 +89,8 @@ private:
     int mDelayMillis = 500;
 
     int mTargetPosition = 0;
+
+    Phase mPhase = Phase::Off;
 };
 
 #endif // COMMANDNODE_H

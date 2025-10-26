@@ -79,6 +79,7 @@ void CommandNode::addCircuit(ElectricCircuit *circuit)
 
     if(!wasActive && isActive && mObject)
     {
+        setPhase(Phase::Waiting);
         mTimer.start(std::chrono::milliseconds(mDelayMillis),
                      Qt::CoarseTimer, this);
     }
@@ -94,6 +95,7 @@ void CommandNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &
 
     if(wasActive && !isActive && mObject)
     {
+        setPhase(Phase::Off);
         mTimer.stop();
     }
 }
@@ -175,7 +177,14 @@ void CommandNode::timerEvent(QTimerEvent *ev)
 bool CommandNode::performAction()
 {
     if(!mObject)
+    {
+        setPhase(Phase::Done);
         return true;
+    }
+
+    setPhase(Phase::PerformingAction);
+
+    bool success = false;
 
     if(LeverInterface *leverIface = mObject->getInterface<LeverInterface>())
     {
@@ -189,16 +198,72 @@ bool CommandNode::performAction()
             aceiLever->setIsLeftPositionSealed(false);
         }
 
-        leverIface->setAngle(leverIface->angleForPosition(mTargetPosition));
-        leverIface->setPosition(mTargetPosition);
+        int startAngle = leverIface->angle();
+        int targetAngle = leverIface->angleForPosition(mTargetPosition);
 
-        if(aceiLever && aceiLever->canSealLeftPosition() && mTargetPosition >= int(ACEILeverPosition::Vertical))
+        if(leverIface->isPositionMiddle(mTargetPosition))
+        {
+            // Average prev/next angles
+            const double prev = leverIface->angleForPosition(mTargetPosition - 1);
+
+            double next = 0;
+            if(leverIface->canWarpAroundZero() && mTargetPosition == leverIface->positionDesc().maxValue)
+                next = leverIface->angleForPosition(0);
+            else
+                next = leverIface->angleForPosition(mTargetPosition + 1);
+
+            if(next < prev)
+                next += 360;
+
+            targetAngle = (prev + next) / 2.0;
+        }
+
+        int angleDiff = targetAngle - startAngle;
+        bool increment = targetAngle > startAngle;
+        if(leverIface->canWarpAroundZero())
+        {
+            if(angleDiff > 180)
+            {
+                increment = !increment;
+                angleDiff = 360 - angleDiff;
+            }
+            else if(angleDiff < -180)
+            {
+                increment = !increment;
+                angleDiff = 360 + angleDiff;
+            }
+        }
+
+        if(std::abs(angleDiff) > 45)
+        {
+            // Angle diff is big, animate position change to make it
+            // more eye candy, so go to an intermediate step
+            const int stepAngle = startAngle + 30 * (increment ? +1 : -1);
+            leverIface->setAngle(stepAngle);
+
+            if(leverIface->angle() == stepAngle)
+            {
+                // Success, schedule next step
+                mTimer.start(std::chrono::milliseconds(100), Qt::CoarseTimer, this);
+                return true;
+            }
+        }
+        else
+        {
+            // Go all the way in one step
+            leverIface->setAngle(leverIface->angleForPosition(mTargetPosition));
+            leverIface->setPosition(mTargetPosition);
+        }
+
+        if(aceiLever && aceiLever->canSealLeftPosition() &&
+                mTargetPosition >= int(ACEILeverPosition::Vertical) &&
+                leverIface->position() >= int(ACEILeverPosition::Vertical))
         {
             // Re-lock seal after changing position
             aceiLever->setIsLeftPositionSealed(true);
         }
 
-        return leverIface->position() == mTargetPosition;
+        success = leverIface->position() == mTargetPosition;
     }
     else if(ButtonInterface *butIface = mObject->getInterface<ButtonInterface>())
     {
@@ -209,14 +274,35 @@ bool CommandNode::performAction()
         case ButtonInterface::State::Normal:
         case ButtonInterface::State::Extracted:
             butIface->setState(s);
+            success = butIface->state() == s;
             break;
         default:
-            return true; // Ignore, stop retry
+            success = true; // Ignore, stop retry
         }
-        return butIface->state() == s;
     }
+    else
+        success = true; // Ignore, stop retry
 
-    return true; // Ignore, stop retry
+    if(success)
+        setPhase(Phase::Done);
+    else
+        setPhase(Phase::Retry);
+
+    return success;
+}
+
+CommandNode::Phase CommandNode::phase() const
+{
+    return mPhase;
+}
+
+void CommandNode::setPhase(Phase newPhase)
+{
+    if(mPhase == newPhase)
+        return;
+
+    mPhase = newPhase;
+    emit circuitsChanged(); // Update drawing
 }
 
 int CommandNode::targetPosition() const
