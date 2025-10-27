@@ -36,7 +36,7 @@
 
 #include <QTcpSocket>
 #include <QTimerEvent>
-
+#include <QTime>
 
 TraintasticSimManager::TraintasticSimManager(ModeManager *mgr)
     : QObject{mgr}
@@ -102,6 +102,8 @@ void TraintasticSimManager::setTurnoutState(int channel, int address, int state)
 
 void TraintasticSimManager::onSocketError()
 {
+    qDebug() << "Traintastic TCP error:" << mSocket->error() << mSocket->errorString();
+
     disconnectSimulator();
 
     // Try to reconnect
@@ -144,11 +146,15 @@ void TraintasticSimManager::onConnected()
 {
     emit stateChanged();
 
+    send(SimulatorProtocol::HandShake(true));
+
     // Send initial turnout status
     for(const TraintasticTurnoutObj *obj : std::as_const(mTurnouts))
     {
         setTurnoutState(obj->channel(), obj->address(), int(obj->state()));
     }
+
+    send(SimulatorProtocol::HandShake(true));
 
     // Send initial signal status
     auto signalsModel = mModeMgr->modelForType(TraintasticSignalObject::Type);
@@ -166,6 +172,8 @@ void TraintasticSimManager::onConnected()
 
     mSocket->flush();
 
+    send(SimulatorProtocol::HandShake(true));
+
     // HACK: force sync track circuits by requesting their state
     for(auto it : mSensors.asKeyValueRange())
     {
@@ -176,6 +184,7 @@ void TraintasticSimManager::onConnected()
 
     mModeMgr->getRemoteManager()->setTraintasticDiscoveryEnabled(false);
 
+    send(SimulatorProtocol::HandShake(true));
     mHandShakeTimer.start(HandShakeRate, Qt::PreciseTimer, this);
 }
 
@@ -183,6 +192,7 @@ void TraintasticSimManager::timerEvent(QTimerEvent *ev)
 {
     if(ev->timerId() == mHandShakeTimer.timerId())
     {
+        qDebug() << "TIMEOUT HANDSHAKE" << QTime::currentTime();
         // We missed handshake, maybe server is dead?
         disconnectSimulator();
 
