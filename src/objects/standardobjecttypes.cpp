@@ -68,6 +68,7 @@
 
 #include "traintastic/traintasticsensorobj.h"
 #include "traintastic/traintasticturnoutobj.h"
+#include "traintastic/traintasticspawnobj.h"
 #include "traintastic/traintasticsignalobject.h"
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
@@ -699,6 +700,7 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
     QComboBox *sensorTypeCombo = new QComboBox;
     sensorTypeCombo->addItem(StandardObjectTypes::tr("Generic"));
     sensorTypeCombo->addItem(StandardObjectTypes::tr("Turnout Feedback"));
+    sensorTypeCombo->addItem(StandardObjectTypes::tr("Spawn Train"));
 
     lay->addRow(StandardObjectTypes::tr("Sensor Type:"), sensorTypeCombo);
 
@@ -753,9 +755,10 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
     // Turnout Object
     SimulationObjectLineEdit *turnoutEdit = new SimulationObjectLineEdit(mgr, {TraintasticTurnoutObj::Type});
     QObject::connect(turnoutEdit, &SimulationObjectLineEdit::objectChanged,
-                     sensor, [sensor](AbstractSimulationObject *obj)
+                     sensor, [sensor, turnoutEdit](AbstractSimulationObject *obj)
     {
-        sensor->setShuntTurnout(static_cast<TraintasticTurnoutObj *>(obj));
+        if(!sensor->setShuntTurnout(static_cast<TraintasticTurnoutObj *>(obj)))
+            turnoutEdit->setObject(sensor->shuntTurnout());
     });
 
     lay->addRow(StandardObjectTypes::tr("Shunt Turnout:"), turnoutEdit);
@@ -770,9 +773,20 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
         offStateSpin->setValue(sensor->defaultOffState());
         turnoutEdit->setObject(sensor->shuntTurnout());
 
-        bool isTurnout = sensor->sensorType() == TraintasticSensorObj::SensorType::TurnoutFeedback;
+        const bool isTurnout = sensor->sensorType() == TraintasticSensorObj::SensorType::TurnoutFeedback;
         turnoutEdit->setVisible(isTurnout);
         offStateSpin->setVisible(!isTurnout);
+
+        bool lockedByTurnout = isTurnout && sensor->shuntTurnout();
+        addressSpin->setEnabled(!lockedByTurnout);
+        channelSpin->setEnabled(!lockedByTurnout);
+
+        QString tooltip = lockedByTurnout ? StandardObjectTypes::tr("Set values on shunt turnout object!") : QString();
+        addressSpin->setToolTip(tooltip);
+        channelSpin->setToolTip(tooltip);
+
+        const bool isSpawn = sensor->sensorType() == TraintasticSensorObj::SensorType::Spawn;
+        channelSpin->setVisible(!isSpawn);
     };
 
     QObject::connect(sensor, &TraintasticSensorObj::settingsChanged,
@@ -811,13 +825,16 @@ QWidget *defaultTraintasticTurnoutEdit(AbstractSimulationObject *item, ViewManag
 
     // Channel
     QSpinBox *channelSpin = new QSpinBox;
-    channelSpin->setRange(0, 9999);
+    channelSpin->setRange(-1, 9999);
+    channelSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    channelSpin->setValue(0);
     lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
 
     QObject::connect(channelSpin, &QSpinBox::editingFinished,
                      turnout, [turnout, channelSpin]()
     {
-        turnout->setChannel(channelSpin->value());
+        if(!turnout->setChannel(channelSpin->value()))
+            channelSpin->setValue(turnout->channel()); // Rejected
     });
 
     // Address
@@ -829,7 +846,8 @@ QWidget *defaultTraintasticTurnoutEdit(AbstractSimulationObject *item, ViewManag
     QObject::connect(addressSpin, &QSpinBox::editingFinished,
                      turnout, [turnout, addressSpin]()
     {
-        turnout->setAddress(addressSpin->value());
+        if(!turnout->setAddress(addressSpin->value()))
+            addressSpin->setValue(turnout->address()); // Rejected
     });
 
     // Total time ms
@@ -926,6 +944,39 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
     };
 
     QObject::connect(signal, &TraintasticSignalObject::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
+QWidget *defaultTraintasticSpawnEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticSpawnObj *spawn = static_cast<TraintasticSpawnObj *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     spawn, [spawn, addressSpin]()
+                     {
+                         if(spawn->setAddress(addressSpin->value()))
+                             addressSpin->setValue(spawn->address()); // Rejected
+                     });
+
+    auto updateSettings = [spawn, addressSpin]()
+    {
+        addressSpin->setValue(spawn->address());
+    };
+
+    QObject::connect(spawn, &TraintasticTurnoutObj::settingsChanged,
                      w, updateSettings);
 
     updateSettings();
@@ -1126,6 +1177,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &defaultTraintasticSignalEdit;
         item.objectType = TraintasticSignalObject::Type;
         item.prettyName = tr("Traintastic Signal");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Spawn
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticSpawnObj>;
+        item.edit = &defaultTraintasticSpawnEdit;
+        item.objectType = TraintasticSpawnObj::Type;
+        item.prettyName = tr("Traintastic Spawn");
 
         factory->registerFactory(item);
     }

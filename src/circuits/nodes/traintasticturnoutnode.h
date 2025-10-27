@@ -26,6 +26,7 @@
 #include "abstractcircuitnode.h"
 
 class TraintasticTurnoutObj;
+class TraintasticSpawnObj;
 
 class TraintasticTurnoutNode : public AbstractCircuitNode
 {
@@ -49,8 +50,12 @@ public:
     TraintasticTurnoutObj *turnout() const;
     bool setTurnout(TraintasticTurnoutObj *newTurnout, bool steal = false);
 
+    TraintasticSpawnObj *spawn() const;
+    bool setSpawn(TraintasticSpawnObj *newSpawn, bool steal = false);
+
 signals:
     void turnoutChanged(TraintasticTurnoutObj *obj);
+    void spawnChanged(TraintasticSpawnObj *obj);
 
 private:
     void updateState();
@@ -58,6 +63,8 @@ private:
 private:
     friend class TraintasticTurnoutObj;
     TraintasticTurnoutObj *mTurnout = nullptr;
+
+    TraintasticSpawnObj *mSpawn = nullptr;
 };
 
 #endif // TRAINTASTIC_TURNOUT_NODE_H

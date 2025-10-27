@@ -25,6 +25,7 @@
 #include "../nodes/traintasticturnoutnode.h"
 
 #include "../../objects/traintastic/traintasticturnoutobj.h"
+#include "../../objects/traintastic/traintasticspawnobj.h"
 
 #include <QPainter>
 
@@ -84,27 +85,32 @@ void TraintasticTurnoutGraphItem::paint(QPainter *painter, const QStyleOptionGra
 
     // Motor circle
     painter->setPen(QPen(Qt::black, 3));
-    painter->setBrush(Qt::lightGray);
+    painter->setBrush(node()->spawn() ? Qt::darkCyan : Qt::lightGray);
     painter->drawEllipse(baseTileRect());
 
-    // Letters
-    painter->fillRect(rectN, Qt::gray);
-    painter->fillRect(rectR, Qt::gray);
+    if(!node()->spawn())
+    {
+        // Letters
+        painter->fillRect(rectN, Qt::gray);
+        painter->fillRect(rectR, Qt::gray);
 
-    QFont f;
-    f.setPointSize(std::min(rectN.height(), rectN.width()) * 0.5);
-    painter->setFont(f);
+        QFont f;
+        f.setPointSize(std::min(rectN.height(), rectN.width()) * 0.5);
+        painter->setFont(f);
 
-    painter->setBrush(Qt::NoBrush);
-    painter->drawText(rectN, "N", QTextOption(Qt::AlignCenter));
-    painter->drawText(rectR, "R", QTextOption(Qt::AlignCenter));
+        painter->setBrush(Qt::NoBrush);
+        painter->drawText(rectN, "N", QTextOption(Qt::AlignCenter));
+        painter->drawText(rectR, "R", QTextOption(Qt::AlignCenter));
+    }
 
     drawName(painter);
 }
 
 void TraintasticTurnoutGraphItem::getConnectors(std::vector<Connector> &connectors) const
 {
-    connectors.emplace_back(location(), rotate(), 1);
+    if(!node()->spawn())
+        connectors.emplace_back(location(), rotate(), 1);
+
     connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 0);
 }
 
@@ -117,10 +123,15 @@ QString TraintasticTurnoutGraphItem::displayString() const
 
 QString TraintasticTurnoutGraphItem::tooltipString() const
 {
-    if(!node()->turnout())
-        return tr("No Traintastic turnout set!");
-    return tr("Traintastic Turnout:<br>"
-              "<b>%1</b>").arg(node()->turnout()->name());
+    if(node()->turnout())
+        return tr("Traintastic Turnout:<br>"
+                  "<b>%1</b>").arg(node()->turnout()->name());
+    else if(node()->spawn())
+        return tr("Traintastic Spawn:<br>"
+                  "<b>%1</b>").arg(node()->spawn()->name());
+    else
+        return tr("No Traintastic turnout or spawn set!");
+
 }
 
 TraintasticTurnoutNode *TraintasticTurnoutGraphItem::node() const

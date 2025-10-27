@@ -137,6 +137,7 @@
 
 #include "../../objects/traintastic/traintasticsensorobj.h"
 #include "../../objects/traintastic/traintasticturnoutobj.h"
+#include "../../objects/traintastic/traintasticspawnobj.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -419,6 +420,33 @@ QWidget *defaultTraintasticTurnoutNodeEdit(AbstractNodeGraphItem *item, ViewMana
 
     turnoutEdit->setObject(node->turnout());
     lay->addRow(StandardNodeTypes::tr("Turnout:"), turnoutEdit);
+
+    // Spawn Object
+    SimulationObjectLineEdit *spawnEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticSpawnObj::Type});
+    QObject::connect(node, &TraintasticTurnoutNode::spawnChanged,
+                     spawnEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(spawnEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, w, spawnEdit](AbstractSimulationObject *obj)
+                     {
+                         TraintasticSpawnObj *spawnObj = static_cast<TraintasticSpawnObj *>(obj);
+                         bool success = node->setSpawn(spawnObj, false);
+                         if(!success && spawnObj->getNode())
+                         {
+                             int ret = QMessageBox::question(w, StandardNodeTypes::tr("Spawn already powered"),
+                                                             StandardNodeTypes::tr("Spawn <b>%1</b> is already set in another node.<br>"
+                                                                                   "Setting turnout here will remove it from other node.<br>"
+                                                                                   "Proceed?")
+                                                                 .arg(spawnObj->name()));
+                             if(ret == QMessageBox::Yes)
+                                 success = node->setSpawn(spawnObj, true);
+                         }
+
+                         if(!success)
+                             spawnEdit->setObject(node->spawn()); // Reset to previous value
+                     });
+
+    spawnEdit->setObject(node->spawn());
+    lay->addRow(StandardNodeTypes::tr("Spawn:"), spawnEdit);
 
     return w;
 }

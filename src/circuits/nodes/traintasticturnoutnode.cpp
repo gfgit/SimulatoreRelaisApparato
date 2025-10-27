@@ -22,9 +22,9 @@
 
 #include "traintasticturnoutnode.h"
 
-
 #include "../../objects/abstractsimulationobjectmodel.h"
 #include "../../objects/traintastic/traintasticturnoutobj.h"
+#include "../../objects/traintastic/traintasticspawnobj.h"
 
 #include "../../views/modemanager.h"
 
@@ -78,12 +78,20 @@ bool TraintasticTurnoutNode::loadFromJSON(const QJsonObject &obj)
         return false;
 
     const QString turnoutName = obj.value("turnout").toString();
-    auto model = modeMgr()->modelForType(TraintasticTurnoutObj::Type);
+    auto turnoutModel = modeMgr()->modelForType(TraintasticTurnoutObj::Type);
 
-    if(model)
-        setTurnout(static_cast<TraintasticTurnoutObj *>(model->getObjectByName(turnoutName)), false);
+    if(turnoutModel)
+        setTurnout(static_cast<TraintasticTurnoutObj *>(turnoutModel->getObjectByName(turnoutName)), false);
     else
         setTurnout(nullptr);
+
+    const QString spawnName = obj.value("spawn").toString();
+    auto spawnModel = modeMgr()->modelForType(TraintasticSpawnObj::Type);
+
+    if(spawnModel)
+        setSpawn(static_cast<TraintasticSpawnObj *>(spawnModel->getObjectByName(spawnName)), false);
+    else
+        setSpawn(nullptr);
 
     return true;
 }
@@ -93,15 +101,21 @@ void TraintasticTurnoutNode::saveToJSON(QJsonObject &obj) const
     AbstractCircuitNode::saveToJSON(obj);
 
     obj["turnout"] = mTurnout ? mTurnout->name() : QString();
+    obj["spawn"] = mSpawn ? mSpawn->name() : QString();
 }
 
 void TraintasticTurnoutNode::getObjectProperties(QVector<ObjectProperty> &result) const
 {
-    ObjectProperty butProp;
-    butProp.name = "turnout";
-    butProp.prettyName = tr("Turnout");
-    butProp.types = {TraintasticTurnoutObj::Type};
-    result.append(butProp);
+    ObjectProperty objProp;
+    objProp.name = "turnout";
+    objProp.prettyName = tr("Turnout");
+    objProp.types = {TraintasticTurnoutObj::Type};
+    result.append(objProp);
+
+    objProp.name = "spawn";
+    objProp.prettyName = tr("Spawn");
+    objProp.types = {TraintasticSpawnObj::Type};
+    result.append(objProp);
 }
 
 QString TraintasticTurnoutNode::nodeType() const
@@ -121,6 +135,9 @@ bool TraintasticTurnoutNode::setTurnout(TraintasticTurnoutObj *newTurnout, bool 
 
     if(newTurnout && newTurnout->getNode() && !steal)
         return false;
+
+    if(newTurnout)
+        setSpawn(nullptr);
 
     if(mTurnout)
     {
@@ -142,18 +159,58 @@ bool TraintasticTurnoutNode::setTurnout(TraintasticTurnoutObj *newTurnout, bool 
     return true;
 }
 
+TraintasticSpawnObj *TraintasticTurnoutNode::spawn() const
+{
+    return mSpawn;
+}
+
+bool TraintasticTurnoutNode::setSpawn(TraintasticSpawnObj *newSpawn, bool steal)
+{
+    if (mSpawn == newSpawn)
+        return true;
+
+    if(newSpawn && newSpawn->getNode() && !steal)
+        return false;
+
+    if(newSpawn)
+        setTurnout(nullptr);
+
+    if(mSpawn)
+    {
+        mSpawn->setNode(nullptr);
+    }
+
+    mSpawn = newSpawn;
+
+    if(mSpawn)
+    {
+        mSpawn->setNode(this);
+    }
+
+    emit spawnChanged(mSpawn);
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
+
+    updateState();
+    return true;
+}
+
 void TraintasticTurnoutNode::updateState()
 {
-    if(!turnout())
-        return;
-
     const bool activeN = hasCircuit(0);
     const bool activeR = hasCircuit(1);
 
-    if(activeN && !activeR)
-        mTurnout->setActive(true, false);
-    else if(!activeN && activeR)
-        mTurnout->setActive(true, true);
-    else
-        mTurnout->setActive(false, false);
+    if(turnout())
+    {
+        if(activeN && !activeR)
+            mTurnout->setActive(true, false);
+        else if(!activeN && activeR)
+            mTurnout->setActive(true, true);
+        else
+            mTurnout->setActive(false, false);
+    }
+    else if(spawn())
+    {
+        mSpawn->setActive(activeN);
+    }
 }

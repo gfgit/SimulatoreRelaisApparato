@@ -49,7 +49,9 @@ enum class OpCode : uint8_t
     HandshakeResponse = 6,
     SignalSetState = 7,
     OwnSignal = 8,
-    RequestChannel = 9
+    RequestChannel = 9,
+    OwnSpawn = 10,
+    SpawnStateChange = 11
 };
 
 struct Message
@@ -187,6 +189,42 @@ struct RequestChannel : Message
     }
 } ATTRIBUTE_PACKED;
 static_assert(sizeof(RequestChannel) == 4);
+
+struct OwnSpawn : Message
+{
+    uint16_t address;
+
+    OwnSpawn(uint16_t addr)
+        : Message(OpCode::OwnSpawn, sizeof(OwnSpawn))
+        , address{addr}
+    {
+    }
+} ATTRIBUTE_PACKED;
+static_assert(sizeof(OwnSpawn) == 4);
+
+struct SpawnStateChange : Message
+{
+    enum State
+    {
+        Ready = 1,
+        WaitingReset = 2,
+
+        RequestActivate = 20,
+        Reset = 21
+    };
+
+    uint16_t address;
+    uint8_t state;
+
+
+    SpawnStateChange(uint16_t addr, uint8_t s)
+        : Message(OpCode::SpawnStateChange, sizeof(SpawnStateChange))
+        , address{addr}
+        , state{s}
+    {
+    }
+} ATTRIBUTE_PACKED;
+static_assert(sizeof(SpawnStateChange) == 5);
 
 PRAGMA_PACK_POP
 

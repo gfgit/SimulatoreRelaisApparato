@@ -21,6 +21,7 @@
  */
 
 #include "traintasticturnoutobj.h"
+#include "traintasticsensorobj.h"
 
 #include "../../circuits/nodes/traintasticturnoutnode.h"
 
@@ -42,6 +43,9 @@ TraintasticTurnoutObj::TraintasticTurnoutObj(AbstractSimulationObjectModel *m)
 
 TraintasticTurnoutObj::~TraintasticTurnoutObj()
 {
+    if(mSensor)
+        mSensor->setShuntTurnout(nullptr);
+
     setNode(nullptr);
 
     TraintasticSimManager *mgr = model()->modeMgr()->getTraitasticSimMgr();
@@ -106,22 +110,30 @@ int TraintasticTurnoutObj::getReferencingNodes(QVector<AbstractCircuitNode *> *r
     return 1;
 }
 
-void TraintasticTurnoutObj::setChannel(int newChannel)
+bool TraintasticTurnoutObj::setChannel(int newChannel)
 {
     if(mChannel == newChannel)
-        return;
+        return true;
+
+    if(mSensor && !mSensor->setChannel(newChannel))
+        return false;
 
     mChannel = newChannel;
     emit settingsChanged(this);
+    return true;
 }
 
-void TraintasticTurnoutObj::setAddress(int newAddress)
+bool TraintasticTurnoutObj::setAddress(int newAddress)
 {
     if(mAddress == newAddress)
-        return;
+        return true;
+
+    if(mSensor && !mSensor->setAddress(newAddress))
+        return false;
 
     mAddress = newAddress;
     emit settingsChanged(this);
+    return true;
 }
 
 void TraintasticTurnoutObj::setInitialState(State newInitialState)
@@ -143,6 +155,19 @@ void TraintasticTurnoutObj::setState(State newState)
 
     TraintasticSimManager *mgr = model()->modeMgr()->getTraitasticSimMgr();
     mgr->setTurnoutState(mChannel, mAddress, int(state()));
+
+    if(mSensor && !mgr->isConnected())
+        mSensor->setState(mState);
+}
+
+TraintasticSensorObj *TraintasticTurnoutObj::sensor() const
+{
+    return mSensor;
+}
+
+void TraintasticTurnoutObj::setSensor(TraintasticSensorObj *newSensor)
+{
+    mSensor = newSensor;
 }
 
 int TraintasticTurnoutObj::totalTimeMillis() const

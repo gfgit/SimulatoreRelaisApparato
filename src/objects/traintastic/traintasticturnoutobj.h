@@ -28,6 +28,7 @@
 #include <QBasicTimer>
 
 class TraintasticTurnoutNode;
+class TraintasticSensorObj;
 
 class TraintasticTurnoutObj : public AbstractSimulationObject
 {
@@ -64,8 +65,8 @@ public:
     inline int address() const { return mAddress; }
     inline State state() const { return mState; }
 
-    void setChannel(int newChannel);
-    void setAddress(int newAddress);
+    bool setChannel(int newChannel);
+    bool setAddress(int newAddress);
 
     inline State initialState() const { return mInitialState; }
 
@@ -75,6 +76,9 @@ public:
     void setTotalTimeMillis(int newTotalTimeMillis);
 
     inline bool isActive() const { return mTimer.isActive(); }
+
+    TraintasticSensorObj *sensor() const;
+    void setSensor(TraintasticSensorObj *newSensor);
 
 protected:
     void timerEvent(QTimerEvent *ev) override;
@@ -89,6 +93,7 @@ private:
 
 private:
     TraintasticTurnoutNode *mNode = nullptr;
+    TraintasticSensorObj *mSensor = nullptr;
 
     int mChannel = 0;
     int mAddress = InvalidAddress;

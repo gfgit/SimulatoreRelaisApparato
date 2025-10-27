@@ -29,6 +29,7 @@
 #include "../../objects/traintastic/traintasticsensorobj.h"
 #include "../../objects/traintastic/traintasticturnoutobj.h"
 #include "../../objects/traintastic/traintasticsignalobject.h"
+#include "../../objects/traintastic/traintasticspawnobj.h"
 
 #include "../../objects/abstractsimulationobjectmodel.h"
 
@@ -100,6 +101,15 @@ void TraintasticSimManager::setTurnoutState(int channel, int address, int state)
     send(message);
 }
 
+void TraintasticSimManager::setSpawnState(int address, bool active)
+{
+    SimulatorProtocol::SpawnStateChange message(address,
+                                                active ?
+                                                    SimulatorProtocol::SpawnStateChange::State::RequestActivate :
+                                                    SimulatorProtocol::SpawnStateChange::State::Reset);
+    send(message);
+}
+
 void TraintasticSimManager::onSocketError()
 {
     qDebug() << "Traintastic TCP error:" << mSocket->error() << mSocket->errorString();
@@ -152,6 +162,11 @@ void TraintasticSimManager::onConnected()
     for(const TraintasticTurnoutObj *obj : std::as_const(mTurnouts))
     {
         setTurnoutState(obj->channel(), obj->address(), int(obj->state()));
+    }
+
+    for(const TraintasticSpawnObj *obj : std::as_const(mSpawns))
+    {
+        setSpawnState(obj->address(), obj->isActive());
     }
 
     send(SimulatorProtocol::HandShake(true));
@@ -256,6 +271,18 @@ void TraintasticSimManager::receive(const SimulatorProtocol::Message &message)
 
         break;
     }
+    case SimulatorProtocol::OpCode::SpawnStateChange:
+    {
+        const auto& m = static_cast<const SimulatorProtocol::SpawnStateChange&>(message);
+
+        auto it = mSpawnSensors.constFind(m.address);
+        if(it == mSpawnSensors.constEnd())
+            return;
+
+        it.value()->setState(m.state);
+
+        break;
+    }
     default:
         break;
     }
@@ -263,7 +290,7 @@ void TraintasticSimManager::receive(const SimulatorProtocol::Message &message)
 
 bool TraintasticSimManager::setSensorChannel(TraintasticSensorObj *obj, int newChannel)
 {
-    if(obj->address() == TraintasticSensorObj::InvalidAddress)
+    if(obj->address() == TraintasticSensorObj::InvalidAddress || obj->sensorType() == TraintasticSensorObj::SensorType::Spawn)
     {
         // Still invalid
         return true;
@@ -312,6 +339,23 @@ bool TraintasticSimManager::setSensorChannel(TraintasticSensorObj *obj, int newC
 
 bool TraintasticSimManager::setSensorAddress(TraintasticSensorObj *obj, int newAddress)
 {
+    if(obj->sensorType() == TraintasticSensorObj::SensorType::Spawn)
+    {
+        if(newAddress != TraintasticSensorObj::InvalidAddress)
+        {
+            if(mSpawnSensors.contains(newAddress))
+                return false; // Address already taken
+        }
+
+        if(obj->address() != TraintasticSensorObj::InvalidAddress)
+            mSpawnSensors.remove(obj->address());
+
+        if(newAddress != TraintasticSensorObj::InvalidAddress)
+            mSpawnSensors.insert(newAddress, obj);
+
+        return true;
+    }
+
     if(obj->channel() == TraintasticSensorObj::InvalidChannel)
     {
         // Still invalid
@@ -364,6 +408,18 @@ void TraintasticSimManager::removeTurnout(TraintasticTurnoutObj *obj)
 {
     Q_ASSERT(mTurnouts.contains(obj));
     mTurnouts.removeOne(obj);
+}
+
+void TraintasticSimManager::addSpawn(TraintasticSpawnObj *obj)
+{
+    Q_ASSERT(!mSpawns.contains(obj));
+    mSpawns.append(obj);
+}
+
+void TraintasticSimManager::removeSpawn(TraintasticSpawnObj *obj)
+{
+    Q_ASSERT(mSpawns.contains(obj));
+    mSpawns.removeOne(obj);
 }
 
 void TraintasticSimManager::setSensorsOff()

@@ -37,7 +37,8 @@ public:
     enum SensorType
     {
         Generic = 0,
-        TurnoutFeedback = 1
+        TurnoutFeedback = 1,
+        Spawn = 2
     };
 
     static constexpr int InvalidChannel = -1;
@@ -69,14 +70,11 @@ public:
     void setDefaultOffState(int newDefaultOffState);
 
     TraintasticTurnoutObj *shuntTurnout() const;
-    void setShuntTurnout(TraintasticTurnoutObj *newShuntTurnout);
-
-private slots:
-    void onTurnoutDestroyed();
-    void onTurnoutStateChanged();
+    bool setShuntTurnout(TraintasticTurnoutObj *newShuntTurnout);
 
 private:
     friend class TraintasticSimManager;
+    friend class TraintasticTurnoutObj;
     void setState(int newState);
 
     friend class TraintasticSensorNode;

@@ -34,6 +34,7 @@ class QHostAddress;
 
 class TraintasticSensorObj;
 class TraintasticTurnoutObj;
+class TraintasticSpawnObj;
 
 class ModeManager;
 
@@ -49,6 +50,7 @@ public:
     void enableConnection(bool val);
 
     void setTurnoutState(int channel, int address, int state);
+    void setSpawnState(int address, bool active);
 
     void tryConnectToServer(const QHostAddress &addr, quint16 port);
 
@@ -78,6 +80,10 @@ private:
     void addTurnout(TraintasticTurnoutObj *obj);
     void removeTurnout(TraintasticTurnoutObj *obj);
 
+    friend class TraintasticSpawnObj;
+    void addSpawn(TraintasticSpawnObj *obj);
+    void removeSpawn(TraintasticSpawnObj *obj);
+
     void setSensorsOff();
     void disconnectSimulator();
 
@@ -93,8 +99,10 @@ private:
     // By channel and then by address
     QHash<int, QHash<int, TraintasticSensorObj *>> mSensors;
     QHash<int, QHash<int, TraintasticSensorObj *>> mTurnoutSensors;
+    QHash<int, TraintasticSensorObj *> mSpawnSensors;
 
     QVector<TraintasticTurnoutObj *> mTurnouts;
+    QVector<TraintasticSpawnObj *> mSpawns;
 
     // 1 sec handshake + 500ms tolerance
     static constexpr auto HandShakeRate = std::chrono::milliseconds(1500);
