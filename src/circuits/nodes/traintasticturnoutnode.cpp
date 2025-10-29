@@ -60,7 +60,7 @@ AbstractCircuitNode::ConnectionsRes TraintasticTurnoutNode::getActiveConnections
     if((source.nodeContact < 0) || source.nodeContact > 1)
         return {};
 
-    if(!turnout())
+    if(!turnout() && !spawn())
         return{};
 
     // Close the circuit

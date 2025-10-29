@@ -164,11 +164,6 @@ void TraintasticSimManager::onConnected()
         setTurnoutState(obj->channel(), obj->address(), int(obj->state()));
     }
 
-    for(const TraintasticSpawnObj *obj : std::as_const(mSpawns))
-    {
-        setSpawnState(obj->address(), obj->isActive());
-    }
-
     send(SimulatorProtocol::HandShake(true));
 
     // Send initial signal status
@@ -189,7 +184,34 @@ void TraintasticSimManager::onConnected()
 
     send(SimulatorProtocol::HandShake(true));
 
-    // HACK: force sync track circuits by requesting their state
+    // Send initial spawn status
+    for(int i = 0; i < signalsModel->rowCount(); i++)
+    {
+        TraintasticSignalObject *signalObj = static_cast<TraintasticSignalObject *>(signalsModel->objectAt(i));
+
+        // Tell simulator we own this signal
+        SimulatorProtocol::OwnSignal msg(signalObj->channel(), signalObj->address());
+        send(msg);
+
+        // Send initial status
+        signalObj->sendStatusMsg();
+    }
+
+    for(const TraintasticSpawnObj *obj : std::as_const(mSpawns))
+    {
+        // Tell simulator we own this spawn
+        SimulatorProtocol::OwnSpawn msg(obj->address());
+        send(msg);
+
+        // Send initial status
+        setSpawnState(obj->address(), obj->isActive());
+    }
+
+    mSocket->flush();
+
+    send(SimulatorProtocol::HandShake(true));
+
+    // Force sync track circuits by requesting their state
     for(auto it : mSensors.asKeyValueRange())
     {
         // Tell simulator we are interested in this sensor channel
@@ -438,6 +460,11 @@ void TraintasticSimManager::setSensorsOff()
         {
             sensor->onTraintasticDisconnected();
         }
+    }
+
+    for(auto sensor : mSpawnSensors)
+    {
+        sensor->onTraintasticDisconnected();
     }
 }
 

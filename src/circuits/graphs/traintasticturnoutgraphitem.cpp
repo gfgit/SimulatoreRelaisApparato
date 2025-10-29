@@ -116,9 +116,12 @@ void TraintasticTurnoutGraphItem::getConnectors(std::vector<Connector> &connecto
 
 QString TraintasticTurnoutGraphItem::displayString() const
 {
-    if(!node()->turnout())
+    if(node()->turnout())
+        return node()->turnout()->name();
+    else if(node()->spawn())
+        return node()->spawn()->name();
+    else
         return tr("DEV!");
-    return node()->turnout()->name();
 }
 
 QString TraintasticTurnoutGraphItem::tooltipString() const
