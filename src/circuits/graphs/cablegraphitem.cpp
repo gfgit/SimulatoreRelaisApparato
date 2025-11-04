@@ -480,7 +480,7 @@ bool CableGraphItem::loadFromJSON(const QJsonObject &obj)
 
     const QJsonObject pathObj = obj.value("path").toObject();
     CableGraphPath newPath = CableGraphPath::loadFromJSON(pathObj);
-    if(newPath.isEmpty())
+    if(newPath.isEmpty() || !newPath.isComplete())
         return false;
 
     setCablePath(newPath);

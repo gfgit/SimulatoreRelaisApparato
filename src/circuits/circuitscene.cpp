@@ -442,7 +442,7 @@ void CircuitScene::calculateConnections()
         }
         else
         {
-            if(item->cableZeroLength())
+            if(item->cableZeroLength() || item->cablePath().isEmpty() || !item->cablePath().isComplete())
             {
                 // Unconnected zero length cable, delete it
                 removeCable(item->cable());
@@ -1826,9 +1826,19 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
         checkItem(item, verifiedCables);
     }
 
-    for(CableGraphItem *item : std::as_const(pastedCables))
+    for(auto it = pastedCables.begin(); it != pastedCables.end(); )
     {
-        checkCable(item);
+        CableGraphItem *item = *it;
+        if(!checkCable(item) || item->cableZeroLength() || item->cablePath().isEmpty()
+                || !item->cablePath().isComplete())
+        {
+            // We already added to scene
+            // Will be deleted by calculateConnections()
+            it = pastedCables.erase(it);
+            continue;
+        }
+
+        it++;
     }
 
     // Now select all pasted items so user can move them
