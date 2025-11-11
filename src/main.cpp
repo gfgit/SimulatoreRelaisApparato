@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
     if(!filenameToLoad.isEmpty())
     {
         qDebug() << "Trying to load:" << filenameToLoad;
-        w.loadFile(filenameToLoad);
+        w.loadFile(filenameToLoad, true);
     }
 
     w.showMaximized();

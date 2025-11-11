@@ -628,7 +628,7 @@ PanelListModel *ModeManager::panelList() const
     return mPanelList;
 }
 
-bool ModeManager::loadFromJSON(const QJsonObject &obj)
+bool ModeManager::loadFromJSON(const QJsonObject &obj, bool startSim)
 {
     // Temporarily ignore modified scenes
     clearAll();
@@ -678,10 +678,8 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
 
     resetFileEdited();
 
-    // Turn on power sources and stuff
-    setMode(FileMode::Simulation);
-
-    mTraintasticSim->enableConnection(true);
+    // Turn on power sources and stuff or go Editing
+    setMode(startSim ? FileMode::Simulation : FileMode::Editing);
 
     return true;
 }

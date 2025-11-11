@@ -89,7 +89,7 @@ public:
     PanelItemFactory *panelFactory() const;
     PanelListModel *panelList() const;
 
-    bool loadFromJSON(const QJsonObject &obj);
+    bool loadFromJSON(const QJsonObject &obj, bool startSim);
     void saveToJSON(QJsonObject &obj) const;
     void clearAll();
 
