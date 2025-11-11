@@ -516,11 +516,6 @@ TileLocation CableGraphItem::sideB() const
     return mCablePath.last() + mCablePath.endDirection();
 }
 
-bool CableGraphItem::cableZeroLength() const
-{
-    return mCablePath.isZeroLength();
-}
-
 CircuitCable *CableGraphItem::cable() const
 {
     return mCable;

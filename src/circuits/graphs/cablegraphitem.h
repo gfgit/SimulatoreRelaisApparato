@@ -55,6 +55,11 @@ public:
         return mTiles.isEmpty();
     }
 
+    inline bool validNotZero() const
+    {
+        return !isEmpty() && !isZeroLength() && isComplete();
+    }
+
     inline TileLocation first() const { return mTiles.first(); }
     inline TileLocation last() const { return mTiles.last(); }
     inline TileLocation at(int i) const { return mTiles.at(i); }
@@ -140,7 +145,15 @@ public:
 
     CircuitCable *cable() const;
 
-    bool cableZeroLength() const;
+    inline bool cableZeroLength() const
+    {
+        return mCablePath.isZeroLength();
+    }
+
+    inline bool validNotZero() const
+    {
+        return mCablePath.validNotZero();
+    }
 
     TileLocation sideA() const;
 
