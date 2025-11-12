@@ -225,6 +225,19 @@ LeverPositionConditionSet LeverContactNode::conditionSet() const
 
 void LeverContactNode::setConditionSet(const LeverPositionConditionSet &newConditionSet)
 {
+    if(!mLeverIface)
+    {
+        mConditionSet = {};
+
+        // Notify settings changed
+        modeMgr()->setFileEdited();
+
+        // Refresh state based on new conditions
+        refreshContactState();
+
+        return;
+    }
+
     mConditionSet = newConditionSet;
 
     const auto posDesc = mLeverIface->positionDesc();
