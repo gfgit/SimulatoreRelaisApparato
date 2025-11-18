@@ -101,7 +101,9 @@ void TraintasticTurnoutNode::saveToJSON(QJsonObject &obj) const
     AbstractCircuitNode::saveToJSON(obj);
 
     obj["turnout"] = mTurnout ? mTurnout->name() : QString();
-    obj["spawn"] = mSpawn ? mSpawn->name() : QString();
+
+    if(mSpawn)
+        obj["spawn"] = mSpawn->name();
 }
 
 void TraintasticTurnoutNode::getObjectProperties(QVector<ObjectProperty> &result) const
