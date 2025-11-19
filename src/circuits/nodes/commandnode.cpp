@@ -201,6 +201,8 @@ bool CommandNode::performAction()
         int startAngle = leverIface->angle();
         int targetAngle = leverIface->angleForPosition(mTargetPosition);
 
+        qDebug() << "STEP: start" << startAngle << "target:" << targetAngle;
+
         if(leverIface->isPositionMiddle(mTargetPosition))
         {
             // Average prev/next angles
@@ -216,6 +218,7 @@ bool CommandNode::performAction()
                 next += 360;
 
             targetAngle = (prev + next) / 2.0;
+            qDebug() << "Fixed target:" << targetAngle;
         }
 
         int angleDiff = targetAngle - startAngle;
@@ -234,15 +237,29 @@ bool CommandNode::performAction()
             }
         }
 
+        qDebug() << "Angle Diff:" << angleDiff << "incr:" << increment;
+
         if(std::abs(angleDiff) > 45)
         {
             // Angle diff is big, animate position change to make it
             // more eye candy, so go to an intermediate step
-            const int stepAngle = startAngle + 30 * (increment ? +1 : -1);
+            int stepAngle = startAngle + 30 * (increment ? +1 : -1);
+
+            // Sanitize angle for later comparison
+            if(leverIface->canWarpAroundZero())
+            {
+                if(stepAngle < 0)
+                    stepAngle += 360;
+                else if(stepAngle >= 360)
+                    stepAngle -= 360;
+            }
+
             leverIface->setAngle(stepAngle);
 
             if(leverIface->angle() == stepAngle)
             {
+                qDebug() << "Success go next step";
+
                 // Success, schedule next step
                 mTimer.start(std::chrono::milliseconds(100), Qt::CoarseTimer, this);
                 return true;
