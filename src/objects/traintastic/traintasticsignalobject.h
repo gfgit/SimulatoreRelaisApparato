@@ -27,6 +27,7 @@
 
 class ScreenRelais;
 class AbstractRelais;
+class LightBulbObject;
 
 class TraintasticSignalObject : public AbstractSimulationObject
 {
@@ -66,6 +67,10 @@ public:
 
     void setBlinkRelaisAt(int i, AbstractRelais *s);
 
+    LightBulbObject *arrowLight() const;
+    void setArrowLight(LightBulbObject *newArrowLight);
+
+public slots:
     void sendStatusMsg();
 
 private slots:
@@ -74,6 +79,8 @@ private slots:
 
     void onBlinRelaisStateChanged(AbstractSimulationObject *s);
     void onBlinRelaisDestroyed(QObject *obj);
+
+    void onArrowLightDestroyed(QObject *obj);
 
 private:
     void setScreenPos(int idx, int glassPos);
@@ -88,6 +95,8 @@ private:
 
     AbstractRelais *mBlinkRelais[3] = {nullptr};
     bool mBlinkRelaisUp[3] = {false, false, false};
+
+    LightBulbObject *mArrowLight = nullptr;
 };
 
 #endif // TRAINTASTIC_SIGNAL_OBJECT_H

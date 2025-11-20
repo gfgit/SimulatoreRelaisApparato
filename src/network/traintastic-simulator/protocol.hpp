@@ -151,6 +151,7 @@ struct SignalSetState : Message
 
     LightState lights[3];
     float speed;
+    uint8_t squareLightOn = false;
 
     SignalSetState(uint16_t ch, uint16_t addr)
         : Message(OpCode::SignalSetState, sizeof(SignalSetState))
@@ -162,7 +163,7 @@ struct SignalSetState : Message
         lights[2] = {Color::Red, State::Off};
     }
 } ATTRIBUTE_PACKED;
-static_assert(sizeof(SignalSetState) == 16);
+static_assert(sizeof(SignalSetState) == 17);
 
 struct OwnSignal : Message
 {

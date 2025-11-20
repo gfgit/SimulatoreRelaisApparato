@@ -931,7 +931,16 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
         lay->addRow(StandardObjectTypes::tr("Blink Relais %1:").arg(i), blinkEdits[i]);
     }
 
-    auto updateSettings = [signal, channelSpin, addressSpin, screenEdits, blinkEdits]()
+    // Arrow Light
+    SimulationObjectLineEdit *arrowLightEdit = new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+    QObject::connect(arrowLightEdit, &SimulationObjectLineEdit::objectChanged,
+                     signal, [signal](AbstractSimulationObject *obj)
+                     {
+                         signal->setArrowLight(static_cast<LightBulbObject *>(obj));
+                     });
+    lay->addRow(StandardObjectTypes::tr("Arrow Light:"), arrowLightEdit);
+
+    auto updateSettings = [signal, channelSpin, addressSpin, screenEdits, blinkEdits, arrowLightEdit]()
     {
         channelSpin->setValue(signal->channel());
         addressSpin->setValue(signal->address());
@@ -941,6 +950,8 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
             screenEdits[i]->setObject(signal->getScreenRelaisAt(i));
             blinkEdits[i]->setObject(signal->getBlinkRelaisAt(i));
         }
+
+        arrowLightEdit->setObject(signal->arrowLight());
     };
 
     QObject::connect(signal, &TraintasticSignalObject::settingsChanged,

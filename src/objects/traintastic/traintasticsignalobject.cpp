@@ -25,6 +25,8 @@
 #include "../screen_relais/model/screenrelais.h"
 #include "../relais/model/abstractrelais.h"
 
+#include "../simple_activable/lightbulbobject.h"
+
 #include "../abstractsimulationobjectmodel.h"
 #include "../../views/modemanager.h"
 
@@ -87,6 +89,16 @@ bool TraintasticSignalObject::loadFromJSON(const QJsonObject &obj, LoadPhase pha
         setBlinkRelaisAt(2, nullptr);
     }
 
+    auto model3_ = model()->modeMgr()->modelForType(LightBulbObject::Type);
+    if(model3_)
+    {
+        setArrowLight(static_cast<LightBulbObject *>(model3_->getObjectByName(obj.value("arrow_light").toString())));
+    }
+    else
+    {
+        setArrowLight(nullptr);
+    }
+
     return true;
 }
 
@@ -104,6 +116,8 @@ void TraintasticSignalObject::saveToJSON(QJsonObject &obj) const
     obj["blink_0"] = mBlinkRelais[0] ? mBlinkRelais[0]->name() : QString();
     obj["blink_1"] = mBlinkRelais[1] ? mBlinkRelais[1]->name() : QString();
     obj["blink_2"] = mBlinkRelais[2] ? mBlinkRelais[2]->name() : QString();
+
+    obj["arrow_light"] = mArrowLight ? mArrowLight->name() : QString();
 }
 
 void TraintasticSignalObject::setChannel(int newChannel)
@@ -230,6 +244,8 @@ void TraintasticSignalObject::sendStatusMsg()
         }
     }
 
+    msg.squareLightOn = (mArrowLight && mArrowLight->state() == LightBulbObject::State::On);
+
     msg.speed = 0.0f;
     if(msg.lights[0].state != SimulatorProtocol::SignalSetState::Off)
     {
@@ -354,6 +370,19 @@ void TraintasticSignalObject::onBlinRelaisDestroyed(QObject *obj)
     }
 }
 
+void TraintasticSignalObject::onArrowLightDestroyed(QObject *obj)
+{
+    if(mArrowLight == obj)
+    {
+        disconnect(mArrowLight, &LightBulbObject::stateChanged,
+                   this, &TraintasticSignalObject::sendStatusMsg);
+        disconnect(mArrowLight, &LightBulbObject::destroyed,
+                   this, &TraintasticSignalObject::onArrowLightDestroyed);
+        mArrowLight = nullptr;
+        emit settingsChanged(this);
+    }
+}
+
 void TraintasticSignalObject::setScreenPos(int idx, int glassPos)
 {
     if(mCurScreenPos[idx] == glassPos)
@@ -370,4 +399,38 @@ void TraintasticSignalObject::setBlinkRelayState(int idx, bool up)
 
     mBlinkRelaisUp[idx] = up;
     sendStatusMsg();
+}
+
+LightBulbObject *TraintasticSignalObject::arrowLight() const
+{
+    return mArrowLight;
+}
+
+void TraintasticSignalObject::setArrowLight(LightBulbObject *newArrowLight)
+{
+    if(mArrowLight == newArrowLight)
+        return;
+
+
+    if(mArrowLight)
+    {
+        disconnect(mArrowLight, &LightBulbObject::stateChanged,
+                   this, &TraintasticSignalObject::sendStatusMsg);
+        disconnect(mArrowLight, &LightBulbObject::destroyed,
+                   this, &TraintasticSignalObject::onArrowLightDestroyed);
+    }
+
+    mArrowLight = newArrowLight;
+
+    if(mArrowLight)
+    {
+        connect(mArrowLight, &LightBulbObject::stateChanged,
+                this, &TraintasticSignalObject::sendStatusMsg);
+        connect(mArrowLight, &LightBulbObject::destroyed,
+                this, &TraintasticSignalObject::onArrowLightDestroyed);
+    }
+
+    sendStatusMsg();
+
+    emit settingsChanged(this);
 }
