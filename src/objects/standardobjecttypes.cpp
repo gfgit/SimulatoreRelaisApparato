@@ -910,9 +910,10 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
                          signal->setAddress(addressSpin->value());
                      });
 
-    SimulationObjectLineEdit *screenEdits[3] = {};
-    SimulationObjectLineEdit *blinkEdits[3] = {};
-    for(int i = 0; i < 3; i++)
+    SimulationObjectLineEdit *screenEdits[TraintasticSignalObject::NScreenRelays] = {};
+    SimulationObjectLineEdit *blinkEdits[TraintasticSignalObject::NBlinkRelays] = {};
+
+    for(int i = 0; i < TraintasticSignalObject::NScreenRelays; i++)
     {
         screenEdits[i] = new SimulationObjectLineEdit(mgr, {ScreenRelais::Type});
         QObject::connect(screenEdits[i], &SimulationObjectLineEdit::objectChanged,
@@ -940,14 +941,32 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
                      });
     lay->addRow(StandardObjectTypes::tr("Arrow Light:"), arrowLightEdit);
 
+    // Start signal
+    for (int i = TraintasticSignalObject::NScreenRelays; i < TraintasticSignalObject::NBlinkRelays; i++)
+    {
+        blinkEdits[i] = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
+        QObject::connect(blinkEdits[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setBlinkRelaisAt(i, static_cast<AbstractRelais *>(obj));
+                         });
+    }
+
+    lay->addRow(StandardObjectTypes::tr("Start signal (fake ON):"), blinkEdits[TraintasticSignalObject::StartSignalFakeOn]);
+    lay->addRow(StandardObjectTypes::tr("Start signal blinker:"), blinkEdits[TraintasticSignalObject::StartSignalBlinker]);
+
     auto updateSettings = [signal, channelSpin, addressSpin, screenEdits, blinkEdits, arrowLightEdit]()
     {
         channelSpin->setValue(signal->channel());
         addressSpin->setValue(signal->address());
 
-        for(int i = 0; i < 3; i++)
+        for(int i = 0; i < TraintasticSignalObject::NScreenRelays; i++)
         {
             screenEdits[i]->setObject(signal->getScreenRelaisAt(i));
+        }
+
+        for(int i = 0; i < TraintasticSignalObject::NBlinkRelays; i++)
+        {
             blinkEdits[i]->setObject(signal->getBlinkRelaisAt(i));
         }
 

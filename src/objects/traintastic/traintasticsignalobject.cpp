@@ -64,29 +64,37 @@ bool TraintasticSignalObject::loadFromJSON(const QJsonObject &obj, LoadPhase pha
     auto model_ = model()->modeMgr()->modelForType(ScreenRelais::Type);
     if(model_)
     {
-        setScreenRelaisAt(0, static_cast<ScreenRelais *>(model_->getObjectByName(obj.value("screen_0").toString())));
-        setScreenRelaisAt(1, static_cast<ScreenRelais *>(model_->getObjectByName(obj.value("screen_1").toString())));
-        setScreenRelaisAt(2, static_cast<ScreenRelais *>(model_->getObjectByName(obj.value("screen_2").toString())));
+        const QString fmt(QLatin1String("screen_%1"));
+        for(int i = 0; i < NScreenRelays; i++)
+        {
+            setScreenRelaisAt(i, static_cast<ScreenRelais *>(model_->getObjectByName(
+                                    obj.value(fmt.arg(i)).toString())));
+        }
     }
     else
     {
-        setScreenRelaisAt(0, nullptr);
-        setScreenRelaisAt(1, nullptr);
-        setScreenRelaisAt(2, nullptr);
+        for(int i = 0; i < NScreenRelays; i++)
+        {
+            setScreenRelaisAt(i, nullptr);
+        }
     }
 
     auto model2_ = model()->modeMgr()->modelForType(AbstractRelais::Type);
     if(model2_)
     {
-        setBlinkRelaisAt(0, static_cast<AbstractRelais *>(model2_->getObjectByName(obj.value("blink_0").toString())));
-        setBlinkRelaisAt(1, static_cast<AbstractRelais *>(model2_->getObjectByName(obj.value("blink_1").toString())));
-        setBlinkRelaisAt(2, static_cast<AbstractRelais *>(model2_->getObjectByName(obj.value("blink_2").toString())));
+        const QString fmt(QLatin1String("blink_%1"));
+        for(int i = 0; i < NBlinkRelays; i++)
+        {
+            setBlinkRelaisAt(i, static_cast<AbstractRelais *>(model2_->getObjectByName(
+                                    obj.value(fmt.arg(i)).toString())));
+        }
     }
     else
     {
-        setBlinkRelaisAt(0, nullptr);
-        setBlinkRelaisAt(1, nullptr);
-        setBlinkRelaisAt(2, nullptr);
+        for(int i = 0; i < NBlinkRelays; i++)
+        {
+            setBlinkRelaisAt(i, nullptr);
+        }
     }
 
     auto model3_ = model()->modeMgr()->modelForType(LightBulbObject::Type);
@@ -109,13 +117,17 @@ void TraintasticSignalObject::saveToJSON(QJsonObject &obj) const
     obj["channel"] = mChannel;
     obj["address"] = mAddress;
 
-    obj["screen_0"] = mScreenRelais[0] ? mScreenRelais[0]->name() : QString();
-    obj["screen_1"] = mScreenRelais[1] ? mScreenRelais[1]->name() : QString();
-    obj["screen_2"] = mScreenRelais[2] ? mScreenRelais[2]->name() : QString();
+    const QString fmt1(QLatin1String("screen_%1"));
+    for(int i = 0; i < NScreenRelays; i++)
+    {
+        obj[fmt1.arg(i)] = mScreenRelais[i] ? mScreenRelais[i]->name() : QString();
+    }
 
-    obj["blink_0"] = mBlinkRelais[0] ? mBlinkRelais[0]->name() : QString();
-    obj["blink_1"] = mBlinkRelais[1] ? mBlinkRelais[1]->name() : QString();
-    obj["blink_2"] = mBlinkRelais[2] ? mBlinkRelais[2]->name() : QString();
+    const QString fmt2(QLatin1String("blink_%1"));
+    for(int i = 0; i < NBlinkRelays; i++)
+    {
+        obj[fmt2.arg(i)] = mBlinkRelais[i] ? mBlinkRelais[i]->name() : QString();
+    }
 
     obj["arrow_light"] = mArrowLight ? mArrowLight->name() : QString();
 }
@@ -140,7 +152,7 @@ void TraintasticSignalObject::setAddress(int newAddress)
 
 void TraintasticSignalObject::setScreenRelaisAt(int i, ScreenRelais *s)
 {
-    assert(i >= 0 && i < 3);
+    assert(i >= 0 && i < NScreenRelays);
     if(mScreenRelais[i] == s)
         return;
 
@@ -170,7 +182,7 @@ void TraintasticSignalObject::setScreenRelaisAt(int i, ScreenRelais *s)
 
 void TraintasticSignalObject::setBlinkRelaisAt(int i, AbstractRelais *s)
 {
-    assert(i >= 0 && i < 3);
+    assert(i >= 0 && i < NBlinkRelays);
     if(mBlinkRelais[i] == s)
         return;
 
@@ -206,7 +218,7 @@ void TraintasticSignalObject::setBlinkRelaisAt(int i, AbstractRelais *s)
 void TraintasticSignalObject::sendStatusMsg()
 {
     SimulatorProtocol::SignalSetState msg(mChannel, mAddress);
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < NScreenRelays; i++)
     {
         msg.lights[i].color = SimulatorProtocol::SignalSetState::Red;
 
@@ -244,7 +256,17 @@ void TraintasticSignalObject::sendStatusMsg()
         }
     }
 
-    msg.squareLightOn = (mArrowLight && mArrowLight->state() == LightBulbObject::State::On);
+    msg.setArrowLightOn(mArrowLight && mArrowLight->state() == LightBulbObject::State::On);
+
+    auto startSignalState = SimulatorProtocol::SignalSetState::Off;
+    if(mBlinkRelaisUp[StartSignalFakeOn])
+    {
+        if(mBlinkRelaisUp[StartSignalBlinker])
+            startSignalState = SimulatorProtocol::SignalSetState::Blink;
+        else
+            startSignalState = SimulatorProtocol::SignalSetState::On;
+    }
+    msg.setStartSignalState(startSignalState);
 
     msg.speed = 0.0f;
     if(msg.lights[0].state != SimulatorProtocol::SignalSetState::Off)
@@ -322,7 +344,7 @@ void TraintasticSignalObject::sendStatusMsg()
 
 void TraintasticSignalObject::onScreenPosChanged(AbstractSimulationObject *s)
 {
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < NScreenRelays; i++)
     {
         if(mScreenRelais[i] != s)
             continue;
@@ -334,7 +356,7 @@ void TraintasticSignalObject::onScreenPosChanged(AbstractSimulationObject *s)
 
 void TraintasticSignalObject::onScreenDestroyed(QObject *obj)
 {
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < NScreenRelays; i++)
     {
         if(mScreenRelais[i] == obj)
         {
@@ -347,7 +369,7 @@ void TraintasticSignalObject::onScreenDestroyed(QObject *obj)
 
 void TraintasticSignalObject::onBlinRelaisStateChanged(AbstractSimulationObject *s)
 {
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < NBlinkRelays; i++)
     {
         if(mBlinkRelais[i] != s)
             continue;
@@ -358,7 +380,7 @@ void TraintasticSignalObject::onBlinRelaisStateChanged(AbstractSimulationObject 
 
 void TraintasticSignalObject::onBlinRelaisDestroyed(QObject *obj)
 {
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < NBlinkRelays; i++)
     {
         if(mBlinkRelais[i] == obj)
         {

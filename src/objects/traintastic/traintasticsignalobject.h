@@ -36,6 +36,24 @@ public:
     static constexpr int InvalidChannel = -1;
     static constexpr int InvalidAddress = -1;
 
+    enum ScreenRelays
+    {
+        FirstScreen = 0,
+        SecondScreen,
+        ThirdScreen,
+        NScreenRelays
+    };
+
+    enum BlinkRelays
+    {
+        FirstLight = 0,
+        SecondLight,
+        ThirdLight,
+        StartSignalFakeOn,
+        StartSignalBlinker,
+        NBlinkRelays
+    };
+
     explicit TraintasticSignalObject(AbstractSimulationObjectModel *m);
     ~TraintasticSignalObject();
 
@@ -53,7 +71,7 @@ public:
 
     ScreenRelais *getScreenRelaisAt(int i) const
     {
-        assert(i >= 0 && i < 3);
+        assert(i >= 0 && i < NScreenRelays);
         return mScreenRelais[i];
     }
 
@@ -61,7 +79,7 @@ public:
 
     AbstractRelais *getBlinkRelaisAt(int i) const
     {
-        assert(i >= 0 && i < 3);
+        assert(i >= 0 && i < NBlinkRelays);
         return mBlinkRelais[i];
     }
 
@@ -90,11 +108,11 @@ private:
     int mChannel = 0;
     int mAddress = InvalidAddress;
 
-    ScreenRelais *mScreenRelais[3] = {nullptr};
-    int mCurScreenPos[3] = {};
+    ScreenRelais *mScreenRelais[NScreenRelays] = {nullptr};
+    int mCurScreenPos[NScreenRelays] = {};
 
-    AbstractRelais *mBlinkRelais[3] = {nullptr};
-    bool mBlinkRelaisUp[3] = {false, false, false};
+    AbstractRelais *mBlinkRelais[NBlinkRelays] = {nullptr};
+    bool mBlinkRelaisUp[NBlinkRelays] = {false, false, false};
 
     LightBulbObject *mArrowLight = nullptr;
 };

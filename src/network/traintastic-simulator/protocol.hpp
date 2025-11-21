@@ -140,8 +140,11 @@ struct SignalSetState : Message
         Off = 0,
         On,
         Blink,
-        BlinkReverse
+        BlinkReverse,
     };
+
+    static constexpr uint8_t StateMask = uint8_t(State::BlinkReverse);
+    static constexpr uint8_t ArrowLight = 0x04;
 
     struct LightState
     {
@@ -150,8 +153,23 @@ struct SignalSetState : Message
     };
 
     LightState lights[3];
-    float speed;
-    uint8_t squareLightOn = false;
+    float speed = 0.0;
+    uint8_t startSignalStateAndArrow = 0;
+
+    inline State getStartSignalState() const { return State(startSignalStateAndArrow & StateMask); }
+    inline void setStartSignalState(State s)
+    {
+        startSignalStateAndArrow = (startSignalStateAndArrow & ~StateMask) | uint8_t(s);
+    }
+
+    inline bool isArrowLightOn() const { return (startSignalStateAndArrow & ArrowLight) == ArrowLight; }
+    inline void setArrowLightOn(bool on)
+    {
+        if(on)
+            startSignalStateAndArrow |= ArrowLight;
+        else
+            startSignalStateAndArrow &= ~ArrowLight;
+    }
 
     SignalSetState(uint16_t ch, uint16_t addr)
         : Message(OpCode::SignalSetState, sizeof(SignalSetState))
