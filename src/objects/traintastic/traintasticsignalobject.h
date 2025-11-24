@@ -66,7 +66,7 @@ public:
     {
         LightBulbObject *light = nullptr;
         char letter = ' ';
-    }
+    };
 
     explicit TraintasticSignalObject(AbstractSimulationObjectModel *m);
     ~TraintasticSignalObject();
@@ -142,5 +142,11 @@ private:
 
     QVector<DirectionEntry> mDirectionLights;
 };
+
+inline bool operator==(const TraintasticSignalObject::DirectionEntry& lhs,
+                       const TraintasticSignalObject::DirectionEntry& rhs)
+{
+    return lhs.light == rhs.light && lhs.letter == rhs.letter;
+}
 
 #endif // TRAINTASTIC_SIGNAL_OBJECT_H

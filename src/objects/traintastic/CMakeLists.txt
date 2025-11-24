@@ -1,5 +1,7 @@
 # src/objects/traintastic
 
+add_subdirectory(edit)
+
 set(SIMULATORE_RELAIS_SOURCES
 
     objects/traintastic/traintasticsensorobj.cpp

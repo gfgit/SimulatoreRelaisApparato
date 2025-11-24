@@ -78,6 +78,8 @@
 
 #include "simulationobjectoptionswidget.h"
 #include "simulationobjectlineedit.h"
+#include "traintastic/edit/signalindicatorlistview.h"
+
 #include <QFormLayout>
 
 #include <QCheckBox>
@@ -940,7 +942,8 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
         QObject::connect(auxLights[i], &SimulationObjectLineEdit::objectChanged,
                          signal, [signal, i](AbstractSimulationObject *obj)
                          {
-                             signal->setAuxLight(static_cast<LightBulbObject *>(obj), i);
+                             signal->setAuxLight(static_cast<LightBulbObject *>(obj),
+                                                 TraintasticSignalObject::AuxLights(i));
                          });
     }
 
@@ -962,7 +965,18 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
     lay->addRow(StandardObjectTypes::tr("Advance signal (fake ON):"), blinkEdits[TraintasticSignalObject::AdvanceSignalFakeOn]);
     lay->addRow(StandardObjectTypes::tr("Advance signal blinker:"), blinkEdits[TraintasticSignalObject::AdvanceSignalBlinker]);
 
-    auto updateSettings = [signal, channelSpin, addressSpin, screenEdits, blinkEdits, arrowLightEdit]()
+    // Direction Indicator Lights
+    SignalIndicatorListView *directionLightsView = new SignalIndicatorListView;
+    lay->addRow(directionLightsView);
+
+    QObject::connect(directionLightsView, &SignalIndicatorListView::needsSave,
+                     signal, [signal, directionLightsView]()
+    {
+        directionLightsView->saveTo(signal);
+    });
+
+    auto updateSettings = [signal, channelSpin, addressSpin,
+            screenEdits, blinkEdits, auxLights, directionLightsView]()
     {
         channelSpin->setValue(signal->channel());
         addressSpin->setValue(signal->address());
@@ -977,7 +991,12 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
             blinkEdits[i]->setObject(signal->getBlinkRelaisAt(i));
         }
 
-        arrowLightEdit->setObject(signal->auxLight());
+        for(int i = 0; i < TraintasticSignalObject::AuxLights::NAuxLights; i++)
+        {
+            auxLights[i]->setObject(signal->auxLight(TraintasticSignalObject::AuxLights(i)));
+        }
+
+        directionLightsView->loadFrom(signal);
     };
 
     QObject::connect(signal, &TraintasticSignalObject::settingsChanged,

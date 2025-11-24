@@ -1,5 +1,5 @@
 /**
- * src/panels/edit/lightrectlightsview.cpp
+ * src/objects/traintastic/edit/signalindicatorlistview.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,19 +20,17 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "lightrectlightsview.h"
+#include "signalindicatorlistview.h"
 
-#include "lightrectlightsmodel.h"
+#include "signalindicatorlistmodel.h"
 
-#include "../../objects/simulationobjectlineedit.h"
-#include "../../objects/simple_activable/lightbulbobject.h"
+#include "../../../objects/simulationobjectlineedit.h"
+#include "../../../objects/simple_activable/lightbulbobject.h"
+#include "../../../objects/traintastic/traintasticsignalobject.h"
 
-#include "../../views/viewmanager.h"
+#include "../../../views/viewmanager.h"
 
-#include "../../utils/colorselectionwidget.h"
-
-#include "../graphs/lightrectitem.h"
-
+#include <QLineEdit>
 #include <QTableView>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -54,8 +52,9 @@ public:
                                                  {LightBulbObject::Type});
         lay->addRow(tr("Light:"), lightEdit);
 
-        colorEdit = new ColorSelectionWidget;
-        lay->addRow(tr("Color:"), colorEdit);
+        letterEdit = new QLineEdit;
+        letterEdit->setMaxLength(1);
+        lay->addRow(tr("Letter:"), letterEdit);
 
         QDialogButtonBox *box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
                                                      Qt::Horizontal);
@@ -64,15 +63,20 @@ public:
         lay->addRow(box);
     }
 
-    void setEntry(LightBulbObject *obj, const QColor &color)
+    void setEntry(LightBulbObject *obj, const char letter)
     {
         lightEdit->setObject(obj);
-        colorEdit->setColor(color);
+        if(letter == ' ')
+            letterEdit->setText(QString());
+        else
+            letterEdit->setText(QString::fromLatin1(&letter, 1));
     }
 
-    QColor getColor() const
+    char getLetter() const
     {
-        return colorEdit->color();
+        if(letterEdit->text().isEmpty())
+            return ' ';
+        return letterEdit->text().at(0).toLatin1();
     }
 
     LightBulbObject *getLight() const
@@ -82,17 +86,17 @@ public:
 
 private:
     SimulationObjectLineEdit *lightEdit;
-    ColorSelectionWidget *colorEdit;
+    QLineEdit *letterEdit;
 };
 
-LightRectLightsView::LightRectLightsView(QWidget *parent)
+SignalIndicatorListView::SignalIndicatorListView(QWidget *parent)
     : QWidget{parent}
 {
     QHBoxLayout *lay = new QHBoxLayout(this);
 
-    mModel = new LightRectLightsModel(this);
-    connect(mModel, &LightRectLightsModel::needsSave,
-            this, &LightRectLightsView::needsSave);
+    mModel = new SignalIndicatorListModel(this);
+    connect(mModel, &SignalIndicatorListModel::needsSave,
+            this, &SignalIndicatorListView::needsSave);
 
     mView = new QTableView;
     mView->setSelectionBehavior(QTableView::SelectRows);
@@ -116,11 +120,11 @@ LightRectLightsView::LightRectLightsView(QWidget *parent)
     butLay->addWidget(mDownLightBut);
 
     connect(mAddLightBut, &QPushButton::clicked,
-            this, &LightRectLightsView::onAdd);
+            this, &SignalIndicatorListView::onAdd);
     connect(mRemLightBut, &QPushButton::clicked,
-            this, &LightRectLightsView::onRemove);
+            this, &SignalIndicatorListView::onRemove);
     connect(mEditLightBut, &QPushButton::clicked,
-            this, &LightRectLightsView::onEdit);
+            this, &SignalIndicatorListView::onEdit);
     connect(mUpLightBut, &QPushButton::clicked,
             this, [this]()
     {
@@ -132,33 +136,34 @@ LightRectLightsView::LightRectLightsView(QWidget *parent)
         onMove(false);
     });
     connect(mView, &QTableView::activated,
-            this, &LightRectLightsView::editIndex);
+            this, &SignalIndicatorListView::editIndex);
 }
 
-void LightRectLightsView::loadFrom(LightRectItem *item)
+void SignalIndicatorListView::loadFrom(TraintasticSignalObject *item)
 {
-    QVector<LightRectLightsModel::LightEntry> entries;
-    entries.reserve(item->lights().size());
-    for(const auto& entry : item->lights())
-        entries.append({entry.light, entry.color});
+    const auto dirLights = item->directionLights();
+    QVector<SignalIndicatorListModel::LightEntry> entries;
+    entries.reserve(dirLights.size());
+    for(const auto& entry : dirLights)
+        entries.append({entry.light, entry.letter});
     mModel->setItems(entries);
 }
 
-void LightRectLightsView::saveTo(LightRectItem *item)
+void SignalIndicatorListView::saveTo(TraintasticSignalObject *item)
 {
     if(!mModel->isChanged())
         return;
 
-    QVector<LightRectItem::LightEntry> entries;
+    QVector<TraintasticSignalObject::DirectionEntry> entries;
     entries.reserve(mModel->items().size());
     for(const auto& entry : mModel->items())
-        entries.append({entry.light, entry.color});
-    item->setLights(entries);
+        entries.append({entry.light, entry.letter});
+    item->setDirectionLights(entries);
 
     mModel->resetChanged();
 }
 
-void LightRectLightsView::onAdd()
+void SignalIndicatorListView::onAdd()
 {
     QPointer<SignalIndicatorEntryDialog> dlg = new SignalIndicatorEntryDialog(this);
 
@@ -167,7 +172,7 @@ void LightRectLightsView::onAdd()
 
     if(dlg->exec() == QDialog::Accepted && dlg && dlg->getLight())
     {
-        LightRectLightsModel::LightEntry entry{dlg->getLight(), dlg->getColor()};
+        SignalIndicatorListModel::LightEntry entry{dlg->getLight(), dlg->getLetter()};
 
         // Insert after current row or as last row
         const QModelIndex idx = mView->currentIndex();
@@ -178,7 +183,7 @@ void LightRectLightsView::onAdd()
     delete dlg;
 }
 
-void LightRectLightsView::onRemove()
+void SignalIndicatorListView::onRemove()
 {
     const QModelIndex idx = mView->currentIndex();
     if(!idx.isValid())
@@ -187,32 +192,32 @@ void LightRectLightsView::onRemove()
     mModel->removeEntryAt(idx.row());
 }
 
-void LightRectLightsView::onEdit()
+void SignalIndicatorListView::onEdit()
 {
     const QModelIndex idx = mView->currentIndex();
     editIndex(idx);
 }
 
-void LightRectLightsView::editIndex(const QModelIndex &idx)
+void SignalIndicatorListView::editIndex(const QModelIndex &idx)
 {
     if(!idx.isValid())
         return;
 
     QPointer<SignalIndicatorEntryDialog> dlg = new SignalIndicatorEntryDialog(this);
-    LightRectLightsModel::LightEntry entry = mModel->getEntryAt(idx.row());
-    dlg->setEntry(entry.light, entry.color);
+    SignalIndicatorListModel::LightEntry entry = mModel->getEntryAt(idx.row());
+    dlg->setEntry(entry.light, entry.letter);
 
     if(dlg->exec() == QDialog::Accepted && dlg && dlg->getLight())
     {
         entry.light = dlg->getLight();
-        entry.color = dlg->getColor();
+        entry.letter = dlg->getLetter();
         mModel->setEntryAt(idx.row(), entry);
     }
 
     delete dlg;
 }
 
-void LightRectLightsView::onMove(bool up)
+void SignalIndicatorListView::onMove(bool up)
 {
     const QModelIndex idx = mView->currentIndex();
     if(!idx.isValid())

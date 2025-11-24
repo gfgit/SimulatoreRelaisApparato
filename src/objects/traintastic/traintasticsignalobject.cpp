@@ -115,7 +115,7 @@ bool TraintasticSignalObject::loadFromJSON(const QJsonObject &obj, LoadPhase pha
         setAuxLight(nullptr, AuxLights::RappelLight100);
     }
 
-    const QJsonArray directionsArr = obj.value("directions");
+    const QJsonArray directionsArr = obj.value("directions").toArray();
     if(lightsModel && !directionsArr.isEmpty())
     {
         QVector<DirectionEntry> newEntries;
@@ -307,22 +307,22 @@ void TraintasticSignalObject::sendStatusMsg()
 
     msg.setArrowLightOn(mArrowLight && mArrowLight->state() == LightBulbObject::State::On);
 
-    auto startSignalState = SimulatorProtocol::SignalSetState::Off;
+    auto advanceSignalState = SimulatorProtocol::SignalSetState::Off;
     if(mBlinkRelaisUp[AdvanceSignalFakeOn])
     {
         if(mBlinkRelaisUp[AdvanceSignalBlinker])
-            startSignalState = SimulatorProtocol::SignalSetState::Blink;
+            advanceSignalState = SimulatorProtocol::SignalSetState::Blink;
         else
-            startSignalState = SimulatorProtocol::SignalSetState::On;
+            advanceSignalState = SimulatorProtocol::SignalSetState::On;
     }
-    msg.setStartSignalState(startSignalState);
+    msg.setAdvanceSignalState(advanceSignalState);
 
     if(mRappelLight100 && mRappelLight100->state() == LightBulbObject::State::On)
-        msg.rappelState == SimulatorProtocol::SignalSetState::TwoLines_100;
+        msg.rappelState = SimulatorProtocol::SignalSetState::TwoLines_100;
     else if(mRappelLight60 && mRappelLight60->state() == LightBulbObject::State::On)
-        msg.rappelState == SimulatorProtocol::SignalSetState::OneLine_60;
+        msg.rappelState = SimulatorProtocol::SignalSetState::OneLine_60;
     else
-        msg.rappelState == SimulatorProtocol::SignalSetState::Rappel_Off;
+        msg.rappelState = SimulatorProtocol::SignalSetState::Rappel_Off;
 
     msg.speed = 0.0f;
     if(msg.lights[0].state != SimulatorProtocol::SignalSetState::Off)
@@ -589,10 +589,13 @@ void TraintasticSignalObject::setAuxLight(LightBulbObject *newArrowLight, AuxLig
     {
     case AuxLights::ArrowLight:
         light = &mArrowLight;
+        break;
     case AuxLights::RappelLight60:
         light = &mRappelLight60;
+        break;
     case AuxLights::RappelLight100:
         light = &mRappelLight100;
+        break;
     default:
         return;
     }
