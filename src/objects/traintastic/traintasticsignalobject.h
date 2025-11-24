@@ -49,10 +49,24 @@ public:
         FirstLight = 0,
         SecondLight,
         ThirdLight,
-        StartSignalFakeOn,
-        StartSignalBlinker,
+        AdvanceSignalFakeOn,
+        AdvanceSignalBlinker,
         NBlinkRelays
     };
+
+    enum AuxLights
+    {
+        ArrowLight = 0,
+        RappelLight60,
+        RappelLight100,
+        NAuxLights
+    };
+
+    struct DirectionEntry
+    {
+        LightBulbObject *light = nullptr;
+        char letter = ' ';
+    }
 
     explicit TraintasticSignalObject(AbstractSimulationObjectModel *m);
     ~TraintasticSignalObject();
@@ -85,8 +99,11 @@ public:
 
     void setBlinkRelaisAt(int i, AbstractRelais *s);
 
-    LightBulbObject *arrowLight() const;
-    void setArrowLight(LightBulbObject *newArrowLight);
+    LightBulbObject *auxLight(AuxLights l) const;
+    void setAuxLight(LightBulbObject *newArrowLight, AuxLights l);
+
+    QVector<DirectionEntry> directionLights() const;
+    void setDirectionLights(const QVector<DirectionEntry> &newDirectionLights);
 
 public slots:
     void sendStatusMsg();
@@ -98,7 +115,7 @@ private slots:
     void onBlinRelaisStateChanged(AbstractSimulationObject *s);
     void onBlinRelaisDestroyed(QObject *obj);
 
-    void onArrowLightDestroyed(QObject *obj);
+    void onAuxLightDestroyed(QObject *obj);
 
 private:
     void setScreenPos(int idx, int glassPos);
@@ -108,13 +125,22 @@ private:
     int mChannel = 0;
     int mAddress = InvalidAddress;
 
+    // Screens
     ScreenRelais *mScreenRelais[NScreenRelays] = {nullptr};
     int mCurScreenPos[NScreenRelays] = {};
 
+    // Screens blinker and Advance Signal
     AbstractRelais *mBlinkRelais[NBlinkRelays] = {nullptr};
     bool mBlinkRelaisUp[NBlinkRelays] = {false, false, false};
 
+    // Square arrow
     LightBulbObject *mArrowLight = nullptr;
+
+    // Rappel
+    LightBulbObject *mRappelLight60 = nullptr;
+    LightBulbObject *mRappelLight100 = nullptr;
+
+    QVector<DirectionEntry> mDirectionLights;
 };
 
 #endif // TRAINTASTIC_SIGNAL_OBJECT_H

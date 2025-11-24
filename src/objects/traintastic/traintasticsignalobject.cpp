@@ -34,6 +34,7 @@
 #include "../../network/traintastic-simulator/protocol.hpp"
 
 #include <QJsonObject>
+#include <QJsonArray>
 
 TraintasticSignalObject::TraintasticSignalObject(AbstractSimulationObjectModel *m)
     : AbstractSimulationObject{m}
@@ -97,14 +98,47 @@ bool TraintasticSignalObject::loadFromJSON(const QJsonObject &obj, LoadPhase pha
         }
     }
 
-    auto model3_ = model()->modeMgr()->modelForType(LightBulbObject::Type);
-    if(model3_)
+    auto lightsModel = model()->modeMgr()->modelForType(LightBulbObject::Type);
+    if(lightsModel)
     {
-        setArrowLight(static_cast<LightBulbObject *>(model3_->getObjectByName(obj.value("arrow_light").toString())));
+        setAuxLight(static_cast<LightBulbObject *>(lightsModel->getObjectByName(obj.value("arrow_light").toString())),
+                    AuxLights::ArrowLight);
+        setAuxLight(static_cast<LightBulbObject *>(lightsModel->getObjectByName(obj.value("rappel_60").toString())),
+                    AuxLights::RappelLight60);
+        setAuxLight(static_cast<LightBulbObject *>(lightsModel->getObjectByName(obj.value("rappel_100").toString())),
+                    AuxLights::RappelLight100);
     }
     else
     {
-        setArrowLight(nullptr);
+        setAuxLight(nullptr, AuxLights::ArrowLight);
+        setAuxLight(nullptr, AuxLights::RappelLight60);
+        setAuxLight(nullptr, AuxLights::RappelLight100);
+    }
+
+    const QJsonArray directionsArr = obj.value("directions");
+    if(lightsModel && !directionsArr.isEmpty())
+    {
+        QVector<DirectionEntry> newEntries;
+        newEntries.reserve(directionsArr.size());
+
+        for(const QJsonValue& v : directionsArr)
+        {
+            QJsonObject entryObj = v.toObject();
+            DirectionEntry entry;
+            entry.light = static_cast<LightBulbObject *>(lightsModel->getObjectByName(entryObj.value("light").toString()));
+            const QString str = entryObj.value("letter").toString();
+
+            if(!entry.light || str.isEmpty())
+                continue;
+            entry.letter = str.at(0).toLatin1();
+            newEntries.append(entry);
+        }
+
+        setDirectionLights(newEntries);
+    }
+    else
+    {
+        setDirectionLights({});
     }
 
     return true;
@@ -130,6 +164,21 @@ void TraintasticSignalObject::saveToJSON(QJsonObject &obj) const
     }
 
     obj["arrow_light"] = mArrowLight ? mArrowLight->name() : QString();
+    obj["rappel_60"] = mRappelLight60 ? mRappelLight60->name() : QString();
+    obj["rappel_100"] = mRappelLight100 ? mRappelLight100->name() : QString();
+
+    QJsonArray directionsArr;
+    for(const DirectionEntry& entry : mDirectionLights)
+    {
+        if(!entry.light)
+            continue;
+
+        QJsonObject entryObj;
+        entryObj["light"] = entry.light->name();
+        entryObj["letter"] = entry.letter;
+        directionsArr.append(entryObj);
+    }
+    obj["directions"] = directionsArr;
 }
 
 void TraintasticSignalObject::setChannel(int newChannel)
@@ -259,14 +308,21 @@ void TraintasticSignalObject::sendStatusMsg()
     msg.setArrowLightOn(mArrowLight && mArrowLight->state() == LightBulbObject::State::On);
 
     auto startSignalState = SimulatorProtocol::SignalSetState::Off;
-    if(mBlinkRelaisUp[StartSignalFakeOn])
+    if(mBlinkRelaisUp[AdvanceSignalFakeOn])
     {
-        if(mBlinkRelaisUp[StartSignalBlinker])
+        if(mBlinkRelaisUp[AdvanceSignalBlinker])
             startSignalState = SimulatorProtocol::SignalSetState::Blink;
         else
             startSignalState = SimulatorProtocol::SignalSetState::On;
     }
     msg.setStartSignalState(startSignalState);
+
+    if(mRappelLight100 && mRappelLight100->state() == LightBulbObject::State::On)
+        msg.rappelState == SimulatorProtocol::SignalSetState::TwoLines_100;
+    else if(mRappelLight60 && mRappelLight60->state() == LightBulbObject::State::On)
+        msg.rappelState == SimulatorProtocol::SignalSetState::OneLine_60;
+    else
+        msg.rappelState == SimulatorProtocol::SignalSetState::Rappel_Off;
 
     msg.speed = 0.0f;
     if(msg.lights[0].state != SimulatorProtocol::SignalSetState::Off)
@@ -294,8 +350,13 @@ void TraintasticSignalObject::sendStatusMsg()
             // Red + Green or
             // Red + Yellow + Green
 
-            // Deviata
-            msg.speed = 30.0f; // TODO: rappel or blink of previous signal
+            // Deviata, use Rappel to distinguish
+            // TODO: use prev signal when no rappel
+            msg.speed = 30.0f;
+            if(mRappelLight100 && mRappelLight100->state() == LightBulbObject::State::On)
+                msg.speed = 100.0f;
+            else if(mRappelLight60 && mRappelLight60->state() == LightBulbObject::State::On)
+                msg.speed = 60.0f;
             break;
         }
 
@@ -334,6 +395,17 @@ void TraintasticSignalObject::sendStatusMsg()
             break;
         }
         default:
+            break;
+        }
+    }
+
+    // Direction indicator
+    msg.directionIndication = ' '; // Off
+    for(const DirectionEntry& entry : mDirectionLights)
+    {
+        if(entry.light->state() == LightBulbObject::State::On)
+        {
+            msg.directionIndication = entry.letter;
             break;
         }
     }
@@ -392,17 +464,34 @@ void TraintasticSignalObject::onBlinRelaisDestroyed(QObject *obj)
     }
 }
 
-void TraintasticSignalObject::onArrowLightDestroyed(QObject *obj)
+void TraintasticSignalObject::onAuxLightDestroyed(QObject *obj)
 {
-    if(mArrowLight == obj)
+    for(LightBulbObject *light : {mArrowLight, mRappelLight60, mRappelLight100})
     {
-        disconnect(mArrowLight, &LightBulbObject::stateChanged,
+        if(light != obj)
+            continue;
+
+        disconnect(light, &LightBulbObject::stateChanged,
                    this, &TraintasticSignalObject::sendStatusMsg);
-        disconnect(mArrowLight, &LightBulbObject::destroyed,
-                   this, &TraintasticSignalObject::onArrowLightDestroyed);
-        mArrowLight = nullptr;
-        emit settingsChanged(this);
+        disconnect(light, &LightBulbObject::destroyed,
+                   this, &TraintasticSignalObject::onAuxLightDestroyed);
+        light = nullptr;
     }
+
+    for(int i = 0; i < mDirectionLights.size(); i++)
+    {
+        if(mDirectionLights.at(i).light != obj)
+            continue;
+
+        disconnect(mDirectionLights.at(i).light, &LightBulbObject::stateChanged,
+                   this, &TraintasticSignalObject::sendStatusMsg);
+        disconnect(mDirectionLights.at(i).light, &LightBulbObject::destroyed,
+                   this, &TraintasticSignalObject::onAuxLightDestroyed);
+
+        mDirectionLights.removeAt(i);
+    }
+
+    emit settingsChanged(this);
 }
 
 void TraintasticSignalObject::setScreenPos(int idx, int glassPos)
@@ -423,33 +512,110 @@ void TraintasticSignalObject::setBlinkRelayState(int idx, bool up)
     sendStatusMsg();
 }
 
-LightBulbObject *TraintasticSignalObject::arrowLight() const
+QVector<TraintasticSignalObject::DirectionEntry> TraintasticSignalObject::directionLights() const
 {
-    return mArrowLight;
+    return mDirectionLights;
 }
 
-void TraintasticSignalObject::setArrowLight(LightBulbObject *newArrowLight)
+void TraintasticSignalObject::setDirectionLights(const QVector<DirectionEntry> &newDirectionLights)
 {
-    if(mArrowLight == newArrowLight)
+    if(mDirectionLights == newDirectionLights)
         return;
 
-
-    if(mArrowLight)
+    for(int i = 0; i < mDirectionLights.size(); i++)
     {
-        disconnect(mArrowLight, &LightBulbObject::stateChanged,
+        disconnect(mDirectionLights.at(i).light, &LightBulbObject::stateChanged,
                    this, &TraintasticSignalObject::sendStatusMsg);
-        disconnect(mArrowLight, &LightBulbObject::destroyed,
-                   this, &TraintasticSignalObject::onArrowLightDestroyed);
+        disconnect(mDirectionLights.at(i).light, &LightBulbObject::destroyed,
+                   this, &TraintasticSignalObject::onAuxLightDestroyed);
     }
 
-    mArrowLight = newArrowLight;
-
-    if(mArrowLight)
+    mDirectionLights.clear();
+    mDirectionLights.reserve(newDirectionLights.size());
+    for(const DirectionEntry& entry : newDirectionLights)
     {
-        connect(mArrowLight, &LightBulbObject::stateChanged,
+        if(!entry.light)
+            continue;
+
+        QChar ch = QChar::fromLatin1(entry.letter);
+        if(!ch.isLetterOrNumber())
+            continue;
+
+        bool duplicate = false;
+        for(const DirectionEntry& other : mDirectionLights)
+        {
+            if(other.letter == entry.letter || other.light == entry.light)
+            {
+                duplicate = true;
+                break;
+            }
+        }
+
+        if(duplicate)
+            continue;
+
+        connect(entry.light, &LightBulbObject::stateChanged,
                 this, &TraintasticSignalObject::sendStatusMsg);
-        connect(mArrowLight, &LightBulbObject::destroyed,
-                this, &TraintasticSignalObject::onArrowLightDestroyed);
+        connect(entry.light, &LightBulbObject::destroyed,
+                this, &TraintasticSignalObject::onAuxLightDestroyed);
+
+        mDirectionLights.append(entry);
+    }
+
+    emit settingsChanged(this);
+}
+
+LightBulbObject *TraintasticSignalObject::auxLight(AuxLights l) const
+{
+    switch (l)
+    {
+    case AuxLights::ArrowLight:
+        return mArrowLight;
+    case AuxLights::RappelLight60:
+        return mRappelLight60;
+    case AuxLights::RappelLight100:
+        return mRappelLight100;
+    default:
+        break;
+    }
+
+    return nullptr;
+}
+
+void TraintasticSignalObject::setAuxLight(LightBulbObject *newArrowLight, AuxLights l)
+{
+    LightBulbObject **light = nullptr;
+    switch (l)
+    {
+    case AuxLights::ArrowLight:
+        light = &mArrowLight;
+    case AuxLights::RappelLight60:
+        light = &mRappelLight60;
+    case AuxLights::RappelLight100:
+        light = &mRappelLight100;
+    default:
+        return;
+    }
+
+    if(*light == newArrowLight)
+        return;
+
+    if(*light)
+    {
+        disconnect(*light, &LightBulbObject::stateChanged,
+                   this, &TraintasticSignalObject::sendStatusMsg);
+        disconnect(*light, &LightBulbObject::destroyed,
+                   this, &TraintasticSignalObject::onAuxLightDestroyed);
+    }
+
+    *light = newArrowLight;
+
+    if(*light)
+    {
+        connect(*light, &LightBulbObject::stateChanged,
+                this, &TraintasticSignalObject::sendStatusMsg);
+        connect(*light, &LightBulbObject::destroyed,
+                this, &TraintasticSignalObject::onAuxLightDestroyed);
     }
 
     sendStatusMsg();

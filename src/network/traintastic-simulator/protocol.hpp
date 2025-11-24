@@ -143,6 +143,13 @@ struct SignalSetState : Message
         BlinkReverse,
     };
 
+    enum RappelState
+    {
+        Rappel_Off = 0,
+        OneLine_60,
+        TwoLines_100
+    };
+
     static constexpr uint8_t StateMask = uint8_t(State::BlinkReverse);
     static constexpr uint8_t ArrowLight = 0x04;
 
@@ -154,21 +161,23 @@ struct SignalSetState : Message
 
     LightState lights[3];
     float speed = 0.0;
-    uint8_t startSignalStateAndArrow = 0;
+    uint8_t advanceSignalStateAndArrow = 0;
+    uint8_t rappelState = RappelState::Rappel_Off;
+    char directionIndication = ' ';
 
-    inline State getStartSignalState() const { return State(startSignalStateAndArrow & StateMask); }
-    inline void setStartSignalState(State s)
+    inline State getAdvanceSignalState() const { return State(advanceSignalStateAndArrow & StateMask); }
+    inline void setAdvanceSignalState(State s)
     {
-        startSignalStateAndArrow = (startSignalStateAndArrow & ~StateMask) | uint8_t(s);
+        advanceSignalStateAndArrow = (advanceSignalStateAndArrow & ~StateMask) | uint8_t(s);
     }
 
-    inline bool isArrowLightOn() const { return (startSignalStateAndArrow & ArrowLight) == ArrowLight; }
+    inline bool isArrowLightOn() const { return (advanceSignalStateAndArrow & ArrowLight) == ArrowLight; }
     inline void setArrowLightOn(bool on)
     {
         if(on)
-            startSignalStateAndArrow |= ArrowLight;
+            advanceSignalStateAndArrow |= ArrowLight;
         else
-            startSignalStateAndArrow &= ~ArrowLight;
+            advanceSignalStateAndArrow &= ~ArrowLight;
     }
 
     SignalSetState(uint16_t ch, uint16_t addr)
@@ -181,7 +190,7 @@ struct SignalSetState : Message
         lights[2] = {Color::Red, State::Off};
     }
 } ATTRIBUTE_PACKED;
-static_assert(sizeof(SignalSetState) == 17);
+static_assert(sizeof(SignalSetState) == 19);
 
 struct OwnSignal : Message
 {

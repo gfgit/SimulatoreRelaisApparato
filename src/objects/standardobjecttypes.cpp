@@ -932,16 +932,23 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
         lay->addRow(StandardObjectTypes::tr("Blink Relais %1:").arg(i), blinkEdits[i]);
     }
 
-    // Arrow Light
-    SimulationObjectLineEdit *arrowLightEdit = new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
-    QObject::connect(arrowLightEdit, &SimulationObjectLineEdit::objectChanged,
-                     signal, [signal](AbstractSimulationObject *obj)
-                     {
-                         signal->setArrowLight(static_cast<LightBulbObject *>(obj));
-                     });
-    lay->addRow(StandardObjectTypes::tr("Arrow Light:"), arrowLightEdit);
+    // Aux Lights (Arrow, Rappel)
+    SimulationObjectLineEdit *auxLights[TraintasticSignalObject::AuxLights::NAuxLights] = {};
+    for(int i = 0; i < TraintasticSignalObject::AuxLights::NAuxLights; i++)
+    {
+        auxLights[i] = new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+        QObject::connect(auxLights[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setAuxLight(static_cast<LightBulbObject *>(obj), i);
+                         });
+    }
 
-    // Start signal
+    lay->addRow(StandardObjectTypes::tr("Arrow Light:"), auxLights[TraintasticSignalObject::ArrowLight]);
+    lay->addRow(StandardObjectTypes::tr("Rappel 60 Light:"), auxLights[TraintasticSignalObject::RappelLight60]);
+    lay->addRow(StandardObjectTypes::tr("Rappel 100 Light:"), auxLights[TraintasticSignalObject::RappelLight100]);
+
+    // Advance signal
     for (int i = TraintasticSignalObject::NScreenRelays; i < TraintasticSignalObject::NBlinkRelays; i++)
     {
         blinkEdits[i] = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
@@ -952,8 +959,8 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
                          });
     }
 
-    lay->addRow(StandardObjectTypes::tr("Start signal (fake ON):"), blinkEdits[TraintasticSignalObject::StartSignalFakeOn]);
-    lay->addRow(StandardObjectTypes::tr("Start signal blinker:"), blinkEdits[TraintasticSignalObject::StartSignalBlinker]);
+    lay->addRow(StandardObjectTypes::tr("Advance signal (fake ON):"), blinkEdits[TraintasticSignalObject::AdvanceSignalFakeOn]);
+    lay->addRow(StandardObjectTypes::tr("Advance signal blinker:"), blinkEdits[TraintasticSignalObject::AdvanceSignalBlinker]);
 
     auto updateSettings = [signal, channelSpin, addressSpin, screenEdits, blinkEdits, arrowLightEdit]()
     {
@@ -970,7 +977,7 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
             blinkEdits[i]->setObject(signal->getBlinkRelaisAt(i));
         }
 
-        arrowLightEdit->setObject(signal->arrowLight());
+        arrowLightEdit->setObject(signal->auxLight());
     };
 
     QObject::connect(signal, &TraintasticSignalObject::settingsChanged,
