@@ -51,7 +51,8 @@ enum class OpCode : uint8_t
     OwnSignal = 8,
     RequestChannel = 9,
     OwnSpawn = 10,
-    SpawnStateChange = 11
+    SpawnStateChange = 11,
+    AuxSignalSetState = 12
 };
 
 struct Message
@@ -192,22 +193,56 @@ struct SignalSetState : Message
 } ATTRIBUTE_PACKED;
 static_assert(sizeof(SignalSetState) == 19);
 
+struct AuxSignalSetState : Message
+{
+    uint16_t channel;
+    uint16_t address;
+    uint8_t lights = 0;
+
+    AuxSignalSetState(uint16_t ch, uint16_t addr)
+        : Message(OpCode::AuxSignalSetState, sizeof(AuxSignalSetState))
+        , channel{ch}
+        , address{addr}
+
+    {
+    }
+
+    inline void setLightOn(uint8_t n, bool on)
+    {
+        assert(n >= 0 && n < 8);
+        if(on)
+            lights |= (1u << n);
+        else
+            lights &= ~(1u << n);
+    }
+
+    inline bool isLightOn(uint8_t n)
+    {
+        assert(n >= 0 && n < 8);
+        return lights & (1u << n);
+    }
+} ATTRIBUTE_PACKED;
+static_assert(sizeof(AuxSignalSetState) == 7);
+
 struct OwnSignal : Message
 {
     uint16_t channel;
     uint16_t address;
+    uint8_t isMain = 1;
 
-    OwnSignal(uint16_t ch, uint16_t addr)
+    OwnSignal(uint16_t ch, uint16_t addr, bool main)
         : Message(OpCode::OwnSignal, sizeof(OwnSignal))
         , channel{ch}
         , address{addr}
+        , isMain{main}
     {
     }
 } ATTRIBUTE_PACKED;
-static_assert(sizeof(OwnSignal) == 6);
+static_assert(sizeof(OwnSignal) == 7);
 
 struct RequestChannel : Message
 {
+    //! NOTE: pass invalidAddress to get all channels state
     uint16_t channel;
 
     RequestChannel(uint16_t ch)

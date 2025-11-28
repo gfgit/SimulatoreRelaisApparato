@@ -70,6 +70,7 @@
 #include "traintastic/traintasticturnoutobj.h"
 #include "traintastic/traintasticspawnobj.h"
 #include "traintastic/traintasticsignalobject.h"
+#include "traintastic/traintasticauxsignalobject.h"
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
 
@@ -1007,6 +1008,72 @@ QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManage
     return w;
 }
 
+QWidget *defaultTraintasticAuxSignalEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticAuxSignalObject *signal = static_cast<TraintasticAuxSignalObject *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Channel
+    QSpinBox *channelSpin = new QSpinBox;
+    channelSpin->setRange(0, 9999);
+    lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
+
+    QObject::connect(channelSpin, &QSpinBox::editingFinished,
+                     signal, [signal, channelSpin]()
+                     {
+                         signal->setChannel(channelSpin->value());
+                     });
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     signal, [signal, addressSpin]()
+                     {
+                         signal->setAddress(addressSpin->value());
+                     });
+
+    // Aux Lights (Arrow, Rappel)
+    SimulationObjectLineEdit *auxLights[int(TraintasticAuxSignalObject::AuxLights::NAuxLights)] = {};
+    for(int i = 0; i < int(TraintasticAuxSignalObject::AuxLights::NAuxLights); i++)
+    {
+        auxLights[i] = new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+        QObject::connect(auxLights[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setAuxLight(static_cast<LightBulbObject *>(obj),
+                                                 TraintasticAuxSignalObject::AuxLights(i));
+                         });
+    }
+
+    lay->addRow(StandardObjectTypes::tr("L1:"), auxLights[int(TraintasticAuxSignalObject::AuxLights::L1)]);
+    lay->addRow(StandardObjectTypes::tr("L2:"), auxLights[int(TraintasticAuxSignalObject::AuxLights::L2)]);
+    lay->addRow(StandardObjectTypes::tr("L3:"), auxLights[int(TraintasticAuxSignalObject::AuxLights::L3)]);
+
+    auto updateSettings = [signal, channelSpin, addressSpin, auxLights]()
+    {
+        channelSpin->setValue(signal->channel());
+        addressSpin->setValue(signal->address());
+
+        for(int i = 0; i < int(TraintasticAuxSignalObject::AuxLights::NAuxLights); i++)
+        {
+            auxLights[i]->setObject(signal->auxLight(TraintasticAuxSignalObject::AuxLights(i)));
+        }
+    };
+
+    QObject::connect(signal, &TraintasticAuxSignalObject::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
 QWidget *defaultTraintasticSpawnEdit(AbstractSimulationObject *item, ViewManager *mgr)
 {
     TraintasticSpawnObj *spawn = static_cast<TraintasticSpawnObj *>(item);
@@ -1233,6 +1300,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &defaultTraintasticSignalEdit;
         item.objectType = TraintasticSignalObject::Type;
         item.prettyName = tr("Traintastic Signal");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Aux Signal
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticAuxSignalObject>;
+        item.edit = &defaultTraintasticAuxSignalEdit;
+        item.objectType = TraintasticAuxSignalObject::Type;
+        item.prettyName = tr("Traintastic Aux Signal");
 
         factory->registerFactory(item);
     }

@@ -29,6 +29,7 @@
 #include "../../objects/traintastic/traintasticsensorobj.h"
 #include "../../objects/traintastic/traintasticturnoutobj.h"
 #include "../../objects/traintastic/traintasticsignalobject.h"
+#include "../../objects/traintastic/traintasticauxsignalobject.h"
 #include "../../objects/traintastic/traintasticspawnobj.h"
 
 #include "../../objects/abstractsimulationobjectmodel.h"
@@ -166,37 +167,44 @@ void TraintasticSimManager::onConnected()
 
     send(SimulatorProtocol::HandShake(true));
 
-    // Send initial signal status
+    // Send initial main signal status
+    auto auxSignalsModel = mModeMgr->modelForType(TraintasticAuxSignalObject::Type);
+    for(int i = 0; i < auxSignalsModel->rowCount(); i++)
+    {
+        TraintasticAuxSignalObject *signalObj = static_cast<TraintasticAuxSignalObject *>(auxSignalsModel->objectAt(i));
+
+        // Tell simulator we own this dwarf signal
+        SimulatorProtocol::OwnSignal msg(signalObj->channel(), signalObj->address(), 0);
+        send(msg);
+
+        // Send initial status
+        signalObj->sendStatusMsg();
+    }
+
+    send(SimulatorProtocol::HandShake(true));
+
+    mSocket->flush();
+
+    // Send initial dwarf signal status
     auto signalsModel = mModeMgr->modelForType(TraintasticSignalObject::Type);
     for(int i = 0; i < signalsModel->rowCount(); i++)
     {
         TraintasticSignalObject *signalObj = static_cast<TraintasticSignalObject *>(signalsModel->objectAt(i));
 
-        // Tell simulator we own this signal
-        SimulatorProtocol::OwnSignal msg(signalObj->channel(), signalObj->address());
+        // Tell simulator we own this main signal
+        SimulatorProtocol::OwnSignal msg(signalObj->channel(), signalObj->address(), 1);
         send(msg);
 
         // Send initial status
         signalObj->sendStatusMsg();
     }
-
-    mSocket->flush();
 
     send(SimulatorProtocol::HandShake(true));
 
+    mSocket->flush();
+
+
     // Send initial spawn status
-    for(int i = 0; i < signalsModel->rowCount(); i++)
-    {
-        TraintasticSignalObject *signalObj = static_cast<TraintasticSignalObject *>(signalsModel->objectAt(i));
-
-        // Tell simulator we own this signal
-        SimulatorProtocol::OwnSignal msg(signalObj->channel(), signalObj->address());
-        send(msg);
-
-        // Send initial status
-        signalObj->sendStatusMsg();
-    }
-
     for(const TraintasticSpawnObj *obj : std::as_const(mSpawns))
     {
         // Tell simulator we own this spawn
@@ -207,9 +215,9 @@ void TraintasticSimManager::onConnected()
         setSpawnState(obj->address(), obj->isActive());
     }
 
-    mSocket->flush();
-
     send(SimulatorProtocol::HandShake(true));
+
+    mSocket->flush();
 
     // Force sync track circuits by requesting their state
     for(auto it : mSensors.asKeyValueRange())

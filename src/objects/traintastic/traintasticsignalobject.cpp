@@ -42,7 +42,23 @@ TraintasticSignalObject::TraintasticSignalObject(AbstractSimulationObjectModel *
 
 TraintasticSignalObject::~TraintasticSignalObject()
 {
+    for(int i = 0; i < NScreenRelays; i++)
+    {
+        setScreenRelaisAt(i, nullptr);
+        mCurScreenPos[i] = 0.0f;
+    }
 
+    for(int i = 0; i < NBlinkRelays; i++)
+    {
+        setBlinkRelaisAt(i, nullptr);
+        mBlinkRelaisUp[i] = false;
+    }
+
+    setAuxLight(nullptr, AuxLights::ArrowLight);
+    setAuxLight(nullptr, AuxLights::RappelLight60);
+    setAuxLight(nullptr, AuxLights::RappelLight100);
+
+    setDirectionLights({});
 }
 
 QString TraintasticSignalObject::getType() const
@@ -466,8 +482,9 @@ void TraintasticSignalObject::onBlinRelaisDestroyed(QObject *obj)
 
 void TraintasticSignalObject::onAuxLightDestroyed(QObject *obj)
 {
-    for(LightBulbObject *light : {mArrowLight, mRappelLight60, mRappelLight100})
+    for(int i = 0; i < AuxLights::NAuxLights; i++)
     {
+        LightBulbObject *light = auxLight(AuxLights(i));
         if(light != obj)
             continue;
 
@@ -475,7 +492,7 @@ void TraintasticSignalObject::onAuxLightDestroyed(QObject *obj)
                    this, &TraintasticSignalObject::sendStatusMsg);
         disconnect(light, &LightBulbObject::destroyed,
                    this, &TraintasticSignalObject::onAuxLightDestroyed);
-        light = nullptr;
+        setAuxLight(nullptr, AuxLights(i));
     }
 
     for(int i = 0; i < mDirectionLights.size(); i++)
