@@ -191,7 +191,7 @@ void TraintasticSignalObject::saveToJSON(QJsonObject &obj) const
 
         QJsonObject entryObj;
         entryObj["light"] = entry.light->name();
-        entryObj["letter"] = entry.letter;
+        entryObj["letter"] = QString::fromLatin1(&entry.letter, 1);
         directionsArr.append(entryObj);
     }
     obj["directions"] = directionsArr;

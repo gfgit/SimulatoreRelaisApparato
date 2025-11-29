@@ -168,7 +168,7 @@ void SignalIndicatorListView::onAdd()
     QPointer<SignalIndicatorEntryDialog> dlg = new SignalIndicatorEntryDialog(this);
 
     // Default to red and then yellow for following lights
-    dlg->setEntry(nullptr, mModel->rowCount() == 0 ? Qt::red : Qt::yellow);
+    dlg->setEntry(nullptr, ' ');
 
     if(dlg->exec() == QDialog::Accepted && dlg && dlg->getLight())
     {
