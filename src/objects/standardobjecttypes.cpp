@@ -704,6 +704,7 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
     sensorTypeCombo->addItem(StandardObjectTypes::tr("Generic"));
     sensorTypeCombo->addItem(StandardObjectTypes::tr("Turnout Feedback"));
     sensorTypeCombo->addItem(StandardObjectTypes::tr("Spawn Train"));
+    sensorTypeCombo->addItem(StandardObjectTypes::tr("Aux Signal"));
 
     lay->addRow(StandardObjectTypes::tr("Sensor Type:"), sensorTypeCombo);
 
@@ -766,8 +767,18 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
 
     lay->addRow(StandardObjectTypes::tr("Shunt Turnout:"), turnoutEdit);
 
+    // Aux Signal Object
+    SimulationObjectLineEdit *auxSignalEdit = new SimulationObjectLineEdit(mgr, {TraintasticAuxSignalObject::Type});
+    QObject::connect(auxSignalEdit, &SimulationObjectLineEdit::objectChanged,
+                     sensor, [sensor](AbstractSimulationObject *obj)
+    {
+        sensor->setAuxSignal(static_cast<TraintasticAuxSignalObject *>(obj));
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Aux Signal:"), auxSignalEdit);
+
     auto updateSettings = [sensor, updateSensorTypeCombo,
-            channelSpin, addressSpin, offStateSpin, turnoutEdit]()
+            channelSpin, addressSpin, offStateSpin, turnoutEdit, auxSignalEdit]()
     {
         updateSensorTypeCombo();
 
@@ -775,21 +786,27 @@ QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManage
         addressSpin->setValue(sensor->address());
         offStateSpin->setValue(sensor->defaultOffState());
         turnoutEdit->setObject(sensor->shuntTurnout());
+        auxSignalEdit->setObject(sensor->auxSignal());
 
+        const bool isGeneric = sensor->sensorType() == TraintasticSensorObj::SensorType::Generic;
         const bool isTurnout = sensor->sensorType() == TraintasticSensorObj::SensorType::TurnoutFeedback;
+        const bool isSpawn = sensor->sensorType() == TraintasticSensorObj::SensorType::Spawn;
+        const bool isAuxSignal = sensor->sensorType() == TraintasticSensorObj::SensorType::AuxSignal;
+
         turnoutEdit->setVisible(isTurnout);
-        offStateSpin->setVisible(!isTurnout);
+        auxSignalEdit->setVisible(isAuxSignal);
+        offStateSpin->setVisible(isGeneric);
 
-        bool lockedByTurnout = isTurnout && sensor->shuntTurnout();
-        addressSpin->setEnabled(!lockedByTurnout);
-        channelSpin->setEnabled(!lockedByTurnout);
+        bool freeSetAddress = isGeneric || (isTurnout && !sensor->shuntTurnout());
+        addressSpin->setEnabled(freeSetAddress);
+        channelSpin->setEnabled(freeSetAddress);
 
-        QString tooltip = lockedByTurnout ? StandardObjectTypes::tr("Set values on shunt turnout object!") : QString();
+        QString tooltip = !freeSetAddress && isTurnout ? StandardObjectTypes::tr("Set values on shunt turnout object!") : QString();
         addressSpin->setToolTip(tooltip);
         channelSpin->setToolTip(tooltip);
 
-        const bool isSpawn = sensor->sensorType() == TraintasticSensorObj::SensorType::Spawn;
-        channelSpin->setVisible(!isSpawn);
+        channelSpin->setVisible(!isSpawn && !isAuxSignal);
+        addressSpin->setVisible(!isAuxSignal);
     };
 
     QObject::connect(sensor, &TraintasticSensorObj::settingsChanged,

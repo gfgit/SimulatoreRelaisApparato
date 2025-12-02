@@ -198,6 +198,7 @@ struct AuxSignalSetState : Message
     uint16_t channel;
     uint16_t address;
     uint8_t lights = 0;
+    uint8_t position = 0;
 
     AuxSignalSetState(uint16_t ch, uint16_t addr)
         : Message(OpCode::AuxSignalSetState, sizeof(AuxSignalSetState))
@@ -222,7 +223,7 @@ struct AuxSignalSetState : Message
         return lights & (1u << n);
     }
 } ATTRIBUTE_PACKED;
-static_assert(sizeof(AuxSignalSetState) == 7);
+static_assert(sizeof(AuxSignalSetState) == 8);
 
 struct OwnSignal : Message
 {

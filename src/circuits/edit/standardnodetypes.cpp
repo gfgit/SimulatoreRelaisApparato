@@ -138,6 +138,7 @@
 #include "../../objects/traintastic/traintasticsensorobj.h"
 #include "../../objects/traintastic/traintasticturnoutobj.h"
 #include "../../objects/traintastic/traintasticspawnobj.h"
+#include "../../objects/traintastic/traintasticauxsignalobject.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -447,6 +448,20 @@ QWidget *defaultTraintasticTurnoutNodeEdit(AbstractNodeGraphItem *item, ViewMana
 
     spawnEdit->setObject(node->spawn());
     lay->addRow(StandardNodeTypes::tr("Spawn:"), spawnEdit);
+
+    // TraintasticAuxSignalObject Object
+    SimulationObjectLineEdit *auxSignalEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticAuxSignalObject::Type});
+    QObject::connect(node, &TraintasticTurnoutNode::spawnChanged,
+                     auxSignalEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(auxSignalEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, w, auxSignalEdit](AbstractSimulationObject *obj)
+                     {
+                         TraintasticAuxSignalObject *auxSignalObj = static_cast<TraintasticAuxSignalObject *>(obj);
+                         node->setAuxSignal(auxSignalObj);
+                     });
+
+    auxSignalEdit->setObject(node->auxSignal());
+    lay->addRow(StandardNodeTypes::tr("Aux Signal:"), auxSignalEdit);
 
     return w;
 }

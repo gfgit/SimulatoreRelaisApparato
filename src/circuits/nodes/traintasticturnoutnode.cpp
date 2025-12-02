@@ -25,6 +25,7 @@
 #include "../../objects/abstractsimulationobjectmodel.h"
 #include "../../objects/traintastic/traintasticturnoutobj.h"
 #include "../../objects/traintastic/traintasticspawnobj.h"
+#include "../../objects/traintastic/traintasticauxsignalobject.h"
 
 #include "../../views/modemanager.h"
 
@@ -41,6 +42,8 @@ TraintasticTurnoutNode::TraintasticTurnoutNode(ModeManager *mgr, QObject *parent
 TraintasticTurnoutNode::~TraintasticTurnoutNode()
 {
     setTurnout(nullptr);
+    setSpawn(nullptr);
+    setAuxSignal(nullptr);
 }
 
 void TraintasticTurnoutNode::addCircuit(ElectricCircuit *circuit)
@@ -60,7 +63,7 @@ AbstractCircuitNode::ConnectionsRes TraintasticTurnoutNode::getActiveConnections
     if((source.nodeContact < 0) || source.nodeContact > 1)
         return {};
 
-    if(!turnout() && !spawn())
+    if(!turnout() && !spawn() && !auxSignal())
         return{};
 
     // Close the circuit
@@ -93,6 +96,14 @@ bool TraintasticTurnoutNode::loadFromJSON(const QJsonObject &obj)
     else
         setSpawn(nullptr);
 
+    const QString auxSignalName = obj.value("aux_signal").toString();
+    auto auxSignalModel = modeMgr()->modelForType(TraintasticAuxSignalObject::Type);
+
+    if(auxSignalModel)
+        setAuxSignal(static_cast<TraintasticAuxSignalObject *>(auxSignalModel->getObjectByName(auxSignalName)));
+    else
+        setAuxSignal(nullptr);
+
     return true;
 }
 
@@ -104,6 +115,8 @@ void TraintasticTurnoutNode::saveToJSON(QJsonObject &obj) const
 
     if(mSpawn)
         obj["spawn"] = mSpawn->name();
+    if(mAuxSignal)
+        obj["aux_signal"] = mAuxSignal->name();
 }
 
 void TraintasticTurnoutNode::getObjectProperties(QVector<ObjectProperty> &result) const
@@ -117,6 +130,11 @@ void TraintasticTurnoutNode::getObjectProperties(QVector<ObjectProperty> &result
     objProp.name = "spawn";
     objProp.prettyName = tr("Spawn");
     objProp.types = {TraintasticSpawnObj::Type};
+    result.append(objProp);
+
+    objProp.name = "aux_signal";
+    objProp.prettyName = tr("Aux Signal");
+    objProp.types = {TraintasticAuxSignalObject::Type};
     result.append(objProp);
 }
 
@@ -139,7 +157,10 @@ bool TraintasticTurnoutNode::setTurnout(TraintasticTurnoutObj *newTurnout, bool 
         return false;
 
     if(newTurnout)
+    {
         setSpawn(nullptr);
+        setAuxSignal(nullptr);
+    }
 
     if(mTurnout)
     {
@@ -175,7 +196,10 @@ bool TraintasticTurnoutNode::setSpawn(TraintasticSpawnObj *newSpawn, bool steal)
         return false;
 
     if(newSpawn)
+    {
         setTurnout(nullptr);
+        setAuxSignal(nullptr);
+    }
 
     if(mSpawn)
     {
@@ -215,4 +239,58 @@ void TraintasticTurnoutNode::updateState()
     {
         mSpawn->setActive(activeN);
     }
+    else if(auxSignal())
+    {
+        if(activeN && !activeR)
+            mAuxSignal->setMotorState(TraintasticAuxSignalObject::MotorState::GoFowrard);
+        else if(!activeN && activeR)
+            mAuxSignal->setMotorState(TraintasticAuxSignalObject::MotorState::GoBackwards);
+        else
+            mAuxSignal->setMotorState(TraintasticAuxSignalObject::MotorState::Idle);
+    }
+}
+
+TraintasticAuxSignalObject *TraintasticTurnoutNode::auxSignal() const
+{
+    return mAuxSignal;
+}
+
+void TraintasticTurnoutNode::setAuxSignal(TraintasticAuxSignalObject *newAuxSignal)
+{
+    if(mAuxSignal == newAuxSignal)
+        return;
+
+    if(mAuxSignal)
+    {
+        setSpawn(nullptr);
+        setTurnout(nullptr);
+    }
+
+    if(mAuxSignal)
+    {
+        disconnect(mAuxSignal, &TraintasticAuxSignalObject::destroyed,
+                   this, &TraintasticTurnoutNode::onAuxSignalsDestroyed);
+        mAuxSignal->setMotorState(TraintasticAuxSignalObject::MotorState::Idle);
+    }
+
+    mAuxSignal = newAuxSignal;
+
+    if(mAuxSignal)
+    {
+        connect(mAuxSignal, &TraintasticAuxSignalObject::destroyed,
+                this, &TraintasticTurnoutNode::onAuxSignalsDestroyed);
+    }
+
+    emit auxSignalChanged(mAuxSignal);
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
+
+    updateState();
+    return;
+}
+
+void TraintasticTurnoutNode::onAuxSignalsDestroyed(QObject *obj)
+{
+    if(obj == mAuxSignal)
+        setAuxSignal(nullptr);
 }

@@ -30,6 +30,8 @@
 #include "../../network/traintastic-simulator/traintasticsimmanager.h"
 #include "../../network/traintastic-simulator/protocol.hpp"
 
+#include <QTimerEvent>
+
 #include <QJsonObject>
 
 TraintasticAuxSignalObject::TraintasticAuxSignalObject(AbstractSimulationObjectModel *m)
@@ -42,6 +44,8 @@ TraintasticAuxSignalObject::~TraintasticAuxSignalObject()
     {
         setAuxLight(nullptr, AuxLights(i));
     }
+
+    mTimer.stop();
 }
 
 QString TraintasticAuxSignalObject::getType() const
@@ -58,6 +62,7 @@ bool TraintasticAuxSignalObject::loadFromJSON(const QJsonObject &obj, LoadPhase 
     {
         setChannel(obj.value("channel").toInt(0));
         setAddress(obj.value("address").toInt(InvalidAddress));
+        setPosition(0);
         return true;
     }
 
@@ -78,6 +83,7 @@ bool TraintasticAuxSignalObject::loadFromJSON(const QJsonObject &obj, LoadPhase 
         setAuxLight(nullptr, AuxLights::L3);
     }
 
+    setPosition(0);
     return true;
 }
 
@@ -120,6 +126,8 @@ void TraintasticAuxSignalObject::sendStatusMsg()
         msg.setLightOn(i, light && light->state() == LightBulbObject::State::On);
     }
 
+    msg.position = mPosition;
+
     TraintasticSimManager *mgr = model()->modeMgr()->getTraitasticSimMgr();
     mgr->send(msg);
 }
@@ -139,6 +147,79 @@ void TraintasticAuxSignalObject::onAuxLightDestroyed(QObject *obj)
     }
 
     emit settingsChanged(this);
+}
+
+void TraintasticAuxSignalObject::updateMotorState()
+{
+    if(motorState == MotorState::GoFowrard)
+    {
+        if(mPosition == UINT8_MAX)
+            mTimer.stop();
+        else if(!mTimer.isActive())
+            mTimer.start(std::chrono::milliseconds(100), Qt::CoarseTimer, this);
+    }
+    else if(motorState == MotorState::GoBackwards || motorState == MotorState::Idle)
+    {
+        if(mPosition == 0)
+            mTimer.stop();
+        else if(!mTimer.isActive())
+            mTimer.start(std::chrono::milliseconds(100), Qt::CoarseTimer, this);
+    }
+}
+
+TraintasticAuxSignalObject::MotorState TraintasticAuxSignalObject::getMotorState() const
+{
+    return motorState;
+}
+
+void TraintasticAuxSignalObject::setMotorState(MotorState newMotorState)
+{
+    if(motorState == newMotorState)
+        return;
+
+    motorState = newMotorState;
+    updateMotorState();
+}
+
+void TraintasticAuxSignalObject::timerEvent(QTimerEvent *e)
+{
+    if(e->timerId() == mTimer.timerId())
+    {
+        if(motorState == MotorState::GoFowrard)
+        {
+            if(mPosition <= 235)
+                setPosition(mPosition + 20);
+            else
+                setPosition(255);
+        }
+        else if(motorState == MotorState::GoBackwards || motorState == MotorState::Idle)
+        {
+            if(mPosition >= 45)
+                setPosition(mPosition - 45);
+            else
+                setPosition(0);
+        }
+        return;
+    }
+
+    QObject::timerEvent(e);
+}
+
+uint8_t TraintasticAuxSignalObject::position() const
+{
+    return mPosition;
+}
+
+void TraintasticAuxSignalObject::setPosition(uint8_t newPosition)
+{
+    if(mPosition == newPosition)
+        return;
+
+    mPosition = newPosition;
+    updateMotorState();
+
+    sendStatusMsg();
+    emit stateChanged(this);
 }
 
 LightBulbObject *TraintasticAuxSignalObject::auxLight(AuxLights l) const

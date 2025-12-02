@@ -27,6 +27,7 @@
 
 class TraintasticTurnoutObj;
 class TraintasticSpawnObj;
+class TraintasticAuxSignalObject;
 
 class TraintasticTurnoutNode : public AbstractCircuitNode
 {
@@ -53,9 +54,16 @@ public:
     TraintasticSpawnObj *spawn() const;
     bool setSpawn(TraintasticSpawnObj *newSpawn, bool steal = false);
 
+    TraintasticAuxSignalObject *auxSignal() const;
+    void setAuxSignal(TraintasticAuxSignalObject *newAuxSignal);
+
 signals:
     void turnoutChanged(TraintasticTurnoutObj *obj);
     void spawnChanged(TraintasticSpawnObj *obj);
+    void auxSignalChanged(TraintasticAuxSignalObject *obj);
+
+private slots:
+    void onAuxSignalsDestroyed(QObject *obj);
 
 private:
     void updateState();
@@ -63,8 +71,8 @@ private:
 private:
     friend class TraintasticTurnoutObj;
     TraintasticTurnoutObj *mTurnout = nullptr;
-
     TraintasticSpawnObj *mSpawn = nullptr;
+    TraintasticAuxSignalObject *mAuxSignal = nullptr;
 };
 
 #endif // TRAINTASTIC_TURNOUT_NODE_H

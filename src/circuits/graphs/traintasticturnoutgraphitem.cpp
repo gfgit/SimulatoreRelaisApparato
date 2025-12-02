@@ -26,6 +26,7 @@
 
 #include "../../objects/traintastic/traintasticturnoutobj.h"
 #include "../../objects/traintastic/traintasticspawnobj.h"
+#include "../../objects/traintastic/traintasticauxsignalobject.h"
 
 #include <QPainter>
 
@@ -120,6 +121,8 @@ QString TraintasticTurnoutGraphItem::displayString() const
         return node()->turnout()->name();
     else if(node()->spawn())
         return node()->spawn()->name();
+    else if(node()->auxSignal())
+        return node()->auxSignal()->name();
     else
         return tr("DEV!");
 }
@@ -132,8 +135,11 @@ QString TraintasticTurnoutGraphItem::tooltipString() const
     else if(node()->spawn())
         return tr("Traintastic Spawn:<br>"
                   "<b>%1</b>").arg(node()->spawn()->name());
+    else if(node()->auxSignal())
+        return tr("Traintastic Aux Signal:<br>"
+                  "<b>%1</b>").arg(node()->auxSignal()->name());
     else
-        return tr("No Traintastic turnout or spawn set!");
+        return tr("No Traintastic turnout, spawn or aux signal set!");
 
 }
 

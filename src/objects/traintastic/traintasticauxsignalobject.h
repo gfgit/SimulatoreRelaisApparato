@@ -25,6 +25,8 @@
 
 #include "../abstractsimulationobject.h"
 
+#include <QBasicTimer>
+
 class LightBulbObject;
 
 class TraintasticAuxSignalObject : public AbstractSimulationObject
@@ -40,6 +42,13 @@ public:
         L2,
         L3,
         NAuxLights
+    };
+
+    enum class MotorState
+    {
+        Idle = 0,
+        GoFowrard = 1,
+        GoBackwards = 2
     };
 
     explicit TraintasticAuxSignalObject(AbstractSimulationObjectModel *m);
@@ -60,6 +69,15 @@ public:
     LightBulbObject *auxLight(AuxLights l) const;
     void setAuxLight(LightBulbObject *newArrowLight, AuxLights l);
 
+    uint8_t position() const;
+    void setPosition(uint8_t newPosition);
+
+    MotorState getMotorState() const;
+    void setMotorState(MotorState newMotorState);
+
+protected:
+    void timerEvent(QTimerEvent *e) override;
+
 public slots:
     void sendStatusMsg();
 
@@ -67,11 +85,19 @@ private slots:
     void onAuxLightDestroyed(QObject *obj);
 
 private:
+    void updateMotorState();
+
+private:
     int mChannel = 0;
     int mAddress = InvalidAddress;
 
     // Lights
     LightBulbObject *mLights[int(AuxLights::NAuxLights)] = {nullptr};
+
+    uint8_t mPosition = 0;
+    MotorState motorState = MotorState::Idle;
+
+    QBasicTimer mTimer;
 };
 
 #endif // TRAINTASTIC_AUX_SIGNAL_OBJECT_H

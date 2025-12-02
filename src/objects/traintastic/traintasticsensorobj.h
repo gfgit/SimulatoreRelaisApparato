@@ -29,6 +29,7 @@
 class TraintasticSensorNode;
 
 class TraintasticTurnoutObj;
+class TraintasticAuxSignalObject;
 
 class TraintasticSensorObj : public AbstractSimulationObject
 {
@@ -38,7 +39,8 @@ public:
     {
         Generic = 0,
         TurnoutFeedback = 1,
-        Spawn = 2
+        Spawn = 2,
+        AuxSignal = 3
     };
 
     static constexpr int InvalidChannel = -1;
@@ -72,6 +74,9 @@ public:
     TraintasticTurnoutObj *shuntTurnout() const;
     bool setShuntTurnout(TraintasticTurnoutObj *newShuntTurnout);
 
+    TraintasticAuxSignalObject *auxSignal() const;
+    void setAuxSignal(TraintasticAuxSignalObject *newAuxSignal);
+
 private:
     friend class TraintasticSimManager;
     friend class TraintasticTurnoutObj;
@@ -83,10 +88,15 @@ private:
 
     void onTraintasticDisconnected();
 
+private slots:
+    void onAuxSignalDestroyed(QObject *obj);
+    void onAuxSignalPosChanged();
+
 private:
     QVector<TraintasticSensorNode *> mContactNodes;
 
     TraintasticTurnoutObj *mShuntTurnout = nullptr;
+    TraintasticAuxSignalObject *mAuxSignal = nullptr;
 
     int mChannel = 0; // Default to valid channel
     int mAddress = InvalidAddress;
