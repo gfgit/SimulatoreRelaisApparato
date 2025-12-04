@@ -228,7 +228,7 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
     insideDisable = true;
 
     // Try re-enabling shunted circuits
-    if(getSource()->isSourceEnabled())
+    if(getSource()->isSourceEnabled(mItems.first().node.toContact))
     {
         // If our source is still enabled, try following our path
         // Skip source node

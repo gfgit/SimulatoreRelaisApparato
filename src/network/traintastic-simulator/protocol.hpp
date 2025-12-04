@@ -96,17 +96,19 @@ struct SensorChanged : Message
 {
     uint16_t channel;
     uint16_t address;
+    int32_t axleCount;
     uint8_t value;
 
-    SensorChanged(uint16_t ch, uint16_t addr, bool val)
+    SensorChanged(uint16_t ch, uint16_t addr, int32_t count, bool val)
         : Message(OpCode::SensorChanged, sizeof(SensorChanged))
         , channel{ch}
         , address{addr}
+        , axleCount(count)
         , value(val ? 1 : 0)
     {
     }
 } ATTRIBUTE_PACKED;
-static_assert(sizeof(SensorChanged) == 7);
+static_assert(sizeof(SensorChanged) == 11);
 
 struct AccessorySetState : Message
 {

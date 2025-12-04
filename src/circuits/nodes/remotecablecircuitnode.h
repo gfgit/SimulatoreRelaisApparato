@@ -75,8 +75,8 @@ public:
 
     bool sourceDoNotCloseCircuits() const override;
 
-    bool isSourceEnabled() const override;
-    void setSourceEnabled(bool newEnabled) override;
+    bool isSourceEnabled(int nodeContact = NodeItem::InvalidContact) const override;
+    void setSourceEnabled(bool newEnabled, int nodeContact = NodeItem::InvalidContact) override;
 
     inline Mode mode() const
     {

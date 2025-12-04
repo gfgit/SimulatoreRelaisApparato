@@ -62,5 +62,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/commandnode.cpp
     circuits/nodes/commandnode.h
 
+    circuits/nodes/traintasticaxlecounternode.cpp
+    circuits/nodes/traintasticaxlecounternode.h
+
     PARENT_SCOPE
 )

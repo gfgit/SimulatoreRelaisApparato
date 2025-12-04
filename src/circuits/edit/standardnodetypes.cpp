@@ -90,6 +90,9 @@
 #include "../graphs/commandnodegraphitem.h"
 #include "../nodes/commandnode.h"
 
+#include "../graphs/traintasticaxlecountergraphitem.h"
+#include "../nodes/traintasticaxlecounternode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -139,6 +142,7 @@
 #include "../../objects/traintastic/traintasticturnoutobj.h"
 #include "../../objects/traintastic/traintasticspawnobj.h"
 #include "../../objects/traintastic/traintasticauxsignalobject.h"
+#include "../../objects/traintastic/traintasticaxlecounterobj.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -559,6 +563,57 @@ QWidget *defaultCommandNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMg
 
     return w;
 }
+
+QWidget *defaultTraintasticAxleCounterEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    TraintasticAxleCounterNode *node = static_cast<TraintasticAxleCounterNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Axle Counter Object
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticAxleCounterObj::Type});
+    QObject::connect(node, &TraintasticAxleCounterNode::shapeChanged,
+                     objectEdit, [node, objectEdit]()
+                     {
+                         objectEdit->setObject(node->axleCounter());
+                     });
+    QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+                     {
+                         node->setAxleCounter(static_cast<TraintasticAxleCounterObj *>(obj));
+                     });
+
+    QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, objectEdit](AbstractSimulationObject *obj)
+                     {
+                         bool success = node->setAxleCounter(static_cast<TraintasticAxleCounterObj *>(obj));
+                         if(!success)
+                         {
+                             auto res =  QMessageBox::question(objectEdit, StandardNodeTypes::tr("Steal Axle Counter?"),
+                                                              StandardNodeTypes::tr("Selected Axle Counter <b>%1</b>"
+                                                                 " is already powered by another node.<br>"
+                                                                 "Setting this axle counter on this node will remove it from previous powering node.<br>"
+                                                                 "Do you want to proceed?").arg(obj->name()));
+                             if(res == QMessageBox::Yes)
+                             {
+                                 // Force setting axle counter
+                                 node->setAxleCounter(static_cast<TraintasticAxleCounterObj *>(obj), true);
+                             }
+                             else
+                             {
+                                 // Reject change
+                                 objectEdit->setObject(node->axleCounter());
+                             }
+                         }
+                     });
+
+    objectEdit->setObject(node->axleCounter());
+    lay->addRow(StandardNodeTypes::tr("Axle Counter:"), objectEdit);
+
+    return w;
+}
+
 
 void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 {
@@ -1473,6 +1528,19 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.shortcutLetter = QChar();
         factory.create = &addNewNodeToScene<CommandNodeGraphItem>;
         factory.edit = &defaultCommandNodeEdit;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Traintastic Axle Counter
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = TraintasticAxleCounterGraphItem::Node::NodeType;
+        factory.prettyName = tr("Axle Counter");
+        factory.shortcutLetter = QChar();
+        factory.create = &addNewNodeToScene<TraintasticAxleCounterGraphItem>;
+        factory.edit = &defaultTraintasticAxleCounterEdit;
 
         factoryReg->registerFactory(factory);
     }

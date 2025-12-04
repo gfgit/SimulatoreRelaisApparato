@@ -78,5 +78,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/electromagnetcontactgraphitem.cpp
     circuits/graphs/electromagnetcontactgraphitem.h
 
+    circuits/graphs/traintasticaxlecountergraphitem.cpp
+    circuits/graphs/traintasticaxlecountergraphitem.h
+
     PARENT_SCOPE
 )

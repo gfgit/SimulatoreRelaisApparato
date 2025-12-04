@@ -346,12 +346,15 @@ bool RemoteCableCircuitNode::sourceDoNotCloseCircuits() const
     return false;
 }
 
-bool RemoteCableCircuitNode::isSourceEnabled() const
+bool RemoteCableCircuitNode::isSourceEnabled(int /*nodeContact*/) const
 {
+    if(modeMgr()->mode() == FileMode::Editing)
+        return false; // Act as Off during Editing
+
     return mIsEnabled && isReceiveSide();
 }
 
-void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled)
+void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled, int /*nodeContact*/)
 {
     if(modeMgr()->mode() == FileMode::Editing && newEnabled)
         return; // Prevent enabling during editing

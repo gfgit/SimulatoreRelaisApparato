@@ -141,8 +141,8 @@ public:
     // Source methods
     virtual bool isSourceNode(bool onlyCurrentState, int nodeContact = NodeItem::InvalidContact) const;
     virtual bool sourceDoNotCloseCircuits() const;
-    virtual bool isSourceEnabled() const;
-    virtual void setSourceEnabled(bool newEnabled);
+    virtual bool isSourceEnabled(int nodeContact = NodeItem::InvalidContact) const;
+    virtual void setSourceEnabled(bool newEnabled, int nodeContact = NodeItem::InvalidContact);
 
     virtual bool tryFlipNode(bool forward);
 

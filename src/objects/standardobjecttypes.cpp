@@ -71,6 +71,7 @@
 #include "traintastic/traintasticspawnobj.h"
 #include "traintastic/traintasticsignalobject.h"
 #include "traintastic/traintasticauxsignalobject.h"
+#include "traintastic/traintasticaxlecounterobj.h"
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
 
@@ -1124,6 +1125,77 @@ QWidget *defaultTraintasticSpawnEdit(AbstractSimulationObject *item, ViewManager
     return w;
 }
 
+QWidget *defaultTraintasticAxleCounterEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticAxleCounterObj *axleCounter = static_cast<TraintasticAxleCounterObj *>(item);
+
+    QWidget *w = new QWidget;
+    QVBoxLayout *mainLay = new QVBoxLayout(w);
+
+    QSpinBox *addressSpin[2] = {};
+    QSpinBox *channelSpin[2] = {};
+    QCheckBox *invertCB[2] = {};
+
+    for(int i = 0; i < 2; i++)
+    {
+        QGroupBox *grpBox = new QGroupBox(StandardObjectTypes::tr("Sensor %1").arg(i + 1));
+        mainLay->addWidget(grpBox);
+        QFormLayout *lay = new QFormLayout(grpBox);
+
+        // Channel
+        channelSpin[i] = new QSpinBox;
+        channelSpin[i]->setRange(-1, 9999);
+        channelSpin[i]->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+        channelSpin[i]->setValue(0);
+        lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin[i]);
+
+        QObject::connect(channelSpin[i], &QSpinBox::editingFinished,
+                         axleCounter, [axleCounter, channelSpin, i]()
+                         {
+                            axleCounter->setChannel(channelSpin[i]->value(), i == 0);
+                         });
+
+        // Address
+        addressSpin[i] = new QSpinBox;
+        addressSpin[i]->setRange(-1, 9999);
+        addressSpin[i]->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+        lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin[i]);
+
+        QObject::connect(addressSpin[i], &QSpinBox::editingFinished,
+                         axleCounter, [axleCounter, addressSpin, i]()
+                         {
+                            axleCounter->setAddress(addressSpin[i]->value(), i == 0);
+                         });
+
+        // Invert
+        invertCB[i] = new QCheckBox(StandardObjectTypes::tr("Invert direction"));
+        lay->addRow(invertCB[i]);
+
+        QObject::connect(invertCB[i], &QCheckBox::toggled,
+                         axleCounter, [axleCounter, i](bool val)
+                         {
+                            axleCounter->setInvertCount(val, i == 0);
+                         });
+    }
+
+    auto updateSettings = [axleCounter, channelSpin, addressSpin, invertCB]()
+    {
+        for(int i = 0; i < 2; i++)
+        {
+            channelSpin[i]->setValue(axleCounter->channel(i == 0));
+            addressSpin[i]->setValue(axleCounter->address(i == 0));
+            invertCB[i]->setChecked(axleCounter->invertCount(i == 0));
+        }
+    };
+
+    QObject::connect(axleCounter, &TraintasticAxleCounterObj::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
 void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
 {
     {
@@ -1341,6 +1413,18 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &defaultTraintasticSpawnEdit;
         item.objectType = TraintasticSpawnObj::Type;
         item.prettyName = tr("Traintastic Spawn");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Axle Counter
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticAxleCounterObj>;
+        item.edit = &defaultTraintasticAxleCounterEdit;
+        item.objectType = TraintasticAxleCounterObj::Type;
+        item.prettyName = tr("Traintastic Axle Counter");
 
         factory->registerFactory(item);
     }

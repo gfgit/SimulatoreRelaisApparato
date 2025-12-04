@@ -315,12 +315,12 @@ bool AbstractCircuitNode::sourceDoNotCloseCircuits() const
     return false;
 }
 
-bool AbstractCircuitNode::isSourceEnabled() const
+bool AbstractCircuitNode::isSourceEnabled(int /*nodeContact*/) const
 {
     return false;
 }
 
-void AbstractCircuitNode::setSourceEnabled(bool newEnabled)
+void AbstractCircuitNode::setSourceEnabled(bool newEnabled, int /*nodeContact*/)
 {
     Q_UNUSED(newEnabled)
 }

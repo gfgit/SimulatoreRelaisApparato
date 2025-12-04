@@ -31,6 +31,7 @@
 #include "../../objects/traintastic/traintasticsignalobject.h"
 #include "../../objects/traintastic/traintasticauxsignalobject.h"
 #include "../../objects/traintastic/traintasticspawnobj.h"
+#include "../../objects/traintastic/traintasticaxlecounterobj.h"
 
 #include "../../objects/abstractsimulationobjectmodel.h"
 
@@ -289,15 +290,38 @@ void TraintasticSimManager::receive(const SimulatorProtocol::Message &message)
     {
         const auto& m = static_cast<const SimulatorProtocol::SensorChanged&>(message);
 
-        auto chan = mSensors.constFind(m.channel);
-        if(chan == mSensors.constEnd())
-            return;
+        if(m.axleCount != 0)
+        {
+            // Axle counter
+            auto axleCountersModel = mModeMgr->modelForType(TraintasticAxleCounterObj::Type);
+            for(int i = 0; i < axleCountersModel->rowCount(); i++)
+            {
+                TraintasticAxleCounterObj *axleCounterObj = static_cast<TraintasticAxleCounterObj *>(axleCountersModel->objectAt(i));
+                if(axleCounterObj->address(true) == m.address && axleCounterObj->channel(true) == m.channel)
+                {
+                    axleCounterObj->axleCounterEvent(m.axleCount, true);
+                }
+                else if(axleCounterObj->address(false) == m.address && axleCounterObj->channel(false) == m.channel)
+                {
+                    axleCounterObj->axleCounterEvent(m.axleCount, false);
+                }
+            }
+        }
+        else
+        {
+            // Track circuit or position sensor
+            auto chan = mSensors.constFind(m.channel);
+            if(chan == mSensors.constEnd())
+                return;
 
-        auto it = chan->constFind(m.address);
-        if(it == chan->constEnd())
-            return;
+            auto it = chan->constFind(m.address);
+            if(it == chan->constEnd())
+                return;
 
-        it.value()->setState(m.value);
+            it.value()->setState(m.value);
+        }
+
+
 
         break;
     }

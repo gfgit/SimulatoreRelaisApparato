@@ -19,6 +19,9 @@ set(SIMULATORE_RELAIS_SOURCES
     objects/traintastic/traintasticspawnobj.cpp
     objects/traintastic/traintasticspawnobj.h
 
+    objects/traintastic/traintasticaxlecounterobj.cpp
+    objects/traintastic/traintasticaxlecounterobj.h
+
     ${SIMULATORE_RELAIS_SOURCES}
     PARENT_SCOPE
 )

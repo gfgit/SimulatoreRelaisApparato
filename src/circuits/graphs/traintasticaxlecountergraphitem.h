@@ -1,5 +1,5 @@
 /**
- * src/circuits/nodes/powersourcenode.h
+ * src/circuits/graphs/traintasticaxlecountergraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,32 +20,31 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef POWERSOURCENODE_H
-#define POWERSOURCENODE_H
+#ifndef TRAINTASTIC_AXLE_COUNTER_GRAPHITEM_H
+#define TRAINTASTIC_AXLE_COUNTER_GRAPHITEM_H
 
-#include "abstractcircuitnode.h"
 
-class PowerSourceNode : public AbstractCircuitNode
+#include "abstractnodegraphitem.h"
+
+class TraintasticAxleCounterNode;
+
+class TraintasticAxleCounterGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    explicit PowerSourceNode(ModeManager *mgr, QObject *parent = nullptr);
+    typedef TraintasticAxleCounterNode Node;
 
-    ConnectionsRes getActiveConnections(CableItem source, bool invertDir = false) override;
+    TraintasticAxleCounterGraphItem(TraintasticAxleCounterNode *node_);
 
-    static constexpr QLatin1String NodeType = QLatin1String("power_source");
-    QString nodeType() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    bool isSourceNode(bool onlyCurrentState, int nodeContact = NodeItem::InvalidContact) const override;
+    void getConnectors(std::vector<Connector>& connectors) const final;
 
-    bool isSourceEnabled(int nodeContact = NodeItem::InvalidContact) const override;
-    void setSourceEnabled(bool newEnabled, int nodeContact = NodeItem::InvalidContact) override;
+    QString displayString() const override;
 
-signals:
-    void enabledChanged(bool val);
+    QString tooltipString() const override;
 
-private:
-    bool enabled = false;
+    TraintasticAxleCounterNode *node() const;
 };
 
-#endif // POWERSOURCENODE_H
+#endif // TRAINTASTIC_AXLE_COUNTER_GRAPHITEM_H

@@ -171,16 +171,19 @@ bool TransformerNode::isSourceNode(bool onlyCurrentState, int nodeContact) const
     return nodeContact == 1 || nodeContact == NodeItem::InvalidContact;
 }
 
-bool TransformerNode::isSourceEnabled() const
+bool TransformerNode::isSourceEnabled(int nodeContact) const
 {
-    if(enabled && modeMgr()->mode() == FileMode::Editing)
+    if(modeMgr()->mode() == FileMode::Editing)
         return false; // Act as Off during Editing
+
+    if(nodeContact != NodeItem::InvalidContact && nodeContact != 1)
+        return false;
 
     // Return true if explicitly enabled and has input circuit
     return enabled && hasCircuit(0, CircuitType::Closed);
 }
 
-void TransformerNode::setSourceEnabled(bool newEnabled)
+void TransformerNode::setSourceEnabled(bool newEnabled, int /*nodeContact*/)
 {
     if(modeMgr()->mode() == FileMode::Editing && newEnabled)
         return; // Prevent enabling during editing
