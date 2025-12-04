@@ -43,10 +43,10 @@
 #include <QVBoxLayout>
 #include <QFormLayout>
 
-class SignalIndicatorEntryDialog : public QDialog
+class LightEntryDialog : public QDialog
 {
 public:
-    SignalIndicatorEntryDialog(QWidget *parent) : QDialog(parent)
+    LightEntryDialog(QWidget *parent) : QDialog(parent)
     {
         QFormLayout *lay = new QFormLayout(this);
 
@@ -160,7 +160,7 @@ void LightRectLightsView::saveTo(LightRectItem *item)
 
 void LightRectLightsView::onAdd()
 {
-    QPointer<SignalIndicatorEntryDialog> dlg = new SignalIndicatorEntryDialog(this);
+    QPointer<LightEntryDialog> dlg = new LightEntryDialog(this);
 
     // Default to red and then yellow for following lights
     dlg->setEntry(nullptr, mModel->rowCount() == 0 ? Qt::red : Qt::yellow);
@@ -198,7 +198,7 @@ void LightRectLightsView::editIndex(const QModelIndex &idx)
     if(!idx.isValid())
         return;
 
-    QPointer<SignalIndicatorEntryDialog> dlg = new SignalIndicatorEntryDialog(this);
+    QPointer<LightEntryDialog> dlg = new LightEntryDialog(this);
     LightRectLightsModel::LightEntry entry = mModel->getEntryAt(idx.row());
     dlg->setEntry(entry.light, entry.color);
 
