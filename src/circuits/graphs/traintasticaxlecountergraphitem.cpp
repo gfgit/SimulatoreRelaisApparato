@@ -45,7 +45,15 @@ void TraintasticAxleCounterGraphItem::paint(QPainter *painter, const QStyleOptio
 
     QPen borderPen(Qt::black, 3);
     painter->setPen(borderPen);
-    painter->setBrush(state == TraintasticAxleCounterObj::State::Reset ? Qt::green : Qt::lightGray);
+
+    if(state == TraintasticAxleCounterObj::State::Reset)
+        painter->setBrush(Qt::green);
+    else if(state == TraintasticAxleCounterObj::State::ResetPre)
+        painter->setBrush(Qt::darkGreen);
+    else if(state == TraintasticAxleCounterObj::State::ResetPost)
+        painter->setBrush(Qt::darkYellow);
+    else
+        painter->setBrush(Qt::lightGray);
 
     const qreal borderW2 = borderPen.widthF() / 2.0;
     const QRectF r = baseTileRect().adjusted(borderW2, borderW2, -borderW2, -borderW2);
@@ -96,6 +104,8 @@ void TraintasticAxleCounterGraphItem::paint(QPainter *painter, const QStyleOptio
         painter->drawText(r, Qt::AlignCenter, tr("Power!"));
     else if(state == TraintasticAxleCounterObj::State::Reset)
         painter->drawText(r, Qt::AlignCenter, tr("Reset!"));
+    else if(state == TraintasticAxleCounterObj::State::ResetPre || state == TraintasticAxleCounterObj::State::ResetPost)
+        painter->drawText(r, Qt::AlignCenter, tr("WAIT"));
     else
         painter->drawText(r, Qt::AlignCenter, QString::number(node()->axleCounter()->axleCount()));
 }

@@ -28,6 +28,8 @@
 
 #include "../../circuits/nodes/traintasticaxlecounternode.h"
 
+#include <QTimerEvent>
+
 #include <QJsonObject>
 
 TraintasticAxleCounterObj::TraintasticAxleCounterObj(AbstractSimulationObjectModel *m)
@@ -127,7 +129,7 @@ void TraintasticAxleCounterObj::setInvertCount(bool invert, bool first)
 
 void TraintasticAxleCounterObj::axleCounterEvent(int32_t axleCountDiff, bool firstSensor)
 {
-    if(mState == State::OccupiedAtStart || mState == State::Reset || axleCountDiff == 0)
+    if(mState == State::OccupiedAtStart || isResetting() || axleCountDiff == 0)
         return;
 
     const bool invert = mSensors[firstSensor ? 0 : 1].invertCount;
@@ -151,8 +153,12 @@ QString TraintasticAxleCounterObj::getStateName() const
     {
     case State::OccupiedAtStart:
         return tr("Occupied at start");
+    case State::ResetPre:
+        return tr("Reset (pre)");
     case State::Reset:
         return tr("Reset");
+    case State::ResetPost:
+        return tr("Reset (post)");
     case State::Free:
         return tr("Free");
     case State::Occupied:
@@ -164,14 +170,34 @@ QString TraintasticAxleCounterObj::getStateName() const
     return QString();
 }
 
+void TraintasticAxleCounterObj::timerEvent(QTimerEvent *e)
+{
+    if(e->timerId() == mResetTimer.timerId())
+    {
+        mResetTimer.stop();
+        if(mState == State::ResetPre)
+            setState(State::Reset);
+        else if(mState == State::Reset)
+            setState(State::ResetPost);
+        return;
+    }
+
+    AbstractSimulationObject::timerEvent(e);
+}
+
 void TraintasticAxleCounterObj::setState(State newState)
 {
     if(newState == mState)
         return;
 
     mState = newState;
-    if(mState == State::OccupiedAtStart || mState == State::Reset)
+    if(mState == State::OccupiedAtStart || isResetting())
         mAxleCount = 0;
+
+    if(mState == State::ResetPre)
+        mResetTimer.start(std::chrono::milliseconds(3000), Qt::PreciseTimer, this);
+    else if(mState == State::Reset)
+        mResetTimer.start(std::chrono::milliseconds(10000), Qt::PreciseTimer, this);
 
     emit stateChanged(this);
 
@@ -205,11 +231,13 @@ void TraintasticAxleCounterObj::setContactNode(TraintasticAxleCounterNode *c)
 
 void TraintasticAxleCounterObj::triggerReset(bool val)
 {
-    if(val)
-        setState(State::Reset);
-    else
+    if(val && !isResetting())
     {
-        if(mHasPower && mState != State::OccupiedAtStart)
+        setState(State::ResetPre);
+    }
+    else if(!val && isResetting())
+    {
+        if(mHasPower && mState == State::Reset)
             setState(mAxleCount == 0 ? State::Free : State::Occupied);
         else
             setState(State::OccupiedAtStart);
@@ -223,7 +251,7 @@ void TraintasticAxleCounterObj::setHasPower(bool val)
 
     mHasPower = val;
 
-    if(mState != State::Reset)
+    if(!isResetting())
     {
         // When power is cut, unit resets itself to occupied
         // Regardless of current axle count

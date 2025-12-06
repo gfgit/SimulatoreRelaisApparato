@@ -25,16 +25,23 @@
 
 #include "../abstractsimulationobject.h"
 
+#include <QBasicTimer>
+
 class TraintasticAxleCounterNode;
 
 class TraintasticAxleCounterObj : public AbstractSimulationObject
 {
     Q_OBJECT
 public:
+
+    // Reset must be triggered for at least 3 seconds and less than 10 seconds
+    // Otherwise it will go in OccupiedAtStart state
     enum State
     {
         OccupiedAtStart = 0,
+        ResetPre,
         Reset,
+        ResetPost,
         Free,
         Occupied
     };
@@ -66,9 +73,27 @@ public:
 
     inline bool hasContactNode() const { return mContactNode; }
 
+    inline bool isResetting() const
+    {
+        switch (mState)
+        {
+        case State::ResetPre:
+        case State::Reset:
+        case State::ResetPost:
+            return true;
+        break;
+        default:
+        break;
+        }
+        return false;
+    }
+
     void axleCounterEvent(int32_t axleCountDiff, bool firstSensor);
 
     QString getStateName() const;
+
+protected:
+    void timerEvent(QTimerEvent *e) override;
 
 private:
     void setState(State newState);
@@ -93,6 +118,8 @@ private:
     int32_t mAxleCount = 0;
     State mState = State::OccupiedAtStart;
     bool mHasPower = false;
+
+    QBasicTimer mResetTimer;
 };
 
 #endif // TRAINTASTIC_AXLE_COUNTER_OBJECT_H
