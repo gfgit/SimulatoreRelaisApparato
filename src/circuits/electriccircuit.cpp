@@ -1015,6 +1015,8 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
     // and ignore the others.
     QVector<ElectricCircuit *> deletedCircuits;
 
+    QVector<QVector<Item>> tryedPaths;
+
     for(ElectricCircuit *origCircuit : openCircuitsCopy)
     {
         if(deletedCircuits.contains(origCircuit) || origCircuit->isDisabling())
@@ -1048,6 +1050,33 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
 
             if(i == 0)
                 break;
+
+            bool pathIsSame = false;
+            for(const auto &path : tryedPaths)
+            {
+                if(path.size() != (i + 1))
+                    continue;
+
+                pathIsSame = true;
+                for(int x = 0; x <= i; x++)
+                {
+                    if(path.at(x) == origCircuit->mItems.at(x))
+                        continue;
+
+                    // Paths differ
+                    pathIsSame = false;
+                    break;
+                }
+
+                if(pathIsSame)
+                    break;
+            }
+
+            if(pathIsSame)
+                continue; // Already tried this path
+
+            // Cache this path for future comparison
+            tryedPaths.append(origCircuit->mItems.first(i + 1));
 
             // Let's see if this circuit can diverge and go to request contact
 
