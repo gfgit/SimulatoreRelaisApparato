@@ -259,20 +259,20 @@ void AbstractDeviatorNode::setContactState(bool valUp, bool valDown, bool specia
         {
             // Remove up connections
             const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-            disableCircuits(closedCopy, this, 1); // Disable contact 1
+            disableCircuits(closedCopy, this, UpIdx); // Disable contact 1
 
             const CircuitList openCopy = getCircuits(CircuitType::Open);
-            truncateCircuits(openCopy, this, 1); // Disable contact 1
+            truncateCircuits(openCopy, this, UpIdx); // Disable contact 1
         }
     }
     else if(!valDown)
     {
         // Remove down connections
         const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-        disableCircuits(closedCopy, this, 2); // Disable contact 2
+        disableCircuits(closedCopy, this, DownIdx); // Disable contact 2
 
         const CircuitList openCopy = getCircuits(CircuitType::Open);
-        truncateCircuits(openCopy, this, 2); // Disable contact 2
+        truncateCircuits(openCopy, this, DownIdx); // Disable contact 2
     }
 
     {

@@ -285,7 +285,7 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
                         // Register an open circuit which passes through node
                         ElectricCircuit *circuit = new ElectricCircuit();
                         circuit->mItems = {mItems.begin(),
-                                           mItems.begin() + i - 2};
+                                           mItems.begin() + i};
                         circuit->mItems.append(customNodeItem);
                         circuit->setType(CircuitType::Open);
                         circuit->enableCircuit();
@@ -303,7 +303,7 @@ void ElectricCircuit::disableOrTerminate(AbstractCircuitNode *node)
                         // And then go to next cable
                         ElectricCircuit *circuit = new ElectricCircuit();
                         circuit->mItems = {mItems.begin(),
-                                           mItems.begin() + i - 2};
+                                           mItems.begin() + i};
                         circuit->mItems.append(customNodeItem);
                         circuit->mItems.append(nextCable);
                         circuit->setType(CircuitType::Open);
@@ -1180,10 +1180,11 @@ void ElectricCircuit::createCircuitsFromOtherNode(AbstractCircuitNode *node)
                                 deletedCircuits, mode);
             }
 
-            if(i == origCircuit->mItems.size() - 1 && !circuitEndsHere)
+            if(i == origCircuit->mItems.size() - 1 && !circuitEndsHere
+                && origCircuit->mItems.last().node.toContact == NodeItem::InvalidContact)
             {
-                // We are last node of original circuit
-                // And circuits go on.
+                // We are last node of original circuit and not going to a specific contact
+                // Other circuits go on.
                 // So remove original circuit
                 removeOriginalCircuit = true;
             }
