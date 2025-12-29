@@ -24,13 +24,131 @@
 
 #include "../nodes/abstractdeviatornode.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
+
+Connector::Direction AbstractDeviatorGraphItem::calculateArcSide() const
+{
+    Connector::Direction arcSide = Connector::Direction::North;
+
+    switch (toConnectorDirection(rotate()))
+    {
+    case Connector::Direction::North:
+        if(deviatorNode()->flipContact())
+            arcSide = Connector::Direction::West;
+        else
+            arcSide = Connector::Direction::East;
+        break;
+
+    case Connector::Direction::South:
+        if(deviatorNode()->flipContact())
+            arcSide = Connector::Direction::East;
+        else
+            arcSide = Connector::Direction::West;
+        break;
+
+    case Connector::Direction::East:
+        if(deviatorNode()->flipContact())
+            arcSide = Connector::Direction::North;
+        else
+            arcSide = Connector::Direction::South;
+        break;
+
+    case Connector::Direction::West:
+        if(deviatorNode()->flipContact())
+            arcSide = Connector::Direction::South;
+        else
+            arcSide = Connector::Direction::North;
+        break;
+    default:
+        break;
+    }
+
+    return arcSide;
+}
+
+QRectF AbstractDeviatorGraphItem::itemPreviewRect() const
+{
+    const Connector::Direction arcSide = calculateArcSide();
+
+    QRectF previewRect;
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+    {
+        previewRect.setTop(- PreviewRectWidth + PreviewExtraMargin);
+        previewRect.setBottom(PreviewExtraMargin);
+        previewRect.setLeft(TileLocation::HalfSize - PreviewRectWidth / 2.0);
+        previewRect.setRight(TileLocation::HalfSize + PreviewRectWidth / 2.0);
+
+        if(arcSide != textRotate())
+            previewRect.moveTop(previewRect.top() + TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::South:
+    {
+        previewRect.setTop(TileLocation::Size - PreviewExtraMargin);
+        previewRect.setBottom(TileLocation::Size + PreviewRectWidth - PreviewExtraMargin);
+        previewRect.setLeft(TileLocation::HalfSize - PreviewRectWidth / 2.0);
+        previewRect.setRight(TileLocation::HalfSize + PreviewRectWidth / 2.0);
+
+        if(arcSide != textRotate())
+            previewRect.moveTop(previewRect.top() - TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::East:
+    {
+        previewRect.setTop(TileLocation::HalfSize);
+        previewRect.setBottom(TileLocation::Size);
+        previewRect.setLeft(TileLocation::Size);
+        previewRect.setRight(TileLocation::Size + PreviewRectWidth);
+
+        if(arcSide != textRotate())
+            previewRect.moveLeft(previewRect.left() - TileLocation::HalfSize / 2.0);
+        break;
+    }
+    case Connector::Direction::West:
+    {
+        previewRect.setTop(TileLocation::HalfSize);
+        previewRect.setBottom(TileLocation::Size);
+        previewRect.setLeft(- PreviewRectWidth);
+        previewRect.setRight(0);
+
+        if(arcSide != textRotate())
+            previewRect.moveLeft(previewRect.left() + TileLocation::HalfSize / 2.0);
+        break;
+    }
+    default:
+        break;
+    }
+
+    return previewRect;
+}
 
 AbstractDeviatorGraphItem::AbstractDeviatorGraphItem(AbstractDeviatorNode *node_)
     : AbstractNodeGraphItem{node_}
 {
     connect(deviatorNode(), &AbstractDeviatorNode::deviatorStateChanged,
             this, &AbstractDeviatorGraphItem::triggerUpdate);
+
+    // Default text position to arc side
+    setTextRotate(calculateArcSide());
+}
+
+QRectF AbstractDeviatorGraphItem::boundingRect() const
+{
+    const double extraMargin = TileLocation::HalfSize;
+    QRectF base(-extraMargin, -extraMargin,
+                TileLocation::Size + 2 * extraMargin, TileLocation::Size + 2 * extraMargin);
+
+    if(mTextWidth == 0)
+        return base;
+
+    // Override to take extra space for item preview.
+    const QRectF textRect = textDisplayRect();
+    return base.united(textRect)
+        .united(itemPreviewRect());
 }
 
 void AbstractDeviatorGraphItem::getConnectors(std::vector<Connector> &connectors) const
@@ -43,6 +161,99 @@ void AbstractDeviatorGraphItem::getConnectors(std::vector<Connector> &connectors
     connectors.emplace_back(location(), rotate() + TileRotate::Deg180, 2); // Down
     if(deviatorNode()->hasCentralConnector())
         connectors.emplace_back(location(), rotate() + centralConnectorRotate, 1);  // Up
+}
+
+double AbstractDeviatorGraphItem::textDisplayFontSize() const
+{
+    return 20.0; // pt, a bit smaller than relay power nodes
+}
+
+QRectF AbstractDeviatorGraphItem::textDisplayRect() const
+{
+    const Connector::Direction arcSide = calculateArcSide();
+
+    const QRectF previewRect = itemPreviewRect();
+
+    const double textDisplayHeight = textDisplayFontSize() * 1.5;
+    QRectF textRect;
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+        textRect.setTop(- TextDisplayMarginSmall - textDisplayHeight);
+        textRect.setBottom(0);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+
+        if(arcSide != textRotate())
+            textRect.moveTop(textRect.top() + TileLocation::HalfSize / 2.0);
+
+        if(!previewRect.isNull() && previewRect.top() < TileLocation::HalfSize)
+            textRect.moveBottom(qMin(textRect.bottom(), previewRect.top()));
+
+        break;
+    case Connector::Direction::South:
+        textRect.setTop(TileLocation::Size);
+        textRect.setBottom(TileLocation::Size + TextDisplayMarginSmall + textDisplayHeight);
+        textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
+        textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
+
+        if(arcSide != textRotate())
+            textRect.moveTop(textRect.top() - TileLocation::HalfSize / 2.0);
+
+        if(!previewRect.isNull() && previewRect.bottom() > TileLocation::HalfSize)
+            textRect.moveTop(qMax(textRect.top(), previewRect.bottom()));
+        break;
+    case Connector::Direction::East:
+        textRect.setTop(0);
+        if(previewRect.isNull())
+            textRect.setBottom(TileLocation::Size);
+        else
+            textRect.setBottom(TileLocation::HalfSize); // Put text higher
+        textRect.setLeft(TileLocation::Size);
+        textRect.setRight(TileLocation::Size + TextDisplayMarginSmall + mTextWidth);
+
+        if(arcSide != textRotate())
+            textRect.moveLeft(textRect.left() - TileLocation::HalfSize / 2.0 + 3);
+
+        if(deviatorNode()->hasCentralConnector())
+        {
+            // Move text away from arc end
+            textRect.moveLeft(textRect.left() + arcRadius / 3);
+
+            // If there is preview, text is placed higher and
+            // needs to be further away from arc end
+            if(!previewRect.isNull())
+                textRect.moveLeft(textRect.left() + arcRadius / 3);
+        }
+        break;
+    case Connector::Direction::West:
+        textRect.setTop(0);
+        if(previewRect.isNull())
+            textRect.setBottom(TileLocation::Size);
+        else
+            textRect.setBottom(TileLocation::HalfSize); // Put text higher
+        textRect.setLeft(- TextDisplayMarginSmall - mTextWidth);
+        textRect.setRight(0);
+
+        if(arcSide != textRotate())
+            textRect.moveLeft(textRect.left() + TileLocation::HalfSize / 2.0 - 3);
+
+        if(deviatorNode()->hasCentralConnector())
+        {
+            // Move text away from arc end
+            textRect.moveLeft(textRect.left() - arcRadius / 3);
+
+            // If there is preview, text is placed higher and
+            // needs to be further away from arc end
+            if(!previewRect.isNull())
+                textRect.moveLeft(textRect.left() - arcRadius / 3);
+        }
+        break;
+    default:
+        break;
+    }
+
+    return textRect;
 }
 
 AbstractDeviatorNode *AbstractDeviatorGraphItem::deviatorNode() const
@@ -73,7 +284,66 @@ const QString AbstractDeviatorGraphItem::getContactTooltip() const
     }
 }
 
-void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn)
+void AbstractDeviatorGraphItem::recalculateTextPosition()
+{
+    // NOTE: same as base class but we prefer text on arc side
+
+    // Recalculate text label position
+    std::vector<Connector> conns;
+    getConnectors(conns);
+
+    if(!conns.empty())
+    {
+        Connector::Direction PreferredDir[4] =
+        {
+            Connector::Direction::South,
+            Connector::Direction::North,
+            Connector::Direction::East,
+            Connector::Direction::West
+        };
+
+        const Connector::Direction arcSide = calculateArcSide();
+        for(int i = 1; i < 4; i++)
+        {
+            if(PreferredDir[i] == arcSide)
+            {
+                // Make arc side the first preferred
+                std::swap(PreferredDir[0], PreferredDir[i]);
+                break;
+            }
+        }
+
+        // Try to keep current position
+        Connector::Direction possibleTextDir = textRotate();
+
+        for(int i = 0; i < 5; i++)
+        {
+            bool conflict = false;
+
+            for(const Connector& c : conns)
+            {
+                if(c.direction == possibleTextDir)
+                {
+                    conflict = true;
+                    break;
+                }
+            }
+
+            if(!conflict)
+            {
+                setTextRotate(possibleTextDir);
+                break;
+            }
+
+            // Try next
+            possibleTextDir = PreferredDir[i % 4];
+        }
+    }
+}
+
+void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter,
+                                             bool contactUpOn, bool contactDownOn,
+                                             bool fillArc)
 {
     constexpr QPointF center(TileLocation::HalfSize,
                              TileLocation::HalfSize);
@@ -165,12 +435,28 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
         break;
     }
 
-    int angleIncrement = 35;
+    int angleIncrement = 40;
     if(deviatorNode()->flipContact())
     {
         startAngle -= 90;
         endAngle -= 90;
         angleIncrement = -angleIncrement;
+    }
+
+    const QRectF arcRect(center.x() - arcRadius,
+                         center.y() - arcRadius,
+                         arcRadius * 2, arcRadius * 2);
+
+    if(fillArc)
+    {
+        // Fill deviator arc in gray below everything
+        // NOTE: fill just inside wires
+        // Do not add yet angle increment
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(Qt::gray);
+        painter->drawPie(arcRect,
+                         startAngle * 16,
+                         (endAngle - startAngle) * 16);
     }
 
     int startIncrement = 0;
@@ -200,9 +486,9 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     // Draw switch arc and wires on top
     const QColor colors[3] =
     {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
     };
 
     QLineF lines[3] =
@@ -247,10 +533,6 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     }
 
     // Draw full switch arc below wires
-    const QRectF arcRect(center.x() - arcRadius,
-                         center.y() - arcRadius,
-                         arcRadius * 2, arcRadius * 2);
-
     // Default to black arc
     if((contactUpOn && contactDownOn))
     {
@@ -271,6 +553,10 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
     // Start from turned off contacts, then open and then closed circuits
     AnyCircuitType targetType = AnyCircuitType::None;
     bool finishedDrawingContacts = false;
+
+    // Do 2 rounds of drawing.
+    // First with circuit flags, second only with None-flagged circuits.
+    bool skipCircuitWithFlags = false;
     while(!finishedDrawingContacts)
     {
         // Set pen color based on circuit type
@@ -280,6 +566,22 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
         for(int contact = 0; contact < 3; contact++)
         {
             const AnyCircuitType state = deviatorNode()->hasAnyCircuit(contact);
+
+            const CircuitFlags contactFlags = deviatorNode()->getCircuitFlags(contact);
+
+            if(targetType != AnyCircuitType::None && deviatorNode()->hasCircuitsWithFlags())
+            {
+                if(skipCircuitWithFlags && contactFlags != CircuitFlags::None)
+                    continue;
+
+                bool shouldDraw = true;
+                QColor color = getContactColor(contact, &shouldDraw);
+                if(!shouldDraw)
+                    continue;
+
+                pen.setColor(color);
+                painter->setPen(pen);
+            }
 
             if(contact == 0 && targetType == AnyCircuitType::Open
                     && deviatorNode()->hasAnyCircuit(0) != AnyCircuitType::None)
@@ -327,6 +629,13 @@ void AbstractDeviatorGraphItem::drawDeviator(QPainter *painter, bool contactUpOn
 
                     if(!contactDownOn && (other == 2 || contact == 2))
                         continue;
+
+                    if(deviatorNode()->hasCircuitsWithFlags())
+                    {
+                        const CircuitFlags otherFlags = deviatorNode()->getCircuitFlags(other);
+                        if(contactFlags != otherFlags)
+                            continue; // We draw them separately
+                    }
                 }
 
                 passThrough = true;

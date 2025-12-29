@@ -90,6 +90,7 @@ SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, Abstrac
 
     mView->setModel(mProxyModel);
     mView->setContextMenuPolicy(Qt::CustomContextMenu);
+    mView->resizeColumnsToContents();
 
     connect(mModel->modeMgr(), &ModeManager::modeChanged,
             this, &SimulationObjectListWidget::onFileModeChanged);
@@ -108,6 +109,11 @@ SimulationObjectListWidget::SimulationObjectListWidget(ViewManager *mgr, Abstrac
             this, &SimulationObjectListWidget::onSelectionChanged);
 
     onFileModeChanged(mModel->modeMgr()->mode());
+}
+
+void SimulationObjectListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
 }
 
 AbstractSimulationObjectModel *SimulationObjectListWidget::model() const

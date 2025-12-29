@@ -1,5 +1,5 @@
 /**
- * src/objects/simple_activable/electromagnet.h
+ * src/objects/simple_activable/electromagnetobject.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -25,14 +25,19 @@
 
 #include "abstractsimpleactivableobject.h"
 
+class ElectromagnetContactNode;
+
 class ElectroMagnetObject : public AbstractSimpleActivableObject
 {
     Q_OBJECT
 public:
     explicit ElectroMagnetObject(AbstractSimulationObjectModel *m);
+    ~ElectroMagnetObject();
 
     static constexpr QLatin1String Type = QLatin1String("electromagnet");
     QString getType() const override;
+
+    int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
 
     State state() const override;
     State electricalState() const;
@@ -40,7 +45,17 @@ public:
     void setForcedOff(bool newForcedOff);
     void setForcedOn(bool newForcedOn);
 
+protected:
+    void onStateChangedInternal() override;
+
 private:
+    friend class ElectromagnetContactNode;
+    void addContactNode(ElectromagnetContactNode *c);
+    void removeContactNode(ElectromagnetContactNode *c);
+
+private:
+    QVector<ElectromagnetContactNode *> mContactNodes;
+
     bool mForcedOff = false;
     bool mForcedOn = false;
 };

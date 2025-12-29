@@ -40,18 +40,25 @@ class RemoteCableDelayedPeerMode : public QEvent
 public:
     static const QEvent::Type _Type = QEvent::Type(QEvent::User + 2);
 
-    RemoteCableDelayedPeerMode(RemoteCableCircuitNode::Mode peerMode, CircuitPole peerSendPole)
+    RemoteCableDelayedPeerMode(RemoteCableCircuitNode::Mode peerMode, CircuitPole peerSendPole,
+                               RemoteCableCircuitNode::Mode replyMode, CircuitFlags circuitFlags)
         : QEvent(_Type)
         , mPeerMode(peerMode)
+        , mReplyToMode(replyMode)
         , mPeerSendPole(peerSendPole)
+        , mCircuitFlags(circuitFlags)
     {};
 
     inline RemoteCableCircuitNode::Mode peerMode() const { return mPeerMode; }
+    inline RemoteCableCircuitNode::Mode replyToMode() const { return mReplyToMode; }
     inline CircuitPole peerSendPole() const { return mPeerSendPole; }
+    inline CircuitFlags peerFlags() const { return mCircuitFlags; }
 
 private:
     RemoteCableCircuitNode::Mode mPeerMode;
+    RemoteCableCircuitNode::Mode mReplyToMode;
     CircuitPole mPeerSendPole;
+    CircuitFlags mCircuitFlags;
 };
 
 RemoteCableCircuitNode::RemoteCableCircuitNode(ModeManager *mgr, QObject *parent)
@@ -71,7 +78,30 @@ bool RemoteCableCircuitNode::event(QEvent *e)
     if(e->type() == RemoteCableDelayedPeerMode::_Type)
     {
         RemoteCableDelayedPeerMode *ev = static_cast<RemoteCableDelayedPeerMode *>(e);
-        onPeerModeChanged(ev->peerMode(), ev->peerSendPole());
+
+        // NOTE: If 2 requests are quickly sent on after another,
+        // we might get response to first one after we already sent the second one
+        // so here we ignore old replies by comparing which mode generated them with
+        // our current state
+        if(mode() != ev->replyToMode() &&
+                RemoteCableCircuitNode::isReceiveMode(ev->peerMode()))
+        {
+#ifdef REMOTE_CABLE_DEBUG
+            if(mRemote && IS_REMOTE_DEBUG(mRemote))
+            {
+                qt_noop();
+
+                qDebug() << "IGNORED: m=" << modeToStr(ev->peerMode())
+                         << "l=" << modeToStr(ev->replyToMode())
+                         << "cur=" << modeToStr(mMode)
+                         << "cf=" << codeToStr(ev->peerFlags());
+            }
+#endif
+            return true;
+        }
+
+        onPeerModeChanged(ev->peerMode(), ev->peerSendPole(),
+                          ev->peerFlags());
         return true;
     }
 
@@ -88,11 +118,12 @@ AbstractCircuitNode::ConnectionsRes RemoteCableCircuitNode::getActiveConnections
         return {}; // Leave circuit open
 
     // Close the circuit
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(source.nodeContact).cable;
     dest.cable.side = mContacts.at(source.nodeContact).cableSide;
     dest.nodeContact = source.nodeContact;
     dest.cable.pole = ~source.cable.pole; // Invert pole
+    dest.flags = mRecvFlags;
     return {dest};
 }
 
@@ -110,7 +141,12 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
         mFakeClosedCircuitsCount++;
     }
 
+    skipFlagUpdate = true;
     AbstractCircuitNode::addCircuit(circuit);
+    skipFlagUpdate = false;
+
+    if(circuit->nonSourceFlags() != mNonSourceFlagsOpen)
+        updateNonSourceFlags();
 
     const AnyCircuitType after = hasAnyCircuit(0);
 
@@ -123,7 +159,7 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
             if(before == AnyCircuitType::None && after == AnyCircuitType::Open)
             {
                 const auto items = circuit->getNode(this);
-                mSendPole = items.first().fromPole;
+                mSendPole = items.first().fromPole();
 
                 setMode(Mode::SendCurrentOpen);
             }
@@ -156,6 +192,9 @@ void RemoteCableCircuitNode::addCircuit(ElectricCircuit *circuit)
         // This circuit can close, but we wait for send side to close too
         setMode(Mode::ReceiveCurrentWaitClosed);
     }
+
+    if(flagsNeedUpdate && mRemote)
+        mRemote->onLocalNodeModeChanged(this);
 }
 
 void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
@@ -165,7 +204,12 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
 
     const AnyCircuitType before = hasAnyCircuit(0);
 
+    skipFlagUpdate = true;
     AbstractCircuitNode::removeCircuit(circuit, items);
+    skipFlagUpdate = false;
+
+    if(mCircuitsWithFlags > 0)
+        updateNonSourceFlags();
 
     const AnyCircuitType after = hasAnyCircuit(0);
 
@@ -222,6 +266,9 @@ void RemoteCableCircuitNode::removeCircuit(ElectricCircuit *circuit, const NodeO
         }
         return;
     }
+
+    if(flagsNeedUpdate && mRemote)
+        mRemote->onLocalNodeModeChanged(this);
 }
 
 void RemoteCableCircuitNode::partialRemoveCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
@@ -299,12 +346,15 @@ bool RemoteCableCircuitNode::sourceDoNotCloseCircuits() const
     return false;
 }
 
-bool RemoteCableCircuitNode::isSourceEnabled() const
+bool RemoteCableCircuitNode::isSourceEnabled(int /*nodeContact*/) const
 {
-    return mIsEnabled;
+    if(modeMgr()->mode() == FileMode::Editing)
+        return false; // Act as Off during Editing
+
+    return mIsEnabled && isReceiveSide();
 }
 
-void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled)
+void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled, int /*nodeContact*/)
 {
     if(modeMgr()->mode() == FileMode::Editing && newEnabled)
         return; // Prevent enabling during editing
@@ -329,7 +379,7 @@ void RemoteCableCircuitNode::setSourceEnabled(bool newEnabled)
     }
 }
 
-void RemoteCableCircuitNode::setMode(Mode newMode)
+void RemoteCableCircuitNode::setMode(Mode newMode, bool flagsChanged)
 {
     if(!mIsEnabled)
     {
@@ -339,7 +389,7 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
             newMode = Mode::SendCurrentOpen; // Cannot close if not enabled
     }
 
-    if(mMode == newMode)
+    if(mMode == newMode && !flagsChanged)
         return;
 
     const Mode oldMode = mMode;
@@ -354,6 +404,8 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
         }
         else
         {
+            mNonSourceFlagsOpen = CircuitFlags::None;
+
             // Disable previous circuits
             const CircuitList closedCopy = getCircuits(CircuitType::Closed);
             disableCircuits(closedCopy, this);
@@ -375,7 +427,8 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
     {
         // Leave circuit open until we get response
         if(oldMode == Mode::None)
-            ElectricCircuit::createCircuitsFromPowerNode(this, mRecvPole);
+            ElectricCircuit::createCircuitsFromPowerNode(this, mRecvPole,
+                                                         0, mRecvFlags);
     }
     else if(mMode == Mode::ReceiveCurrentWaitClosed
             && oldMode == Mode::ReceiveCurrentClosed)
@@ -459,10 +512,25 @@ void RemoteCableCircuitNode::setMode(Mode newMode)
     }
 }
 
-void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole)
+void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSendPole,
+                                               CircuitFlags peerFlags)
 {
+    const CircuitFlags oldFlags = mRecvFlags;
+
     mRecvPole = peerSendPole;
+    mRecvFlags = peerFlags;
     mLastPeerMode = peerMode;
+
+#ifdef REMOTE_CABLE_DEBUG
+    if(mRemote && IS_REMOTE_DEBUG(mRemote))
+    {
+        qt_noop();
+
+        qDebug() << "RECV: m=" << modeToStr(peerMode)
+                 << "cur=" << modeToStr(mMode)
+                 << "cf=" << codeToStr(peerFlags);
+    }
+#endif
 
     switch (peerMode)
     {
@@ -498,19 +566,63 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
         {
             setMode(Mode::ReceiveCurrentWaitClosed);
         }
+        else if(mMode == Mode::ReceiveCurrentOpen)
+        {
+            // There has been a sync issue, maybe due to network latency
+            // Re-send current state with new last reply to mode
+
+            if(mRemote)
+            {
+                mRemote->onLocalNodeModeChanged(this);
+            }
+        }
         else if(mMode != Mode::ReceiveCurrentWaitClosed)
         {
             // Reject change
+
+#ifdef REMOTE_CABLE_DEBUG
+            if(mRemote && IS_REMOTE_DEBUG(mRemote))
+            {
+                qt_noop();
+
+                qDebug() << "REJECT SET TO NONE: m=" << modeToStr(peerMode)
+                         << "cur=" << modeToStr(mMode)
+                         << "cf=" << codeToStr(peerFlags);
+            }
+#endif
+
             setMode(Mode::None);
         }
         break;
     }
     case Mode::SendCurrentClosed:
     {
-        if(mMode != Mode::ReceiveCurrentWaitClosed
+        if(mMode == Mode::ReceiveCurrentOpen)
+        {
+            // There has been a sync issue, maybe due to network latency
+            // Re-send current state with new last reply to mode
+
+            if(mRemote)
+            {
+                mRemote->onLocalNodeModeChanged(this);
+            }
+        }
+        else if(mMode != Mode::ReceiveCurrentWaitClosed
                 && mMode != Mode::ReceiveCurrentClosed)
         {
             // Reject change
+
+#ifdef REMOTE_CABLE_DEBUG
+            if(mRemote && IS_REMOTE_DEBUG(mRemote))
+            {
+                qt_noop();
+
+                qDebug() << "REJECT SET TO NONE: m=" << modeToStr(peerMode)
+                         << "cur=" << modeToStr(mMode)
+                         << "cf=" << codeToStr(peerFlags);
+            }
+#endif
+
             setMode(Mode::None);
         }
 
@@ -557,11 +669,21 @@ void RemoteCableCircuitNode::onPeerModeChanged(Mode peerMode, CircuitPole peerSe
     default:
         break;
     }
+
+    if(oldFlags != mRecvFlags)
+    {
+        if(isSendSide())
+            applyNewFlags();
+        else if(isReceiveSide())
+            applyNewFlags(mRecvFlags);
+    }
 }
 
-void RemoteCableCircuitNode::delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole)
+void RemoteCableCircuitNode::delayedPeerModeChanged(Mode peerMode, CircuitPole peerSendPole,
+                                                    Mode replyToMode, CircuitFlags circuitFlags)
 {
-    QCoreApplication::postEvent(this, new RemoteCableDelayedPeerMode(peerMode, peerSendPole));
+    QCoreApplication::postEvent(this, new RemoteCableDelayedPeerMode(peerMode, peerSendPole,
+                                                                     replyToMode, circuitFlags));
 }
 
 void RemoteCableCircuitNode::scheduleStateRefresh()
@@ -597,6 +719,59 @@ void RemoteCableCircuitNode::refreshState()
     }
 
     mStateDirty = false;
+
+    if(flagsNeedUpdate && mRemote)
+        mRemote->onLocalNodeModeChanged(this);
+}
+
+CircuitFlags getFlagsFromList(const AbstractCircuitNode::CircuitList& circuitList)
+{
+    CircuitFlags newFlags = CircuitFlags::None;
+    bool isFirst = true;
+
+    for(ElectricCircuit *circuit : circuitList)
+    {
+        if(isFirst)
+        {
+            isFirst = false;
+            newFlags = circuit->nonSourceFlags();
+        }
+        else
+        {
+            const CircuitFlags flags2 = circuit->nonSourceFlags();
+            const CircuitFlags code1 = getCode(newFlags);
+            const CircuitFlags code2 = getCode(flags2);
+
+            newFlags = newFlags & flags2;
+
+            if(code1 != code2 && code1 != CircuitFlags::None && code2 != CircuitFlags::None)
+                newFlags = withCode(newFlags, CircuitFlags::CodeInvalid);
+        }
+    }
+
+    return newFlags;
+}
+
+void RemoteCableCircuitNode::updateNonSourceFlags()
+{
+    if(!isReceiveMode(mode()))
+    {
+        mNonSourceFlagsOpen = CircuitFlags::None;
+        mNonSourceFlagsClosed = CircuitFlags::None;
+        flagsNeedUpdate = true;
+        return;
+    }
+
+    const CircuitFlags newFlagsOpen = getFlagsFromList(getCircuits(CircuitType::Open));
+    const CircuitFlags newFlagsClosed = getFlagsFromList(getCircuits(CircuitType::Closed));
+
+    if(newFlagsOpen != mNonSourceFlagsOpen ||
+            newFlagsClosed != mNonSourceFlagsClosed)
+    {
+        mNonSourceFlagsOpen = newFlagsOpen;
+        mNonSourceFlagsClosed = newFlagsClosed;
+        flagsNeedUpdate = true;
+    }
 }
 
 bool RemoteCableCircuitNode::isNodeA() const
@@ -640,9 +815,21 @@ QString RemoteCableCircuitNode::getDescription() const
     // We show description of our local node
     QString str = mRemote->getNodeDescription(mIsNodeA);
     if(str.isEmpty())
-        return tr("EMPTY!!!");
+        return mRemote->name(); // Fallback to bridge name
 
     return str;
+}
+
+void RemoteCableCircuitNode::onCircuitFlagsChanged()
+{
+    flagsNeedUpdate = true;
+    if(skipFlagUpdate)
+        return;
+
+    if(mRemote)
+    {
+        mRemote->onLocalNodeModeChanged(this);
+    }
 }
 
 RemoteCircuitBridge *RemoteCableCircuitNode::remote() const

@@ -27,6 +27,8 @@
 
 #include "../view/panellistmodel.h"
 
+#include "../../objects/simulationobjectlineedit.h"
+
 #include <QDialog>
 #include <QPointer>
 
@@ -194,6 +196,12 @@ void PanelItemFactory::editItem(QWidget *parent,
         butLay->addWidget(delBut);
     butLay->addWidget(okBut);
     lay->setLayout(lay->rowCount(), QFormLayout::SpanningRole, butLay);
+
+    for(SimulationObjectLineEdit *e : dlg->findChildren<SimulationObjectLineEdit *>())
+    {
+        connect(e, &SimulationObjectLineEdit::editRequested,
+                dlg, &QDialog::accept);
+    }
 
     dlg->exec();
 

@@ -40,9 +40,11 @@
 
 #include "lever/bem/bemleverobject.h"
 
+#include "simple_activable/abstractactivableobjectsmodel.h"
+
 #include "simple_activable/lightbulbobject.h"
 
-#include "simple_activable/electromagnet.h"
+#include "simple_activable/electromagnetobject.h"
 
 #include "simple_activable/soundobject.h"
 
@@ -64,6 +66,12 @@
 #include "interfaces/buttoninterface.h"
 #include "interfaces/bemhandleinterface.h"
 
+#include "traintastic/traintasticsensorobj.h"
+#include "traintastic/traintasticturnoutobj.h"
+#include "traintastic/traintasticspawnobj.h"
+#include "traintastic/traintasticsignalobject.h"
+#include "traintastic/traintasticauxsignalobject.h"
+#include "traintastic/traintasticaxlecounterobj.h"
 
 #include "interfaces/mechanical/view/genericmechanicaloptionswidget.h"
 
@@ -72,6 +80,8 @@
 
 #include "simulationobjectoptionswidget.h"
 #include "simulationobjectlineedit.h"
+#include "traintastic/edit/signalindicatorlistview.h"
+
 #include <QFormLayout>
 
 #include <QCheckBox>
@@ -90,6 +100,12 @@ template <typename T>
 AbstractSimulationObjectModel *createModel(ModeManager *mgr)
 {
     return new T(mgr);
+}
+
+template <typename ActivableObjT>
+AbstractSimulationObjectModel *createSimpleActivableModel(ModeManager *mgr)
+{
+    return new AbstractActivableObjectsModel(mgr, ActivableObjT::Type);
 }
 
 template <typename T>
@@ -502,8 +518,8 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     lay->addRow(StandardObjectTypes::tr("Description A:"), nodeDescrA);
     lay->addRow(StandardObjectTypes::tr("Description B:"), nodeDescrB);
 
-    nodeDescrA->setPlaceholderText(StandardObjectTypes::tr("Shown on node A"));
-    nodeDescrB->setPlaceholderText(StandardObjectTypes::tr("Shown on node B"));
+    nodeDescrA->setPlaceholderText(StandardObjectTypes::tr("Shown on node A (Bridge name if empty)"));
+    nodeDescrB->setPlaceholderText(StandardObjectTypes::tr("Shown on node B (Bridge name if empty)"));
 
     QPalette normalPalette = nodeDescrA->palette();
     QPalette redTextPalette = normalPalette;
@@ -677,6 +693,509 @@ QWidget *defaultCircuitBridgeEdit(AbstractSimulationObject *item, ViewManager *m
     return w;
 }
 
+QWidget *defaultTraintasticSensorEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticSensorObj *sensor = static_cast<TraintasticSensorObj *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Sensor type
+    QComboBox *sensorTypeCombo = new QComboBox;
+    sensorTypeCombo->addItem(StandardObjectTypes::tr("Generic"));
+    sensorTypeCombo->addItem(StandardObjectTypes::tr("Turnout Feedback"));
+    sensorTypeCombo->addItem(StandardObjectTypes::tr("Spawn Train"));
+    sensorTypeCombo->addItem(StandardObjectTypes::tr("Aux Signal"));
+
+    lay->addRow(StandardObjectTypes::tr("Sensor Type:"), sensorTypeCombo);
+
+    auto updateSensorTypeCombo = [sensor, sensorTypeCombo]()
+    {
+        sensorTypeCombo->setCurrentIndex(int(sensor->sensorType()));
+    };
+
+    QObject::connect(sensorTypeCombo, &QComboBox::activated,
+                     sensor, [sensor](int row)
+    {
+        sensor->setSensorType(TraintasticSensorObj::SensorType(row));
+    });
+
+    // Channel
+    QSpinBox *channelSpin = new QSpinBox;
+    channelSpin->setRange(-1, 9999);
+    channelSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
+
+    QObject::connect(channelSpin, &QSpinBox::editingFinished,
+                     sensor, [sensor, channelSpin]()
+    {
+        if(!sensor->setChannel(channelSpin->value()))
+            channelSpin->setValue(sensor->channel()); // Rejected
+    });
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     sensor, [sensor, addressSpin]()
+    {
+        if(!sensor->setAddress(addressSpin->value()))
+            addressSpin->setValue(sensor->address()); // Rejected
+    });
+
+    // Default Off state
+    QSpinBox *offStateSpin = new QSpinBox;
+    offStateSpin->setRange(0, 9999);
+    lay->addRow(StandardObjectTypes::tr("Off State:"), offStateSpin);
+
+    QObject::connect(offStateSpin, &QSpinBox::editingFinished,
+                     sensor, [sensor, offStateSpin]()
+    {
+        sensor->setDefaultOffState(offStateSpin->value());
+    });
+
+    // Turnout Object
+    SimulationObjectLineEdit *turnoutEdit = new SimulationObjectLineEdit(mgr, {TraintasticTurnoutObj::Type});
+    QObject::connect(turnoutEdit, &SimulationObjectLineEdit::objectChanged,
+                     sensor, [sensor, turnoutEdit](AbstractSimulationObject *obj)
+    {
+        if(!sensor->setShuntTurnout(static_cast<TraintasticTurnoutObj *>(obj)))
+            turnoutEdit->setObject(sensor->shuntTurnout());
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Shunt Turnout:"), turnoutEdit);
+
+    // Aux Signal Object
+    SimulationObjectLineEdit *auxSignalEdit = new SimulationObjectLineEdit(mgr, {TraintasticAuxSignalObject::Type});
+    QObject::connect(auxSignalEdit, &SimulationObjectLineEdit::objectChanged,
+                     sensor, [sensor](AbstractSimulationObject *obj)
+    {
+        sensor->setAuxSignal(static_cast<TraintasticAuxSignalObject *>(obj));
+    });
+
+    lay->addRow(StandardObjectTypes::tr("Aux Signal:"), auxSignalEdit);
+
+    auto updateSettings = [sensor, updateSensorTypeCombo,
+            channelSpin, addressSpin, offStateSpin, turnoutEdit, auxSignalEdit]()
+    {
+        updateSensorTypeCombo();
+
+        channelSpin->setValue(sensor->channel());
+        addressSpin->setValue(sensor->address());
+        offStateSpin->setValue(sensor->defaultOffState());
+        turnoutEdit->setObject(sensor->shuntTurnout());
+        auxSignalEdit->setObject(sensor->auxSignal());
+
+        const bool isGeneric = sensor->sensorType() == TraintasticSensorObj::SensorType::Generic;
+        const bool isTurnout = sensor->sensorType() == TraintasticSensorObj::SensorType::TurnoutFeedback;
+        const bool isSpawn = sensor->sensorType() == TraintasticSensorObj::SensorType::Spawn;
+        const bool isAuxSignal = sensor->sensorType() == TraintasticSensorObj::SensorType::AuxSignal;
+
+        turnoutEdit->setVisible(isTurnout);
+        auxSignalEdit->setVisible(isAuxSignal);
+        offStateSpin->setVisible(isGeneric);
+
+        bool freeSetAddress = isGeneric || (isTurnout && !sensor->shuntTurnout());
+        addressSpin->setEnabled(freeSetAddress);
+        channelSpin->setEnabled(freeSetAddress);
+
+        QString tooltip = !freeSetAddress && isTurnout ? StandardObjectTypes::tr("Set values on shunt turnout object!") : QString();
+        addressSpin->setToolTip(tooltip);
+        channelSpin->setToolTip(tooltip);
+
+        channelSpin->setVisible(!isSpawn && !isAuxSignal);
+        addressSpin->setVisible(!isAuxSignal);
+    };
+
+    QObject::connect(sensor, &TraintasticSensorObj::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
+QWidget *defaultTraintasticTurnoutEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticTurnoutObj *turnout = static_cast<TraintasticTurnoutObj *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Sensor type
+    QComboBox *initialStateCombo = new QComboBox;
+    initialStateCombo->addItem(StandardObjectTypes::tr("Unknown"));
+    initialStateCombo->addItem(StandardObjectTypes::tr("Closed"));
+    initialStateCombo->addItem(StandardObjectTypes::tr("Thrown"));
+
+    lay->addRow(StandardObjectTypes::tr("Initial state:"), initialStateCombo);
+
+    auto updateInitialStateCombo = [turnout, initialStateCombo]()
+    {
+        initialStateCombo->setCurrentIndex(int(turnout->initialState()));
+    };
+
+    QObject::connect(initialStateCombo, &QComboBox::activated,
+                     turnout, [turnout](int row)
+    {
+        turnout->setInitialState(TraintasticTurnoutObj::State(row));
+    });
+
+    // Channel
+    QSpinBox *channelSpin = new QSpinBox;
+    channelSpin->setRange(-1, 9999);
+    channelSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    channelSpin->setValue(0);
+    lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
+
+    QObject::connect(channelSpin, &QSpinBox::editingFinished,
+                     turnout, [turnout, channelSpin]()
+    {
+        if(!turnout->setChannel(channelSpin->value()))
+            channelSpin->setValue(turnout->channel()); // Rejected
+    });
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     turnout, [turnout, addressSpin]()
+    {
+        if(!turnout->setAddress(addressSpin->value()))
+            addressSpin->setValue(turnout->address()); // Rejected
+    });
+
+    // Total time ms
+    QSpinBox *totalTimeSpin = new QSpinBox;
+    totalTimeSpin->setRange(0, 20000);
+    totalTimeSpin->setSuffix(StandardObjectTypes::tr(" ms"));
+    lay->addRow(StandardObjectTypes::tr("Totalt time:"), totalTimeSpin);
+
+    QObject::connect(totalTimeSpin, &QSpinBox::editingFinished,
+                     turnout, [turnout, totalTimeSpin]()
+    {
+        turnout->setTotalTimeMillis(totalTimeSpin->value());
+    });
+
+    auto updateSettings = [turnout, updateInitialStateCombo,
+            channelSpin, addressSpin, totalTimeSpin]()
+    {
+        updateInitialStateCombo();
+
+        channelSpin->setValue(turnout->channel());
+        addressSpin->setValue(turnout->address());
+        totalTimeSpin->setValue(turnout->totalTimeMillis());
+    };
+
+    QObject::connect(turnout, &TraintasticTurnoutObj::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
+QWidget *defaultTraintasticSignalEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticSignalObject *signal = static_cast<TraintasticSignalObject *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Channel
+    QSpinBox *channelSpin = new QSpinBox;
+    channelSpin->setRange(0, 9999);
+    lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
+
+    QObject::connect(channelSpin, &QSpinBox::editingFinished,
+                     signal, [signal, channelSpin]()
+                     {
+                         signal->setChannel(channelSpin->value());
+                     });
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     signal, [signal, addressSpin]()
+                     {
+                         signal->setAddress(addressSpin->value());
+                     });
+
+    SimulationObjectLineEdit *screenEdits[TraintasticSignalObject::NScreenRelays] = {};
+    SimulationObjectLineEdit *blinkEdits[TraintasticSignalObject::NBlinkRelays] = {};
+
+    for(int i = 0; i < TraintasticSignalObject::NScreenRelays; i++)
+    {
+        screenEdits[i] = new SimulationObjectLineEdit(mgr, {ScreenRelais::Type});
+        QObject::connect(screenEdits[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setScreenRelaisAt(i, static_cast<ScreenRelais *>(obj));
+                         });
+        lay->addRow(StandardObjectTypes::tr("Screen Relais %1:").arg(i), screenEdits[i]);
+
+        blinkEdits[i] = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
+        QObject::connect(blinkEdits[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setBlinkRelaisAt(i, static_cast<AbstractRelais *>(obj));
+                         });
+        lay->addRow(StandardObjectTypes::tr("Blink Relais %1:").arg(i), blinkEdits[i]);
+    }
+
+    // Aux Lights (Arrow, Rappel)
+    SimulationObjectLineEdit *auxLights[TraintasticSignalObject::AuxLights::NAuxLights] = {};
+    for(int i = 0; i < TraintasticSignalObject::AuxLights::NAuxLights; i++)
+    {
+        auxLights[i] = new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+        QObject::connect(auxLights[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setAuxLight(static_cast<LightBulbObject *>(obj),
+                                                 TraintasticSignalObject::AuxLights(i));
+                         });
+    }
+
+    lay->addRow(StandardObjectTypes::tr("Arrow Light:"), auxLights[TraintasticSignalObject::ArrowLight]);
+    lay->addRow(StandardObjectTypes::tr("Rappel 60 Light:"), auxLights[TraintasticSignalObject::RappelLight60]);
+    lay->addRow(StandardObjectTypes::tr("Rappel 100 Light:"), auxLights[TraintasticSignalObject::RappelLight100]);
+
+    // Advance signal
+    for (int i = TraintasticSignalObject::NScreenRelays; i < TraintasticSignalObject::NBlinkRelays; i++)
+    {
+        blinkEdits[i] = new SimulationObjectLineEdit(mgr, {AbstractRelais::Type});
+        QObject::connect(blinkEdits[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setBlinkRelaisAt(i, static_cast<AbstractRelais *>(obj));
+                         });
+    }
+
+    lay->addRow(StandardObjectTypes::tr("Advance signal (fake ON):"), blinkEdits[TraintasticSignalObject::AdvanceSignalFakeOn]);
+    lay->addRow(StandardObjectTypes::tr("Advance signal blinker:"), blinkEdits[TraintasticSignalObject::AdvanceSignalBlinker]);
+
+    // Direction Indicator Lights
+    SignalIndicatorListView *directionLightsView = new SignalIndicatorListView;
+    lay->addRow(directionLightsView);
+
+    QObject::connect(directionLightsView, &SignalIndicatorListView::needsSave,
+                     signal, [signal, directionLightsView]()
+    {
+        directionLightsView->saveTo(signal);
+    });
+
+    auto updateSettings = [signal, channelSpin, addressSpin,
+            screenEdits, blinkEdits, auxLights, directionLightsView]()
+    {
+        channelSpin->setValue(signal->channel());
+        addressSpin->setValue(signal->address());
+
+        for(int i = 0; i < TraintasticSignalObject::NScreenRelays; i++)
+        {
+            screenEdits[i]->setObject(signal->getScreenRelaisAt(i));
+        }
+
+        for(int i = 0; i < TraintasticSignalObject::NBlinkRelays; i++)
+        {
+            blinkEdits[i]->setObject(signal->getBlinkRelaisAt(i));
+        }
+
+        for(int i = 0; i < TraintasticSignalObject::AuxLights::NAuxLights; i++)
+        {
+            auxLights[i]->setObject(signal->auxLight(TraintasticSignalObject::AuxLights(i)));
+        }
+
+        directionLightsView->loadFrom(signal);
+    };
+
+    QObject::connect(signal, &TraintasticSignalObject::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
+QWidget *defaultTraintasticAuxSignalEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticAuxSignalObject *signal = static_cast<TraintasticAuxSignalObject *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Channel
+    QSpinBox *channelSpin = new QSpinBox;
+    channelSpin->setRange(0, 9999);
+    lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin);
+
+    QObject::connect(channelSpin, &QSpinBox::editingFinished,
+                     signal, [signal, channelSpin]()
+                     {
+                         signal->setChannel(channelSpin->value());
+                     });
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     signal, [signal, addressSpin]()
+                     {
+                         signal->setAddress(addressSpin->value());
+                     });
+
+    // Aux Lights (Arrow, Rappel)
+    SimulationObjectLineEdit *auxLights[int(TraintasticAuxSignalObject::AuxLights::NAuxLights)] = {};
+    for(int i = 0; i < int(TraintasticAuxSignalObject::AuxLights::NAuxLights); i++)
+    {
+        auxLights[i] = new SimulationObjectLineEdit(mgr, {LightBulbObject::Type});
+        QObject::connect(auxLights[i], &SimulationObjectLineEdit::objectChanged,
+                         signal, [signal, i](AbstractSimulationObject *obj)
+                         {
+                             signal->setAuxLight(static_cast<LightBulbObject *>(obj),
+                                                 TraintasticAuxSignalObject::AuxLights(i));
+                         });
+    }
+
+    lay->addRow(StandardObjectTypes::tr("L1:"), auxLights[int(TraintasticAuxSignalObject::AuxLights::L1)]);
+    lay->addRow(StandardObjectTypes::tr("L2:"), auxLights[int(TraintasticAuxSignalObject::AuxLights::L2)]);
+    lay->addRow(StandardObjectTypes::tr("L3:"), auxLights[int(TraintasticAuxSignalObject::AuxLights::L3)]);
+
+    auto updateSettings = [signal, channelSpin, addressSpin, auxLights]()
+    {
+        channelSpin->setValue(signal->channel());
+        addressSpin->setValue(signal->address());
+
+        for(int i = 0; i < int(TraintasticAuxSignalObject::AuxLights::NAuxLights); i++)
+        {
+            auxLights[i]->setObject(signal->auxLight(TraintasticAuxSignalObject::AuxLights(i)));
+        }
+    };
+
+    QObject::connect(signal, &TraintasticAuxSignalObject::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
+QWidget *defaultTraintasticSpawnEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticSpawnObj *spawn = static_cast<TraintasticSpawnObj *>(item);
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Address
+    QSpinBox *addressSpin = new QSpinBox;
+    addressSpin->setRange(-1, 9999);
+    addressSpin->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+    lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin);
+
+    QObject::connect(addressSpin, &QSpinBox::editingFinished,
+                     spawn, [spawn, addressSpin]()
+                     {
+                         if(spawn->setAddress(addressSpin->value()))
+                             addressSpin->setValue(spawn->address()); // Rejected
+                     });
+
+    auto updateSettings = [spawn, addressSpin]()
+    {
+        addressSpin->setValue(spawn->address());
+    };
+
+    QObject::connect(spawn, &TraintasticTurnoutObj::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
+QWidget *defaultTraintasticAxleCounterEdit(AbstractSimulationObject *item, ViewManager *mgr)
+{
+    TraintasticAxleCounterObj *axleCounter = static_cast<TraintasticAxleCounterObj *>(item);
+
+    QWidget *w = new QWidget;
+    QVBoxLayout *mainLay = new QVBoxLayout(w);
+
+    QSpinBox *addressSpin[2] = {};
+    QSpinBox *channelSpin[2] = {};
+    QCheckBox *invertCB[2] = {};
+
+    for(int i = 0; i < 2; i++)
+    {
+        QGroupBox *grpBox = new QGroupBox(StandardObjectTypes::tr("Sensor %1").arg(i + 1));
+        mainLay->addWidget(grpBox);
+        QFormLayout *lay = new QFormLayout(grpBox);
+
+        // Channel
+        channelSpin[i] = new QSpinBox;
+        channelSpin[i]->setRange(-1, 9999);
+        channelSpin[i]->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+        channelSpin[i]->setValue(0);
+        lay->addRow(StandardObjectTypes::tr("Channel:"), channelSpin[i]);
+
+        QObject::connect(channelSpin[i], &QSpinBox::editingFinished,
+                         axleCounter, [axleCounter, channelSpin, i]()
+                         {
+                            axleCounter->setChannel(channelSpin[i]->value(), i == 0);
+                         });
+
+        // Address
+        addressSpin[i] = new QSpinBox;
+        addressSpin[i]->setRange(-1, 9999);
+        addressSpin[i]->setSpecialValueText(StandardObjectTypes::tr("Invalid"));
+        lay->addRow(StandardObjectTypes::tr("Address:"), addressSpin[i]);
+
+        QObject::connect(addressSpin[i], &QSpinBox::editingFinished,
+                         axleCounter, [axleCounter, addressSpin, i]()
+                         {
+                            axleCounter->setAddress(addressSpin[i]->value(), i == 0);
+                         });
+
+        // Invert
+        invertCB[i] = new QCheckBox(StandardObjectTypes::tr("Invert direction"));
+        lay->addRow(invertCB[i]);
+
+        QObject::connect(invertCB[i], &QCheckBox::toggled,
+                         axleCounter, [axleCounter, i](bool val)
+                         {
+                            axleCounter->setInvertCount(val, i == 0);
+                         });
+    }
+
+    auto updateSettings = [axleCounter, channelSpin, addressSpin, invertCB]()
+    {
+        for(int i = 0; i < 2; i++)
+        {
+            channelSpin[i]->setValue(axleCounter->channel(i == 0));
+            addressSpin[i]->setValue(axleCounter->address(i == 0));
+            invertCB[i]->setChecked(axleCounter->invertCount(i == 0));
+        }
+    };
+
+    QObject::connect(axleCounter, &TraintasticAxleCounterObj::settingsChanged,
+                     w, updateSettings);
+
+    updateSettings();
+
+    return w;
+}
+
 void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
 {
     {
@@ -724,7 +1243,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     {
         // Ligth bulb
         SimulationObjectFactory::FactoryItem item;
-        item.customModelFunc = nullptr;
+        item.customModelFunc = &createSimpleActivableModel<LightBulbObject>;
         item.create = &createObject<LightBulbObject>;
         item.edit = nullptr;
         item.objectType = LightBulbObject::Type;
@@ -737,7 +1256,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     {
         // Electromagnet
         SimulationObjectFactory::FactoryItem item;
-        item.customModelFunc = nullptr;
+        item.customModelFunc = &createSimpleActivableModel<ElectroMagnetObject>;
         item.create = &createObject<ElectroMagnetObject>;
         item.edit = nullptr;
         item.objectType = ElectroMagnetObject::Type;
@@ -802,7 +1321,7 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
     {
         // Sound Activable Object
         SimulationObjectFactory::FactoryItem item;
-        item.customModelFunc = nullptr;
+        item.customModelFunc = &createSimpleActivableModel<SoundObject>;
         item.create = &createObject<SoundObject>;
         item.objectType = SoundObject::Type;
         item.prettyName = tr("Sound Object");
@@ -834,6 +1353,78 @@ void StandardObjectTypes::registerTypes(SimulationObjectFactory *factory)
         item.edit = &defaultCircuitBridgeEdit;
         item.objectType = RemoteCircuitBridge::Type;
         item.prettyName = tr("Circuit Bridge");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Sensor
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticSensorObj>;
+        item.edit = &defaultTraintasticSensorEdit;
+        item.objectType = TraintasticSensorObj::Type;
+        item.prettyName = tr("Traintastic Sensor");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Turnout
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticTurnoutObj>;
+        item.edit = &defaultTraintasticTurnoutEdit;
+        item.objectType = TraintasticTurnoutObj::Type;
+        item.prettyName = tr("Traintastic Turnout");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Signal
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticSignalObject>;
+        item.edit = &defaultTraintasticSignalEdit;
+        item.objectType = TraintasticSignalObject::Type;
+        item.prettyName = tr("Traintastic Signal");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Aux Signal
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticAuxSignalObject>;
+        item.edit = &defaultTraintasticAuxSignalEdit;
+        item.objectType = TraintasticAuxSignalObject::Type;
+        item.prettyName = tr("Traintastic Aux Signal");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Spawn
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticSpawnObj>;
+        item.edit = &defaultTraintasticSpawnEdit;
+        item.objectType = TraintasticSpawnObj::Type;
+        item.prettyName = tr("Traintastic Spawn");
+
+        factory->registerFactory(item);
+    }
+
+    {
+        // Traintastic Axle Counter
+        SimulationObjectFactory::FactoryItem item;
+        item.customModelFunc = nullptr;
+        item.create = &createObject<TraintasticAxleCounterObj>;
+        item.edit = &defaultTraintasticAxleCounterEdit;
+        item.objectType = TraintasticAxleCounterObj::Type;
+        item.prettyName = tr("Traintastic Axle Counter");
 
         factory->registerFactory(item);
     }

@@ -59,6 +59,7 @@ SerialDeviceListWidget::SerialDeviceListWidget(ViewManager *viewMgr, QWidget *pa
     mView = new QTableView;
     mView->setModel(mModel);
     lay->addWidget(mView);
+    mView->resizeColumnsToContents();
 
     connect(addBut, &QPushButton::clicked,
             this, &SerialDeviceListWidget::addSerialDevice);
@@ -69,6 +70,11 @@ SerialDeviceListWidget::SerialDeviceListWidget(ViewManager *viewMgr, QWidget *pa
             this, &SerialDeviceListWidget::onFileModeChanged);
 
     onFileModeChanged(mViewMgr->modeMgr()->mode());
+}
+
+void SerialDeviceListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
 }
 
 void SerialDeviceListWidget::onFileModeChanged(FileMode mode)

@@ -88,7 +88,7 @@ public:
         remoteSession = session;
     }
 
-    void sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode);
+    void sendBridgeStatus(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode, quint8 circuitFlags);
     void sendCustonMsg(DataType t, const QCborValue& v);
 
     void closeConnection();

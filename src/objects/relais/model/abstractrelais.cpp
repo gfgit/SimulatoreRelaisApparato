@@ -32,19 +32,16 @@
 
 #include <QRandomGenerator>
 
-#include <QCoreApplication> // for postEvent()
+#include <QCoreApplication>
 
-class DelayedSetStateEvent : public QEvent
+class AbstractRelaisUpdateFlagsEvent : public QEvent
 {
 public:
-    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 1);
-
-    DelayedSetStateEvent(AbstractRelais::State s) : QEvent(_Type), mState(s) {};
-
-    inline AbstractRelais::State getState() const { return mState; }
-
-private:
-    AbstractRelais::State mState = AbstractRelais::State::Down;
+    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 5);
+    AbstractRelaisUpdateFlagsEvent()
+        : QEvent(_Type)
+    {
+    }
 };
 
 QString AbstractRelais::getRelaisTypeName(RelaisType t)
@@ -71,6 +68,8 @@ QString AbstractRelais::getRelaisTypeName(RelaisType t)
         return tr("Decoder");
     case RelaisType::CodeRepeater:
         return tr("Code Repeater");
+    case RelaisType::DiskRelayAC:
+        return tr("Disk Relay (AC)");
     case RelaisType::NTypes:
         break;
     }
@@ -99,19 +98,6 @@ AbstractRelais::~AbstractRelais()
     }
 
     mPositionTimer.stop();
-    mEncoding.encodeTimeout.stop();
-}
-
-bool AbstractRelais::event(QEvent *e)
-{
-    if(e->type() == DelayedSetStateEvent::_Type)
-    {
-        if(!isRemoteReplica())
-            setState(static_cast<DelayedSetStateEvent *>(e)->getState());
-        return true;
-    }
-
-    return AbstractSimulationObject::event(e);
 }
 
 QString AbstractRelais::getType() const
@@ -149,7 +135,7 @@ void AbstractRelais::saveToJSON(QJsonObject &obj) const
     obj["relay_type"] = int(relaisType());
 
     if(relaisType() == RelaisType::Encoder || relaisType() == RelaisType::Decoder)
-        obj["signal_encoding"] = codeToNumber(mEncoding.expectedCode);
+        obj["signal_encoding"] = codeToNumber(mExpectedCode);
 }
 
 int AbstractRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
@@ -172,13 +158,27 @@ int AbstractRelais::getReferencingNodes(QVector<AbstractCircuitNode *> *result) 
 bool AbstractRelais::setReplicaState(const QCborMap &replicaState)
 {
     State newState = State(replicaState.value(QLatin1StringView("state")).toInteger(int(State::Down)));
+    SignalAspectCode detectedCode = SignalAspectCode(replicaState.value(QLatin1StringView("detectedCode")).toInteger(int(SignalAspectCode::CodeAbsent)));
+
+    if(relaisType() == RelaisType::Decoder || relaisType() == RelaisType::CodeRepeater)
+    {
+        setDecodedResult(detectedCode);
+    }
+
     setState(newState);
+
+    if(relaisType() == RelaisType::Decoder || relaisType() == RelaisType::CodeRepeater)
+    {
+        setDecodedResult(detectedCode);
+    }
+
     return true;
 }
 
 void AbstractRelais::getReplicaState(QCborMap &replicaState) const
 {
     replicaState[QLatin1StringView("state")] = int(mState);
+    replicaState[QLatin1StringView("detectedCode")] = int(mDetectedCode);
 }
 
 bool AbstractRelais::isStateIndependent(RelaisType t)
@@ -267,21 +267,22 @@ void AbstractRelais::removeContactNode(RelaisContactNode *c)
     emit nodesChanged(this);
 }
 
+bool AbstractRelais::event(QEvent *e)
+{
+    if(e->type() == AbstractRelaisUpdateFlagsEvent::_Type)
+    {
+        applyDecodedResult();
+        return true;
+    }
+
+    return QObject::event(e);
+}
+
 void AbstractRelais::timerEvent(QTimerEvent *e)
 {
-    if(e->timerId() == mEncoding.encodeTimeout.timerId() && mEncoding.encodeTimeout.isActive())
+    if(e->timerId() == mPositionTimer.timerId())
     {
-        if(relaisType() == RelaisType::Decoder)
-        {
-            //qDebug() << "CODE TIMEOUT:" << codeToNumber(mEncoding.detectedCode) << codeToNumber(mEncoding.tempDetectedCode) << "elapsed" << mEncoding.timer.elapsed();
-
-            setDecodedResult(SignalAspectCode::CodeAbsent);
-        }
-        return;
-    }
-    else if(e->timerId() == mPositionTimer.timerId())
-    {
-        if(relaisType() == RelaisType::Blinker || relaisType() == RelaisType::Encoder)
+        if(relaisType() == RelaisType::Blinker)
         {
             if(mActivePowerNodesUp == 0)
             {
@@ -385,33 +386,13 @@ void AbstractRelais::powerNodeActivated(RelaisPowerNode *p, bool secondContact)
     }
     else if(mActivePowerNodesUp == 1)
     {
-        if(relaisType() == RelaisType::Blinker || relaisType() == RelaisType::Encoder)
+        if(relaisType() == RelaisType::Blinker)
         {
             mPositionTimer.stop();
 
             // Timer will switch state
-            if(relaisType() == RelaisType::Encoder)
-            {
-                if(mEncoding.expectedCode != SignalAspectCode::CodeAbsent)
-                {
-                    mPositionTimer.start(timeoutMillisForCode(mEncoding.expectedCode),
-                                         Qt::PreciseTimer, this);
-                }
-            }
-            else
-            {
-                mPositionTimer.start(mCustomDownMS > 0 ? mCustomDownMS : mCustomUpMS,
-                                     Qt::PreciseTimer, this);
-            }
-        }
-        else if(relaisType() == RelaisType::Decoder)
-        {
-            decoderRelayRoutine();
-        }
-        else if(relaisType() == AbstractRelais::RelaisType::CodeRepeater)
-        {
-            // This relay is super fast
-            QCoreApplication::postEvent(this, new DelayedSetStateEvent(State::Up));
+            mPositionTimer.start(mCustomDownMS > 0 ? mCustomDownMS : mCustomUpMS,
+                                 Qt::PreciseTimer, this);
         }
         else
         {
@@ -481,18 +462,9 @@ void AbstractRelais::powerNodeDeactivated(RelaisPowerNode *p, bool secondContact
     }
     else if(mActivePowerNodesUp == 0)
     {
-        if(relaisType() == RelaisType::Blinker || relaisType() == RelaisType::Encoder)
+        if(relaisType() == RelaisType::Blinker)
         {
             // Timer will self stop at next timeout and set relais to Down state
-        }
-        else if(relaisType() == RelaisType::Decoder)
-        {
-            decoderRelayRoutine();
-        }
-        else if(relaisType() == AbstractRelais::RelaisType::CodeRepeater)
-        {
-            // This relay is super fast
-            QCoreApplication::postEvent(this, new DelayedSetStateEvent(State::Down));
         }
         else
         {
@@ -539,6 +511,9 @@ void AbstractRelais::startMove(bool up)
     {
     case RelaisType::Combinator:
     case RelaisType::Decoder:
+    case RelaisType::Encoder:
+    case RelaisType::CodeRepeater:
+    case RelaisType::DiskRelayAC:
         // These types have symmetric time characteristic
         // So use always custom up time
         timeUp = true;
@@ -557,7 +532,12 @@ void AbstractRelais::startMove(bool up)
             totalTime = DefaultCombinatorMS;
             break;
         case RelaisType::Decoder:
+        case RelaisType::Encoder:
+        case RelaisType::CodeRepeater:
             totalTime = DefaultDecoderMS;
+            break;
+        case RelaisType::DiskRelayAC:
+            totalTime = DefaultDiskMS;
             break;
         default:
             totalTime = timeUp ? DefaultUpMS : DefaultDownMS;
@@ -582,102 +562,35 @@ void AbstractRelais::startMove(bool up)
     mPositionTimer.start(tickDurationMS, Qt::PreciseTimer, this);
 }
 
-void AbstractRelais::decoderRelayRoutine()
-{
-    //qDebug() << "routine tmp:" << codeToNumber(mEncoding.tempDetectedCode);
-
-    if(mEncoding.timer.isValid())
-    {
-        const qint64 elapsed = mEncoding.timer.restart();
-
-        const SignalAspectCode code = codeForMillis(elapsed);
-
-        // If no/wrong code detected, skip another cicle
-        if(code == SignalAspectCode::CodeAbsent ||
-                (mEncoding.detectedCode != SignalAspectCode::CodeAbsent &&
-                 mEncoding.detectedCode != code))
-        {
-            //qDebug() << "WRONG CODE:" << codeToNumber(code) << "elapesed:" << elapsed << codeToNumber(mEncoding.expectedCode);
-            setDecodedResult(SignalAspectCode::CodeAbsent);
-        }
-        else if(mEncoding.detectedCode == SignalAspectCode::CodeAbsent &&
-                mEncoding.tempDetectedCode == code)
-        {
-            //qDebug() << "DETECTED CODE:" << codeToNumber(code) << "elapesed:" << elapsed;
-
-            // Last half cycle matches this code, so set it
-            setDecodedResult(code);
-        }
-        else if(mEncoding.tempDetectedCode == SignalAspectCode::CodeAbsent)
-        {
-            // Wait another half cycle to confirm code detection
-
-            //qDebug() << "TRY CODE:" << codeToNumber(code) << "elapesed:" << elapsed;
-
-            startCodeTimeout(code);
-            mEncoding.tempDetectedCode = code;
-        }
-        else if(mEncoding.detectedCode != SignalAspectCode::CodeAbsent)
-        {
-            // Keep checking current code timeouts
-            startCodeTimeout(mEncoding.detectedCode);
-        }
-    }
-    else
-    {
-        //qDebug() << "CODE START:" << codeToNumber(mEncoding.expectedCode);
-        mEncoding.timer.start();
-        setDecodedResult(SignalAspectCode::CodeAbsent);
-        startCodeTimeout(SignalAspectCode::Code75);
-    }
-}
-
 void AbstractRelais::setDecodedResult(SignalAspectCode code)
 {
-    //qDebug() << "set result" << codeToNumber(code);
+    Q_ASSERT(relaisType() == RelaisType::Decoder ||
+             relaisType() == RelaisType::CodeRepeater);
 
-    Q_ASSERT(relaisType() == RelaisType::Decoder);
+    mNextDetectedCode = code;
 
-    if(code == SignalAspectCode::CodeAbsent)
-    {
-        // In case of no code detected reset also temp code
-        mEncoding.tempDetectedCode = SignalAspectCode::CodeAbsent;
-    }
-
-    mEncoding.encodeTimeout.stop();
-
-    if(mEncoding.detectedCode == code)
-        return;
-
-    mEncoding.detectedCode = code;
-
-    if(code == SignalAspectCode::CodeAbsent ||
-            (mEncoding.expectedCode != SignalAspectCode::CodeAbsent &&
-             mEncoding.expectedCode != code))
-    {
-        // No code or wrong code detected, go down
-        startMove(false);
-        return;
-    }
-
-    // We detected correct code, move up
-    startMove(true);
-
-    startCodeTimeout(code);
+    QCoreApplication::postEvent(this, new AbstractRelaisUpdateFlagsEvent);
 }
 
-void AbstractRelais::startCodeTimeout(SignalAspectCode code)
+void AbstractRelais::applyDecodedResult()
 {
-    mEncoding.encodeTimeout.stop();
-
-    int millis = timeoutMillisForCode(code);
-    if(millis <= 0)
+    if(relaisType() != RelaisType::Decoder &&
+        relaisType() != RelaisType::CodeRepeater)
         return;
 
-    // Start timer to end code detection
-    //qDebug() << "START TIMEOUT code:" << codeToNumber(SignalAspectCode::Code75) << "dur:" << millis << millis + CodeErrorMarginMillis;
-    mEncoding.encodeTimeout.start(millis + (CodeErrorMarginMillis * 2),
-                                  Qt::PreciseTimer, this);
+    if(relaisType() == RelaisType::CodeRepeater &&
+        mNextDetectedCode != mDetectedCode)
+    {
+        mDetectedCode = mNextDetectedCode;
+
+        // Update contact flags
+        for(RelaisContactNode *c : mContactNodes)
+        {
+            c->applyNewFlags();
+        }
+
+        emit stateChanged(this);
+    }
 }
 
 SignalAspectCode AbstractRelais::codeForMillis(qint64 millis)
@@ -693,6 +606,14 @@ SignalAspectCode AbstractRelais::codeForMillis(qint64 millis)
 
     // No code could be detected
     return SignalAspectCode::CodeAbsent;
+}
+
+void AbstractRelais::redrawContactNodes()
+{
+    for(RelaisContactNode *c : mContactNodes)
+    {
+        emit c->shapeChanged();
+    }
 }
 
 AbstractRelais::RelaisType AbstractRelais::relaisType() const
@@ -721,9 +642,7 @@ void AbstractRelais::setRelaisType(RelaisType newType)
     case RelaisType::Decoder:
     case RelaisType::CodeRepeater:
     {
-        mEncoding.detectedCode = SignalAspectCode::CodeAbsent;
-        mEncoding.tempDetectedCode = SignalAspectCode::CodeAbsent;
-        mEncoding.timer.invalidate();
+        mDetectedCode = SignalAspectCode::CodeAbsent;
 
         mPositionTimer.stop();
         mInternalState = State::Down;
@@ -780,7 +699,7 @@ SignalAspectCode AbstractRelais::getExpectedCode() const
     if(relaisType() != RelaisType::Encoder && relaisType() != RelaisType::Decoder)
         return SignalAspectCode::CodeAbsent;
 
-    return mEncoding.expectedCode;
+    return mExpectedCode;
 }
 
 void AbstractRelais::setExpectedCode(SignalAspectCode code)
@@ -792,12 +711,38 @@ void AbstractRelais::setExpectedCode(SignalAspectCode code)
     if(relaisType() == RelaisType::Encoder && code == SignalAspectCode::CodeAbsent)
         code = SignalAspectCode::Code75;
 
-    if(mEncoding.expectedCode == code)
+    if(mExpectedCode == code)
         return;
 
-    mEncoding.expectedCode = code;
+    mExpectedCode = code;
 
     emit settingsChanged(this);
+}
+
+bool AbstractRelais::isDelayed(State dir) const
+{
+    switch (relaisType())
+    {
+    case RelaisType::Combinator:
+    case RelaisType::Blinker:
+    case RelaisType::Encoder:
+    case RelaisType::Decoder:
+    case RelaisType::CodeRepeater:
+        return false;
+    default:
+        break;
+    }
+
+    for(RelaisPowerNode *node : mPowerNodes)
+    {
+        if(dir == State::Up && node->delayUpMillis() > 0)
+            return true;
+
+        if(dir == State::Down && node->delayDownMillis() > 0)
+            return true;
+    }
+
+    return false;
 }
 
 void AbstractRelais::onReplicaModeChanged(bool on)
@@ -856,10 +801,7 @@ void AbstractRelais::setNormallyUp(bool newNormallyUp)
         emit p->shapeChanged();
     }
 
-    for(RelaisContactNode *c : mContactNodes)
-    {
-        emit c->shapeChanged();
-    }
+    redrawContactNodes();
 }
 
 AbstractRelais::State AbstractRelais::state() const
@@ -872,6 +814,20 @@ void AbstractRelais::setState(State newState)
     if (mState == newState)
         return;
     mState = newState;
+
+    if(relaisType() == RelaisType::CodeRepeater &&
+            mDetectedCode != mNextDetectedCode &&
+            (mState == State::Up || mState == State::Down))
+    {
+        mDetectedCode = mNextDetectedCode;
+
+        // Update contact flags now
+        for(RelaisContactNode *c : mContactNodes)
+        {
+            c->applyNewFlags();
+        }
+    }
+
     emit stateChanged(this);
 }
 

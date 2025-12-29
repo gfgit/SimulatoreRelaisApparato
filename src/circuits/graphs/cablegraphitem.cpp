@@ -22,11 +22,14 @@
 
 #include "cablegraphitem.h"
 
+#include "abstractnodegraphitem.h"
+
 #include "../nodes/circuitcable.h"
 #include "../nodes/abstractcircuitnode.h"
 
 #include "../circuitscene.h"
 #include "../../views/modemanager.h"
+#include "circuitcolors.h"
 
 #include <QPainterPathStroker>
 #include <QPainter>
@@ -141,7 +144,6 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         showUnconnected = !isAconnected || !isBconnected;
     }
 
-    QColor oldColor = pen.color();
     if(s && s->mode() == FileMode::Editing && isSelected())
     {
         pen.setColor(Qt::darkCyan);
@@ -151,13 +153,33 @@ void CableGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         // Draw line with light orange
         pen.setColor(qRgb(255, 178, 102));
     }
+    else
+    {
+        const auto power = mCable->powered();
+        const auto powerPole = toCablePowerPole(power);
+        const auto powerType = toCircuitType(power);
+        const auto circuitFlags = mCable->getFlags();
+
+        AnyCircuitType targetType = AnyCircuitType::None;
+        if(powerPole != CablePowerPole::None)
+        {
+            if(powerType == CircuitType::Closed)
+                targetType = AnyCircuitType::Closed;
+            else
+                targetType = AnyCircuitType::Open;
+        }
+
+        const QColor color = AbstractNodeGraphItem::getContactColor(targetType,
+                                                                    circuitFlags,
+                                                                    mCable->hasCircuitsWithFlags(),
+                                                                    mCable->modeMgr());
+        pen.setColor(color);
+    }
 
     // Draw cable path
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
     painter->drawPath(mPath);
-
-    pen.setColor(oldColor);
 }
 
 void CableGraphItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
@@ -418,23 +440,12 @@ void CableGraphItem::updatePen()
     const auto power = mCable->powered();
     const auto powerPole = toCablePowerPole(power);
     const auto powerType = toCircuitType(power);
-
-    QColor color = Qt::black;
-    if(powerPole != CablePowerPole::None)
-    {
-        if(powerType == CircuitType::Closed)
-            color = Qt::red;
-        else
-            color.setRgb(120, 210, 255); // Light blue
-    }
-
     Qt::PenStyle style = Qt::SolidLine;
     if(powerPole != CablePowerPole::None &&
             powerPole != CablePowerPole::Both &&
             mCable->mode() == CircuitCable::Mode::Unifilar)
         style = Qt::DashLine;
 
-    pen.setColor(color);
     pen.setStyle(style);
 
     if(powerPole == CablePowerPole::None)
@@ -469,7 +480,7 @@ bool CableGraphItem::loadFromJSON(const QJsonObject &obj)
 
     const QJsonObject pathObj = obj.value("path").toObject();
     CableGraphPath newPath = CableGraphPath::loadFromJSON(pathObj);
-    if(newPath.isEmpty())
+    if(newPath.isEmpty() || !newPath.isComplete())
         return false;
 
     setCablePath(newPath);
@@ -503,11 +514,6 @@ TileLocation CableGraphItem::sideB() const
         return mCablePath.last();
 
     return mCablePath.last() + mCablePath.endDirection();
-}
-
-bool CableGraphItem::cableZeroLength() const
-{
-    return mCablePath.isZeroLength();
 }
 
 CircuitCable *CableGraphItem::cable() const
@@ -975,54 +981,36 @@ CableGraphPath CableGraphPath::loadFromJSON(const QJsonObject &obj)
 {
     const QJsonArray tiles = obj.value("tiles").toArray();
 
-    bool zero = obj.value("zero").toBool(false);
-    if(zero)
+
+    CableGraphPath result;
+
+    int startDir = obj.value("start_dir").toInt();
+    int endDir = obj.value("end_dir").toInt();
+
+    result.setStartDirection(Connector::Direction(startDir));
+
+    for(const QJsonValue& v : tiles)
     {
-        if(tiles.size() != 2)
-            return {};
-
-        QJsonObject tileObj = tiles.first().toObject();
-        TileLocation a;
-        a.x = int16_t(tileObj.value("x").toInt());
-        a.y = int16_t(tileObj.value("y").toInt());
-
-        tileObj = tiles.last().toObject();
-        TileLocation b;
-        b.x = int16_t(tileObj.value("x").toInt());
-        b.y = int16_t(tileObj.value("y").toInt());
-
-        return CableGraphPath::createZeroLength(a, b);
+        const QJsonObject tileObj = v.toObject();
+        TileLocation tile;
+        tile.x = int16_t(tileObj.value("x").toInt());
+        tile.y = int16_t(tileObj.value("y").toInt());
+        result.addTile(tile);
     }
-    else
-    {
-        CableGraphPath result;
 
-        int startDir = obj.value("start_dir").toInt();
-        int endDir = obj.value("end_dir").toInt();
+    result.setEndDirection(Connector::Direction(endDir));
 
-        result.setStartDirection(Connector::Direction(startDir));
+    if(!result.isComplete())
+        return {};
 
-        for(const QJsonValue& v : tiles)
-        {
-            const QJsonObject tileObj = v.toObject();
-            TileLocation tile;
-            tile.x = int16_t(tileObj.value("x").toInt());
-            tile.y = int16_t(tileObj.value("y").toInt());
-            result.addTile(tile);
-        }
-
-        result.setEndDirection(Connector::Direction(endDir));
-
-        if(!result.isComplete())
-            return {};
-
-        return result;
-    }
+    return result;
 }
 
 void CableGraphPath::saveToJSON(const CableGraphPath &path, QJsonObject &obj)
 {
-    obj["zero"] = path.isZeroLength();
+    assert(!path.isZeroLength());
+
+    const bool needsReverse = path.needsReversing();
 
     QJsonArray tiles;
     for(const TileLocation tile : path.tiles())
@@ -1030,15 +1018,41 @@ void CableGraphPath::saveToJSON(const CableGraphPath &path, QJsonObject &obj)
         QJsonObject tileObj;
         tileObj["x"] = tile.x;
         tileObj["y"] = tile.y;
-        tiles.append(tileObj);
+
+        if(needsReverse)
+            tiles.prepend(tileObj);
+        else
+            tiles.append(tileObj);
     }
     obj["tiles"] = tiles;
 
-    if(!path.isZeroLength())
+    if(needsReverse)
+    {
+        obj["start_dir"] = int(path.endDirection());
+        obj["end_dir"] = int(path.startDirection());
+    }
+    else
     {
         obj["start_dir"] = int(path.startDirection());
         obj["end_dir"] = int(path.endDirection());
     }
+}
+
+bool CableGraphPath::needsReversing() const
+{
+    if(tiles().size() == 1)
+    {
+        return startDirection() < endDirection();
+    }
+    else if(tiles().size() > 1)
+    {
+        if(first().x == last().x)
+            return first().y > last().y;
+
+        return first().x > last().x;
+    }
+
+    return false;
 }
 
 Connector::Direction CableGraphPath::getDirection(const TileLocation &a, const TileLocation &b)

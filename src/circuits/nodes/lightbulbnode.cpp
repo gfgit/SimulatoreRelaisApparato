@@ -24,6 +24,8 @@
 
 #include "../../objects/simple_activable/lightbulbobject.h"
 
+#include "../../views/modemanager.h"
+
 LightBulbNode::LightBulbNode(ModeManager *mgr, QObject *parent)
     : SimpleActivationNode{mgr, parent}
 {
@@ -38,4 +40,64 @@ QString LightBulbNode::nodeType() const
 QString LightBulbNode::allowedObjectType() const
 {
     return LightBulbObject::Type;
+}
+
+void LightBulbNode::onCircuitFlagsChanged()
+{
+    const CircuitFlags flags = getCircuitFlags(0);
+
+    switch (getCode(flags))
+    {
+    case CircuitFlags::None:
+    case CircuitFlags::CodeInvalid:
+    default:
+    {
+        disconnect(modeMgr(), &ModeManager::codeTimerChanged,
+                   this, &LightBulbNode::onCodePhaseChanged);
+        break;
+    }
+    case CircuitFlags::Code75:
+    case CircuitFlags::Code120:
+    case CircuitFlags::Code180:
+    case CircuitFlags::Code270:
+    {
+        connect(modeMgr(), &ModeManager::codeTimerChanged,
+                this, &LightBulbNode::onCodePhaseChanged,
+                Qt::UniqueConnection);
+        break;
+    }
+    }
+
+    onCodePhaseChanged();
+}
+
+void LightBulbNode::onCodePhaseChanged()
+{
+    if(!object() || !hasCircuits(CircuitType::Closed))
+    {
+        setNodeState(false);
+        return;
+    }
+
+    const CircuitFlags flags = getCircuitFlags(0);
+
+    switch (getCode(flags))
+    {
+    case CircuitFlags::None:
+    case CircuitFlags::CodeInvalid:
+    default:
+    {
+        setNodeState(true);
+        break;
+    }
+    case CircuitFlags::Code75:
+    case CircuitFlags::Code120:
+    case CircuitFlags::Code180:
+    case CircuitFlags::Code270:
+    {
+        const bool codeOn = modeMgr()->getCodePhase(codeFromFlag(flags));
+        setNodeState(codeOn);
+        break;
+    }
+    }
 }

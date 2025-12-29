@@ -1,5 +1,5 @@
 /**
- * src/circuits/graphs/electromagnetgraphitem.cpp
+ * src/circuits/graphs/electromagnetpowergraphitem.cpp
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,21 +20,23 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "electromagnetgraphitem.h"
+#include "electromagnetpowergraphitem.h"
 
-#include "../nodes/electromagnetnode.h"
+#include "../nodes/electromagnetpowernode.h"
 
-#include "../../objects/simple_activable/electromagnet.h"
+#include "../../objects/simple_activable/electromagnetobject.h"
+
+#include "circuitcolors.h"
 
 #include <QPainter>
 
-ElectroMagnetGraphItem::ElectroMagnetGraphItem(ElectroMagnetNode *node_)
+ElectroMagnetPowerGraphItem::ElectroMagnetPowerGraphItem(ElectroMagnetPowerNode *node_)
     : SimpleActivationGraphItem(node_)
 {
 
 }
 
-void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ElectroMagnetPowerGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     SimpleActivationGraphItem::paint(painter, option, widget);
 
@@ -92,20 +94,20 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
 
     const QColor colors[3] =
     {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
     };
 
     // Draw common contact (0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
     //painter->drawLine(commonLine);
 
     // Draw bulb circle
 
     pen.setWidthF(10.0);
-    pen.setColor(colors[int(AnyCircuitType::None)]);
+    pen.setColor(CircuitColors::None);
 
     ElectroMagnetObject *magnet = static_cast<ElectroMagnetObject *>(node()->object());
     if(magnet)
@@ -138,7 +140,7 @@ void ElectroMagnetGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     drawName(painter);
 }
 
-QString ElectroMagnetGraphItem::tooltipString() const
+QString ElectroMagnetPowerGraphItem::tooltipString() const
 {
     ElectroMagnetObject *magnet = static_cast<ElectroMagnetObject *>(node()->object());
     if(!magnet)
@@ -168,7 +170,7 @@ QString ElectroMagnetGraphItem::tooltipString() const
             .arg(magnet->name(), stateStr);
 }
 
-ElectroMagnetNode *ElectroMagnetGraphItem::node() const
+ElectroMagnetPowerNode *ElectroMagnetPowerGraphItem::node() const
 {
-    return static_cast<ElectroMagnetNode *>(getAbstractNode());
+    return static_cast<ElectroMagnetPowerNode *>(getAbstractNode());
 }

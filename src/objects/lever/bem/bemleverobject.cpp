@@ -40,7 +40,8 @@ static const EnumDesc bem_mc_lever_posDesc =
         {},
         QT_TRANSLATE_NOOP("BEMLeverObject", "Blocked"),
         {},
-        QT_TRANSLATE_NOOP("BEMLeverObject", "Consensus")
+        QT_TRANSLATE_NOOP("BEMLeverObject", "Consensus"),
+        {}
     }
 };
 
@@ -70,7 +71,8 @@ static const EnumDesc bem_mr_lever_posDesc =
         {},
         QT_TRANSLATE_NOOP("BEMLeverObject", "Activate 1° Cat Signal"),
         {},
-        QT_TRANSLATE_NOOP("BEMLeverObject", "Activate Both Signals")
+        QT_TRANSLATE_NOOP("BEMLeverObject", "Activate Both Signals"),
+        {}
     }
 };
 

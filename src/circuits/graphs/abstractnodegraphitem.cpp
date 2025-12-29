@@ -28,6 +28,8 @@
 
 #include "../../views/modemanager.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 #include <QFont>
 
@@ -95,20 +97,26 @@ QString AbstractNodeGraphItem::tooltipString() const
     return displayString();
 }
 
+double AbstractNodeGraphItem::textDisplayFontSize() const
+{
+    return 28.0; // pt, big enought for object names
+}
+
 QRectF AbstractNodeGraphItem::textDisplayRect() const
 {
+    const double textDisplayHeight = textDisplayFontSize() * 1.5;
     QRectF textRect;
     switch (mTextDirection)
     {
     case Connector::Direction::North:
-        textRect.setTop(- 2 * TextDisplayMargin - TextDisplayHeight);
+        textRect.setTop(- 2 * TextDisplayMargin - textDisplayHeight);
         textRect.setBottom(-TextDisplayMargin);
         textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
         textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
         break;
     case Connector::Direction::South:
         textRect.setTop(TileLocation::Size + TextDisplayMargin);
-        textRect.setBottom(TileLocation::Size + 2 * TextDisplayMargin + TextDisplayHeight);
+        textRect.setBottom(TileLocation::Size + 2 * TextDisplayMargin + textDisplayHeight);
         textRect.setLeft(-(mTextWidth + 1) / 2 + TileLocation::HalfSize);
         textRect.setRight((mTextWidth + 1) / 2 + TileLocation::HalfSize);
         break;
@@ -163,15 +171,16 @@ void AbstractNodeGraphItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
             {
                 if(ev->modifiers() == Qt::ControlModifier)
                 {
-                    // Ctrl + right click, try flip node
+                    // Only Ctrl + right click, try flip node
                     if(getAbstractNode()->tryFlipNode(true))
                     {
                         ev->accept();
                         return;
                     }
                 }
-                else if(ev->modifiers() == Qt::AltModifier)
+                else if(ev->modifiers() == (Qt::ShiftModifier | Qt::ControlModifier))
                 {
+                    // Ctrl + Shift
                     // Rotate text clockwise 90 degrees
 
                     Connector::Direction currTextPos = mTextDirection;
@@ -420,25 +429,17 @@ void AbstractNodeGraphItem::drawMorsetti(QPainter *painter, int nodeContact, Til
         break;
     }
 
-    QColor color = Qt::black;
-    if(getAbstractNode()->hasCircuit(nodeContact,
-                                     CircuitType::Closed))
-        color = Qt::red;
-    else if(getAbstractNode()->hasCircuit(nodeContact,
-                                     CircuitType::Open))
-        color.setRgb(120, 210, 255); // Light blue
-
     QPen pen;
     pen.setCapStyle(Qt::FlatCap);
     pen.setStyle(Qt::SolidLine);
     pen.setWidthF(10.0);
-    pen.setColor(color);
+    pen.setColor(getContactColor(nodeContact));
 
     painter->setPen(pen);
     painter->drawLine(morsettoLine);
 
     painter->setPen(Qt::NoPen);
-    painter->setBrush(color);
+    painter->setBrush(pen.color());
     painter->drawEllipse(morsettoEllipse);
 
     QFont f;
@@ -525,7 +526,7 @@ void AbstractNodeGraphItem::drawName(QPainter *painter,
     }
 }
 
-void AbstractNodeGraphItem::drawName(QPainter *painter)
+void AbstractNodeGraphItem::drawName(QPainter *painter, QRectF *br)
 {
     const QString str = displayString();
     if(str.isEmpty())
@@ -534,12 +535,29 @@ void AbstractNodeGraphItem::drawName(QPainter *painter)
     const QRectF textRect = textDisplayRect();
 
     QFont f;
-    f.setPointSizeF(TextDisplayFontSize);
+    f.setPointSizeF(textDisplayFontSize());
     f.setBold(true);
     painter->setFont(f);
 
-    int flags = Qt::AlignCenter;
-    painter->drawText(textRect, flags, str);
+    int flags = Qt::AlignVCenter;
+
+    switch (textRotate())
+    {
+    case Connector::Direction::North:
+    case Connector::Direction::South:
+        flags |= Qt::AlignHCenter;
+        break;
+    case Connector::Direction::East:
+        flags |= Qt::AlignLeft;
+        break;
+    case Connector::Direction::West:
+        flags |= Qt::AlignRight;
+        break;
+    default:
+        break;
+    }
+
+    painter->drawText(textRect, flags, str, br);
 }
 
 void AbstractNodeGraphItem::drawUnpairedConnectors(QPainter *painter)
@@ -574,13 +592,7 @@ void AbstractNodeGraphItem::drawUnpairedConnectors(QPainter *painter)
         if(contact.cable)
             continue; // Already paired, skip
 
-        QColor color = Qt::black;
-        if(node->hasCircuit(c.nodeContact, CircuitType::Closed))
-            color = Qt::red;
-        else if(node->hasCircuit(c.nodeContact, CircuitType::Open))
-            color.setRgb(120, 210, 255); // Light blue
-
-        pen.setColor(color);
+        pen.setColor(getContactColor(c.nodeContact));
         painter->setPen(pen);
         painter->drawLine(connectorLines[int(c.direction)]);
     }
@@ -606,7 +618,7 @@ void AbstractNodeGraphItem::recalculateTextWidth()
     }
 
     QFont f;
-    f.setPointSizeF(TextDisplayFontSize);
+    f.setPointSizeF(textDisplayFontSize());
     f.setBold(true);
 
     QFontMetrics fm(f);
@@ -655,6 +667,17 @@ void AbstractNodeGraphItem::recalculateTextPosition()
             possibleTextDir = PreferredDir[i % 4];
         }
     }
+}
+
+QColor AbstractNodeGraphItem::getContactColor(int nodeContact, bool *outShouldDraw) const
+{
+    Q_ASSERT(nodeContact >= 0 && nodeContact < getAbstractNode()->getContactCount());
+
+    const AnyCircuitType targetType = getAbstractNode()->hasAnyCircuit(nodeContact);
+    return getContactColor(targetType, getAbstractNode()->getCircuitFlags(nodeContact),
+                           getAbstractNode()->hasCircuitsWithFlags(),
+                           getAbstractNode()->modeMgr(),
+                           outShouldDraw);
 }
 
 TileRotate AbstractNodeGraphItem::rotate() const
@@ -737,8 +760,73 @@ void AbstractNodeGraphItem::saveToJSON(QJsonObject &obj) const
     getAbstractNode()->saveToJSON(obj);
 }
 
-void AbstractNodeGraphItem::onShapeChanged(bool boundingRectChange)
+QColor AbstractNodeGraphItem::getContactColor(const AnyCircuitType targetType,
+                                              const CircuitFlags contactFlags,
+                                              bool hasFlags, ModeManager *modeMgr,
+                                              bool *outShouldDraw)
 {
+    static const QColor colors[3] =
+    {
+        CircuitColors::Open,
+        CircuitColors::Closed,
+        CircuitColors::None
+    };
+
+    QColor color = colors[int(targetType)];
+
+    bool shouldDraw = true;
+
+    if(hasFlags && targetType != AnyCircuitType::None)
+    {
+        if(hasResistor(contactFlags))
+        {
+            if(targetType == AnyCircuitType::Closed)
+                color = CircuitColors::ClosedResistor;
+            else if(targetType == AnyCircuitType::Open)
+                color = CircuitColors::OpenResistor;
+        }
+
+        const auto code = getCode(contactFlags);
+        if(code != CircuitFlags::None)
+        {
+            switch (code)
+            {
+            case CircuitFlags::CodeInvalid:
+            {
+                shouldDraw = true;
+                color = CircuitColors::CodeInvalid;
+                break;
+            }
+            default:
+            {
+                const SignalAspectCode aspect = codeFromFlag(code);
+                shouldDraw = !modeMgr || modeMgr->getCodePhase(aspect);
+                break;
+            }
+            }
+        }
+    }
+
+    if(outShouldDraw)
+        *outShouldDraw = shouldDraw;
+
+    if(!shouldDraw)
+        return CircuitColors::None;
+
+    return color;
+}
+
+void AbstractNodeGraphItem::onShapeChanged(bool boundingRectChange, bool cableChange)
+{
+    if(cableChange)
+    {
+        // This might recurse, so return immediately
+        // Can be called from inside `invalidateConnections()`
+        prepareGeometryChange();
+        update();
+        return;
+    }
+
     if(boundingRectChange)
     {
         prepareGeometryChange();

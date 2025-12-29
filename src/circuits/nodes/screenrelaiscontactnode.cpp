@@ -110,7 +110,7 @@ void ScreenRelaisContactNode::setScreenRelais(ScreenRelais *newRelais)
     }
 
     emit relayChanged(mScreenRelais);
-
+    emit shapeChanged();
     modeMgr()->setFileEdited();
 }
 

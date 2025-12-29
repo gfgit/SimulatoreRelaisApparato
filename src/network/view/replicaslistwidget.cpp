@@ -76,6 +76,7 @@ ReplicasListWidget::ReplicasListWidget(ViewManager *viewMgr, QWidget *parent)
     mView->setModel(mModel);
     mView->setItemDelegate(new ReplicasDelegate(replicaMgr->remoteMgr()->remoteSessionsModel(), this));
     lay->addWidget(mView);
+    mView->resizeColumnsToContents();
 
     connect(addBut, &QPushButton::clicked,
             this, &ReplicasListWidget::addReplica);
@@ -86,6 +87,11 @@ ReplicasListWidget::ReplicasListWidget(ViewManager *viewMgr, QWidget *parent)
             this, &ReplicasListWidget::onFileModeChanged);
 
     onFileModeChanged(mViewMgr->modeMgr()->mode());
+}
+
+void ReplicasListWidget::resizeColumns()
+{
+    mView->resizeColumnsToContents();
 }
 
 void ReplicasListWidget::onFileModeChanged(FileMode mode)

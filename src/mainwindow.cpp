@@ -124,6 +124,12 @@ void MainWindow::buildMenuBar()
 
     menuFile->addSeparator();
 
+    actionStart_In_Edit = menuFile->addAction(tr("Start in Editing"));
+    actionStart_In_Edit->setCheckable(true);
+    actionStart_In_Edit->setChecked(false);
+
+    menuFile->addSeparator();
+
     menuFile->addAction(tr("Load Layout"), this, &MainWindow::loadLayout);
     menuFile->addAction(tr("Save Layout"), this, &MainWindow::saveLayout);
 
@@ -585,7 +591,8 @@ void MainWindow::onOpen()
     if(fileName.isEmpty())
         return;
 
-    loadFile(fileName);
+    const bool startSim = !actionStart_In_Edit->isChecked();
+    loadFile(fileName, startSim);
 }
 
 void MainWindow::onOpenRecent()
@@ -597,10 +604,11 @@ void MainWindow::onOpenRecent()
     if(!maybeSave())
         return;
 
-    loadFile(act->data().toString());
+    const bool startSim = !actionStart_In_Edit->isChecked();
+    loadFile(act->data().toString(), startSim);
 }
 
-void MainWindow::loadFile(const QString& fileName)
+void MainWindow::loadFile(const QString& fileName, bool startSim)
 {
     QFile f(fileName);
     if(!f.open(QFile::ReadOnly))
@@ -620,7 +628,7 @@ void MainWindow::loadFile(const QString& fileName)
 
     const QJsonObject rootObj = doc.object();
 
-    if(!mModeMgr->loadFromJSON(rootObj))
+    if(!mModeMgr->loadFromJSON(rootObj, startSim))
     {
         // Loading error, show error to user and start new session
         onNew();

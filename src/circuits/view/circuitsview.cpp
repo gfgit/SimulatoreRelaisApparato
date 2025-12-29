@@ -157,6 +157,15 @@ void CircuitsView::keyPressEvent(QKeyEvent *ev)
                 deleteSelectedItems();
                 return;
             }
+            else if(ev->key() == Qt::Key_E && ev->modifiers() & Qt::ControlModifier)
+            {
+                // Batch Edit (Ctrl + E)
+                if(ev->modifiers() & Qt::ShiftModifier)
+                    batchNodeEdit();
+                else
+                    batchObjectReplace();
+                return;
+            }
         }
 
         if(ev->matches(QKeySequence::Paste))
@@ -174,46 +183,42 @@ void CircuitsView::keyPressEvent(QKeyEvent *ev)
                 // So +1 dx and +1 dy
                 pastedArea.setBottomRight(bottomRight.adjusted(1, 1).toPoint());
                 ensureVisible(pastedArea);
+                return;
             }
         }
-    }
 
-    ZoomGraphView::keyPressEvent(ev);
-}
-
-void CircuitsView::keyReleaseEvent(QKeyEvent *ev)
-{
-    if(ev->modifiers() == Qt::NoModifier &&
-            circuitScene()->modeMgr()->mode() == FileMode::Editing &&
-            circuitScene()->modeMgr()->editingSubMode() == EditingSubMode::Default)
-    {
-        // Try with letter shortcut
-
-        if(ev->key() >= Qt::Key_A && ev->key() <= Qt::Key_Z && !ev->text().isEmpty())
+        if(ev->modifiers() == Qt::NoModifier &&
+                circuitScene()->modeMgr()->editingSubMode() == EditingSubMode::Default)
         {
-            // It's a letter
-            const QChar letter = ev->text().at(0);
-            const QString nodeType = circuitScene()->modeMgr()->circuitFactory()->typeForShortcutLetter(letter);
+            // Try with letter shortcut
 
-            if(!nodeType.isEmpty())
+            if(ev->key() >= Qt::Key_A && ev->key() <= Qt::Key_Z && !ev->text().isEmpty())
             {
-                // Add node to cursor pos
-                const TileLocation tileHint = TileLocation::fromPointFloor(getTargetScenePos());
-                addNodeAtLocation(circuitScene()->modeMgr()->circuitFactory(),
-                                  nodeType,
-                                  tileHint);
-                return;
-            }
-            else if(letter.toUpper() == 'C')
-            {
-                circuitScene()->startEditNewCable();
-                return;
+                // It's a letter
+                const QChar letter = ev->text().at(0);
+                const QString nodeType = circuitScene()->modeMgr()->circuitFactory()->typeForShortcutLetter(letter);
+
+                if(!nodeType.isEmpty())
+                {
+                    // Add node to cursor pos
+                    const TileLocation tileHint = TileLocation::fromPointFloor(getTargetScenePos());
+                    addNodeAtLocation(circuitScene()->modeMgr()->circuitFactory(),
+                                      nodeType,
+                                      tileHint);
+                    return;
+                }
+                else if(letter.toUpper() == 'C')
+                {
+                    circuitScene()->startEditNewCable();
+                    return;
+                }
             }
         }
     }
-    else if(ev->key() == Qt::Key_R && ev->modifiers() == Qt::ControlModifier)
+
+    if(ev->key() == Qt::Key_R && ev->modifiers() == Qt::ControlModifier)
     {
-        // Render scene to SVG
+        // Render scene to SVG (Ctrl + R)
         QString fileName = QFileDialog::getSaveFileName(this, tr("Render To SVG"),
                                                         QLatin1String("%1.svg").arg(circuitScene()->circuitSheetName()),
                                                         tr("Scalable Vector Graphics (*.svg)"));
@@ -223,17 +228,8 @@ void CircuitsView::keyReleaseEvent(QKeyEvent *ev)
         }
         return;
     }
-    else if(ev->key() == Qt::Key_D && ev->modifiers() & Qt::ControlModifier)
-    {
-        // Batch Edit
-        if(ev->modifiers() & Qt::ShiftModifier)
-            batchNodeEdit();
-        else
-            batchObjectReplace();
-        return;
-    }
 
-    ZoomGraphView::keyReleaseEvent(ev);
+    ZoomGraphView::keyPressEvent(ev);
 }
 
 void CircuitsView::deleteSelectedItems()

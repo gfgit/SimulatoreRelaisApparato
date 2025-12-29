@@ -84,7 +84,7 @@ protected slots:
 private:
     QRectF arrowDisplayRect() const;
 
-    void drawRelayArrow(QPainter *painter);
+    void drawRelayArrow(QPainter *painter, int relState);
 
 private:
     static constexpr double relayRadius = 50 - 10/2; // Half rect - half pen width

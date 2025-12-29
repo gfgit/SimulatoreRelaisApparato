@@ -3,7 +3,7 @@
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,9 +43,13 @@ public:
     explicit AbstractSimpleActivableObject(AbstractSimulationObjectModel *m);
     ~AbstractSimpleActivableObject();
 
+    bool event(QEvent *e) override;
+
     int getReferencingNodes(QVector<AbstractCircuitNode *> *result) const override;
 
     virtual State state() const;
+
+    void applyDelayedStateChanged();
 
 private:
     friend class SimpleActivationNode;
@@ -63,6 +67,8 @@ private:
     // Allow multiple powering nodes
     // TODO: is this useful?
     int mActiveNodesCount = 0;
+    int mPendingNodesCount = 0;
+    bool mUpdateScheduled = false;
 };
 
 #endif // ABSTRACTSIMPLEACTIVABLEOBJECT_H

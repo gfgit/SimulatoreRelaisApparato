@@ -24,10 +24,13 @@
 #define MODEMANAGER_H
 
 #include <QObject>
+#include <QBasicTimer>
 
 #include <QHash>
 
 #include "../enums/filemodes.h"
+
+#include "../enums/signalaspectcodes.h"
 
 class NodeEditFactory;
 class CircuitListModel;
@@ -43,6 +46,8 @@ class QJsonObject;
 class RemoteManager;
 class SerialManager;
 
+class TraintasticSimManager;
+
 class ModeManager : public QObject
 {
     Q_OBJECT
@@ -52,7 +57,9 @@ public:
         Beta = 0,
         V1 = 1,
         V2 = 2,
-        Current = V2
+        V3 = 3,
+        V4 = 4,
+        Current = V4
     };
 
     explicit ModeManager(QObject *parent = nullptr);
@@ -82,7 +89,7 @@ public:
     PanelItemFactory *panelFactory() const;
     PanelListModel *panelList() const;
 
-    bool loadFromJSON(const QJsonObject &obj);
+    bool loadFromJSON(const QJsonObject &obj, bool startSim);
     void saveToJSON(QJsonObject &obj) const;
     void clearAll();
 
@@ -106,6 +113,20 @@ public:
         return mSerialMgr;
     }
 
+    inline TraintasticSimManager *getTraitasticSimMgr() const
+    {
+        return mTraintasticSim;
+    }
+
+    inline bool getCodePhase(SignalAspectCode code) const
+    {
+        const int idx = int(code) - 1;
+        if(idx < 0 || idx >= 4)
+            return false;
+
+        return mCodeTimers[idx].state;
+    }
+
 signals:
     void fileChanged(const QString& newFile, const QString& oldFile);
 
@@ -113,6 +134,11 @@ signals:
     void fileEdited(bool val);
 
     void editingSubModeChanged(EditingSubMode oldMode, EditingSubMode newMode);
+
+    void codeTimerChanged();
+
+protected:
+    void timerEvent(QTimerEvent *ev) override;
 
 private:
     FileMode mMode = FileMode::Editing;
@@ -131,9 +157,19 @@ private:
     RemoteManager *mRemoteMgr = nullptr;
     SerialManager *mSerialMgr = nullptr;
 
+    TraintasticSimManager *mTraintasticSim = nullptr;
+
     bool mFileWasEdited = false;
 
     QString mFilePath;
+
+    struct CodeTimer
+    {
+        QBasicTimer timer;
+        bool state = false;
+    };
+
+    CodeTimer mCodeTimers[4];
 };
 
 #endif // MODEMANAGER_H

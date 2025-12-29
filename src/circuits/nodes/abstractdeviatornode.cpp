@@ -39,6 +39,7 @@ AbstractDeviatorNode::AbstractDeviatorNode(ModeManager *mgr, QObject *parent)
 
 AbstractDeviatorNode::ConnectionsRes AbstractDeviatorNode::getActiveConnections(CableItem source, bool invertDir)
 {
+    Q_UNUSED(invertDir);
     if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
         return {};
 
@@ -88,7 +89,7 @@ AbstractDeviatorNode::ConnectionsRes AbstractDeviatorNode::getActiveConnections(
     if(otherContactIdx != -1)
     {
         const NodeContact& otherContact = mContacts.at(otherContactIdx);
-        CableItem other;
+        CableItemFlags other;
         other.cable.cable = otherContact.cable;
         other.cable.side = otherContact.cableSide;
         other.cable.pole = source.cable.pole;
@@ -100,7 +101,7 @@ AbstractDeviatorNode::ConnectionsRes AbstractDeviatorNode::getActiveConnections(
     if(otherContactIdx2 != -1)
     {
         const NodeContact& otherContact = mContacts.at(otherContactIdx2);
-        CableItem other;
+        CableItemFlags other;
         other.cable.cable = otherContact.cable;
         other.cable.side = otherContact.cableSide;
         other.cable.pole = source.cable.pole;
@@ -196,9 +197,6 @@ void AbstractDeviatorNode::setHasCentralConnector(bool newHasCentralConnector)
 
     mHasCentralConnector = newHasCentralConnector;
 
-    emit shapeChanged();
-    modeMgr()->setFileEdited();
-
     if(!mHasCentralConnector)
     {
         // Circuits must be disabled before editing contacts
@@ -207,9 +205,18 @@ void AbstractDeviatorNode::setHasCentralConnector(bool newHasCentralConnector)
 
         detachCable(1);
     }
+
+    emit shapeChanged();
+    modeMgr()->setFileEdited();
 }
 
-void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
+/*!
+ * \brief AbstractDeviatorNode::setContactState
+ * \param valUp
+ * \param valDown
+ * \param specialContact if true new connections are made before removing existing ones
+ */
+void AbstractDeviatorNode::setContactState(bool valUp, bool valDown, bool specialContact)
 {
     if(mSwapContactState)
     {
@@ -229,6 +236,12 @@ void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
     mContactOnArr[0] = valUp;
     mContactOnArr[1] = valDown;
 
+    if(hasNewConnections && specialContact)
+    {
+        // Scan for new circuits before removing existing ones
+        ElectricCircuit::createCircuitsFromOtherNode(this);
+    }
+
     // Remove existing circuits if no more connected
     // regardless of previous contact state
     if(!valUp)
@@ -246,20 +259,20 @@ void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
         {
             // Remove up connections
             const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-            disableCircuits(closedCopy, this, 1); // Disable contact 1
+            disableCircuits(closedCopy, this, UpIdx); // Disable contact 1
 
             const CircuitList openCopy = getCircuits(CircuitType::Open);
-            truncateCircuits(openCopy, this, 1); // Disable contact 1
+            truncateCircuits(openCopy, this, UpIdx); // Disable contact 1
         }
     }
     else if(!valDown)
     {
         // Remove down connections
         const CircuitList closedCopy = getCircuits(CircuitType::Closed);
-        disableCircuits(closedCopy, this, 2); // Disable contact 2
+        disableCircuits(closedCopy, this, DownIdx); // Disable contact 2
 
         const CircuitList openCopy = getCircuits(CircuitType::Open);
-        truncateCircuits(openCopy, this, 2); // Disable contact 2
+        truncateCircuits(openCopy, this, DownIdx); // Disable contact 2
     }
 
     {
@@ -278,9 +291,9 @@ void AbstractDeviatorNode::setContactState(bool valUp, bool valDown)
         }
     }
 
-    if(hasNewConnections)
+    if(hasNewConnections && !specialContact)
     {
-        // Scan for new circuits
+        // Scan for new circuits after removing existing ones
         ElectricCircuit::createCircuitsFromOtherNode(this);
     }
 

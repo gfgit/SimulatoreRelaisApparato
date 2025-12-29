@@ -63,6 +63,8 @@ LeverPositionConditionSet GenericLeverUtils::fromJSON(const QJsonObject &obj)
         if(conditionObj.value("type").toInt() != 0)
             item.type = LeverPositionConditionType::FromTo;
 
+        item.specialContact = conditionObj.value("special").toBool();
+
         conditions.append(item);
     }
 
@@ -80,6 +82,7 @@ QJsonObject GenericLeverUtils::toJSON(const LeverPositionConditionSet &condition
         conditionObj["a"] = item.positionFrom;
         conditionObj["b"] = item.positionTo;
         conditionObj["type"] = int(item.type);
+        conditionObj["special"] = item.specialContact;
 
         arr.append(conditionObj);
     }

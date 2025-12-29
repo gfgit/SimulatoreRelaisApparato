@@ -25,6 +25,8 @@
 
 #include "abstractcircuitnode.h"
 
+#include "../../enums/signalaspectcodes.h"
+
 class AbstractRelais;
 
 class RelaisPowerNode : public AbstractCircuitNode
@@ -52,11 +54,11 @@ public:
     AbstractRelais *relais() const;
     void setRelais(AbstractRelais *newRelais);
 
-    int delayUpSeconds() const;
-    void setDelayUpSeconds(int newDelayUpSeconds);
+    int delayUpMillis() const;
+    void setDelayUpMillis(int newDelayUpMillis);
 
-    int delayDownSeconds() const;
-    void setDelayDownSeconds(int newDelayDownSeconds);
+    int delayDownMillis() const;
+    void setDelayDownMillis(int newDelayDownMillis);
 
     bool hasSecondConnector() const;
     void setHasSecondConnector(bool newHasSecondConnector);
@@ -86,6 +88,8 @@ private slots:
 protected:
     void timerEvent(QTimerEvent *e) override;
 
+    void onCircuitFlagsChanged() override;
+
 private:
     void activateRelay(int contact);
     void deactivateRelay(int contact);
@@ -93,12 +97,15 @@ private:
     void ensureTimeoutPercentTimer();
     void stopTimeoutPercentTimer();
 
+    void updateDecoderState();
+    void updateDiskRelayState();
+
 private:
     // Settings
     AbstractRelais *mRelais = nullptr;
 
-    int mDelayUpSeconds = 0;
-    int mDelayDownSeconds = 0;
+    int mDelayUpMillis = 0;
+    int mDelayDownMillis = 0;
     bool mHasSecondConnector = false;
     bool mCombinatorSecondCoil = false;
 
@@ -109,6 +116,10 @@ private:
     double mTimeoutPercentStatus[2] = {0, 0};
     bool wasGoingUp[2] = {true, true};
     bool mIsUp[2] = {false, false};
+
+    bool skipDecoderUpdate = false;
+    bool needsFlagUpdate = false;
+    SignalAspectCode nextDetectedCode = SignalAspectCode::CodeAbsent;
 };
 
 #endif // RELAISPOWERNODE_H

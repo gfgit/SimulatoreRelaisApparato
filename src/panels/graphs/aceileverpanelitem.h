@@ -107,6 +107,7 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent *ev) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *ev) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev) override;
 
 private:
     static constexpr double baseCircleRadius = 34;

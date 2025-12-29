@@ -126,8 +126,13 @@ int LeverInterface::angle() const
 
 void LeverInterface::setAngle(int newAngle)
 {
-    if(newAngle < 0 && canWarpAroundZero())
-        newAngle += 360;
+    if(canWarpAroundZero())
+    {
+        if(newAngle < 0)
+            newAngle += 360;
+        else if(newAngle >= 360)
+            newAngle -= 360;
+    }
 
     if(mLockedMin != LeverAngleDesc::InvalidPosition
             && mLockedMax != LeverAngleDesc::InvalidPosition)
@@ -174,7 +179,24 @@ void LeverInterface::setAngle(int newAngle)
         return;
 
     mAngle = newAngle;
-    setPosition(closestPosition(mAngle, true));
+
+    // Now change position accordingly
+    const int targetPosition = closestPosition(mAngle, true);
+    setPosition(targetPosition);
+    if(position() != targetPosition)
+    {
+        // Maybe locked range changed during position change
+        // So we did not reach target position
+        // Reset angle accordingly
+        mAngle = angleForPosition(position());
+        if(mAngle == LeverAngleDesc::MiddleAngle)
+        {
+            // Set it half way
+            const int prevAngle = angleForPosition(position() - 1);
+            const int nextAngle = angleForPosition(position() + 1);
+            mAngle = (prevAngle + nextAngle) / 2;
+        }
+    }
 
     emitChanged(AnglePropName, mAngle);
     emit mObject->stateChanged(mObject);
@@ -212,12 +234,55 @@ void LeverInterface::setPosition(int newPosition)
         return;
 
     // Always ensure all positions are passed
-    const int increment = (newPosition > mPosition) ? +1 : -1;
+    int increment = (newPosition > mPosition) ? +1 : -1;
+
+    if(canWarpAroundZero())
+    {
+        // TODO: consider angles, but what about middle positions?
+        const int normDiff = std::abs(newPosition - mPosition);
+        const int totalDiff = mPositionDesc.maxValue - mPositionDesc.minValue + 1;
+        const int reverseDiff = totalDiff - normDiff;
+        if(reverseDiff < normDiff)
+            increment = -increment;
+    }
 
     int p = mPosition;
     while(p != newPosition)
     {
         p += increment;
+
+        if(canWarpAroundZero())
+        {
+            if(p < 0)
+                p = mPositionDesc.maxValue;
+            else if(p > mPositionDesc.maxValue)
+                p = mPositionDesc.minValue;
+
+            if(mLockedMax != LeverAngleDesc::InvalidPosition && mLockedMin != LeverAngleDesc::InvalidPosition)
+            {
+                if(mLockedMax > mLockedMin)
+                {
+                    if(increment > 0 && p > mLockedMax)
+                        break;
+                    else if(increment < 0 && p < mLockedMin)
+                        break;
+                }
+                else
+                {
+                    if(p < mLockedMin && p > mLockedMax)
+                        break;
+                }
+            }
+        }
+        else
+        {
+            // Locked range can change during position change
+            // Check at every step
+            if(increment > 0 && p > mLockedMax && mLockedMax != LeverAngleDesc::InvalidPosition)
+                break;
+            else if(increment < 0 && p < mLockedMin && mLockedMin != LeverAngleDesc::InvalidPosition)
+                break;
+        }
 
         mPosition = p;
 
@@ -375,8 +440,13 @@ int LeverInterface::positionForAngle_internal(int pos, int newAngle, bool allowM
 
 int LeverInterface::closestPosition(int newAngle, bool allowMiddle) const
 {
-    if(newAngle < 0 && canWarpAroundZero())
-        newAngle += 360;
+    if(canWarpAroundZero())
+    {
+        if(newAngle < 0)
+            newAngle += 360;
+        else if(newAngle >= 360)
+            newAngle -= 360;
+    }
 
     int fromPos = mLockedMin;
     int toPos = mLockedMax;

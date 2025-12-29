@@ -118,6 +118,9 @@ void PanelScene::setMode(FileMode newMode, FileMode oldMode)
                             int(Layers::EditingLightRects) :
                             int(Layers::LightRects));
 
+    if(!editing)
+        setLightDragCreateAllowed(false);
+
     allowItemSelection(editing);
 
     // TODO: not really...
@@ -157,8 +160,12 @@ void PanelScene::addNode(AbstractPanelItem *item)
             registerSnap(item->boundingRect().translated(item->pos()));
     }
 
-    item->setFlag(QGraphicsItem::ItemIsSelectable, editing);
-    item->setFlag(QGraphicsItem::ItemIsMovable, editing);
+    item->setFlag(QGraphicsItem::ItemIsSelectable, editing && !mIsLightCreadDragAllowed);
+
+    bool isMovable = editing && !mIsLightCreadDragAllowed;
+    if(item->itemType() == ImagePanelItem::ItemType)
+        isMovable = false;
+    item->setFlag(QGraphicsItem::ItemIsMovable, isMovable);
 
     setHasUnsavedChanges(true);
 }
@@ -210,7 +217,11 @@ void PanelScene::allowItemSelection(bool enabled)
     for(AbstractPanelItem* item : mOtherPanelItems)
     {
         item->setFlag(QGraphicsItem::ItemIsSelectable, enabled);
-        item->setFlag(QGraphicsItem::ItemIsMovable, enabled);
+
+        bool isMovable = enabled;
+        if(item->itemType() == ImagePanelItem::ItemType)
+            isMovable = false;
+        item->setFlag(QGraphicsItem::ItemIsMovable, isMovable);
     }
 
     for(AbstractPanelItem* item : mLightRects)
@@ -218,6 +229,21 @@ void PanelScene::allowItemSelection(bool enabled)
         item->setFlag(QGraphicsItem::ItemIsSelectable, enabled);
         item->setFlag(QGraphicsItem::ItemIsMovable, enabled);
     }
+}
+
+void PanelScene::setLightDragCreateAllowed(bool allow)
+{
+    if(mode() != FileMode::Editing)
+        allow = false;
+
+    if(mIsLightCreadDragAllowed == allow)
+        return;
+
+    mIsLightCreadDragAllowed = allow;
+
+    // Do not allow item selection during light drag create
+    bool isSelectable = !mIsLightCreadDragAllowed && mode() == FileMode::Editing;
+    allowItemSelection(isSelectable);
 }
 
 void PanelScene::onItemSelected(AbstractPanelItem *item, bool value)
@@ -611,6 +637,18 @@ void PanelScene::unregisterSnap(const QRectF &r)
     }
 }
 
+void PanelScene::createNewLightItem(const QRectF &r)
+{
+    LightRectItem *item = new LightRectItem;
+
+    // Make item rect start at 0,0 coordinates
+    item->setPos(r.topLeft());
+    item->setRect(QRectF(QPointF(), r.size()));
+
+    addNode(item);
+    requestEditNode(item);
+}
+
 template <typename Map, typename T>
 typename Map::const_iterator maxLowerThan(const Map& map, const T& val)
 {
@@ -875,9 +913,12 @@ void PanelScene::saveToJSON(QJsonObject &obj) const
     obj["lights"] = lights;
 }
 
-void PanelScene::keyReleaseEvent(QKeyEvent *e)
+void PanelScene::keyPressEvent(QKeyEvent *e)
 {
     bool consumed = true;
+
+    // Allow light drag create if only Alt modifier is pressed
+    setLightDragCreateAllowed(e->modifiers() == Qt::AltModifier);
 
     switch (e->key())
     {
@@ -947,12 +988,37 @@ void PanelScene::keyReleaseEvent(QKeyEvent *e)
         return;
     }
 
+    QGraphicsScene::keyPressEvent(e);
+}
+
+void PanelScene::keyReleaseEvent(QKeyEvent *e)
+{   
+    // Allow light drag create if only Alt modifier is pressed
+    setLightDragCreateAllowed(e->modifiers() == Qt::AltModifier);
+
     QGraphicsScene::keyReleaseEvent(e);
 }
 
 void PanelScene::mousePressEvent(QGraphicsSceneMouseEvent *e)
 {
+    // Allow light drag create if only Alt modifier is pressed
+    setLightDragCreateAllowed(e->modifiers() == Qt::AltModifier);
+
     QGraphicsScene::mousePressEvent(e);
+}
+
+void PanelScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *e)
+{
+    if(mIsLightCreadDragAllowed)
+    {
+        createNewLightItem(selectionArea().boundingRect());
+        setSelectionArea(QPainterPath());
+    }
+
+    // Allow light drag create if only Alt modifier is pressed
+    setLightDragCreateAllowed(e->modifiers() == Qt::AltModifier);
+
+    QGraphicsScene::mouseReleaseEvent(e);
 }
 
 void PanelScene::drawBackground(QPainter *painter, const QRectF &rect)

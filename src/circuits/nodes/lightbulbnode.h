@@ -35,6 +35,11 @@ public:
     QString nodeType() const override;
 
     QString allowedObjectType() const override;
+
+    void onCircuitFlagsChanged() override;
+
+private slots:
+    void onCodePhaseChanged();
 };
 
 #endif // LIGHTBULBNODE_H

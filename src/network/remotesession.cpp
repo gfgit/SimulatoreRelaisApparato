@@ -21,6 +21,7 @@
  */
 
 #include "remotesession.h"
+#include "remotesessionsmodel.h"
 
 #include "remotemanager.h"
 #include "peerconnection.h"
@@ -100,6 +101,13 @@ void RemoteSession::removeRemoteBridge(RemoteCircuitBridge *bridge)
     mBridges.removeOne(bridge);
 }
 
+QHostAddress RemoteSession::getPeerAddress() const
+{
+    if(mPeerConn)
+        return mPeerConn->peerAddress();
+    return QHostAddress();
+}
+
 void RemoteSession::onConnected(PeerConnection *conn)
 {
     Q_ASSERT(!mPeerConn);
@@ -112,6 +120,8 @@ void RemoteSession::onConnected(PeerConnection *conn)
     }
 
     sendReplicaList();
+
+    remoteMgr()->remoteSessionsModel()->updateSessionStatus();
 }
 
 void RemoteSession::onDisconnected()
@@ -138,6 +148,8 @@ void RemoteSession::onDisconnected()
 
     // If a session disconnects, ensure we are discoverable again
     remoteMgr()->setDiscoveryEnabled(true);
+
+    remoteMgr()->remoteSessionsModel()->updateSessionStatus();
 }
 
 void RemoteSession::sendBridgesStatusToPeer()
@@ -258,19 +270,21 @@ void RemoteSession::onRemoteBridgeListReceived(const QVector<BridgeListItem> &li
 }
 
 void RemoteSession::onRemoteBridgeModeChanged(quint64 localNodeId,
-                                              qint8 mode, qint8 pole, qint8 replyToMode)
+                                              qint8 mode, qint8 pole,
+                                              qint8 replyToMode, quint8 circuitFlags)
 {
     RemoteCircuitBridge *bridge = mBridges.at(localNodeId - 1);
     if(bridge)
-        bridge->onRemoteNodeModeChanged(mode, pole, replyToMode);
+        bridge->onRemoteNodeModeChanged(mode, pole, replyToMode, circuitFlags);
 }
 
-void RemoteSession::onLocalBridgeModeChanged(quint64 peerNodeId, qint8 mode, qint8 pole, qint8 replyToMode)
+void RemoteSession::onLocalBridgeModeChanged(quint64 peerNodeId, qint8 mode,
+                                             qint8 pole, qint8 replyToMode, quint8 circuitFlags)
 {
     if(!mPeerConn)
         return;
 
-    mPeerConn->sendBridgeStatus(peerNodeId, mode, pole, replyToMode);
+    mPeerConn->sendBridgeStatus(peerNodeId, mode, pole, replyToMode, circuitFlags);
 }
 
 void RemoteSession::sendReplicaList()

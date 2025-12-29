@@ -1,9 +1,9 @@
 /**
- * src/circuits/graphs/electromagnetgraphitem.h
+ * src/circuits/graphs/resistorgraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,26 +20,28 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ELECTROMAGNET_GRAPHITEM_H
-#define ELECTROMAGNET_GRAPHITEM_H
+#ifndef RESISTORGRAPHITEM_H
+#define RESISTORGRAPHITEM_H
 
-#include "simpleactivationgraphitem.h"
+#include "abstractnodegraphitem.h"
 
-class ElectroMagnetNode;
+class ResistorNode;
 
-class ElectroMagnetGraphItem : public SimpleActivationGraphItem
+class ResistorGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    typedef ElectroMagnetNode Node;
+    typedef ResistorNode Node;
 
-    explicit ElectroMagnetGraphItem(ElectroMagnetNode *node_);
+    explicit ResistorGraphItem(ResistorNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
-    QString tooltipString() const override;
+    void getConnectors(std::vector<Connector>& connectors) const final;
 
-    ElectroMagnetNode *node() const;
+    ResistorNode *node() const;
+
+private:
 };
 
-#endif // ELECTROMAGNET_GRAPHITEM_H
+#endif // RESISTORGRAPHITEM_H

@@ -53,7 +53,8 @@ public:
     Mode mode() const;
     void setMode(Mode newMode);
 
-    CablePower powered();
+    CablePower powered() const;
+    CircuitFlags getFlags() const;
 
     void addCircuit(ElectricCircuit *circuit, CircuitPole pole);
     void removeCircuit(ElectricCircuit *circuit);
@@ -78,6 +79,14 @@ public:
     {
         return mModeMgr;
     }
+
+    inline bool hasCircuitsWithFlags() const
+    {
+        return mCircuitsWithFlags > 0;
+    }
+
+    void circuitAddedRemovedFlags(ElectricCircuit *circuit, bool add);
+    void updateCircuitFlags(CircuitType type, CircuitPole pole);
 
 signals:
     void modeChanged(Mode m);
@@ -119,10 +128,40 @@ private:
                     mSecondPoleCirctuitsOpen;
     }
 
+    inline CircuitFlags& getFlags(CircuitType type, CircuitPole pole)
+    {
+        if(pole == CircuitPole::First)
+            return type == CircuitType::Closed ?
+                        mFlagsFirstClosed :
+                        mFlagsFirstOpen;
+
+        return type == CircuitType::Closed ?
+                    mFlagsSecondClosed :
+                    mFlagsSecondOpen;
+    }
+
+    inline CircuitFlags getFlags(CircuitType type, CircuitPole pole) const
+    {
+        if(pole == CircuitPole::First)
+            return type == CircuitType::Closed ?
+                        mFlagsFirstClosed :
+                        mFlagsFirstOpen;
+
+        return type == CircuitType::Closed ?
+                    mFlagsSecondClosed :
+                    mFlagsSecondOpen;
+    }
+
     CircuitList mFirstPoleCirctuitsClosed;
     CircuitList mSecondPoleCirctuitsClosed;
     CircuitList mFirstPoleCirctuitsOpen;
     CircuitList mSecondPoleCirctuitsOpen;
+
+    CircuitFlags mFlagsFirstClosed = CircuitFlags::None;
+    CircuitFlags mFlagsSecondClosed = CircuitFlags::None;
+    CircuitFlags mFlagsFirstOpen = CircuitFlags::None;
+    CircuitFlags mFlagsSecondOpen = CircuitFlags::None;
+    int mCircuitsWithFlags = 0;
 
     CableEnd mNodeA;
     CableEnd mNodeB;

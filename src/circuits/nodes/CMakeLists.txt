@@ -15,8 +15,8 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/circuitcable.h
     circuits/nodes/diodecircuitnode.cpp
     circuits/nodes/diodecircuitnode.h
-    circuits/nodes/electromagnetnode.cpp
-    circuits/nodes/electromagnetnode.h
+    circuits/nodes/electromagnetpowernode.cpp
+    circuits/nodes/electromagnetpowernode.h
     circuits/nodes/levercontactnode.cpp
     circuits/nodes/levercontactnode.h
     circuits/nodes/lightbulbnode.cpp
@@ -43,9 +43,27 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/nodes/simpleactivationnode.h
     circuits/nodes/soundcircuitnode.cpp
     circuits/nodes/soundcircuitnode.h
+
+    circuits/nodes/resistornode.cpp
+    circuits/nodes/resistornode.h
+
     circuits/nodes/transformernode.cpp
     circuits/nodes/transformernode.h
 
+    circuits/nodes/traintasticsensornode.cpp
+    circuits/nodes/traintasticsensornode.h
+
+    circuits/nodes/traintasticturnoutnode.cpp
+    circuits/nodes/traintasticturnoutnode.h
+
+    circuits/nodes/electromagnetcontactnode.cpp
+    circuits/nodes/electromagnetcontactnode.h
+
+    circuits/nodes/commandnode.cpp
+    circuits/nodes/commandnode.h
+
+    circuits/nodes/traintasticaxlecounternode.cpp
+    circuits/nodes/traintasticaxlecounternode.h
 
     PARENT_SCOPE
 )

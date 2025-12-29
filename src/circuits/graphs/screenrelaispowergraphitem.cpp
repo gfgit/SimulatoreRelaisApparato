@@ -29,6 +29,8 @@
 
 #include "../../utils/enum_desc.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 ScreenRelaisPowerGraphItem::ScreenRelaisPowerGraphItem(ScreenRelaisPowerNode *node_)
@@ -99,15 +101,8 @@ void ScreenRelaisPowerGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     pen.setWidthF(10.0);
     pen.setCapStyle(Qt::FlatCap);
 
-    const QColor colors[3] =
-    {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
-    };
-
     // Draw common contact (0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
@@ -211,7 +206,9 @@ void ScreenRelaisPowerGraphItem::updateRelay()
                    this, &ScreenRelaisPowerGraphItem::triggerUpdate);
     }
 
+    prepareGeometryChange();
     mScreenRelay = node()->screenRelais();
+    recalculateTextWidth();
 
     if(mScreenRelay)
     {

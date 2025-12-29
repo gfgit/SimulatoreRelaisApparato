@@ -68,7 +68,8 @@ public:
     bool setRemoteSession(RemoteSession *remoteSession);
 
     // TODO: make private
-    void onRemoteNodeModeChanged(qint8 mode, qint8 pole, qint8 replyToMode);
+    void onRemoteNodeModeChanged(qint8 mode, qint8 pole,
+                                 qint8 replyToMode, quint8 circuitFlags);
     void onRemoteDisconnected();
     void onRemoteStarted();
 
@@ -89,6 +90,13 @@ public:
     {
         return mSerialDevice;
     }
+
+    bool isSerialDeviceConnected() const
+    {
+        return mSerialDevice && mSerialNameId != 0;
+    }
+
+    bool isRemoteSessionConnected() const;
 
     bool setSerialDevice(SerialDevice *serialDevice);
 

@@ -374,7 +374,7 @@ void ACEILeverPanelItem::mouseMoveEvent(QGraphicsSceneMouseEvent *ev)
     if(s && s->modeMgr()->mode() != FileMode::Editing
             && mLeverIface)
     {
-        if(ev->buttons() & Qt::LeftButton)
+        if(ev->buttons() & Qt::LeftButton && mLeverIface->isPressed())
         {
             QPointF delta = ev->pos() - mLastMousePos;
             if(delta.manhattanLength() > 2)
@@ -409,16 +409,41 @@ void ACEILeverPanelItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *ev)
 {
     PanelScene *s = panelScene();
     if(s && s->modeMgr()->mode() != FileMode::Editing &&
-            ev->button() == Qt::LeftButton)
+            ev->button() == Qt::LeftButton && mLeverIface->isPressed())
     {
         // Do not trigger spring return if shift is hold during mouse release
         const bool holdSpring = ev->modifiers().testFlag(Qt::ShiftModifier);
 
         if(mLeverIface)
             mLeverIface->setPressed(false, holdSpring);
+
+        ev->accept();
+        return;
     }
 
     SnappablePanelItem::mouseReleaseEvent(ev);
+}
+
+void ACEILeverPanelItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *ev)
+{
+    PanelScene *s = panelScene();
+    if(s && s->modeMgr()->mode() != FileMode::Editing &&
+            ev->button() == Qt::LeftButton)
+    {
+        // Return Normal on double click
+        mLeverIface->setPressed(true);
+
+        const int normalPos = mLeverIface->positionDesc().defaultValue;
+        mLeverIface->setAngle(mLeverIface->angleForPosition(normalPos));
+        mLeverIface->setPosition(normalPos);
+
+        mLeverIface->setPressed(false);
+
+        ev->accept();
+        return;
+    }
+
+    SnappablePanelItem::mouseDoubleClickEvent(ev);
 }
 
 void ACEILeverPanelItem::setLight(LightPosition pos, LightBulbObject *newLight)

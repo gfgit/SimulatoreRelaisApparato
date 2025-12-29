@@ -57,14 +57,14 @@ AbstractCircuitNode::ConnectionsRes RelaisPowerNode::getActiveConnections(CableI
 
     if(relais()->relaisType() == AbstractRelais::RelaisType::Polarized)
     {
-        // Polarized must have positive on first pole
-        if((source.cable.pole != CircuitPole::First) != invertDir)
+        // Polarized must have positive on second pole
+        if((source.cable.pole != CircuitPole::Second) != invertDir)
             return {};
     }
     else if(relais()->relaisType() == AbstractRelais::RelaisType::PolarizedInverted)
     {
-        // Polarized inverted must have positive on second pole
-        if((source.cable.pole != CircuitPole::Second) != invertDir)
+        // Polarized inverted must have positive on first pole
+        if((source.cable.pole != CircuitPole::First) != invertDir)
             return {};
     }
     else if(relais()->relaisType() == AbstractRelais::RelaisType::Combinator)
@@ -75,7 +75,7 @@ AbstractCircuitNode::ConnectionsRes RelaisPowerNode::getActiveConnections(CableI
 
         // Close the circuit between 2 connectors
         const int otherContact = source.nodeContact == 1 ? 0 : 1;
-        CableItem comb;
+        CableItemFlags comb;
         comb.cable.cable = mContacts.at(otherContact).cable;
         comb.cable.side = mContacts.at(otherContact).cableSide;
         comb.nodeContact = otherContact;
@@ -84,7 +84,7 @@ AbstractCircuitNode::ConnectionsRes RelaisPowerNode::getActiveConnections(CableI
     }
 
     // Close the circuit
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(source.nodeContact).cable;
     dest.cable.side = mContacts.at(source.nodeContact).cableSide;
     dest.nodeContact = source.nodeContact;
@@ -98,13 +98,18 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
     const bool wasActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
 
+    skipDecoderUpdate = true;
     AbstractCircuitNode::addCircuit(circuit);
+    skipDecoderUpdate = false;
 
     const bool isActiveFirst = hasCircuit(0, CircuitType::Closed);
     const bool isActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
 
     const bool combinator = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+    const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
+    const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+    const bool diskRel = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::DiskRelayAC);
 
     if(isActiveFirst && !wasActiveFirst)
     {
@@ -112,15 +117,29 @@ void RelaisPowerNode::addCircuit(ElectricCircuit *circuit)
         {
             activateRelay(mCombinatorSecondCoil ? 0 : 1);
         }
-        else
+        else if(decoder || repeater)
+        {
+            needsFlagUpdate = false;
+            updateDecoderState();
+        }
+        else if(!diskRel)
         {
             activateRelay(0);
         }
     }
 
-    if(!combinator && mHasSecondConnector && isActiveSecond && !wasActiveSecond)
+    if(!combinator && mHasSecondConnector && isActiveSecond && !wasActiveSecond && !diskRel)
     {
         activateRelay(1);
+    }
+
+    if((decoder || repeater) && needsFlagUpdate)
+    {
+        updateDecoderState();
+    }
+    else if(diskRel)
+    {
+        updateDiskRelayState();
     }
 }
 
@@ -130,13 +149,18 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
     const bool wasActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
 
+    skipDecoderUpdate = true;
     AbstractCircuitNode::removeCircuit(circuit, items);
+    skipDecoderUpdate = false;
 
     const bool isActiveFirst = hasCircuit(0, CircuitType::Closed);
     const bool isActiveSecond = mHasSecondConnector &&
             hasCircuit(1, CircuitType::Closed);
 
     const bool combinator = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
+    const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
+    const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+    const bool diskRel = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::DiskRelayAC);
 
     if(!isActiveFirst && wasActiveFirst)
     {
@@ -144,15 +168,28 @@ void RelaisPowerNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurenc
         {
             deactivateRelay(mCombinatorSecondCoil ? 0 : 1);
         }
-        else
+        else if(decoder || repeater)
+        {
+            updateDecoderState();
+        }
+        else if(!diskRel)
         {
             deactivateRelay(0);
         }
     }
 
-    if(!combinator && mHasSecondConnector && !isActiveSecond && wasActiveSecond)
+    if(!combinator && mHasSecondConnector && !isActiveSecond && wasActiveSecond && !diskRel)
     {
         deactivateRelay(1);
+    }
+
+    if((decoder || repeater) && needsFlagUpdate)
+    {
+        updateDecoderState();
+    }
+    else if(diskRel)
+    {
+        updateDiskRelayState();
     }
 }
 
@@ -171,8 +208,8 @@ bool RelaisPowerNode::loadFromJSON(const QJsonObject &obj)
     else
         setRelais(nullptr);
 
-    mDelayUpSeconds = obj.value("delay_up_sec").toInt();
-    mDelayDownSeconds = obj.value("delay_down_sec").toInt();
+    mDelayUpMillis = obj.value("delay_up_ms").toInt();
+    mDelayDownMillis = obj.value("delay_down_ms").toInt();
 
     setHasSecondConnector(obj.value("has_second_connector").toBool());
 
@@ -187,8 +224,8 @@ void RelaisPowerNode::saveToJSON(QJsonObject &obj) const
 
     obj["relais"] = mRelais ? mRelais->name() : QString();
 
-    obj["delay_up_sec"] = mDelayUpSeconds;
-    obj["delay_down_sec"] = mDelayDownSeconds;
+    obj["delay_up_ms"] = mDelayUpMillis;
+    obj["delay_down_ms"] = mDelayDownMillis;
 
     obj["has_second_connector"] = hasSecondConnector();
     obj["combinator_second_coil"] = combinatorSecondCoil();
@@ -247,6 +284,19 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
     mIsUp[0] = false;
     mIsUp[1] = false;
 
+    if(mRelais)
+    {
+        const bool wasDecoder = relais()->relaisType() == AbstractRelais::RelaisType::Decoder;
+        const bool wasRepeater = relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater;
+
+        if(wasDecoder || wasRepeater)
+        {
+            setDelayUpMillis(0);
+            setDelayDownMillis(0);
+            needsFlagUpdate = false;
+        }
+    }
+
     mRelais = newRelais;
 
     // Check new relay type
@@ -254,6 +304,15 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
 
     if(mRelais)
     {
+        const bool isDecoder = relais()->relaisType() == AbstractRelais::RelaisType::Decoder;
+        const bool isRepeater = relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater;
+
+        if(isDecoder || isRepeater)
+        {
+            setDelayUpMillis(100);
+            setDelayDownMillis(100);
+        }
+
         mRelais->addPowerNode(this);
 
         if(hasCircuit(0, CircuitType::Closed))
@@ -269,35 +328,43 @@ void RelaisPowerNode::setRelais(AbstractRelais *newRelais)
     modeMgr()->setFileEdited();
 }
 
-int RelaisPowerNode::delayUpSeconds() const
+int RelaisPowerNode::delayUpMillis() const
 {
-    return mDelayUpSeconds;
+    return mDelayUpMillis;
 }
 
-void RelaisPowerNode::setDelayUpSeconds(int newDelayUpSeconds)
+void RelaisPowerNode::setDelayUpMillis(int newDelayUpMillis)
 {
-    if(mDelayUpSeconds == newDelayUpSeconds)
+    if(mDelayUpMillis == newDelayUpMillis)
         return;
 
-    mDelayUpSeconds = newDelayUpSeconds;
+    mDelayUpMillis = newDelayUpMillis;
     emit delaysChanged();
     emit shapeChanged();
+
+    if(mRelais)
+        mRelais->redrawContactNodes(); // Update arrows
+
     modeMgr()->setFileEdited();
 }
 
-int RelaisPowerNode::delayDownSeconds() const
+int RelaisPowerNode::delayDownMillis() const
 {
-    return mDelayDownSeconds;
+    return mDelayDownMillis;
 }
 
-void RelaisPowerNode::setDelayDownSeconds(int newDelayDownSeconds)
+void RelaisPowerNode::setDelayDownMillis(int newDelayDownMillis)
 {
-    if(mDelayDownSeconds == newDelayDownSeconds)
+    if(mDelayDownMillis == newDelayDownMillis)
         return;
 
-    mDelayDownSeconds = newDelayDownSeconds;
+    mDelayDownMillis = newDelayDownMillis;
     emit delaysChanged();
     emit shapeChanged();
+
+    if(mRelais)
+        mRelais->redrawContactNodes(); // Update arrows
+
     modeMgr()->setFileEdited();
 }
 
@@ -308,11 +375,21 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
         Q_ASSERT_X(mRelais, "RelaisPowerNode::timerEvent", "no relay");
         const int contact = (e->timerId() == mTimerIds[0]) ? 0 : 1;
 
+        const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
+        const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+
+        if(decoder || repeater)
+        {
+            mRelais->setDecodedResult(nextDetectedCode);
+        }
+
         // Do delayed action
+        const bool wasUp = mIsUp[contact];
         mIsUp[contact] = wasGoingUp[contact];
-        if(wasGoingUp[contact])
+
+        if(mIsUp[contact] && !wasUp)
             mRelais->powerNodeActivated(this, contact == 1);
-        else
+        else if(!mIsUp[contact] && wasUp)
             mRelais->powerNodeDeactivated(this, contact == 1);
 
         stopTimer(contact);
@@ -323,8 +400,8 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
         Q_ASSERT_X(mRelais, "RelaisPowerNode::timerEvent", "no relay");
 
         // Increment timeout percent (down is negative)
-        const double upIncrement = 1.0 / (4.0 * qMax(0.1, double(mDelayUpSeconds)));
-        const double downIncrement = -1.0 / (4.0 * qMax(0.1, double(mDelayDownSeconds)));
+        const double upIncrement = 250.0 / qMax(0.1, double(mDelayUpMillis));
+        const double downIncrement = -250.0 / qMax(0.1, double(mDelayDownMillis));
 
         if(mTimerIds[0])
             mTimeoutPercentStatus[0] += wasGoingUp[0] ? upIncrement : downIncrement;
@@ -339,6 +416,21 @@ void RelaisPowerNode::timerEvent(QTimerEvent *e)
     AbstractCircuitNode::timerEvent(e);
 }
 
+void RelaisPowerNode::onCircuitFlagsChanged()
+{
+    if(skipDecoderUpdate)
+    {
+        needsFlagUpdate = true;
+        return;
+    }
+
+    const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
+    const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+
+    if(decoder || repeater)
+        updateDecoderState();
+}
+
 void RelaisPowerNode::activateRelay(int contact)
 {
     Q_ASSERT(contact == 0 || contact == 1);
@@ -348,19 +440,33 @@ void RelaisPowerNode::activateRelay(int contact)
 
     stopTimer(contact);
 
-    if(mIsUp[contact] || !mRelais)
+    if(!mRelais)
+        return;
+
+    const bool decoder = relais()->relaisType() == AbstractRelais::RelaisType::Decoder;
+    const bool repeater = relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater;
+
+    if(mIsUp[contact] && !decoder && !repeater)
         return; // Already in position
 
-    if(mDelayUpSeconds == 0)
+    if(mDelayUpMillis == 0)
     {
         // Do it now
+        const bool wasUp = mIsUp[contact];
         mIsUp[contact] = true;
-        mRelais->powerNodeActivated(this, contact == 1);
+
+        if(!wasUp)
+            mRelais->powerNodeActivated(this, contact == 1);
+
+        if(decoder || repeater)
+        {
+            mRelais->setDecodedResult(nextDetectedCode);
+        }
     }
     else
     {
         wasGoingUp[contact] = true;
-        mTimerIds[contact] = startTimer(mDelayUpSeconds * 1000,
+        mTimerIds[contact] = startTimer(mDelayUpMillis,
                                         Qt::PreciseTimer);
         mTimeoutPercentStatus[contact] = 0.0; // We start from bottom
         ensureTimeoutPercentTimer();
@@ -379,16 +485,27 @@ void RelaisPowerNode::deactivateRelay(int contact)
     if(!mIsUp[contact] || !mRelais)
         return; // Already in position
 
-    if(mDelayDownSeconds == 0)
+    const bool decoder = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::Decoder);
+    const bool repeater = (relais() && relais()->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+
+    if(mDelayDownMillis == 0)
     {
         // Do it now
+        const bool wasUp = mIsUp[contact];
         mIsUp[contact] = false;
-        mRelais->powerNodeDeactivated(this, contact == 1);
+
+        if(wasUp)
+            mRelais->powerNodeDeactivated(this, contact == 1);
+
+        if(decoder || repeater)
+        {
+            mRelais->setDecodedResult(nextDetectedCode);
+        }
     }
     else
     {
         wasGoingUp[contact] = false;
-        mTimerIds[contact] = startTimer(mDelayDownSeconds * 1000,
+        mTimerIds[contact] = startTimer(mDelayDownMillis,
                                         Qt::PreciseTimer);
         mTimeoutPercentStatus[contact] = 1.0; // We start from top
         ensureTimeoutPercentTimer();
@@ -435,6 +552,63 @@ void RelaisPowerNode::stopTimeoutPercentTimer()
 
     // Update visual drawing
     emit circuitsChanged();
+}
+
+void RelaisPowerNode::updateDecoderState()
+{
+    if(!mRelais)
+        return;
+
+    Q_ASSERT(mRelais->relaisType() == AbstractRelais::RelaisType::Decoder ||
+             mRelais->relaisType() == AbstractRelais::RelaisType::CodeRepeater);
+
+    needsFlagUpdate = false;
+
+    CircuitFlags code = getCircuitFlags(0);
+    if(!hasCircuit(0, CircuitType::Closed))
+        code = CircuitFlags::None;
+
+    nextDetectedCode = codeFromFlag(code);
+
+    bool valid = hasCircuit(0, CircuitType::Closed);
+
+    switch (relais()->relaisType())
+    {
+    case AbstractRelais::RelaisType::Decoder:
+    {
+        valid = nextDetectedCode != SignalAspectCode::CodeAbsent;
+        if(mRelais->getExpectedCode() != SignalAspectCode::CodeAbsent)
+            valid = nextDetectedCode == mRelais->getExpectedCode();
+        break;
+    }
+    default:
+        break;
+    }
+
+    if(valid)
+        activateRelay(0);
+    else
+        deactivateRelay(0);
+}
+
+void RelaisPowerNode::updateDiskRelayState()
+{
+    if(!mRelais)
+        return;
+
+    Q_ASSERT(mRelais->relaisType() == AbstractRelais::RelaisType::DiskRelayAC);
+
+    bool valid = hasEntranceCircuitOnPole(0, CircuitPole::First, CircuitType::Closed)
+            && hasEntranceCircuitOnPole(1, CircuitPole::First, CircuitType::Closed);
+
+    if(!valid)
+        valid = hasEntranceCircuitOnPole(0, CircuitPole::Second, CircuitType::Closed)
+                && hasEntranceCircuitOnPole(1, CircuitPole::Second, CircuitType::Closed);
+
+    if(valid)
+        activateRelay(0);
+    else
+        deactivateRelay(0);
 }
 
 bool RelaisPowerNode::combinatorSecondCoil() const

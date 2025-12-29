@@ -54,8 +54,11 @@
 #include "../graphs/polarityinversiongraphitem.h"
 #include "../nodes/polarityinversionnode.h"
 
-#include "../graphs/electromagnetgraphitem.h"
-#include "../nodes/electromagnetnode.h"
+#include "../graphs/electromagnetpowergraphitem.h"
+#include "../nodes/electromagnetpowernode.h"
+
+#include "../graphs/electromagnetcontactgraphitem.h"
+#include "../nodes/electromagnetcontactnode.h"
 
 #include "../graphs/levercontactgraphitem.h"
 #include "../nodes/levercontactnode.h"
@@ -75,6 +78,21 @@
 #include "../graphs/transformergraphitem.h"
 #include "../nodes/transformernode.h"
 
+#include "../graphs/resistorgraphitem.h"
+#include "../nodes/resistornode.h"
+
+#include "../graphs/traintasticsensorcontactgraphitem.h"
+#include "../nodes/traintasticsensornode.h"
+
+#include "../graphs/traintasticturnoutgraphitem.h"
+#include "../nodes/traintasticturnoutnode.h"
+
+#include "../graphs/commandnodegraphitem.h"
+#include "../nodes/commandnode.h"
+
+#include "../graphs/traintasticaxlecountergraphitem.h"
+#include "../nodes/traintasticaxlecounternode.h"
+
 // TODO: special
 #include "../graphs/special/aceibuttongraphitem.h"
 #include "../graphs/special/aceilevergraphitem.h"
@@ -83,6 +101,7 @@
 #include <QWidget>
 #include <QFormLayout>
 
+#include <QComboBox>
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QLabel>
@@ -102,6 +121,8 @@
 #include "../../objects/simple_activable/abstractsimpleactivableobject.h"
 #include "../../objects/simple_activable/lightbulbobject.h"
 
+#include "../../objects/simple_activable/electromagnetobject.h"
+
 #include "../../objects/relais/model/abstractrelais.h"
 #include "../../objects/screen_relais/model/screenrelais.h"
 #include "../../objects/lever/acei/aceileverobject.h"
@@ -110,10 +131,18 @@
 
 #include "../../objects/lever/view/levercontactconditionsview.h"
 
+#include "../../utils/enumvaluesmodel.h"
+
 // TODO: remove BEM
 #include "../../objects/lever/bem/bemleverobject.h"
 
 #include "../../objects/circuit_bridge/remotecircuitbridge.h"
+
+#include "../../objects/traintastic/traintasticsensorobj.h"
+#include "../../objects/traintastic/traintasticturnoutobj.h"
+#include "../../objects/traintastic/traintasticspawnobj.h"
+#include "../../objects/traintastic/traintasticauxsignalobject.h"
+#include "../../objects/traintastic/traintasticaxlecounterobj.h"
 
 template <typename Graph>
 AbstractNodeGraphItem* addNewNodeToScene(CircuitScene *s, ModeManager *mgr)
@@ -218,6 +247,33 @@ QWidget *defaultSimpleActivationEdit(SimpleActivationGraphItem *item, ViewManage
     return w;
 }
 
+QWidget *defaultMagnetContactEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    ElectromagnetContactNode *node = static_cast<ElectromagnetContactNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Deviator
+    lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
+                                       viewMgr));
+
+    // Magnet Object
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(viewMgr, {ElectroMagnetObject::Type});
+    QObject::connect(node, &ElectromagnetContactNode::magnetChanged,
+                     objectEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+                     {
+                         node->setMagnet(static_cast<ElectroMagnetObject *>(obj));
+                     });
+
+    objectEdit->setObject(node->magnet());
+    lay->addRow(StandardNodeTypes::tr("Magnet:"), objectEdit);
+
+    return w;
+}
+
 QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
 {
     RemoteCableCircuitNode *node = static_cast<RemoteCableCircuitNode *>(item->getAbstractNode());
@@ -288,6 +344,276 @@ QWidget *defaultRemoteCableNodeEdit(AbstractNodeGraphItem *item, ViewManager *vi
 
     return w;
 }
+
+QWidget *defaultTraintasticSensorContactEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    TraintasticSensorNode *node = static_cast<TraintasticSensorNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Deviator
+    lay->addWidget(defaultDeviatorEdit(static_cast<AbstractDeviatorGraphItem *>(item),
+                                       viewMgr));
+
+    // Sensor Object
+    SimulationObjectLineEdit *sensorEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticSensorObj::Type});
+    QObject::connect(node, &TraintasticSensorNode::sensorChanged,
+                     sensorEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(sensorEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+    {
+        node->setSensor(static_cast<TraintasticSensorObj *>(obj));
+    });
+
+    sensorEdit->setObject(node->sensor());
+    lay->addRow(StandardNodeTypes::tr("Sensor:"), sensorEdit);
+
+    // Target State
+    QSpinBox *targetStateSpin = new QSpinBox;
+    targetStateSpin->setRange(0, 99);
+    lay->addRow(StandardNodeTypes::tr("Target State:"), targetStateSpin);
+
+    QObject::connect(targetStateSpin, &QSpinBox::valueChanged,
+                     node, [node](int val)
+    {
+        node->setTargetState(val);
+    });
+
+    auto updLambda = [targetStateSpin, node]()
+    {
+        targetStateSpin->setValue(node->targetState());
+    };
+
+    QObject::connect(node, &TraintasticSensorNode::shapeChanged,
+                     w, updLambda);
+    updLambda();
+
+    return w;
+}
+
+QWidget *defaultTraintasticTurnoutNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    TraintasticTurnoutNode *node = static_cast<TraintasticTurnoutNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Turnout Object
+    SimulationObjectLineEdit *turnoutEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticTurnoutObj::Type});
+    QObject::connect(node, &TraintasticTurnoutNode::turnoutChanged,
+                     turnoutEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(turnoutEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, w, turnoutEdit](AbstractSimulationObject *obj)
+    {
+        TraintasticTurnoutObj *turnoutObj = static_cast<TraintasticTurnoutObj *>(obj);
+        bool success = node->setTurnout(turnoutObj, false);
+        if(!success && turnoutObj->getNode())
+        {
+            int ret = QMessageBox::question(w, StandardNodeTypes::tr("Turnout already powered"),
+                                            StandardNodeTypes::tr("Turnout <b>%1</b> is already set in another node.<br>"
+                                                                  "Setting turnout here will remove it from other node.<br>"
+                                                                  "Proceed?")
+                                                .arg(turnoutObj->name()));
+            if(ret == QMessageBox::Yes)
+                success = node->setTurnout(turnoutObj, true);
+        }
+
+        if(!success)
+            turnoutEdit->setObject(node->turnout()); // Reset to previous value
+    });
+
+    turnoutEdit->setObject(node->turnout());
+    lay->addRow(StandardNodeTypes::tr("Turnout:"), turnoutEdit);
+
+    // Spawn Object
+    SimulationObjectLineEdit *spawnEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticSpawnObj::Type});
+    QObject::connect(node, &TraintasticTurnoutNode::spawnChanged,
+                     spawnEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(spawnEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, w, spawnEdit](AbstractSimulationObject *obj)
+                     {
+                         TraintasticSpawnObj *spawnObj = static_cast<TraintasticSpawnObj *>(obj);
+                         bool success = node->setSpawn(spawnObj, false);
+                         if(!success && spawnObj->getNode())
+                         {
+                             int ret = QMessageBox::question(w, StandardNodeTypes::tr("Spawn already powered"),
+                                                             StandardNodeTypes::tr("Spawn <b>%1</b> is already set in another node.<br>"
+                                                                                   "Setting turnout here will remove it from other node.<br>"
+                                                                                   "Proceed?")
+                                                                 .arg(spawnObj->name()));
+                             if(ret == QMessageBox::Yes)
+                                 success = node->setSpawn(spawnObj, true);
+                         }
+
+                         if(!success)
+                             spawnEdit->setObject(node->spawn()); // Reset to previous value
+                     });
+
+    spawnEdit->setObject(node->spawn());
+    lay->addRow(StandardNodeTypes::tr("Spawn:"), spawnEdit);
+
+    // TraintasticAuxSignalObject Object
+    SimulationObjectLineEdit *auxSignalEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticAuxSignalObject::Type});
+    QObject::connect(node, &TraintasticTurnoutNode::spawnChanged,
+                     auxSignalEdit, &SimulationObjectLineEdit::setObject);
+    QObject::connect(auxSignalEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, w, auxSignalEdit](AbstractSimulationObject *obj)
+                     {
+                         TraintasticAuxSignalObject *auxSignalObj = static_cast<TraintasticAuxSignalObject *>(obj);
+                         node->setAuxSignal(auxSignalObj);
+                     });
+
+    auxSignalEdit->setObject(node->auxSignal());
+    lay->addRow(StandardNodeTypes::tr("Aux Signal:"), auxSignalEdit);
+
+    return w;
+}
+
+QWidget *defaultCommandNodeEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    CommandNode *node = static_cast<CommandNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Target Object
+    SimulationObjectLineEdit *objEdit = new SimulationObjectLineEdit(viewMgr, node->supportedObjectTypes());
+    lay->addRow(StandardNodeTypes::tr("Target Object:"), objEdit);
+
+    // Target Position Combo
+    QComboBox *targetPosCombo = new QComboBox;
+    EnumValuesModel *posModel = new EnumValuesModel(targetPosCombo);
+
+    auto updateCombo = [node, posModel, targetPosCombo]()
+    {
+        EnumDesc desc;
+        bool skipMiddle = false;
+        bool valid = node->object() && node->getObjectPosDesc(desc, &skipMiddle);
+        targetPosCombo->setEnabled(valid);
+
+        if(valid)
+        {
+            targetPosCombo->setModel(posModel);
+            posModel->setEnumDescFull(desc, skipMiddle);
+
+            const int row = posModel->rowForValue(node->targetPosition());
+            if(row < 0)
+                valid = false;
+            else
+                targetPosCombo->setCurrentIndex(row);
+        }
+        else
+        {
+            targetPosCombo->setModel(nullptr);
+            targetPosCombo->clear();
+        }
+
+        if(!valid)
+            targetPosCombo->setCurrentText(StandardNodeTypes::tr("Unknown (%1)")
+                                           .arg(node->targetPosition()));
+    };
+
+    QObject::connect(targetPosCombo, &QComboBox::activated,
+                     item, [node, posModel](int idx)
+    {
+        node->setTargetPosition(posModel->valueAt(idx));
+    });
+
+    lay->addRow(StandardNodeTypes::tr("Target State:"), targetPosCombo);
+
+
+    QObject::connect(node, &CommandNode::objectChanged,
+                     objEdit, [node, updateCombo, objEdit](AbstractSimulationObject *obj)
+    {
+        objEdit->setObject(node->object());
+        updateCombo();
+    });
+
+    QObject::connect(objEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, updateCombo](AbstractSimulationObject *obj)
+    {
+        node->setObject(obj);
+        updateCombo();
+    });
+
+    objEdit->setObject(node->object());
+
+    // Delay Spin box
+    QSpinBox *delaySpin = new QSpinBox;
+    delaySpin->setRange(0, 1000 * 60 * 60);
+    delaySpin->setSuffix(StandardNodeTypes::tr(" ms"));
+    lay->addRow(StandardNodeTypes::tr("Delay:"), delaySpin);
+
+    QObject::connect(delaySpin, &QSpinBox::valueChanged,
+                     node, [node](int val)
+    {
+        node->setDelayMillis(val);
+    });
+
+    auto updLambda = [delaySpin, node, updateCombo]()
+    {
+        delaySpin->setValue(node->delayMillis());
+        updateCombo();
+    };
+
+    QObject::connect(node, &CommandNode::shapeChanged,
+                     w, updLambda);
+    updLambda();
+
+    return w;
+}
+
+QWidget *defaultTraintasticAxleCounterEdit(AbstractNodeGraphItem *item, ViewManager *viewMgr)
+{
+    TraintasticAxleCounterNode *node = static_cast<TraintasticAxleCounterNode *>(item->getAbstractNode());
+
+    QWidget *w = new QWidget;
+    QFormLayout *lay = new QFormLayout(w);
+
+    // Axle Counter Object
+    SimulationObjectLineEdit *objectEdit = new SimulationObjectLineEdit(viewMgr, {TraintasticAxleCounterObj::Type});
+    QObject::connect(node, &TraintasticAxleCounterNode::shapeChanged,
+                     objectEdit, [node, objectEdit]()
+                     {
+                         objectEdit->setObject(node->axleCounter());
+                     });
+    QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node](AbstractSimulationObject *obj)
+                     {
+                         node->setAxleCounter(static_cast<TraintasticAxleCounterObj *>(obj));
+                     });
+
+    QObject::connect(objectEdit, &SimulationObjectLineEdit::objectChanged,
+                     node, [node, objectEdit](AbstractSimulationObject *obj)
+                     {
+                         bool success = node->setAxleCounter(static_cast<TraintasticAxleCounterObj *>(obj));
+                         if(!success)
+                         {
+                             auto res =  QMessageBox::question(objectEdit, StandardNodeTypes::tr("Steal Axle Counter?"),
+                                                              StandardNodeTypes::tr("Selected Axle Counter <b>%1</b>"
+                                                                 " is already powered by another node.<br>"
+                                                                 "Setting this axle counter on this node will remove it from previous powering node.<br>"
+                                                                 "Do you want to proceed?").arg(obj->name()));
+                             if(res == QMessageBox::Yes)
+                             {
+                                 // Force setting axle counter
+                                 node->setAxleCounter(static_cast<TraintasticAxleCounterObj *>(obj), true);
+                             }
+                             else
+                             {
+                                 // Reject change
+                                 objectEdit->setObject(node->axleCounter());
+                             }
+                         }
+                     });
+
+    objectEdit->setObject(node->axleCounter());
+    lay->addRow(StandardNodeTypes::tr("Axle Counter:"), objectEdit);
+
+    return w;
+}
+
 
 void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
 {
@@ -412,28 +738,28 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             lay->addRow(tr("Relay:"), relayEdit);
 
             // Delayed up/down
-            QSpinBox *delayUpSeconds = new QSpinBox;
-            delayUpSeconds->setRange(0, 5 * 60);
-            delayUpSeconds->setSpecialValueText(tr("None"));
-            delayUpSeconds->setSuffix(tr(" sec")); // Seconds
-            lay->addRow(tr("Delay up:"), delayUpSeconds);
+            QSpinBox *delayUpMillis = new QSpinBox;
+            delayUpMillis->setRange(0, 5 * 60 * 1000);
+            delayUpMillis->setSpecialValueText(tr("None"));
+            delayUpMillis->setSuffix(tr(" ms")); // Milliseconds
+            lay->addRow(tr("Delay up:"), delayUpMillis);
 
-            QObject::connect(delayUpSeconds, &QSpinBox::valueChanged,
+            QObject::connect(delayUpMillis, &QSpinBox::valueChanged,
                              node, [node](int val)
             {
-                node->setDelayUpSeconds(val);
+                node->setDelayUpMillis(val);
             });
 
-            QSpinBox *delayDownSeconds = new QSpinBox;
-            delayDownSeconds->setRange(0, 5 * 60);
-            delayDownSeconds->setSpecialValueText(tr("None"));
-            delayDownSeconds->setSuffix(tr(" sec")); // Seconds
-            lay->addRow(tr("Delay down:"), delayDownSeconds);
+            QSpinBox *delayDownMillis = new QSpinBox;
+            delayDownMillis->setRange(0, 5 * 60 * 1000);
+            delayDownMillis->setSpecialValueText(tr("None"));
+            delayDownMillis->setSuffix(tr(" ms")); // Milliseconds
+            lay->addRow(tr("Delay down:"), delayDownMillis);
 
-            QObject::connect(delayDownSeconds, &QSpinBox::valueChanged,
+            QObject::connect(delayDownMillis, &QSpinBox::valueChanged,
                              node, [node](int val)
             {
-                node->setDelayDownSeconds(val);
+                node->setDelayDownMillis(val);
             });
 
             QCheckBox *hasSecondContact = new QCheckBox(tr("Has second contact"));
@@ -468,12 +794,12 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             });
 
             auto updDelayLambda =
-                    [delayUpSeconds, delayDownSeconds,
+                    [delayUpMillis, delayDownMillis,
                     hasSecondContact, combinatorSecondCoil, preferEastArrow,
                     node, item]()
             {
-                delayUpSeconds->setValue(node->delayUpSeconds());
-                delayDownSeconds->setValue(node->delayDownSeconds());
+                delayUpMillis->setValue(node->delayUpMillis());
+                delayDownMillis->setValue(node->delayDownMillis());
                 hasSecondContact->setChecked(node->hasSecondConnector());
                 combinatorSecondCoil->setChecked(node->combinatorSecondCoil());
                 preferEastArrow->setChecked(static_cast<RelaisPowerGraphItem *>(item)->preferEastArrow());
@@ -552,7 +878,6 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
             {
                 hideRelayNormal->setChecked(node->hideRelayNormalState());
                 activeWhileMiddle->setChecked(node->activeWhileMiddle());
-                activeWhileMiddle->setEnabled(!node->hasCentralConnector());
                 activeWhileMiddle->setVisible(node->relais() &&
                                               node->relais()->relaisType() == AbstractRelais::RelaisType::Combinator);
             };
@@ -791,15 +1116,28 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         // Electromagnet node
         NodeEditFactory::FactoryItem factory;
         factory.needsName = NodeEditFactory::NeedsName::Never;
-        factory.nodeType = ElectroMagnetGraphItem::Node::NodeType;
+        factory.nodeType = ElectroMagnetPowerGraphItem::Node::NodeType;
         factory.prettyName = tr("Electromagnet");
         factory.shortcutLetter = 'M';
-        factory.create = &addNewNodeToScene<ElectroMagnetGraphItem>;
+        factory.create = &addNewNodeToScene<ElectroMagnetPowerGraphItem>;
         factory.edit = [](AbstractNodeGraphItem *item, ViewManager *viewMgr) -> QWidget*
         {
             return defaultSimpleActivationEdit(static_cast<SimpleActivationGraphItem *>(item),
                                                viewMgr, tr("Magnet:"));
         };
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Electromagnet Contact node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = ElectroMagnetContactGraphItem::Node::NodeType;
+        factory.prettyName = tr("Electromagnet Contact");
+        factory.shortcutLetter = QChar();
+        factory.create = &addNewNodeToScene<ElectroMagnetContactGraphItem>;
+        factory.edit = &defaultMagnetContactEdit;
 
         factoryReg->registerFactory(factory);
     }
@@ -1032,8 +1370,6 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                     conditionsModel->setConditions(leverIface->positionDesc(),
                                                    conditions,
                                                    leverIface->canWarpAroundZero());
-                    conditionsModel->setPositionRange(leverIface->absoluteMin(),
-                                                      leverIface->absoluteMax());
                 }
 
                 conditionsView->setVisible(node->lever());
@@ -1047,8 +1383,6 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
                 conditionsModel->setConditions(leverIface->positionDesc(),
                                                conditions,
                                                leverIface->canWarpAroundZero());
-                conditionsModel->setPositionRange(leverIface->absoluteMin(),
-                                                  leverIface->absoluteMax());
             }
 
             conditionsView->setVisible(node->lever());
@@ -1143,6 +1477,70 @@ void StandardNodeTypes::registerTypes(NodeEditFactory *factoryReg)
         factory.prettyName = tr("Transformer");
         factory.create = &addNewNodeToScene<TransformerGraphItem>;
         factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Resistor Circuit node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::OnlyOnEditing;
+        factory.nodeType = ResistorGraphItem::Node::NodeType;
+        factory.prettyName = tr("Resistor");
+        factory.create = &addNewNodeToScene<ResistorGraphItem>;
+        factory.edit = nullptr;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Traintastic Sensor Contact node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = TraintasticSensorGraphItem::Node::NodeType;
+        factory.prettyName = tr("Traintastic Sensor Contact");
+        factory.shortcutLetter = 'A';
+        factory.create = &addNewNodeToScene<TraintasticSensorGraphItem>;
+        factory.edit = &defaultTraintasticSensorContactEdit;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Traintastic Turnout node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = TraintasticTurnoutGraphItem::Node::NodeType;
+        factory.prettyName = tr("Traintastic Turnout Node");
+        factory.shortcutLetter = QChar();
+        factory.create = &addNewNodeToScene<TraintasticTurnoutGraphItem>;
+        factory.edit = &defaultTraintasticTurnoutNodeEdit;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Command node
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = CommandNodeGraphItem::Node::NodeType;
+        factory.prettyName = tr("Command Node");
+        factory.shortcutLetter = QChar();
+        factory.create = &addNewNodeToScene<CommandNodeGraphItem>;
+        factory.edit = &defaultCommandNodeEdit;
+
+        factoryReg->registerFactory(factory);
+    }
+
+    {
+        // Traintastic Axle Counter
+        NodeEditFactory::FactoryItem factory;
+        factory.needsName = NodeEditFactory::NeedsName::Never;
+        factory.nodeType = TraintasticAxleCounterGraphItem::Node::NodeType;
+        factory.prettyName = tr("Axle Counter");
+        factory.shortcutLetter = QChar();
+        factory.create = &addNewNodeToScene<TraintasticAxleCounterGraphItem>;
+        factory.edit = &defaultTraintasticAxleCounterEdit;
 
         factoryReg->registerFactory(factory);
     }

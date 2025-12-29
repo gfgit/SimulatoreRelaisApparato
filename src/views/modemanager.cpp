@@ -39,13 +39,14 @@
 #include "../network/remotemanager.h"
 #include "../serial/serialmanager.h"
 
+#include "../network/traintastic-simulator/traintasticsimmanager.h"
+
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
 
 QJsonObject convertFileFormatBetaToV1(const QJsonObject& origFile)
 {
-
     QJsonObject objects;
 
     // Port Relais
@@ -320,6 +321,90 @@ QJsonObject convertFileFormatV1ToV2(const QJsonObject& origFileOld)
     return newFile;
 }
 
+QJsonObject convertFileFormatV2ToV3(const QJsonObject& origFile)
+{
+    QJsonObject circuits = origFile.value("circuits").toObject();
+    const QJsonArray scenes = circuits.value("scenes").toArray();
+
+    QJsonArray newScenes;
+    for(const QJsonValue& v : scenes)
+    {
+        QJsonObject scene = v.toObject();
+
+        QJsonArray nodes;
+        for(QJsonValueRef nodeVal : scene["nodes"].toArray())
+        {
+            QJsonObject node = nodeVal.toObject();
+            const QString nodeType = node.value("type").toString();
+            if(nodeType == "relais_power")
+            {
+                // Convert delay to milliseconds
+                node["delay_up_ms"] = node["delay_up_sec"].toInt() * 1000;
+                node["delay_down_ms"] = node["delay_down_sec"].toInt() * 1000;
+            }
+
+            nodes.append(node);
+        }
+        scene["nodes"] = nodes;
+
+        newScenes.append(scene);
+    }
+
+    // Save new file
+    QJsonObject newFile = origFile;
+    newFile["file_version"] = ModeManager::FileVersion::V2;
+
+    QJsonObject newCircuits;
+    newCircuits["scenes"] = newScenes;
+
+    newFile["circuits"] = newCircuits;
+
+    return newFile;
+}
+
+QJsonObject convertFileFormatV3ToV4(const QJsonObject& origFile)
+{
+    enum RelaisTypeV4
+    {
+        Polarized = 1,
+        PolarizedInverted = 2
+    };
+
+    QJsonObject objects = origFile.value("objects").toObject();
+
+    {
+        // Swap polarized relais
+        QJsonObject relaisModel = objects.value("abstract_relais").toObject();
+        const QJsonArray arr = relaisModel.value("objects").toArray();
+        QJsonArray newRelays;
+
+        for(const QJsonValue& v : arr)
+        {
+            QJsonObject relayObj = v.toObject();
+
+            int relayType = relayObj.value("relay_type").toInt();
+            if(relayType == RelaisTypeV4::Polarized)
+                relayType = RelaisTypeV4::PolarizedInverted;
+            else if(relayType == RelaisTypeV4::PolarizedInverted)
+                relayType = RelaisTypeV4::Polarized;
+
+            relayObj["relay_type"] = relayType;
+
+            newRelays.append(relayObj);
+        }
+
+        relaisModel["objects"] = newRelays;
+        objects["abstract_relais"] = relaisModel;
+    }
+
+    // Save new file
+    QJsonObject newFile = origFile;
+    newFile["file_version"] = ModeManager::FileVersion::V4;
+    newFile["objects"] = objects;
+
+    return newFile;
+}
+
 QJsonObject convertOldFileFormat(const QJsonObject& origFile)
 {
     QJsonObject rootObj = origFile;
@@ -336,7 +421,31 @@ QJsonObject convertOldFileFormat(const QJsonObject& origFile)
         rootObj = convertFileFormatV1ToV2(rootObj);
     }
 
+    if(rootObj.value("file_version") == ModeManager::FileVersion::V2)
+    {
+        // V2 file, try to convert it to V3
+        rootObj = convertFileFormatV2ToV3(rootObj);
+    }
+
+    if(rootObj.value("file_version") == ModeManager::FileVersion::V3)
+    {
+        // V3 file, try to convert it to V4
+        rootObj = convertFileFormatV3ToV4(rootObj);
+    }
+
     return rootObj;
+}
+
+static constexpr inline int timeoutMillisForCode(SignalAspectCode code)
+{
+    int pulsePerMinute = codeToNumber(code);
+    if (pulsePerMinute == 0)
+        return 0;
+
+    // Code is number of interruptions per minute
+    // But interruption is a full cyle
+    // We want state change 2 times per cycle so return half time
+    return (30 * 1000) / pulsePerMinute;
 }
 
 ModeManager::ModeManager(QObject *parent)
@@ -369,6 +478,16 @@ ModeManager::ModeManager(QObject *parent)
 
     mRemoteMgr = new RemoteManager(this);
     mSerialMgr = new SerialManager(this);
+
+    mTraintasticSim = new TraintasticSimManager(this);
+
+    for(int i = 0; i < 4; i++)
+    {
+        const SignalAspectCode code = SignalAspectCode(i + 1);
+        mCodeTimers[i].timer.start(timeoutMillisForCode(code),
+                                   Qt::PreciseTimer,
+                                   this);
+    }
 }
 
 ModeManager::~ModeManager()
@@ -379,6 +498,8 @@ ModeManager::~ModeManager()
     mRemoteMgr->clear();
 
     mSerialMgr->disconnectAllDevices();
+
+    mTraintasticSim->enableConnection(false);
 
     // Delete circuits and factory
     // before objects
@@ -408,6 +529,11 @@ ModeManager::~ModeManager()
     // Delete object factory as last
     delete mObjectFactory;
     mObjectFactory = nullptr;
+
+    for(int i = 0; i < 4; i++)
+    {
+        mCodeTimers[i].timer.stop();
+    }
 }
 
 void ModeManager::setMode(FileMode newMode)
@@ -434,6 +560,9 @@ void ModeManager::setMode(FileMode newMode)
         mRemoteMgr->setOnlineByDefault(wasOnline);
 
         mSerialMgr->disconnectAllDevices();
+
+        mRemoteMgr->setTraintasticDiscoveryEnabled(false);
+        mTraintasticSim->enableConnection(false);
     }
     else if(oldMode != FileMode::Simulation)
     {
@@ -441,6 +570,8 @@ void ModeManager::setMode(FileMode newMode)
 
         if(mRemoteMgr->onlineByDefault())
             mRemoteMgr->setOnline(true);
+
+        mRemoteMgr->setTraintasticDiscoveryEnabled(true);
     }
 
     // Let widgets receive mode change first, then update all other scenes
@@ -497,7 +628,7 @@ PanelListModel *ModeManager::panelList() const
     return mPanelList;
 }
 
-bool ModeManager::loadFromJSON(const QJsonObject &obj)
+bool ModeManager::loadFromJSON(const QJsonObject &obj, bool startSim)
 {
     // Temporarily ignore modified scenes
     clearAll();
@@ -547,8 +678,8 @@ bool ModeManager::loadFromJSON(const QJsonObject &obj)
 
     resetFileEdited();
 
-    // Turn on power sources and stuff
-    setMode(FileMode::Simulation);
+    // Turn on power sources and stuff or go Editing
+    setMode(startSim ? FileMode::Simulation : FileMode::Editing);
 
     return true;
 }
@@ -639,4 +770,21 @@ void ModeManager::setFilePath(const QString &newFilePath, bool newFile)
     mFilePath = newFilePath;
 
     emit fileChanged(mFilePath, newFile ? QString() : oldFile);
+}
+
+void ModeManager::timerEvent(QTimerEvent *ev)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        if(ev->timerId() == mCodeTimers[i].timer.timerId())
+        {
+            mCodeTimers[i].state = !mCodeTimers[i].state;
+            mCircuitList->updateCodeStatus();
+            emit codeTimerChanged();
+
+            return;
+        }
+    }
+
+    QObject::timerEvent(ev);
 }

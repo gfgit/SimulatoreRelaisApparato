@@ -27,8 +27,12 @@
 
 #include "../../utils/tilerotate.h"
 
+#include "../../enums/circuittypes.h"
+
 class AbstractCircuitNode;
 class CircuitScene;
+
+class ModeManager;
 
 class QJsonObject;
 
@@ -36,8 +40,6 @@ class AbstractNodeGraphItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
-    static constexpr double TextDisplayFontSize = 28;
-    static constexpr double TextDisplayHeight = TextDisplayFontSize * 1.5;
     static constexpr double TextDisplayMargin = 10;
 
     AbstractNodeGraphItem(AbstractCircuitNode *node_);
@@ -52,6 +54,8 @@ public:
     virtual QString displayString() const;
 
     virtual QString tooltipString() const;
+
+    virtual double textDisplayFontSize() const;
 
     virtual QRectF textDisplayRect() const;
 
@@ -78,7 +82,7 @@ public:
     TileRotate rotate() const;
     void setRotate(TileRotate newRotate);
 
-    inline Connector::Direction textRotate() const { return mTextDirection; };
+    inline Connector::Direction textRotate() const { return mTextDirection; }
     void setTextRotate(Connector::Direction newTextRotate);
 
     void postInit();
@@ -88,10 +92,16 @@ public:
     virtual bool loadFromJSON(const QJsonObject& obj);
     virtual void saveToJSON(QJsonObject& obj) const;
 
+    static QColor getContactColor(const AnyCircuitType targetType,
+                                  const CircuitFlags contactFlags,
+                                  bool hasFlags = true,
+                                  ModeManager *modeMgr = nullptr,
+                                  bool *outShouldDraw = nullptr);
+
 protected slots:
     void triggerUpdate();
     virtual void updateName();
-    void onShapeChanged(bool boundingRectChange);
+    void onShapeChanged(bool boundingRectChange, bool cableChange);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *ev) override;
@@ -106,13 +116,18 @@ protected:
                   TileRotate r,
                   QRectF *br = nullptr);
 
-    void drawName(QPainter *painter);
+    void drawName(QPainter *painter,
+                  QRectF *br = nullptr);
+
     void drawUnpairedConnectors(QPainter *painter);
 
     void invalidateConnections(bool tryReconnectImmediately = true);
 
     void recalculateTextWidth();
     virtual void recalculateTextPosition();
+
+    QColor getContactColor(int nodeContact,
+                           bool *outShouldDraw = nullptr) const;
 
 private:
     AbstractCircuitNode *mAbstractNode;

@@ -35,6 +35,8 @@ class RemoteManager;
 
 class QCborMap;
 
+class QHostAddress;
+
 class RemoteSession : public QObject
 {
     Q_OBJECT
@@ -77,6 +79,8 @@ public:
         return mPeerConn;
     }
 
+    QHostAddress getPeerAddress() const;
+
     void onConnected(PeerConnection *conn);
     void onDisconnected();
 
@@ -92,10 +96,11 @@ public:
     void onRemoteBridgeListReceived(const QVector<BridgeListItem> &list);
 
     void onRemoteBridgeModeChanged(quint64 localNodeId,
-                                   qint8 mode, qint8 pole, qint8 replyToMode);
+                                   qint8 mode, qint8 pole, qint8 replyToMode, quint8 circuitFlags);
 
     void onLocalBridgeModeChanged(quint64 peerNodeId,
-                                  qint8 mode, qint8 pole, qint8 replyToMode);
+                                  qint8 mode, qint8 pole,
+                                  qint8 replyToMode, quint8 circuitFlags);
 
     void sendReplicaList();
     void onReplicaListReceived(const QCborArray &msg);

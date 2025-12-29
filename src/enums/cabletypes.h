@@ -75,14 +75,43 @@ struct CableItem
     int nodeContact = 0;
 };
 
+struct CableItemFlags : CableItem
+{
+    CircuitFlags flags = CircuitFlags::None;
+};
+
 struct NodeItem
 {
     enum { InvalidContact  = -1 };
     AbstractCircuitNode *node = nullptr;
     int fromContact = InvalidContact;
     int toContact   = InvalidContact;
-    CircuitPole fromPole = CircuitPole::First;
-    CircuitPole toPole   = CircuitPole::First;
+
+    CircuitFlags mFlagsAndPole = CircuitFlags::None;
+
+    inline CircuitFlags flags() const { return onlyFlags(mFlagsAndPole); }
+    inline CircuitPole fromPole() const { return fromPole_(mFlagsAndPole); }
+    inline CircuitPole toPole() const { return toPole_(mFlagsAndPole); }
+
+    inline void setFromPole(CircuitPole pole)
+    {
+        mFlagsAndPole = withPole(mFlagsAndPole, pole, toPole());
+    }
+
+    inline void setToPole(CircuitPole pole)
+    {
+        mFlagsAndPole = withPole(mFlagsAndPole, fromPole(), pole);
+    }
+
+    inline void setPoles(CircuitPole from, CircuitPole to)
+    {
+        mFlagsAndPole = withPole(mFlagsAndPole, from, to);
+    }
+
+    inline void setFlags(CircuitFlags f)
+    {
+        mFlagsAndPole = applyPole(f, mFlagsAndPole);
+    }
 };
 
 typedef QVector<NodeItem> NodeOccurences;
@@ -126,9 +155,9 @@ constexpr bool operator ==(const NodeItem& lhs, const NodeItem& rhs)
 {
     return lhs.node == rhs.node &&
             lhs.fromContact == rhs.fromContact &&
-            lhs.fromPole == rhs.fromPole &&
+            lhs.fromPole() == rhs.fromPole() &&
             lhs.toContact == rhs.toContact &&
-            lhs.toPole == rhs.toPole;
+            lhs.toPole() == rhs.toPole();
 }
 
 #endif // CABLETYPES_H

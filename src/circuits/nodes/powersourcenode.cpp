@@ -53,14 +53,15 @@ bool PowerSourceNode::isSourceNode(bool onlyCurrentState, int nodeContact) const
     return true;
 }
 
-bool PowerSourceNode::isSourceEnabled() const
+bool PowerSourceNode::isSourceEnabled(int /*nodeContact*/) const
 {
-    if(enabled && modeMgr()->mode() == FileMode::Editing)
+    if(modeMgr()->mode() == FileMode::Editing)
         return false; // Act as Off during Editing
+
     return enabled;
 }
 
-void PowerSourceNode::setSourceEnabled(bool newEnabled)
+void PowerSourceNode::setSourceEnabled(bool newEnabled, int /*nodeContact*/)
 {
     if(modeMgr()->mode() == FileMode::Editing && newEnabled)
         return; // Prevent enabling during editing

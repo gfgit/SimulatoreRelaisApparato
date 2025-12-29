@@ -3,7 +3,7 @@
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
- * Copyright (C) 2024 Filippo Gentile
+ * Copyright (C) 2025 Filippo Gentile
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,19 @@
 
 #include "../../circuits/nodes/simpleactivationnode.h"
 
+#include <QCoreApplication>
+#include <QEvent>
+
+class SimpleActivableStateChangeEvent : public QEvent
+{
+public:
+    static const QEvent::Type _Type = QEvent::Type(QEvent::User + 4);
+    SimpleActivableStateChangeEvent()
+        : QEvent(_Type)
+    {
+    }
+};
+
 AbstractSimpleActivableObject::AbstractSimpleActivableObject(AbstractSimulationObjectModel *m)
     : AbstractSimulationObject{m}
 {
@@ -43,6 +56,17 @@ AbstractSimpleActivableObject::~AbstractSimpleActivableObject()
         mActiveNodesCount = 0;
         emit stateChanged(this);
     }
+}
+
+bool AbstractSimpleActivableObject::event(QEvent *e)
+{
+    if(e->type() == SimpleActivableStateChangeEvent::_Type)
+    {
+        applyDelayedStateChanged();
+        return true;
+    }
+
+    return AbstractSimulationObject::event(e);
 }
 
 int AbstractSimpleActivableObject::getReferencingNodes(QVector<AbstractCircuitNode *> *result) const
@@ -89,12 +113,28 @@ void AbstractSimpleActivableObject::removeNode(SimpleActivationNode *node)
 
 void AbstractSimpleActivableObject::onNodeStateChanged(SimpleActivationNode *node, bool val)
 {
+    if(val)
+        mPendingNodesCount++;
+    else
+        mPendingNodesCount--;
+
+    if(mUpdateScheduled)
+        return;
+
+    mUpdateScheduled = true;
+    QCoreApplication::postEvent(this, new SimpleActivableStateChangeEvent);
+}
+
+void AbstractSimpleActivableObject::applyDelayedStateChanged()
+{
+    if(!mUpdateScheduled)
+        return;
+
+    mUpdateScheduled = false;
+
     const State oldState = state();
 
-    if(val)
-        mActiveNodesCount++;
-    else
-        mActiveNodesCount--;
+    mActiveNodesCount = mPendingNodesCount;
 
     if(state() != oldState)
     {

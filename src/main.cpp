@@ -40,6 +40,8 @@
 
 #include "views/layoutloader.h"
 
+#include "rightclickemulatorfilter.h"
+
 QString locateAppDataPath()
 {
     QString appDataPath = QStringLiteral("%1/%2/%3")
@@ -142,14 +144,36 @@ int main(int argc, char *argv[])
 
     MainWindow w(QLatin1String("mainwindow1"), locateAppSettings());
 
-    if (argc > 1) // FIXME: better handling if there are extra arguments
+    // FIXME: better handling if there are extra arguments
+
+    int idx = 0;
+    QString filenameToLoad;
+    bool installRightClickEmulation = false;
+    for (const QString& arg : app.arguments())
     {
-        QString fileName = app.arguments().at(1);
-        qDebug() << "Trying to load:" << fileName;
-        if (QFile(fileName).exists())
+        if(idx++ == 0)
+            continue;
+
+        if(arg.startsWith("--"))
         {
-            w.loadFile(app.arguments().at(1));
+            if(arg == QLatin1String("--rightclickemulation"))
+                installRightClickEmulation = true;
+
         }
+        else if(filenameToLoad.isEmpty() && QFile(arg).exists())
+            filenameToLoad = arg;
+    }
+
+    if(installRightClickEmulation)
+    {
+        // RightClickEmulatorFilter *rightClickEmulator = new RightClickEmulatorFilter(&app);
+        // app.installEventFilter(rightClickEmulator);
+    }
+
+    if(!filenameToLoad.isEmpty())
+    {
+        qDebug() << "Trying to load:" << filenameToLoad;
+        w.loadFile(filenameToLoad, true);
     }
 
     w.showMaximized();

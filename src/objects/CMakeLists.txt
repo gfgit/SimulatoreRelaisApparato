@@ -7,6 +7,7 @@ add_subdirectory(lever)
 add_subdirectory(relais)
 add_subdirectory(screen_relais)
 add_subdirectory(simple_activable)
+add_subdirectory(traintastic)
 
 set(SIMULATORE_RELAIS_SOURCES
 

@@ -25,6 +25,8 @@
 #include "../nodes/onoffswitchnode.h"
 #include "../circuitscene.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 OnOffGraphItem::OnOffGraphItem(OnOffSwitchNode *node_)
@@ -116,13 +118,6 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         break;
     }
 
-    const QColor colors[3] =
-    {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
-    };
-
     // Draw wires
     painter->setBrush(Qt::NoBrush);
     QPen pen;
@@ -130,28 +125,21 @@ void OnOffGraphItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     pen.setCapStyle(Qt::FlatCap);
 
     // Draw common contact (0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
     painter->drawLine(commonLine);
 
     // Draw first contact (1)
-    pen.setColor(colors[int(node()->hasAnyCircuit(1))]);
+    pen.setColor(getContactColor(1));
     painter->setPen(pen);
     painter->drawLine(contact1Line);
 
     // Draw switch line
-    if(node()->isOn())
-    {
-        // Turned on if both sides are on, and switch is on
-        if(node()->hasCircuits(CircuitType::Closed))
-            pen.setColor(colors[int(AnyCircuitType::Closed)]);
-        else if(node()->hasCircuit(0, CircuitType::Open) && node()->hasCircuit(1, CircuitType::Open))
-            pen.setColor(colors[int(AnyCircuitType::Open)]);
-    }
-    else
+    if(!node()->isOn())
     {
         // Switch is off or no circuit passes through
-        pen.setColor(colors[int(AnyCircuitType::None)]);
+        // Otherwise turned on if both sides are on, and switch is on
+        pen.setColor(CircuitColors::None);
     }
 
     // Use square cap for switch line to cover

@@ -53,7 +53,7 @@ Puoi:
 - Aggiungere/rimuovere nodi nei circuiti.
 - Ruotare nodi (`Click Destro` orario o `Shift + Click Destro` antiorario).
 - Specchiare nodi (`Ctrl + Click Destro` per contatti a deviatore, nodo semplice, alimentazione relè combinatori).
-- Ruotare la posizione dell'etichetta del nodo (`Alt + Click Destro`).
+- Ruotare la posizione dell'etichetta del nodo (`Ctrl + Shift + Click Destro`).
 - Aggiungere/Rimuovere cavi.
 
 Puoi spostare un solo nodo alla volta trascinandolo. Non puoi spostare i cavi.
@@ -63,6 +63,10 @@ Doppio click su un nodo/cabo per mostrare la finestra di modifica.
 
 Questa è la modalità di default.
 Se ti trovi in un'altra modalità, premi `Esc` per tornare alla modalità di Default.
+
+### Scene Banco
+
+Quando il tasto `Alt` viene tenuto premuto durante un trascinamento del mouse, un nuovo rettangolo luminoso verrà creato al rilascio del mouse con la forma del rettangolo selezionato.
 
 ### Modifica Cavi
 
@@ -99,7 +103,7 @@ Per selezionare gli elementi puoi fare:
 
 Per copiare la selezione attuale, premi `Ctrl + C`.
 Per incollare nella schermata attiva, premi `Ctrl + V`.
-Per sostituire oggetti o modificare in gruppo nella selezione attuale, premi `Ctrl + D` o `Shift + Ctrl + D`.
+Per sostituire oggetti o modificare in gruppo nella selezione attuale, premi `Ctrl + E` o `Shift + Ctrl + E`.
 
 # Scorciatoie Nodi
 

@@ -44,6 +44,8 @@ public:
                                AbstractSimulationObjectModel *model,
                                QWidget *parent = nullptr);
 
+    void resizeColumns();
+
     AbstractSimulationObjectModel *model() const;
 
     static AbstractSimulationObject *addObjectHelper(AbstractSimulationObjectModel *model,

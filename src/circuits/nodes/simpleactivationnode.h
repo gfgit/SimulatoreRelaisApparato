@@ -52,8 +52,12 @@ public:
 signals:
     void objectChanged(AbstractSimpleActivableObject *obj);
 
+protected:
+    void setNodeState(bool on);
+
 private:
     AbstractSimpleActivableObject *mObject = nullptr;
+    bool mLastSetState = false;
 };
 
 #endif // SIMPLEACTIVATIONNODE_H

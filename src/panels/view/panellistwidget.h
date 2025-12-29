@@ -42,6 +42,8 @@ class PanelListWidget : public QWidget
 public:
     PanelListWidget(ViewManager *mgr, PanelListModel *model, QWidget *parent = nullptr);
 
+    void resizeColumns();
+
     PanelListModel *model() const;
 
 private slots:

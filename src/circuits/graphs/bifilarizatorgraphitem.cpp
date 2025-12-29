@@ -24,6 +24,8 @@
 
 #include "../nodes/bifilarizatornode.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 BifilarizatorGraphItem::BifilarizatorGraphItem(BifilarizatorNode *node_)
@@ -68,28 +70,21 @@ void BifilarizatorGraphItem::paint(QPainter *painter, const QStyleOptionGraphics
     pen.setWidthF(10.0);
     pen.setCapStyle(Qt::FlatCap);
 
-    const QColor colors[3] =
-    {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
-    };
-
     const bool invertPolarity =
             (rotate() == TileRotate::Deg180 || rotate() == TileRotate::Deg270);
 
     // Draw first (0)
-    pen.setColor(colors[int(node()->hasAnyCircuit(invertPolarity ? 2 : 0))]);
+    pen.setColor(getContactColor(invertPolarity ? 2 : 0));
     painter->setPen(pen);
     painter->drawLine(lines[toRotateInt(rotate() - TileRotate::Deg90)]);
 
     // Draw common (1)
-    pen.setColor(colors[int(node()->hasAnyCircuit(1))]);
+    pen.setColor(getContactColor(1));
     painter->setPen(pen);
     painter->drawLine(lines[toRotateInt(rotate())]);
 
     // Draw first (2)
-    pen.setColor(colors[int(node()->hasAnyCircuit(invertPolarity ? 0 : 2))]);
+    pen.setColor(getContactColor(invertPolarity ? 0 : 2));
     painter->setPen(pen);
     painter->drawLine(lines[toRotateInt(rotate() + TileRotate::Deg90)]);
 }

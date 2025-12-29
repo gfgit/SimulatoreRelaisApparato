@@ -39,6 +39,12 @@ public:
 
     void getConnectors(std::vector<Connector>& connectors) const final;
 
+    QString displayString() const override;
+
+    QString tooltipString() const override;
+
+    QRectF textDisplayRect() const override;
+
     RemoteCableCircuitNode *node() const;
 };
 

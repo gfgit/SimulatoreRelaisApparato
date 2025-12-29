@@ -278,7 +278,7 @@ void CircuitScene::addCable(CableGraphItem *item)
     // Add cable tiles
     addCableTiles(item);
 
-    if(!item->cableZeroLength())
+    if(item->validNotZero())
         setHasUnsavedChanges(true);
 }
 
@@ -442,7 +442,7 @@ void CircuitScene::calculateConnections()
         }
         else
         {
-            if(item->cableZeroLength())
+            if(!item->validNotZero())
             {
                 // Unconnected zero length cable, delete it
                 removeCable(item->cable());
@@ -462,7 +462,10 @@ void CircuitScene::calculateConnections()
     for(auto it = cableCopy.begin(); it != cableCopy.end(); it++)
     {
         CableGraphItem *item = it->second;
-        if(item->cablePath().isEmpty() || (item->cableZeroLength() && !verifiedCables.contains(item->cable())))
+        if(item->cableZeroLength() && verifiedCables.contains(item->cable()))
+            continue;
+
+        if(!item->validNotZero())
         {
             removeCable(item->cable());
         }
@@ -486,7 +489,7 @@ void CircuitScene::connectItems(AbstractCircuitNode *node1, AbstractCircuitNode 
                 node1->detachCable(c1.nodeContact);
 
                 auto item = graphForCable(cableA);
-                if(!item || item->cableZeroLength())
+                if(!item || !item->validNotZero())
                 {
                     removeCable(cableA);
                     cableA = nullptr;
@@ -498,7 +501,7 @@ void CircuitScene::connectItems(AbstractCircuitNode *node1, AbstractCircuitNode 
                 node2->detachCable(c2.nodeContact);
 
                 auto item = graphForCable(cableB);
-                if(!item || item->cableZeroLength())
+                if(!item || !item->validNotZero())
                 {
                     removeCable(cableB);
                     cableB = nullptr;
@@ -551,7 +554,7 @@ bool CircuitScene::checkCable(CableGraphItem *item)
     AbstractNodeGraphItem *itemA = getItemAt(nodeLocA);
     AbstractNodeGraphItem *itemB = getItemAt(nodeLocB);
 
-    if(!item->cableZeroLength())
+    if(item->validNotZero())
     {
         // If there is no node next to us,
         // check if there are other cables to merge with
@@ -777,7 +780,7 @@ void CircuitScene::checkItem(AbstractNodeGraphItem *item, QVector<CircuitCable *
             if(cableA && !verifiedCables.contains(cableA))
             {
                 auto cableGraphA = graphForCable(cableA);
-                if(!cableGraphA || cableGraphA->cableZeroLength())
+                if(!cableGraphA || !cableGraphA->validNotZero())
                 {
                     node1->detachCable(c1.nodeContact);
                     removeCable(cableA);
@@ -895,7 +898,7 @@ bool CircuitScene::splitCableAt(CableGraphItem *item, const TileLocation& splitL
 
 void CircuitScene::addCableTiles(CableGraphItem *item)
 {
-    if(item->cableZeroLength())
+    if(!item->validNotZero())
         return;
 
     for(int i = 0; i < item->cablePath().getTilesCount(); i++)
@@ -923,7 +926,7 @@ void CircuitScene::addCableTiles(CableGraphItem *item)
 
 void CircuitScene::removeCableTiles(CableGraphItem *item)
 {
-    if(item->cableZeroLength())
+    if(!item->validNotZero())
         return;
 
     for(int i = 0; i < item->cablePath().getTilesCount(); i++)
@@ -1178,7 +1181,7 @@ void CircuitScene::onCableSelected(CableGraphItem *item, bool value)
     if(modeMgr()->editingSubMode() != EditingSubMode::ItemSelection)
         return;
 
-    if(item->cableZeroLength())
+    if(!item->validNotZero())
         return;
 
     if(value)
@@ -1511,6 +1514,8 @@ void CircuitScene::copySelectedItems()
     for(auto it : mSelectedCablePositions)
     {
         CableGraphItem *item = it.first;
+        if(!item->validNotZero())
+            continue;
 
         QJsonObject cableObj;
         item->saveToJSON(cableObj);
@@ -1692,6 +1697,11 @@ QVector<AbstractNodeGraphItem *> CircuitScene::getSelectedNodes()
     return result;
 }
 
+void CircuitScene::updateCodeStatus()
+{
+    update();
+}
+
 void CircuitScene::helpEvent(QGraphicsSceneHelpEvent *e)
 {
     const TileLocation tile = TileLocation::fromPointFloor(e->scenePos());
@@ -1699,6 +1709,15 @@ void CircuitScene::helpEvent(QGraphicsSceneHelpEvent *e)
     if(item)
     {
         QString tip = item->tooltipString();
+        if(mode() == FileMode::Editing)
+        {
+            QString posTip = QLatin1String("<br><br>"
+                                           "X: %1<br>"
+                                           "Y: %2");
+            const TileLocation loc = item->location();
+            tip.append(posTip.arg(loc.x).arg(loc.y));
+        }
+
         QPoint pt;
         if(!tip.isEmpty())
             pt = e->screenPos();
@@ -1787,7 +1806,7 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
         CableGraphItem *item = new CableGraphItem(cable);
         item->setPos(0, 0);
 
-        if(!item->loadFromJSON(cableObj) || item->cableZeroLength())
+        if(!item->loadFromJSON(cableObj) || !item->validNotZero())
         {
             delete item;
             delete cable;
@@ -1810,9 +1829,18 @@ bool CircuitScene::insertFragment(const TileLocation &tileHint,
         checkItem(item, verifiedCables);
     }
 
-    for(CableGraphItem *item : std::as_const(pastedCables))
+    for(auto it = pastedCables.begin(); it != pastedCables.end(); )
     {
-        checkCable(item);
+        CableGraphItem *item = *it;
+        if(!checkCable(item) || !item->validNotZero())
+        {
+            // We already added to scene
+            // Will be deleted by calculateConnections()
+            it = pastedCables.erase(it);
+            continue;
+        }
+
+        it++;
     }
 
     // Now select all pasted items so user can move them
@@ -1907,7 +1935,7 @@ bool CircuitScene::checkFragment(const QJsonArray &nodes, const QJsonArray &cabl
             continue;
 
         CableGraphPath path = CableGraphPath::loadFromJSON(pathObj);
-        if(path.isEmpty())
+        if(!path.validNotZero())
             continue;
 
         if(!cablePathIsValid_helper(path, hasPastedNode, getPastedCablePairAt))
@@ -2175,7 +2203,7 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
 
         // Do not save zero length cables
         // They can be automatically generated at load
-        if(!item->cableZeroLength() && item->cablePath().isComplete())
+        if(item->validNotZero())
             sortedCables.append(item);
     }
 
@@ -2187,12 +2215,28 @@ void CircuitScene::saveToJSON(QJsonObject &obj) const
         TileLocation startA = a->cablePath().first();
         TileLocation startB = b->cablePath().first();
 
+        const bool reverseA =  a->cablePath().needsReversing();
+        if(reverseA)
+            startA = a->cablePath().last();
+
+        const bool reverseB = b->cablePath().needsReversing();
+        if(reverseB)
+            startB = b->cablePath().last();
+
         // Orded by Y, then by X, the by direction
         if(startA.y == startB.y)
         {
             if(startA.x == startB.x)
             {
-                return a->directionA() < b->directionA();
+                Connector::Direction dirA = a->directionA();
+                if(reverseA)
+                    dirA = a->directionB();
+
+                Connector::Direction dirB = b->directionA();
+                if(reverseB)
+                    dirB = b->directionB();
+
+                return dirA < dirB;
             }
 
             return startA.x < startB.x;
@@ -2343,7 +2387,7 @@ void CircuitScene::endEditCable(bool apply)
 
     setHasUnsavedChanges(true);
 
-    if(!cablePath.isComplete())
+    if(!cablePath.validNotZero())
         return; // TODO: error message
 
     if(isNew)
@@ -2471,7 +2515,7 @@ void CircuitScene::editCableUndoLast()
     editCableUpdatePen();
 }
 
-void CircuitScene::keyReleaseEvent(QKeyEvent *e)
+void CircuitScene::keyPressEvent(QKeyEvent *e)
 {
     bool consumed = true;
 
@@ -2556,7 +2600,7 @@ void CircuitScene::keyReleaseEvent(QKeyEvent *e)
         return;
     }
 
-    QGraphicsScene::keyReleaseEvent(e);
+    QGraphicsScene::keyPressEvent(e);
 }
 
 void CircuitScene::mousePressEvent(QGraphicsSceneMouseEvent *e)
@@ -2590,7 +2634,7 @@ void CircuitScene::refreshItemConnections(AbstractNodeGraphItem *item, bool tryR
             // And can receive future connections
             // Even before ending Editing mode
             auto *cableGraph = graphForCable(cable);
-            if(cableGraph && cableGraph->cableZeroLength())
+            if(cableGraph && !cableGraph->validNotZero())
             {
                 removeCable(cable);
             }

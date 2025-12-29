@@ -74,11 +74,14 @@ public:
     explicit ElectricCircuit();
     ~ElectricCircuit();
 
-    void enableCircuit();
+    bool enableCircuit(QVector<ElectricCircuit *> *deletedCircuits = nullptr);
     void disableOrTerminate(AbstractCircuitNode *node);
     void terminateHere(AbstractCircuitNode *goalNode, QVector<ElectricCircuit *>& deduplacteList);
 
-    inline CircuitType type() const { return mType; }
+    inline CircuitFlags flags() const { return onlyFlags(mFlagsAndType); }
+    inline CircuitFlags nonSourceFlags() const { return onlyFlags(mNonSourceFlags); }
+    inline CircuitType type() const { return toType_(mFlagsAndType); }
+
     inline bool isEnabled() const { return enabled; }
 
     NodeOccurences getNode(AbstractCircuitNode *node) const;
@@ -93,7 +96,9 @@ public:
 
     static void createCircuitsFromPowerNode(AbstractCircuitNode *source,
                                             CircuitPole startPole = CircuitPole::First,
-                                            int nodeContact = 0);
+                                            int nodeContact = 0,
+                                            CircuitFlags startFlags = CircuitFlags::None);
+
     static void createCircuitsFromOtherNode(AbstractCircuitNode *node);
 
     static void tryReachNextOpenCircuit(AbstractCircuitNode *goalNode,
@@ -102,11 +107,23 @@ public:
 
     static void defaultReachNextOpenCircuit(AbstractCircuitNode *goalNode);
 
+    void updateItemsFlags();
+
+    void applyNewFlags(AbstractCircuitNode *changedNode, CircuitFlags sourceFlags);
+
+    void setToDisable() { aboutToDisable = true; }
+
 private:
+    bool recalculateFlags();
+
+    void setType(CircuitType type);
+    void setFlags(CircuitFlags f, CircuitFlags f2);
+
     bool tryReachOpen(AbstractCircuitNode *goalNode);
 
     static PassNodeResult passCircuitNode(AbstractCircuitNode *node, int nodeContact,
                                           ItemVector& items, int depth,
+                                          QVector<ElectricCircuit *>& deletedCircuits,
                                           PassMode mode = PassModes::None);
 
     static void searchNodeWithOpenCircuits(AbstractCircuitNode *node, int nodeContact, ItemVector &items, int depth);
@@ -114,15 +131,22 @@ private:
     static void extendExistingCircuits(AbstractCircuitNode *node, int nodeContact, const ItemVector &items);
 
     static void extendExistingCircuits_helper(AbstractCircuitNode *node, int nodeContact, const ItemVector &items,
-                                              const CableContact& lastCable, ElectricCircuit *otherCircuit);
+                                              const CableContact& lastCable, ElectricCircuit *otherCircuit, QVector<ElectricCircuit *> &deletedCircuits);
 
     void checkReverseVoltageSiblings();
+
+    bool checkShuntedByOtherCircuit();
+    void checkOtherShuntedByMe(QVector<ElectricCircuit *> *deletedCircuits);
+
+    inline bool isDisabling() const { return insideDisable || aboutToDisable; }
 
 private:
     QVector<Item> mItems;
     bool enabled = false;
-    bool isDisabling = false;
-    CircuitType mType = CircuitType::Open;
+    bool insideDisable = false;
+    bool aboutToDisable = false;
+    CircuitFlags mFlagsAndType = CircuitFlags::None;
+    CircuitFlags mNonSourceFlags = CircuitFlags::None;
 };
 
 constexpr bool operator ==(const ElectricCircuit::Item& lhs, const ElectricCircuit::Item& rhs)

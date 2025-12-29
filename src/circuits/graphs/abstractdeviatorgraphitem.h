@@ -31,21 +31,40 @@ class AbstractDeviatorGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
+    static constexpr double TextDisplayMarginSmall = 5;
+
     static constexpr double morsettiOffset = 10;
     static constexpr double arcRadius = 30;
+
+    static constexpr double PreviewRectWidth = 44.0;
+    static constexpr double PreviewExtraMargin = 4.0;
 
 public:
     explicit AbstractDeviatorGraphItem(AbstractDeviatorNode *node_);
 
+    QRectF boundingRect() const override;
+
     void getConnectors(std::vector<Connector>& connectors) const final;
+
+    double textDisplayFontSize() const override;
+
+    QRectF textDisplayRect() const override;
 
     AbstractDeviatorNode *deviatorNode() const;
 
     const QString getContactTooltip() const;
 
 protected:
+    void recalculateTextPosition() override;
+
     // Contacts must be already swapped
-    void drawDeviator(QPainter *painter, bool contactUpOn, bool contactDownOn);
+    void drawDeviator(QPainter *painter,
+                      bool contactUpOn, bool contactDownOn,
+                      bool fillArc = false);
+
+    Connector::Direction calculateArcSide() const;
+
+    virtual QRectF itemPreviewRect() const;
 };
 
 #endif // ABSTRACTDEVIATORGRAPHITEM_H

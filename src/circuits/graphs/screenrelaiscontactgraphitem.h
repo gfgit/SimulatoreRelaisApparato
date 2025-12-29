@@ -42,6 +42,9 @@ public:
     QString tooltipString() const override;
 
     ScreenRelaisContactNode *node() const;
+
+private:
+    void drawScreenRelayPreview(QPainter *painter);
 };
 
 #endif // SCREEN_RELAIS_CONTACT_GRAPHITEM_H

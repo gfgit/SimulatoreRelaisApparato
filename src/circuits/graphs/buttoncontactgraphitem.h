@@ -33,7 +33,7 @@ class ButtonContactGraphItem : public AbstractDeviatorGraphItem
 public:
     typedef ButtonContactNode Node;
 
-    ButtonContactGraphItem(ButtonContactNode *node_);
+    explicit ButtonContactGraphItem(ButtonContactNode *node_);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
 
@@ -42,6 +42,9 @@ public:
     QString tooltipString() const override;
 
     ButtonContactNode *node() const;
+
+private:
+    void drawButtonPreview(QPainter *painter);
 };
 
 #endif // BUTTON_CONTACT_GRAPHITEM_H

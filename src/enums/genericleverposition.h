@@ -42,6 +42,10 @@ struct LeverPositionCondition
     // when contact spans from last position to firs
     // so positionTo < positionFrom
     bool warpsAroundZero = false;
+
+    // Special contact briefly connects both sides,
+    // So output never stays without current.
+    bool specialContact = false;
     LeverPositionConditionType type = LeverPositionConditionType::Exact;
 };
 

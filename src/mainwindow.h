@@ -43,7 +43,7 @@ public:
 
     ModeManager *modeMgr() const;
 
-    void loadFile(const QString &fileName);
+    void loadFile(const QString &fileName, bool startSim);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
@@ -89,6 +89,7 @@ private:
     QAction *actionOpen_Recent;
     QAction *actionNew;
     QAction *actionSave_As;
+    QAction *actionStart_In_Edit;
 
     QAction *actionEditMode;
     QAction *actionSessionName;

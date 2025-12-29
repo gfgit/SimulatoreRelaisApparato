@@ -47,6 +47,9 @@ public:
     // Decoders are very fast too and symmetric time
     static constexpr int DefaultDecoderMS = 50;
 
+    // Disk relays are pretty fast, symmetric
+    static constexpr int DefaultDiskMS = 150;
+
     enum class State
     {
         Up = 0,
@@ -67,6 +70,7 @@ public:
         Encoder,
         Decoder,
         CodeRepeater,
+        DiskRelayAC,
         NTypes
     };
 
@@ -74,8 +78,6 @@ public:
 
     explicit AbstractRelais(AbstractSimulationObjectModel *m);
     ~AbstractRelais();
-
-    bool event(QEvent *e) override;
 
     static constexpr QLatin1String Type = QLatin1String("abstract_relais");
     QString getType() const override;
@@ -106,6 +108,8 @@ public:
             return true;
         if(relaisType() == RelaisType::Combinator)
             return true;
+        if(relaisType() == RelaisType::DiskRelayAC)
+            return true;
         return false;
     }
 
@@ -120,6 +124,7 @@ public:
     quint32 durationDown() const;
     void setDurationDown(quint32 durationDownMS);
 
+    bool event(QEvent *e) override;
     void timerEvent(QTimerEvent *e) override;
 
     bool normallyUp() const;
@@ -131,6 +136,10 @@ public:
     SignalAspectCode getExpectedCode() const;
     void setExpectedCode(SignalAspectCode code);
 
+    inline SignalAspectCode getDetectedCode() const
+    {
+        return mDetectedCode;
+    }
 
     inline int hasActivePowerUp() const
     {
@@ -151,6 +160,8 @@ public:
     {
         return mContactNodes.size();
     }
+
+    bool isDelayed(State dir) const;
 
 signals:
     void typeChanged(AbstractRelais *self, RelaisType s);
@@ -173,10 +184,11 @@ private:
     void setPosition(double newPosition);
     void startMove(bool up);
 
-    void decoderRelayRoutine();
     void setDecodedResult(SignalAspectCode code);
 
     void startCodeTimeout(SignalAspectCode code);
+
+    void applyDecodedResult();
 
     static constexpr inline int timeoutMillisForCode(SignalAspectCode code)
     {
@@ -191,6 +203,8 @@ private:
     }
 
     static SignalAspectCode codeForMillis(qint64 millis);
+
+    void redrawContactNodes();
 
 private:
     RelaisType mType = RelaisType::Normal;
@@ -216,16 +230,9 @@ private:
     static constexpr double UpPositionThreshold = 0.75;
     static constexpr double DownPositionThreshold = 0.25;
 
-    struct Encoding
-    {
-        QElapsedTimer timer;
-        SignalAspectCode expectedCode = SignalAspectCode::CodeAbsent;
-        SignalAspectCode detectedCode = SignalAspectCode::CodeAbsent;
-        SignalAspectCode tempDetectedCode = SignalAspectCode::CodeAbsent;
-        QBasicTimer encodeTimeout;
-    };
-
-    Encoding mEncoding;
+    SignalAspectCode mExpectedCode = SignalAspectCode::CodeAbsent;
+    SignalAspectCode mDetectedCode = SignalAspectCode::CodeAbsent;
+    SignalAspectCode mNextDetectedCode = SignalAspectCode::CodeAbsent;
 };
 
 #endif // ABSTRACTRELAIS_H

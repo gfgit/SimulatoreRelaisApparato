@@ -47,7 +47,7 @@ AbstractCircuitNode::ConnectionsRes SimpleActivationNode::getActiveConnections(C
         return {};
 
     // Close the circuit
-    CableItem dest;
+    CableItemFlags dest;
     dest.cable.cable = mContacts.at(0).cable;
     dest.cable.side = mContacts.at(0).cableSide;
     dest.nodeContact = 0;
@@ -65,8 +65,12 @@ void SimpleActivationNode::addCircuit(ElectricCircuit *circuit)
 
     if(!wasActive && isActive && mObject)
     {
-        mObject->onNodeStateChanged(this, true);
+        setNodeState(true);
     }
+
+    // Some objects need to react to flags
+    // So force update
+    onCircuitFlagsChanged();
 }
 
 void SimpleActivationNode::removeCircuit(ElectricCircuit *circuit, const NodeOccurences &items)
@@ -79,7 +83,7 @@ void SimpleActivationNode::removeCircuit(ElectricCircuit *circuit, const NodeOcc
 
     if(wasActive && !isActive && mObject)
     {
-        mObject->onNodeStateChanged(this, false);
+        setNodeState(false);
     }
 }
 
@@ -132,24 +136,32 @@ void SimpleActivationNode::setObject(AbstractSimpleActivableObject *newObject)
 
     if(mObject)
     {
+        setNodeState(false);
         mObject->removeNode(this);
-
-        if(hasCircuits())
-            mObject->onNodeStateChanged(this, false);
     }
 
     emit shapeChanged(true);
     mObject = newObject;
+    mLastSetState = false;
 
     if(mObject)
     {
         mObject->addNode(this);
 
         if(hasCircuits())
-            mObject->onNodeStateChanged(this, true);
+            setNodeState(true);
     }
 
     emit shapeChanged(false);
     emit objectChanged(mObject);
     modeMgr()->setFileEdited();
+}
+
+void SimpleActivationNode::setNodeState(bool on)
+{
+    if(!mObject || mLastSetState == on)
+        return;
+
+    mLastSetState = on;
+    mObject->onNodeStateChanged(this, on);
 }

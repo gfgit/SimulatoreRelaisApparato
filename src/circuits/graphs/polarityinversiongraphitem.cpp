@@ -24,6 +24,8 @@
 
 #include "../nodes/polarityinversionnode.h"
 
+#include "circuitcolors.h"
+
 #include <QPainter>
 
 PolarityInversionGraphItem::PolarityInversionGraphItem(PolarityInversionNode *node_)
@@ -100,14 +102,7 @@ void PolarityInversionGraphItem::paint(QPainter *painter, const QStyleOptionGrap
     pen.setCapStyle(Qt::FlatCap);
     pen.setJoinStyle(Qt::MiterJoin);
 
-    const QColor colors[3] =
-    {
-        QColor(120, 210, 255), // Light blue, Open Circuit
-        Qt::red, // Closed circuit
-        Qt::black // No circuit
-    };
-
-    pen.setColor(colors[int(node()->hasAnyCircuit(0))]);
+    pen.setColor(getContactColor(0));
     painter->setPen(pen);
 
     // TODO: polyline for join

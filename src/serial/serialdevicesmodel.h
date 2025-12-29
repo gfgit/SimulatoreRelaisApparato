@@ -72,6 +72,7 @@ private:
 
     void addSerialDevice(SerialDevice *serialDevice);
     void removeSerialDevice(SerialDevice *serialDevice);
+    void updateDeviceStatus();
 
 private:
     QVector<SerialDevice *> mSerialDevices;

@@ -40,6 +40,8 @@ public:
     explicit SerialDeviceListWidget(ViewManager *viewMgr,
                                      QWidget *parent = nullptr);
 
+    void resizeColumns();
+
 private slots:
     void onFileModeChanged(FileMode mode);
 

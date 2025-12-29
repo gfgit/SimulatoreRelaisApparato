@@ -122,12 +122,22 @@ void RemoteManager::setDiscoveryEnabled(bool val)
 {
     if(!mPeerClient->isCommunicationEnabled())
         val = false;
-    mPeerManager->setDiscoveryEnabled(val);
+    mPeerManager->setPeerDiscoveryEnabled(val);
 }
 
 bool RemoteManager::isDiscoveryEnabled() const
 {
-    return mPeerManager->isDiscoveryEnabled();
+    return mPeerManager->isPeerDiscoveryEnabled();
+}
+
+void RemoteManager::setTraintasticDiscoveryEnabled(bool val)
+{
+    mPeerManager->setTraintasticDiscoveryEnabled(val);
+}
+
+bool RemoteManager::isTraintasticDiscoveryEnabled() const
+{
+    return mPeerManager->isTraintasticDiscoveryEnabled();
 }
 
 void RemoteManager::refreshNetworkAddresses()

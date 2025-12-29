@@ -139,6 +139,7 @@ void ButtonContactNode::setButton(AbstractSimulationObject *newButton)
     }
 
     emit buttonChanged(mButton);
+    emit shapeChanged();
     refreshContactState();
     modeMgr()->setFileEdited();
 }
@@ -214,4 +215,7 @@ void ButtonContactNode::refreshContactState()
 
     // Second contact is deviated one, first is straight
     setContactState(centralContactOn, straightContactOn);
+
+    // Force button redraw
+    emit deviatorStateChanged();
 }

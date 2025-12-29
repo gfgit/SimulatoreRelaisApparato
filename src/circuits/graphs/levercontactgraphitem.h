@@ -44,7 +44,7 @@ public:
     LeverContactNode *node() const;
 
 protected:
-    void drawLeverConditions(QPainter *painter, TileRotate r);
+    void drawLeverConditions(QPainter *painter);
 };
 
 #endif // LEVERCONTACTGRAPHITEM_H

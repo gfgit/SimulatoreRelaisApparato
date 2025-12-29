@@ -1,5 +1,5 @@
 /**
- * src/circuits/nodes/electromagnetnode.h
+ * src/circuits/graphs/commandnodegraphitem.h
  *
  * This file is part of the Simulatore Relais Apparato source code.
  *
@@ -20,21 +20,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ELECTRO_MAGNET_NODE_H
-#define ELECTRO_MAGNET_NODE_H
+#ifndef COMMANDNODE_GRAPHITEM_H
+#define COMMANDNODE_GRAPHITEM_H
 
-#include "simpleactivationnode.h"
+#include "abstractnodegraphitem.h"
 
-class ElectroMagnetNode : public SimpleActivationNode
+class CommandNode;
+
+class CommandNodeGraphItem : public AbstractNodeGraphItem
 {
     Q_OBJECT
 public:
-    explicit ElectroMagnetNode(ModeManager *mgr, QObject *parent = nullptr);
+    typedef CommandNode Node;
 
-    static constexpr QLatin1String NodeType = QLatin1String("electromagnet_activation");
-    QString nodeType() const override;
+    CommandNodeGraphItem(CommandNode *node_);
 
-    QString allowedObjectType() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,QWidget *widget = nullptr) override;
+
+    void getConnectors(std::vector<Connector>& connectors) const final;
+
+    QString displayString() const override;
+
+    QString tooltipString() const override;
+
+    CommandNode *node() const;
 };
 
-#endif // ELECTRO_MAGNET_NODE_H
+#endif // COMMANDNODE_GRAPHITEM_H

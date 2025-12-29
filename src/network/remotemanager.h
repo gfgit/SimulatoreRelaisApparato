@@ -60,6 +60,10 @@ public:
     void setDiscoveryEnabled(bool val);
     bool isDiscoveryEnabled() const;
 
+    void setTraintasticDiscoveryEnabled(bool val);
+
+    bool isTraintasticDiscoveryEnabled() const;
+
     void refreshNetworkAddresses();
 
     inline bool isSessionReferenced(const QString& name) const

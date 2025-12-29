@@ -41,7 +41,7 @@ AbstractCircuitNode::ConnectionsRes DiodeCircuitNode::getActiveConnections(Cable
     if(source.nodeContact == 0 && !invertDir)
     {
         // Connect to central positive
-        CableItem dest;
+        CableItemFlags dest;
         dest.cable.cable = mContacts.at(1).cable;
         dest.cable.side = mContacts.at(1).cableSide;
         dest.nodeContact = 1;
@@ -51,7 +51,7 @@ AbstractCircuitNode::ConnectionsRes DiodeCircuitNode::getActiveConnections(Cable
     }
     else if(source.nodeContact == 1 && invertDir)
     {
-        CableItem dest;
+        CableItemFlags dest;
         dest.cable.cable = mContacts.at(0).cable;
         dest.cable.side = mContacts.at(0).cableSide;
         dest.nodeContact = 0;

@@ -1,6 +1,7 @@
 # src/network
 
 add_subdirectory(view)
+add_subdirectory(traintastic-simulator)
 
 set(SIMULATORE_RELAIS_SOURCES
     ${SIMULATORE_RELAIS_SOURCES}

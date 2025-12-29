@@ -53,7 +53,7 @@ You can:
 - Add/delete nodes in circuits.
 - Rotate nodes (`Right click` clockwise or `Shift + Right click` counterclockwise).
 - Flip nodes (`Ctrl + Right click` for deviator contact nodes, simple nodes and combinator relay power nodes).
-- Rotate node label position (`Alt + Right click`).
+- Rotate node label position (`Ctrl + Shift + Right click`).
 - Add/Remove cables.
 
 You can move only one node at a time by dragging it. You cannot move cables.
@@ -62,6 +62,10 @@ To place the node over an existing cable, hold `Shift` while releasing mouse. Ca
 Double click on a node/cable to show editing dialog.
 
 This is default mode. If you are in another mode, press `Esc` to return to Default mode.
+
+### Panel scenes
+
+When editing if `Alt` key is held during mouse drag, a new light rect item will be created on mouse release with shape of selected area.
 
 ### Cable editing
 
@@ -99,7 +103,7 @@ To select items you can:
 To copy current selection press `Ctrl + C`.
 To paste items into a view, press `Ctrl + V`.
 
-To replace objects/batch edit in current selection, press `Ctrl + D` or `Shift + Ctrl + D`.
+To replace objects/batch edit in current selection, press `Ctrl + E` or `Shift + Ctrl + E`.
 
 # Items shortcuts
 

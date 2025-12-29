@@ -25,6 +25,8 @@
 
 #include "../utils/enum_desc.h"
 
+#include "circuittypes.h"
+
 enum SignalAspectCode : uint8_t
 {
     CodeAbsent = 0,
@@ -63,16 +65,62 @@ inline constexpr SignalAspectCode codeFromNumber(int code)
     {
     case 75:
         return SignalAspectCode::Code75;
-        break;
+
     case 120:
         return SignalAspectCode::Code120;
-        break;
+
     case 180:
         return SignalAspectCode::Code180;
-        break;
+
     case 270:
         return SignalAspectCode::Code270;
+
+    default:
         break;
+    }
+
+    return SignalAspectCode::CodeAbsent;
+}
+
+inline constexpr CircuitFlags codeToFlag(SignalAspectCode code)
+{
+    switch (code)
+    {
+    case SignalAspectCode::Code75:
+        return CircuitFlags::Code75;
+
+    case SignalAspectCode::Code120:
+        return CircuitFlags::Code120;
+
+    case SignalAspectCode::Code180:
+        return CircuitFlags::Code180;
+
+    case SignalAspectCode::Code270:
+        return CircuitFlags::Code270;
+
+    default:
+        break;
+    }
+
+    return CircuitFlags::None;
+}
+
+inline constexpr SignalAspectCode codeFromFlag(CircuitFlags code)
+{
+    switch (getCode(code))
+    {
+    case CircuitFlags::Code75:
+        return SignalAspectCode::Code75;
+
+    case CircuitFlags::Code120:
+        return SignalAspectCode::Code120;
+
+    case CircuitFlags::Code180:
+        return SignalAspectCode::Code180;
+
+    case CircuitFlags::Code270:
+        return SignalAspectCode::Code270;
+
     default:
         break;
     }
@@ -81,5 +129,24 @@ inline constexpr SignalAspectCode codeFromNumber(int code)
 }
 
 extern EnumDesc SignalAspectCode_getDesc();
+
+
+#ifdef REMOTE_CABLE_DEBUG
+inline QString codeToStr(CircuitFlags f)
+{
+    switch (getCode(f))
+    {
+    case CircuitFlags::None:
+        return "None";
+    case CircuitFlags::CodeInvalid:
+        return "INVALID";
+    default:
+        return QLatin1String("Code %1")
+                .arg(QString::number(codeToNumber(codeFromFlag(getCode(f)))));
+    }
+
+    return "";
+}
+#endif
 
 #endif // SIGNALASPECTCODES_H

@@ -133,6 +133,8 @@ public:
 
     QVector<AbstractNodeGraphItem *> getSelectedNodes();
 
+    void updateCodeStatus();
+
 signals:
     void nameChanged(const QString& newName, CircuitScene *self);
     void longNameChanged(const QString& newName, CircuitScene *self);
@@ -142,7 +144,7 @@ signals:
 protected:
     void helpEvent(QGraphicsSceneHelpEvent *e) override;
 
-    void keyReleaseEvent(QKeyEvent *e) override;
+    void keyPressEvent(QKeyEvent *e) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *e) override;
 
     void drawBackground(QPainter *painter, const QRectF &rect) override;

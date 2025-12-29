@@ -26,7 +26,7 @@
 #include "../../interfaces/leverinterface.h"
 #include "../../interfaces/sasibaceleverextrainterface.h"
 
-#include "../../simple_activable/electromagnet.h"
+#include "../../simple_activable/electromagnetobject.h"
 
 #include "../../abstractsimulationobjectmodel.h"
 
@@ -168,6 +168,8 @@ void ACESasibLeverCommonObject::updateElectroMagnetState()
     if(!mMagnet)
         return;
 
+    mMagnet->applyDelayedStateChanged();
+
     // Off magnet locks lever, On magnet frees lever
     if(mMagnet->state() == ElectroMagnetObject::State::Off)
         addElectromagnetLock();
@@ -177,7 +179,15 @@ void ACESasibLeverCommonObject::updateElectroMagnetState()
 
 void ACESasibLeverCommonObject::onElectroMagnedDestroyed()
 {
-    // NOTE: do not access magnet
+    // NOTE: do not access magnet members
+    if(!mMagnet)
+        return;
+
+    disconnect(mMagnet, &AbstractSimpleActivableObject::stateChanged,
+               this, &ACESasibLeverCommonObject::updateElectroMagnetState);
+    disconnect(mMagnet, &AbstractSimpleActivableObject::destroyed,
+               this, &ACESasibLeverCommonObject::onElectroMagnedDestroyed);
+
     removeElectromagnetLock();
     mMagnet = nullptr;
 }
@@ -269,14 +279,20 @@ void ACESasibLeverCommonObject::onInterfaceChanged(AbstractObjectInterface *ifac
 
 void ACESasibLeverCommonObject::removeElectromagnetLock()
 {
+    Q_ASSERT(mMagnet);
     mechanicalIface->setObjectLockConstraints(mMagnet, {});
 }
 
 void ACESasibLeverCommonObject::recalculateLockedRange()
 {
-    // Off magnet locks lever, On magnet frees lever
-    if(mMagnet && mMagnet->state() == ElectroMagnetObject::State::Off)
-        addElectromagnetLock();
+    if(mMagnet)
+    {
+        mMagnet->applyDelayedStateChanged();
+
+        // Off magnet locks lever, On magnet frees lever
+        if(mMagnet->state() == ElectroMagnetObject::State::Off)
+            addElectromagnetLock();
+    }
 
     updateButtonsMagnetLock();
 }

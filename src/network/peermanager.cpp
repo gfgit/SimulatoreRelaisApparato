@@ -31,13 +31,18 @@
 
 #include "../views/modemanager.h"
 
+#include "traintastic-simulator/traintasticsimmanager.h"
+
 #include <QNetworkInterface>
 #include <QUuid>
+
+#include <QTimerEvent>
 
 #include "info.h"
 
 static const qint32 BroadcastInterval = 2000;
-static const unsigned broadcastPort = 45000;
+static const unsigned PeerBroadcastPort = 45000;
+static const unsigned TraintasticBroadcastPort = 5741;
 
 PeerManager::PeerManager(PeerClient *client, RemoteManager *mgr)
     : QObject(client)
@@ -51,12 +56,15 @@ PeerManager::PeerManager(PeerClient *client, RemoteManager *mgr)
 
     updateAddresses();
 
-    connect(&broadcastSocket, &QUdpSocket::readyRead,
-            this, &PeerManager::readBroadcastDatagram);
-
-    broadcastTimer.setInterval(BroadcastInterval);
-    connect(&broadcastTimer, &QTimer::timeout,
-            this, &PeerManager::sendBroadcastDatagram);
+    connect(&peerBroadcastSocket, &QUdpSocket::readyRead,
+            this, &PeerManager::readPeerBroadcastDatagram);
+    connect(&traintasticBroadcastSocket, &QUdpSocket::readyRead,
+            this, &PeerManager::readTraintasticBroadcastDatagram);
+    connect(&traintasticBroadcastSocket, &QUdpSocket::errorOccurred,
+            this, [this]()
+            {
+                qDebug() << "Traintastic UDP error:" << traintasticBroadcastSocket.error() << traintasticBroadcastSocket.errorString();
+            });
 }
 
 void PeerManager::setServerPort(int port)
@@ -90,12 +98,12 @@ QByteArray PeerManager::uniqueId() const
 
 void PeerManager::startBroadcasting()
 {
-    setDiscoveryEnabled(true);
+    setPeerDiscoveryEnabled(true);
 }
 
 void PeerManager::stopBroadcasting()
 {
-    setDiscoveryEnabled(false);
+    setPeerDiscoveryEnabled(false);
 }
 
 bool PeerManager::isLocalHostAddress(const QHostAddress &address) const
@@ -103,9 +111,9 @@ bool PeerManager::isLocalHostAddress(const QHostAddress &address) const
     return ipAddresses.contains(address);
 }
 
-void PeerManager::sendBroadcastDatagram()
+void PeerManager::sendPeerBroadcastDatagram()
 {
-    if(!mEnabled)
+    if(!mPeerDiscoveryEnabled)
         return;
 
     QByteArray datagram;
@@ -122,7 +130,7 @@ void PeerManager::sendBroadcastDatagram()
     bool validBroadcastAddresses = true;
     for (const QHostAddress &address : std::as_const(broadcastAddresses))
     {
-        if (broadcastSocket.writeDatagram(datagram, address, broadcastPort) == -1)
+        if (peerBroadcastSocket.writeDatagram(datagram, address, PeerBroadcastPort) == -1)
             validBroadcastAddresses = false;
     }
 
@@ -130,19 +138,19 @@ void PeerManager::sendBroadcastDatagram()
         updateAddresses();
 }
 
-void PeerManager::readBroadcastDatagram()
+void PeerManager::readPeerBroadcastDatagram()
 {
-    while (broadcastSocket.hasPendingDatagrams())
+    while (peerBroadcastSocket.hasPendingDatagrams())
     {
         QHostAddress senderIp;
         quint16 senderPort;
         QByteArray datagram;
-        datagram.resize(broadcastSocket.pendingDatagramSize());
-        if (broadcastSocket.readDatagram(datagram.data(), datagram.size(),
-                                         &senderIp, &senderPort) == -1)
+        datagram.resize(peerBroadcastSocket.pendingDatagramSize());
+        if (peerBroadcastSocket.readDatagram(datagram.data(), datagram.size(),
+                                             &senderIp, &senderPort) == -1)
             continue;
 
-        if(!mEnabled)
+        if(!mPeerDiscoveryEnabled)
             continue; // Read all but ignore contents
 
         QString peerAppVersion;
@@ -206,6 +214,52 @@ void PeerManager::readBroadcastDatagram()
     }
 }
 
+void PeerManager::sendTraintasticBroadcastDatagram()
+{
+    if(!mTraintasticDiscoveryEnabled)
+        return;
+
+    QByteArray datagram("sim?");
+
+    bool validBroadcastAddresses = true;
+    for (const QHostAddress &address : std::as_const(broadcastAddresses))
+    {
+        if (traintasticBroadcastSocket.writeDatagram(datagram, address, TraintasticBroadcastPort) == -1)
+            validBroadcastAddresses = false;
+    }
+
+    if (!validBroadcastAddresses || broadcastAddresses.isEmpty())
+        updateAddresses();
+}
+
+void PeerManager::readTraintasticBroadcastDatagram()
+{
+    while (traintasticBroadcastSocket.hasPendingDatagrams())
+    {
+        QHostAddress senderIp;
+        quint16 senderPort;
+        QByteArray datagram;
+        datagram.resize(traintasticBroadcastSocket.pendingDatagramSize());
+        if (traintasticBroadcastSocket.readDatagram(datagram.data(), datagram.size(),
+                                             &senderIp, &senderPort) == -1)
+            continue;
+
+        if(!mTraintasticDiscoveryEnabled)
+            continue; // Read all but ignore contents
+
+        if(datagram.startsWith("sim?"))
+            continue;
+
+        if(datagram.size() != 6 || !datagram.startsWith("sim!"))
+            continue; // Invalid response
+
+        quint16 traintasticServerPort = *reinterpret_cast<const quint16 *>(datagram.constData() + 4);
+        traintasticServerPort = qFromBigEndian(traintasticServerPort);
+
+        modeMgr()->getTraitasticSimMgr()->tryConnectToServer(senderIp, traintasticServerPort);
+    }
+}
+
 void PeerManager::updateAddresses()
 {
     broadcastAddresses.clear();
@@ -226,22 +280,39 @@ void PeerManager::updateAddresses()
     }
 }
 
-bool PeerManager::isDiscoveryEnabled() const
+void PeerManager::timerEvent(QTimerEvent *ev)
 {
-    return mEnabled;
+    if(ev->timerId() == peerBroadcastTimer.timerId())
+    {
+        sendPeerBroadcastDatagram();
+        return;
+    }
+
+    if(ev->timerId() == traintasticBroadcastTimer.timerId())
+    {
+        sendTraintasticBroadcastDatagram();
+        return;
+    }
+
+    QObject::timerEvent(ev);
 }
 
-void PeerManager::setDiscoveryEnabled(bool newEnabled)
+bool PeerManager::isPeerDiscoveryEnabled() const
+{
+    return mPeerDiscoveryEnabled;
+}
+
+void PeerManager::setPeerDiscoveryEnabled(bool newEnabled)
 {
     if(mRemoteMgr->modeMgr()->mode() != FileMode::Simulation || localSessionName.isEmpty())
         newEnabled = false; // Can discover only during simulation
 
-    if(mEnabled == newEnabled)
+    if(mPeerDiscoveryEnabled == newEnabled)
         return;
 
-    mEnabled = newEnabled;
+    mPeerDiscoveryEnabled = newEnabled;
 
-    if(mEnabled)
+    if(mPeerDiscoveryEnabled)
     {
         // Start broadcasting
         updateAddresses();
@@ -251,18 +322,59 @@ void PeerManager::setDiscoveryEnabled(bool newEnabled)
 
         setServerPort(mClient->getServerPort());
 
-        broadcastSocket.bind(QHostAddress::Any, broadcastPort, QUdpSocket::ShareAddress
-                             | QUdpSocket::ReuseAddressHint);
+        peerBroadcastSocket.bind(QHostAddress::Any, PeerBroadcastPort,
+                                 QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
-        broadcastTimer.start();
+        peerBroadcastTimer.start(BroadcastInterval, this);
+
+        sendPeerBroadcastDatagram();
     }
     else
     {
         // Stop broadcasting
+        peerBroadcastTimer.stop();
+        peerBroadcastSocket.close();
+    }
 
-        broadcastTimer.stop();
+    emit enabledChanged();
 
-        broadcastSocket.close();
+    emit mRemoteMgr->networkStateChanged();
+}
+
+bool PeerManager::isTraintasticDiscoveryEnabled() const
+{
+    return mTraintasticDiscoveryEnabled;
+}
+
+void PeerManager::setTraintasticDiscoveryEnabled(bool newEnabled)
+{
+    if(mRemoteMgr->modeMgr()->mode() != FileMode::Simulation)
+        newEnabled = false; // Can discover only during simulation
+
+    if(mTraintasticDiscoveryEnabled == newEnabled)
+        return;
+
+    mTraintasticDiscoveryEnabled = newEnabled;
+
+    if(mTraintasticDiscoveryEnabled)
+    {
+        // Start broadcasting
+        updateAddresses();
+
+        // Do not bind UDP socket, system will choose port on first write
+        // Otherwise traintastic-simulator fails to bind if started after us
+        traintasticBroadcastTimer.start(BroadcastInterval, this);
+
+        qDebug() << "Traintastic discovery ENABLED";
+        sendTraintasticBroadcastDatagram();
+    }
+    else
+    {
+        // Stop broadcasting
+        traintasticBroadcastTimer.stop();
+        traintasticBroadcastSocket.close();
+
+        qDebug() << "Traintastic discovery DISABLED";
     }
 
     emit enabledChanged();

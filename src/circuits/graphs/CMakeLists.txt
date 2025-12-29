@@ -13,10 +13,14 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/bifilarizatorgraphitem.h
     circuits/graphs/cablegraphitem.cpp
     circuits/graphs/cablegraphitem.h
+
+    circuits/graphs/commandnodegraphitem.cpp
+    circuits/graphs/commandnodegraphitem.h
+
     circuits/graphs/diodegraphitem.cpp
     circuits/graphs/diodegraphitem.h
-    circuits/graphs/electromagnetgraphitem.cpp
-    circuits/graphs/electromagnetgraphitem.h
+    circuits/graphs/electromagnetpowergraphitem.cpp
+    circuits/graphs/electromagnetpowergraphitem.h
     circuits/graphs/levercontactgraphitem.cpp
     circuits/graphs/levercontactgraphitem.h
     circuits/graphs/lightbulbgraphitem.cpp
@@ -57,8 +61,25 @@ set(SIMULATORE_RELAIS_SOURCES
     circuits/graphs/special/acesasiblevergraphitem.cpp
     circuits/graphs/special/acesasiblevergraphitem.h
 
+    circuits/graphs/resistorgraphitem.cpp
+    circuits/graphs/resistorgraphitem.h
+
+    circuits/graphs/circuitcolors.h
+
     circuits/graphs/transformergraphitem.cpp
     circuits/graphs/transformergraphitem.h
+
+    circuits/graphs/traintasticsensorcontactgraphitem.cpp
+    circuits/graphs/traintasticsensorcontactgraphitem.h
+
+    circuits/graphs/traintasticturnoutgraphitem.cpp
+    circuits/graphs/traintasticturnoutgraphitem.h
+
+    circuits/graphs/electromagnetcontactgraphitem.cpp
+    circuits/graphs/electromagnetcontactgraphitem.h
+
+    circuits/graphs/traintasticaxlecountergraphitem.cpp
+    circuits/graphs/traintasticaxlecountergraphitem.h
 
     PARENT_SCOPE
 )

@@ -87,6 +87,54 @@ QString RelaisContactNode::nodeType() const
     return NodeType;
 }
 
+AbstractCircuitNode::ConnectionsRes RelaisContactNode::getActiveConnections(CableItem source, bool invertDir)
+{
+    Q_UNUSED(invertDir);
+
+    if((source.nodeContact < 0) || (source.nodeContact >= getContactCount()))
+        return {};
+
+    const NodeContact& sourceContact = mContacts.at(source.nodeContact);
+
+    if(!hasCentralConnector() && mRelais &&
+        sourceContact.getType(source.cable.pole) == ContactType::Connected &&
+        isContactOn(DownIdx))
+    {
+        switch (mRelais->relaisType())
+        {
+        case AbstractRelais::RelaisType::Encoder:
+        case AbstractRelais::RelaisType::CodeRepeater:
+        {
+            const int otherContactIdx = (source.nodeContact == CommonIdx) ? DownIdx : CommonIdx;
+
+            const NodeContact& otherContact = mContacts.at(otherContactIdx);
+            CableItemFlags other;
+            other.cable.cable = otherContact.cable;
+            other.cable.side = otherContact.cableSide;
+            other.cable.pole = source.cable.pole;
+            other.nodeContact = otherContactIdx;
+
+            SignalAspectCode code = mRelais->getExpectedCode();
+
+            if(mRelais->relaisType() == AbstractRelais::RelaisType::CodeRepeater)
+                code = mRelais->getDetectedCode();
+
+            other.flags = codeToFlag(code);
+
+            if(code == SignalAspectCode::CodeAbsent &&
+                    mRelais->state() == AbstractRelais::State::Up)
+                other.flags = CircuitFlags::CodeInvalid; // Relais is not pulsing
+
+            return {other};
+        }
+        default:
+            break;
+        }
+    }
+
+    return AbstractDeviatorNode::getActiveConnections(source, invertDir);
+}
+
 AbstractRelais *RelaisContactNode::relais() const
 {
     return mRelais;
@@ -125,10 +173,27 @@ void RelaisContactNode::setRelais(AbstractRelais *newRelais, bool autoSwapState)
             // Swap by default for new normally up ralais contacts
             setSwapContactState(true);
         }
+
+        switch (mRelais->relaisType())
+        {
+        case AbstractRelais::RelaisType::Encoder:
+        case AbstractRelais::RelaisType::CodeRepeater:
+        {
+            // Relays is normally down and contact must be normally open
+            setSwapContactState(true);
+            setHasCentralConnector(false);
+            setActiveWhileMiddle(false);
+            break;
+        }
+        default:
+            break;
+        }
     }
 
+    emit shapeChanged();
     emit relayChanged(mRelais);
     onRelaisStateChanged();
+
     modeMgr()->setFileEdited();
 }
 
@@ -145,8 +210,8 @@ void RelaisContactNode::setState(State newState)
 
     const bool canMiddle = (mState == State::Middle && activeWhileMiddle());
 
-    setContactState(mState == State::Up || (canMiddle && swapContactState()),
-                    mState == State::Down || (canMiddle && !swapContactState()));
+    setContactState(mState == State::Up || canMiddle,
+                    mState == State::Down || canMiddle);
 }
 
 void RelaisContactNode::onRelaisStateChanged()
@@ -175,10 +240,10 @@ bool RelaisContactNode::activeWhileMiddle() const
     if(!mActiveWhileMiddle)
         return false;
 
-    // Can be special contact?
-    if(!mRelais || hasCentralConnector())
+    if(!mRelais)
         return false;
 
+    // Can be special contact?
     if(mRelais->relaisType() != AbstractRelais::RelaisType::Combinator)
         return false;
 
@@ -192,6 +257,8 @@ void RelaisContactNode::setActiveWhileMiddle(bool newActiveWhileMiddle)
 
     mActiveWhileMiddle = newActiveWhileMiddle;
     onRelaisStateChanged();
+
+    setBothCanBeActive(mActiveWhileMiddle);
 
     emit shapeChanged();
     modeMgr()->setFileEdited();

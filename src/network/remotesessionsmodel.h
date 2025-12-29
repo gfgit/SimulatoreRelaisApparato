@@ -65,6 +65,8 @@ public:
         return mRemoteSessions.indexOf(remoteSession);
     }
 
+    void updateSessionStatus();
+
 private:
     friend class RemoteManager;
     void sortItems();

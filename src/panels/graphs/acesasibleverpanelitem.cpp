@@ -435,7 +435,7 @@ void ACESasibLeverPanelItem::mousePressEvent(QGraphicsSceneMouseEvent *ev)
 
         if(distanceLess(ev->pos() - LeftButCenter, buttonBaseCircleRadius))
         {
-            auto leftBut = mButtons[LightPosition::Right];
+            auto leftBut = mButtons[LightPosition::Left];
             if(leftBut.button && !leftBut.button->isRemoteReplica() && leftBut.buttonIface)
             {
                 mMouseState = MouseState::LeftButton;

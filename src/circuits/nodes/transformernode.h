@@ -45,15 +45,20 @@ public:
 
     bool isSourceNode(bool onlyCurrentState, int nodeContact = NodeItem::InvalidContact) const override;
 
-    bool isSourceEnabled() const override;
-    void setSourceEnabled(bool newEnabled) override;
+    bool isSourceEnabled(int nodeContact = NodeItem::InvalidContact) const override;
+    void setSourceEnabled(bool newEnabled, int nodeContact = NodeItem::InvalidContact) override;
+
+    void onCircuitFlagsChanged() override;
 
 private:
+    void scheduleUpdate();
     void updateSourceState();
 
 private:
     bool enabled = false;
     bool reallyEnabled = false;
+    bool flagsNeedUpdate = false;
+    bool updateScheduled = false;
 };
 
 #endif // TRANSFORMERNODE_H
