@@ -1,0 +1,259 @@
+{
+    "circuits": {
+        "scenes": [
+            {
+                "cables": [
+                    {
+                        "path": {
+                            "end_dir": 2,
+                            "start_dir": 4,
+                            "tiles": [
+                                {
+                                    "x": 0,
+                                    "y": -4
+                                }
+                            ],
+                            "zero": false
+                        }
+                    },
+                    {
+                        "path": {
+                            "end_dir": 3,
+                            "start_dir": 1,
+                            "tiles": [
+                                {
+                                    "x": -1,
+                                    "y": -3
+                                }
+                            ],
+                            "zero": false
+                        }
+                    },
+                    {
+                        "path": {
+                            "end_dir": 4,
+                            "start_dir": 1,
+                            "tiles": [
+                                {
+                                    "x": 1,
+                                    "y": -2
+                                },
+                                {
+                                    "x": 1,
+                                    "y": -1
+                                },
+                                {
+                                    "x": 0,
+                                    "y": -1
+                                }
+                            ],
+                            "zero": false
+                        }
+                    },
+                    {
+                        "path": {
+                            "end_dir": 1,
+                            "start_dir": 3,
+                            "tiles": [
+                                {
+                                    "x": -1,
+                                    "y": 0
+                                }
+                            ],
+                            "zero": false
+                        }
+                    }
+                ],
+                "long_name": "",
+                "name": "Bug Autoritenuta",
+                "nodes": [
+                    {
+                        "combinator_second_coil": false,
+                        "delay_down_ms": 0,
+                        "delay_up_ms": 0,
+                        "has_second_connector": false,
+                        "name": "",
+                        "prefer_east_arrow": false,
+                        "relais": "BAI",
+                        "rotation": 0,
+                        "text_rotation": 1,
+                        "type": "relais_power",
+                        "x": -1,
+                        "y": -5
+                    },
+                    {
+                        "combinator_second_coil": false,
+                        "delay_down_ms": 0,
+                        "delay_up_ms": 0,
+                        "has_second_connector": false,
+                        "name": "",
+                        "prefer_east_arrow": false,
+                        "relais": "BAII",
+                        "rotation": 0,
+                        "text_rotation": 1,
+                        "type": "relais_power",
+                        "x": 1,
+                        "y": -5
+                    },
+                    {
+                        "disabledContact": 3,
+                        "name": "C",
+                        "rotation": 2,
+                        "text_rotation": 4,
+                        "type": "simple_node",
+                        "x": -1,
+                        "y": -4
+                    },
+                    {
+                        "disabledContact": 3,
+                        "name": "B",
+                        "rotation": 0,
+                        "text_rotation": 2,
+                        "type": "simple_node",
+                        "x": 1,
+                        "y": -4
+                    },
+                    {
+                        "active_during_middle": false,
+                        "central_connector": false,
+                        "flip": false,
+                        "hide_relay_normal": false,
+                        "name": "",
+                        "relais": "BAI",
+                        "rotation": 0,
+                        "swap_state": true,
+                        "text_rotation": 4,
+                        "type": "relais_contact",
+                        "x": 1,
+                        "y": -3
+                    },
+                    {
+                        "initially_on": false,
+                        "name": "On",
+                        "rotation": 0,
+                        "text_rotation": 2,
+                        "type": "on_off_switch",
+                        "x": -1,
+                        "y": -2
+                    },
+                    {
+                        "active_during_middle": false,
+                        "central_connector": false,
+                        "flip": false,
+                        "hide_relay_normal": false,
+                        "name": "",
+                        "relais": "BAII",
+                        "rotation": 0,
+                        "swap_state": true,
+                        "text_rotation": 4,
+                        "type": "relais_contact",
+                        "x": 2,
+                        "y": -2
+                    },
+                    {
+                        "disabledContact": 1,
+                        "name": "A",
+                        "rotation": 0,
+                        "text_rotation": 4,
+                        "type": "simple_node",
+                        "x": -1,
+                        "y": -1
+                    },
+                    {
+                        "name": "P",
+                        "rotation": 2,
+                        "text_rotation": 3,
+                        "type": "power_source",
+                        "x": -1,
+                        "y": 1
+                    }
+                ]
+            }
+        ]
+    },
+    "file_version": 4,
+    "objects": {
+        "abstract_relais": {
+            "model_type": "abstract_relais",
+            "objects": [
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "BAI",
+                    "normally_up": true,
+                    "relay_type": 0,
+                    "type": "abstract_relais"
+                },
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "BAII",
+                    "normally_up": true,
+                    "relay_type": 0,
+                    "type": "abstract_relais"
+                }
+            ]
+        },
+        "ace_sasib_lever_2": {
+            "model_type": "ace_sasib_lever_2",
+            "objects": [
+            ]
+        },
+        "ace_sasib_lever_3": {
+            "model_type": "ace_sasib_lever_3",
+            "objects": [
+            ]
+        },
+        "acei_lever": {
+            "model_type": "acei_lever",
+            "objects": [
+            ]
+        },
+        "bem_lever": {
+            "model_type": "bem_lever",
+            "objects": [
+            ]
+        },
+        "circuit_bridge": {
+            "model_type": "circuit_bridge",
+            "objects": [
+            ]
+        },
+        "electromagnet": {
+            "model_type": "electromagnet",
+            "objects": [
+            ]
+        },
+        "generic_button": {
+            "model_type": "generic_button",
+            "objects": [
+            ]
+        },
+        "light_bulb": {
+            "model_type": "light_bulb",
+            "objects": [
+            ]
+        },
+        "screen_relais": {
+            "model_type": "screen_relais",
+            "objects": [
+            ]
+        },
+        "sound_activable": {
+            "model_type": "sound_activable",
+            "objects": [
+            ]
+        }
+    },
+    "panels": {
+        "scenes": [
+        ]
+    },
+    "remote_mgr": {
+        "replicas": [
+        ]
+    },
+    "session_name": ""
+}

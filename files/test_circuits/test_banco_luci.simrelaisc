@@ -1,0 +1,179 @@
+{
+    "circuits": {
+        "scenes": [
+            {
+                "cables": [
+                ],
+                "long_name": "",
+                "name": "L",
+                "nodes": [
+                    {
+                        "name": "",
+                        "rotation": 0,
+                        "text_rotation": 1,
+                        "type": "power_source",
+                        "x": -1,
+                        "y": -2
+                    },
+                    {
+                        "name": "",
+                        "object": "L",
+                        "rotation": 2,
+                        "text_rotation": 3,
+                        "type": "light_bulb_activation",
+                        "x": -1,
+                        "y": -1
+                    }
+                ]
+            }
+        ]
+    },
+    "file_version": 4,
+    "objects": {
+        "abstract_relais": {
+            "model_type": "abstract_relais",
+            "objects": [
+            ]
+        },
+        "ace_sasib_lever_2": {
+            "model_type": "ace_sasib_lever_2",
+            "objects": [
+            ]
+        },
+        "ace_sasib_lever_3": {
+            "model_type": "ace_sasib_lever_3",
+            "objects": [
+            ]
+        },
+        "acei_lever": {
+            "model_type": "acei_lever",
+            "objects": [
+            ]
+        },
+        "bem_lever": {
+            "model_type": "bem_lever",
+            "objects": [
+            ]
+        },
+        "circuit_bridge": {
+            "model_type": "circuit_bridge",
+            "objects": [
+            ]
+        },
+        "electromagnet": {
+            "model_type": "electromagnet",
+            "objects": [
+            ]
+        },
+        "generic_button": {
+            "model_type": "generic_button",
+            "objects": [
+            ]
+        },
+        "light_bulb": {
+            "model_type": "light_bulb",
+            "objects": [
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "L",
+                    "type": "light_bulb"
+                }
+            ]
+        },
+        "screen_relais": {
+            "model_type": "screen_relais",
+            "objects": [
+            ]
+        },
+        "sound_activable": {
+            "model_type": "sound_activable",
+            "objects": [
+            ]
+        },
+        "traintastic_aux_signal": {
+            "model_type": "traintastic_aux_signal",
+            "objects": [
+            ]
+        },
+        "traintastic_axle_counter": {
+            "model_type": "traintastic_axle_counter",
+            "objects": [
+            ]
+        },
+        "traintastic_main_signal": {
+            "model_type": "traintastic_main_signal",
+            "objects": [
+            ]
+        },
+        "traintastic_sensor": {
+            "model_type": "traintastic_sensor",
+            "objects": [
+            ]
+        },
+        "traintastic_spawn": {
+            "model_type": "traintastic_spawn",
+            "objects": [
+            ]
+        },
+        "traintastic_turnout": {
+            "model_type": "traintastic_turnout",
+            "objects": [
+            ]
+        }
+    },
+    "panels": {
+        "scenes": [
+            {
+                "lights": [
+                ],
+                "long_name": "",
+                "name": "QL",
+                "nodes": [
+                    {
+                        "lever": "",
+                        "lever_type": "",
+                        "light_central": "L",
+                        "light_central_color": "#ffff00",
+                        "light_left": "L",
+                        "light_left_color": "#ffff00",
+                        "light_right": "L",
+                        "light_right_color": "#0000ff",
+                        "name": "",
+                        "type": "acei_lever",
+                        "x": -1,
+                        "y": -1
+                    },
+                    {
+                        "button": "",
+                        "button_type": "",
+                        "light_central": "L",
+                        "light_central_color": "#ffff00",
+                        "light_left": "L",
+                        "light_left_color": "#ffff00",
+                        "light_right": "L",
+                        "light_right_color": "#0000ff",
+                        "name": "",
+                        "type": "acei_button",
+                        "x": 99,
+                        "y": -1
+                    },
+                    {
+                        "light_central": "L",
+                        "light_central_color": "#ffff00",
+                        "name": "",
+                        "type": "acei_light",
+                        "x": 199,
+                        "y": -1
+                    }
+                ]
+            }
+        ]
+    },
+    "remote_mgr": {
+        "replicas": [
+        ]
+    },
+    "session_name": ""
+}

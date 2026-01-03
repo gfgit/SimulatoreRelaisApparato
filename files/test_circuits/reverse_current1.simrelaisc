@@ -1,0 +1,334 @@
+{
+    "circuits": {
+        "scenes": [
+            {
+                "cables": [
+                    {
+                        "path": {
+                            "end_dir": 3,
+                            "start_dir": 4,
+                            "tiles": [
+                                {
+                                    "x": 0,
+                                    "y": -1
+                                },
+                                {
+                                    "x": 1,
+                                    "y": -1
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "path": {
+                            "end_dir": 2,
+                            "start_dir": 4,
+                            "tiles": [
+                                {
+                                    "x": -2,
+                                    "y": 1
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "path": {
+                            "end_dir": 1,
+                            "start_dir": 4,
+                            "tiles": [
+                                {
+                                    "x": 0,
+                                    "y": 3
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 3
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 2
+                                },
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "path": {
+                            "end_dir": 1,
+                            "start_dir": 3,
+                            "tiles": [
+                                {
+                                    "x": -1,
+                                    "y": 4
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "long_name": "",
+                "name": "A",
+                "nodes": [
+                    {
+                        "name": "",
+                        "rotation": 0,
+                        "text_rotation": 1,
+                        "type": "power_source",
+                        "x": -1,
+                        "y": -2
+                    },
+                    {
+                        "disabledContact": 1,
+                        "name": "",
+                        "rotation": 0,
+                        "text_rotation": 4,
+                        "type": "simple_node",
+                        "x": -1,
+                        "y": -1
+                    },
+                    {
+                        "initially_on": false,
+                        "name": "A",
+                        "rotation": 0,
+                        "text_rotation": 2,
+                        "type": "on_off_switch",
+                        "x": -1,
+                        "y": 0
+                    },
+                    {
+                        "initially_on": false,
+                        "name": "B",
+                        "rotation": 0,
+                        "text_rotation": 2,
+                        "type": "on_off_switch",
+                        "x": 1,
+                        "y": 0
+                    },
+                    {
+                        "name": "",
+                        "object": "L",
+                        "rotation": 3,
+                        "text_rotation": 3,
+                        "type": "light_bulb_activation",
+                        "x": -3,
+                        "y": 1
+                    },
+                    {
+                        "disabledContact": 3,
+                        "name": "",
+                        "rotation": 0,
+                        "text_rotation": 2,
+                        "type": "simple_node",
+                        "x": -1,
+                        "y": 1
+                    },
+                    {
+                        "active_during_middle": false,
+                        "central_connector": true,
+                        "flip": false,
+                        "hide_relay_normal": false,
+                        "name": "",
+                        "relais": "D",
+                        "rotation": 2,
+                        "swap_state": false,
+                        "text_rotation": 4,
+                        "type": "relais_contact",
+                        "x": -1,
+                        "y": 2
+                    },
+                    {
+                        "central_connector": true,
+                        "conditions": {
+                            "array": [
+                                {
+                                    "a": 2,
+                                    "b": 2,
+                                    "special": false,
+                                    "type": 0
+                                }
+                            ]
+                        },
+                        "flip": false,
+                        "lever": "Lv",
+                        "lever_type": "acei_lever",
+                        "name": "",
+                        "rotation": 2,
+                        "swap_state": false,
+                        "text_rotation": 4,
+                        "type": "lever_contact",
+                        "x": -1,
+                        "y": 3
+                    },
+                    {
+                        "name": "",
+                        "object": "L2",
+                        "rotation": 2,
+                        "text_rotation": 3,
+                        "type": "light_bulb_activation",
+                        "x": -1,
+                        "y": 5
+                    }
+                ]
+            }
+        ]
+    },
+    "file_version": 4,
+    "objects": {
+        "abstract_relais": {
+            "model_type": "abstract_relais",
+            "objects": [
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "D",
+                    "normally_up": false,
+                    "relay_type": 0,
+                    "type": "abstract_relais"
+                }
+            ]
+        },
+        "ace_sasib_lever_2": {
+            "model_type": "ace_sasib_lever_2",
+            "objects": [
+            ]
+        },
+        "ace_sasib_lever_3": {
+            "model_type": "ace_sasib_lever_3",
+            "objects": [
+            ]
+        },
+        "acei_lever": {
+            "model_type": "acei_lever",
+            "objects": [
+                {
+                    "description": "",
+                    "interfaces": {
+                        "lever": {
+                            "normal_position": 2,
+                            "pos_max": 2,
+                            "pos_min": 0,
+                            "spring_return_max": false,
+                            "spring_return_min": false
+                        }
+                    },
+                    "name": "Lv",
+                    "seal_left_pos": false,
+                    "type": "acei_lever"
+                }
+            ]
+        },
+        "bem_lever": {
+            "model_type": "bem_lever",
+            "objects": [
+            ]
+        },
+        "circuit_bridge": {
+            "model_type": "circuit_bridge",
+            "objects": [
+            ]
+        },
+        "electromagnet": {
+            "model_type": "electromagnet",
+            "objects": [
+            ]
+        },
+        "generic_button": {
+            "model_type": "generic_button",
+            "objects": [
+            ]
+        },
+        "light_bulb": {
+            "model_type": "light_bulb",
+            "objects": [
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "L",
+                    "type": "light_bulb"
+                },
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "L2",
+                    "type": "light_bulb"
+                }
+            ]
+        },
+        "screen_relais": {
+            "model_type": "screen_relais",
+            "objects": [
+            ]
+        },
+        "sound_activable": {
+            "model_type": "sound_activable",
+            "objects": [
+            ]
+        },
+        "traintastic_aux_signal": {
+            "model_type": "traintastic_aux_signal",
+            "objects": [
+            ]
+        },
+        "traintastic_axle_counter": {
+            "model_type": "traintastic_axle_counter",
+            "objects": [
+            ]
+        },
+        "traintastic_main_signal": {
+            "model_type": "traintastic_main_signal",
+            "objects": [
+            ]
+        },
+        "traintastic_sensor": {
+            "model_type": "traintastic_sensor",
+            "objects": [
+            ]
+        },
+        "traintastic_spawn": {
+            "model_type": "traintastic_spawn",
+            "objects": [
+            ]
+        },
+        "traintastic_turnout": {
+            "model_type": "traintastic_turnout",
+            "objects": [
+            ]
+        }
+    },
+    "panels": {
+        "scenes": [
+            {
+                "lights": [
+                ],
+                "long_name": "",
+                "name": "B",
+                "nodes": [
+                    {
+                        "lever": "Lv",
+                        "lever_type": "acei_lever",
+                        "light_central": "",
+                        "light_central_color": "#ffff00",
+                        "light_left": "",
+                        "light_left_color": "#ffff00",
+                        "light_right": "",
+                        "light_right_color": "#0000ff",
+                        "name": "",
+                        "type": "acei_lever",
+                        "x": 0,
+                        "y": -1
+                    }
+                ]
+            }
+        ]
+    },
+    "remote_mgr": {
+        "replicas": [
+        ]
+    },
+    "session_name": ""
+}

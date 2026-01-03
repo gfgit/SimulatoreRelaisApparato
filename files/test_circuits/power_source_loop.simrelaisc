@@ -1,0 +1,304 @@
+{
+    "circuits": {
+        "scenes": [
+            {
+                "cables": [
+                    {
+                        "path": {
+                            "end_dir": 3,
+                            "start_dir": 4,
+                            "tiles": [
+                                {
+                                    "x": 0,
+                                    "y": 0
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "path": {
+                            "end_dir": 2,
+                            "start_dir": 3,
+                            "tiles": [
+                                {
+                                    "x": -2,
+                                    "y": 1
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "path": {
+                            "end_dir": 3,
+                            "start_dir": 4,
+                            "tiles": [
+                                {
+                                    "x": 1,
+                                    "y": 1
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "long_name": "",
+                "name": "A",
+                "nodes": [
+                    {
+                        "name": "",
+                        "rotation": 0,
+                        "text_rotation": 1,
+                        "type": "power_source",
+                        "x": -6,
+                        "y": -1
+                    },
+                    {
+                        "name": "",
+                        "rotation": 0,
+                        "text_rotation": 1,
+                        "type": "power_source",
+                        "x": -4,
+                        "y": -1
+                    },
+                    {
+                        "name": "",
+                        "rotation": 0,
+                        "text_rotation": 1,
+                        "type": "power_source",
+                        "x": -1,
+                        "y": -1
+                    },
+                    {
+                        "initially_on": false,
+                        "name": "A",
+                        "rotation": 0,
+                        "text_rotation": 2,
+                        "type": "on_off_switch",
+                        "x": -6,
+                        "y": 0
+                    },
+                    {
+                        "initially_on": false,
+                        "name": "A_",
+                        "rotation": 0,
+                        "text_rotation": 2,
+                        "type": "on_off_switch",
+                        "x": -4,
+                        "y": 0
+                    },
+                    {
+                        "disabledContact": 1,
+                        "name": "",
+                        "rotation": 0,
+                        "text_rotation": 4,
+                        "type": "simple_node",
+                        "x": -1,
+                        "y": 0
+                    },
+                    {
+                        "combinator_second_coil": false,
+                        "delay_down_ms": 0,
+                        "delay_up_ms": 0,
+                        "has_second_connector": false,
+                        "name": "",
+                        "prefer_east_arrow": false,
+                        "relais": "CD",
+                        "rotation": 2,
+                        "text_rotation": 3,
+                        "type": "relais_power",
+                        "x": -6,
+                        "y": 1
+                    },
+                    {
+                        "combinator_second_coil": false,
+                        "delay_down_ms": 0,
+                        "delay_up_ms": 0,
+                        "has_second_connector": false,
+                        "name": "",
+                        "prefer_east_arrow": false,
+                        "relais": "CD_",
+                        "rotation": 2,
+                        "text_rotation": 3,
+                        "type": "relais_power",
+                        "x": -4,
+                        "y": 1
+                    },
+                    {
+                        "active_during_middle": false,
+                        "central_connector": true,
+                        "flip": true,
+                        "hide_relay_normal": false,
+                        "name": "",
+                        "relais": "CD",
+                        "rotation": 3,
+                        "swap_state": false,
+                        "text_rotation": 3,
+                        "type": "relais_contact",
+                        "x": -1,
+                        "y": 1
+                    },
+                    {
+                        "active_during_middle": false,
+                        "central_connector": true,
+                        "flip": false,
+                        "hide_relay_normal": false,
+                        "name": "",
+                        "relais": "CD_",
+                        "rotation": 1,
+                        "swap_state": false,
+                        "text_rotation": 3,
+                        "type": "relais_contact",
+                        "x": 0,
+                        "y": 1
+                    },
+                    {
+                        "name": "",
+                        "object": "A_",
+                        "rotation": 2,
+                        "text_rotation": 3,
+                        "type": "light_bulb_activation",
+                        "x": -2,
+                        "y": 2
+                    },
+                    {
+                        "name": "",
+                        "object": "A",
+                        "rotation": 2,
+                        "text_rotation": 3,
+                        "type": "light_bulb_activation",
+                        "x": 1,
+                        "y": 2
+                    }
+                ]
+            }
+        ]
+    },
+    "file_version": 4,
+    "objects": {
+        "abstract_relais": {
+            "model_type": "abstract_relais",
+            "objects": [
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "CD",
+                    "normally_up": false,
+                    "relay_type": 0,
+                    "type": "abstract_relais"
+                },
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "CD_",
+                    "normally_up": false,
+                    "relay_type": 0,
+                    "type": "abstract_relais"
+                }
+            ]
+        },
+        "ace_sasib_lever_2": {
+            "model_type": "ace_sasib_lever_2",
+            "objects": [
+            ]
+        },
+        "ace_sasib_lever_3": {
+            "model_type": "ace_sasib_lever_3",
+            "objects": [
+            ]
+        },
+        "acei_lever": {
+            "model_type": "acei_lever",
+            "objects": [
+            ]
+        },
+        "bem_lever": {
+            "model_type": "bem_lever",
+            "objects": [
+            ]
+        },
+        "circuit_bridge": {
+            "model_type": "circuit_bridge",
+            "objects": [
+            ]
+        },
+        "electromagnet": {
+            "model_type": "electromagnet",
+            "objects": [
+            ]
+        },
+        "generic_button": {
+            "model_type": "generic_button",
+            "objects": [
+            ]
+        },
+        "light_bulb": {
+            "model_type": "light_bulb",
+            "objects": [
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "A",
+                    "type": "light_bulb"
+                },
+                {
+                    "description": "",
+                    "interfaces": {
+                    },
+                    "name": "A_",
+                    "type": "light_bulb"
+                }
+            ]
+        },
+        "screen_relais": {
+            "model_type": "screen_relais",
+            "objects": [
+            ]
+        },
+        "sound_activable": {
+            "model_type": "sound_activable",
+            "objects": [
+            ]
+        },
+        "traintastic_aux_signal": {
+            "model_type": "traintastic_aux_signal",
+            "objects": [
+            ]
+        },
+        "traintastic_axle_counter": {
+            "model_type": "traintastic_axle_counter",
+            "objects": [
+            ]
+        },
+        "traintastic_main_signal": {
+            "model_type": "traintastic_main_signal",
+            "objects": [
+            ]
+        },
+        "traintastic_sensor": {
+            "model_type": "traintastic_sensor",
+            "objects": [
+            ]
+        },
+        "traintastic_spawn": {
+            "model_type": "traintastic_spawn",
+            "objects": [
+            ]
+        },
+        "traintastic_turnout": {
+            "model_type": "traintastic_turnout",
+            "objects": [
+            ]
+        }
+    },
+    "panels": {
+        "scenes": [
+        ]
+    },
+    "remote_mgr": {
+        "replicas": [
+        ]
+    },
+    "session_name": ""
+}
