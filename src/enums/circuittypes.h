@@ -23,7 +23,7 @@
 #ifndef CIRCUITTYPES_H
 #define CIRCUITTYPES_H
 
-#include <QtTypes>
+#include <QtGlobal>
 
 enum class CircuitType
 {
