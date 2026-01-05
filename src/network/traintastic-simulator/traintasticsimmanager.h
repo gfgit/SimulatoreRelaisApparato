@@ -105,7 +105,12 @@ private:
     QVector<TraintasticSpawnObj *> mSpawns;
 
     // 1 sec handshake + 500ms tolerance
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     static constexpr auto HandShakeRate = std::chrono::milliseconds(1500);
+#else
+    static constexpr int HandShakeRate = 1500;
+#endif
+
     QBasicTimer mHandShakeTimer;
 };
 

@@ -195,9 +195,23 @@ void TraintasticAxleCounterObj::setState(State newState)
         mAxleCount = 0;
 
     if(mState == State::ResetPre)
-        mResetTimer.start(std::chrono::milliseconds(3000), Qt::PreciseTimer, this);
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        const auto ms = std::chrono::milliseconds(3000);
+#else
+        const int ms = 3000;
+#endif
+        mResetTimer.start(ms, Qt::PreciseTimer, this);
+    }
     else if(mState == State::Reset)
-        mResetTimer.start(std::chrono::milliseconds(10000), Qt::PreciseTimer, this);
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        const auto ms = std::chrono::milliseconds(10000);
+#else
+        const int ms = 10000;
+#endif
+        mResetTimer.start(ms, Qt::PreciseTimer, this);
+    }
 
     emit stateChanged(this);
 

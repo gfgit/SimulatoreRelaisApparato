@@ -80,7 +80,14 @@ void CommandNode::addCircuit(ElectricCircuit *circuit)
     if(!wasActive && isActive && mObject)
     {
         setPhase(Phase::Waiting);
-        mTimer.start(std::chrono::milliseconds(mDelayMillis),
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        const auto ms = std::chrono::milliseconds(mDelayMillis);
+#else
+        const int ms = mDelayMillis;
+#endif
+
+        mTimer.start(ms,
                      Qt::CoarseTimer, this);
     }
 }
@@ -166,7 +173,12 @@ void CommandNode::timerEvent(QTimerEvent *ev)
         if(!performAction())
         {
             // Action failed, retry in 1 second
-            mTimer.start(std::chrono::seconds(1), Qt::CoarseTimer, this);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        const auto ms = std::chrono::seconds(1);
+#else
+        const int ms = 1000;
+#endif
+            mTimer.start(ms, Qt::CoarseTimer, this);
         }
         return;
     }
@@ -254,7 +266,14 @@ bool CommandNode::performAction()
             if(leverIface->angle() == stepAngle)
             {
                 // Success, schedule next step
-                mTimer.start(std::chrono::milliseconds(100), Qt::CoarseTimer, this);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        const auto ms = std::chrono::milliseconds(100);
+#else
+        const int ms = 100;
+#endif
+
+                mTimer.start(ms, Qt::CoarseTimer, this);
                 return true;
             }
         }

@@ -588,7 +588,12 @@ void LeverInterface::startSpringTimer()
     stopSpringTimer();
 
     // Update every 100ms for a semi-smooth animation
-    springTimer.start(std::chrono::milliseconds(100), mObject);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    const auto ms = std::chrono::milliseconds(100);
+#else
+    const int ms = 100;
+#endif
+    springTimer.start(ms, mObject);
 }
 
 int LeverInterface::absoluteMin() const

@@ -102,7 +102,12 @@ void ScreenRelais::onReplicaModeChanged(bool on)
     if(!on)
     {
         // Return to local target position
-        mTimer.start(std::chrono::milliseconds(50), this);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        const auto ms = std::chrono::milliseconds(50);
+#else
+        const int ms = 50;
+#endif
+        mTimer.start(ms, this);
     }
 }
 
@@ -241,7 +246,14 @@ void ScreenRelais::setPowerState(PowerState newState)
     mTargetPosition = getTargetPosition(screenType(), mState);
 
     if(!mTimer.isActive())
-        mTimer.start(std::chrono::milliseconds(50), this);
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+        const auto ms = std::chrono::milliseconds(50);
+#else
+        const int ms = 50;
+#endif
+        mTimer.start(ms, this);
+    }
 }
 
 void ScreenRelais::setPosition(double newPosition)
