@@ -253,7 +253,12 @@ void CircuitsView::deleteSelectedItems()
 
 void CircuitsView::renderToSVG(const QString &fileName)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     QSvgGenerator svg(QSvgGenerator::SvgVersion::SvgTiny12);
+#else
+    QSvgGenerator svg;
+#endif
+
     svg.setTitle(circuitScene()->circuitSheetName());
     svg.setDescription(tr("Simulatore Relais Apparato"));
     svg.setFileName(fileName);

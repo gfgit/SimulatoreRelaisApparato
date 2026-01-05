@@ -34,11 +34,18 @@
 #include <QCborMap>
 #include <QCborArray>
 
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 using namespace std::chrono_literals;
 
 static constexpr auto TransferTimeout = 30s;
 static constexpr auto PongTimeout = 60s;
 static constexpr auto PingInterval = 5s;
+#else
+static constexpr auto TransferTimeout = 30 * 1000;
+static constexpr auto PongTimeout = 60 * 1000;
+static constexpr auto PingInterval = 5 * 1000;
+#endif
 
 /*
  * Protocol is defined as follows, using the CBOR Data Definition Language:
@@ -412,7 +419,12 @@ void PeerConnection::processReadyRead()
 
 void PeerConnection::sendPing()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+using namespace std::chrono_literals;
     if (pongTime.durationElapsed() > PongTimeout)
+#else
+    if (pongTime.elapsed() > PongTimeout)
+#endif
     {
         abort();
         return;

@@ -26,6 +26,7 @@
 #include "../../views/modemanager.h"
 
 #include "../remotemanager.h"
+#include "../remotesession.h" // Need for QObject::connect() beacuse it is argument in signal
 #include "../remotesessionsmodel.h"
 #include "../replicaobjectmanager.h"
 
